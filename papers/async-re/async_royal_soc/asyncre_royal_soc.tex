@@ -429,17 +429,16 @@ that are pre-defined at the time of workload submission.
 
 Figure ~\ref{fig:bigjob} shows the architecture of SAGA BigJob.  It
 consists of three components: (i) the SAGA-BigJob Manager, (ii) the
-BigJob Agent and (iii) the advert service.  The SAGA-BigJob manager
-submits the BigJobs to the resource manager and the sub-job
-descriptions to the \emph{advert server}. The advert server can be on
-any machine and is a central key/value store which is used for
-communication between the SAGA-BigJob Manager and the BigJob
-agent. There is a separate BigJob agent for each BigJob. Thus, every
-BigJob on every machine has a local BigJob agent. Once the BigJobs
-become active, the BigJob agent retrieves the job descriptions from
-the advert server, allocates the required number of nodes and launches
-the sub-jobs on each resource. The BigJob agent continuously monitors
-the running sub-jobs and updates the sub-job states in the advert
+BigJob Agent and (iii) the advert service which is a central key/value
+store which is used for communication between the SAGA-BigJob Manager
+and the BigJob agent.  The SAGA-BigJob manager submits the BigJobs to
+the resource manager and sub-job descriptions to the advert server.
+There is a separate BigJob agent for each BigJob, even if there are
+multiple BigJobs on a given machine.  Once a BigJob becomes active,
+the BigJob agent retrieves the job descriptions from the advert
+server, allocates the required number of nodes and launches the
+sub-jobs on each resource. The BigJob agent continuously monitors the
+running sub-jobs and updates the sub-job states in the advert
 server. Once a sub-job finishes running, the nodes are freed and
 marked as available. The BigJob agent periodically polls the advert
 server for new jobs.
@@ -454,14 +453,42 @@ server for new jobs.
 %   \jhanote{ABHINAV: DEFINE THE ROLE OF RE-MANAGER HERE.  Possibly BIGJOB
 %   AGENT here if not in previous subsection.}  \athotanote{please check if it's ok now}
   
-The RE Manager is an abstraction over the SAGA BigJob Manager. At the most, the RE Manager is the master process controlling all the aspects of the RE experiment and exchanges. And at the least, it is the SAGA BigJob Manager. The actual tasks that the RE Manager carries out depend on the type of the implementation. In an implementation where the RE Manager manages all the replicas and makes all the exchanges, the RE Manager does a lot of work (a centralized implementation). But in an implementation where there is a \emph{replica agent} for every replica, the RE Manager has the same functionality as the SAGA BigJob Manager (a decentralized implementation). A replica agent is a wrapper script launched in place of the replica. The replica agent typically manages the replica and makes the exchanges. It should be noted that synchronous and asynchronous RE are the different algorithms and the implementation of an same algorithm could be centralized and decentralized.
+The RE Manager is the master process controlling the different
+components of the framework and aspects of the exchanges.  The RE
+Manager % is an abstraction that
+uses the SAGA BigJob Manager; the actual tasks that the RE Manager
+performs out depend on which RE algorithm is being investigated.  A
+replica agent is a wrapper script typically manages an individual
+replica and facilitiates the exchange of that replica.
 
-%Synchronous RE is implemented in a centralised fashion. Centralized implementation suits synchronous RE because there is a synchronization step at the beginning of each exchange step. But we implement asynchronous RE in both centralised and decentralised fashions. 
+% And at the least, it is the SAGA BigJob Manager.  At the most,
+% launched in place of the replica. The replica agent implementation
+% where the RE Manager does a lot of work (a centralized
+% implementation). But in an implementation where there is a
+% \emph{replica agent} for every replica, the It should be noted that
+% synchronous and asynchronous RE are different algorithms and the
+% implementation of same algorithm could be centralized and
+% decentralized.
 
-The actual tasks that the RE Manager carries out depending on the implementation are explained in the following sections. 
-We explain how the synchronous and asynchronous (centralized) RE Manager works in the following section and in the section following that explain how the asynchronous (decentralized) RE Manager/replica agent combination works. We explain synchronous and asynchronous (centralized) RE Managers in the same section as they are both centralized implementations and have a lot of similarities. 
+The asynchronous RE algorithm can be implemented using a centralised
+or decentralised coordination scheme.  In the former, the RE Manager
+manages all the replicas and performs the exchanges; in the
+decentralised coordination implementation, multiple replica-agents
+take on that responsibility.  It is worth noting that the synchronous
+RE algorithm has centralised coordination scheme.  Interestingly, for
+decentralised coordination implementation, the RE Manager is
+functionally similar to the SAGA BigJob Manager.
 
-% The RE-Manager also creates directories, configuration files and stages them to the respective directories.  \alnote{We should focus on the RE part here. The BigJob  stuff move to subsec a). This should also remove the redundancy with  a)} 
+% Synchronous RE is implemented in a centralised fashion. Centralized
+% implementation suits synchronous RE because there is a
+% synchronization step at the beginning of each exchange step. But we
+% implement asynchronous RE in both centralised and decentralised
+% fashions.
+
+% The RE-Manager also creates directories, configuration files and
+% stages them to the respective directories.  \alnote{We should focus
+%   on the RE part here. The BigJob stuff move to subsec a). This
+%   should also remove the redundancy with a)}
 
 \begin{figure}%
 \centering
@@ -477,27 +504,35 @@ We explain how the synchronous and asynchronous (centralized) RE Manager works i
 \label{fig:coordination}
 \end{figure}
 
-\jhanote{this is an implementation detail. Abhinav: IIUC we restart in
-  both cases -- successful and unsuccessful exchanges. Non? ALso don't
-  toggle between ``replicas'' and ``jobs''!}  Jobs are then
-restarted~\citep{Luckow:2008fp} with new temperature values.  In the
-case of an unsuccessful exchange, jobs are restarted without
-exchanging the configuration.
+% \jhanote{this is an implementation detail. Abhinav: IIUC we restart in
+%   both cases -- successful and unsuccessful exchanges. Non? ALso don't
+%   toggle between ``replicas'' and ``jobs''!}  
+
+We first explain how the synchronous and asynchronous (centralized) RE
+Manager works in the following section followed by an explaination of
+how the asynchronous (decentralized) RE Manager/replica agent
+combination works.
 
 \subsubsection{Synchronous and Asynchronous (centralized) RE-Manager}
 
-Here we first explain how the synchronous RE Manager works and then
-explain asynchronous (centralized) RE Manager. The control flow of the
-asynchronous (centralized) RE case is shown in
-Figure~\ref{fig:coordination}a). But as synchronous RE is also a
-centralized implementation, we use it to describe
-both. %\jhanote{Abhinav, please check that this is correct?}
+% We first explain how the synchronous RE Manager works and then
+% explain asynchronous (centralized) RE Manager. 
+% centralized implementation, Figure~\ref{fig:coordination}a) can be
+% used to describe both.
 
-Once the BigJobs are running and the replicas are running, the RE Manager constantly queries the SAGA BigJob Manager for the latest replica states. % \alnote{The RE-Manager queries BigJob. We should hide
-% the BJ impl details in this section.}
-When the RE-Manager finds a replica that has finished running, it
-collects the energy and temperature of that replica by reading the
-output file. Once \emph{all} the replicas have finished running, the
+% The architecture of an asynchronous (centralized) RE-Manager is
+% similar to that of synchronous RE Manager.
+% Figure~\ref{fig:coordination}a) shows the control flow.
+
+The control flow of a centralized RE scheme is shown in
+Figure~\ref{fig:coordination}a), which can be used to understand both
+the asynchronous (centralized) RE and synchronous RE implementations.
+
+Once the BigJobs and replicas are running, the RE Manager constantly
+queries the SAGA BigJob Manager for the latest replica states.  When
+the RE-Manager finds a replica that has finished running, it collects
+the energy and temperature of that replica by reading the output
+file. Once \emph{all} the replicas have finished running, the
 RE-Manager makes the exchanges. The exchange is done by exchanging the
 temperatures and writing new configuration files. The new
 configuration files are staged to the appropriate location. The
@@ -508,23 +543,23 @@ BigJob agent finds the replicas and restarts them. The RE-Manager
 counts the successful exchanges. This process is repeated until the
 required number of exchanges are done.
 
-The architecture of an asynchronous (centralized) RE-Manager is
-similar to that of synchronous RE Manager.
-Figure~\ref{fig:coordination}a) shows the control flow. The difference
-is that instead of waiting for \emph{all} replicas to finish running
-before making exchanges, whenever the asynchronous (centralized)
-RE-Manager finds a replica that has finished running, it tries to find
-a partner to make an exchange. In order to find a partner, the RE
-Manager goes over the list of all the replicas in the ensemble. If it
-finds a replica available it attempts the exchange. If a replica is
-not found available, the RE Manager queries the SAGA BigJob Manager
-for the latest replica states and updates its local list. It then
-loops over the list to find a replica that has finished running and a
-partner to exchange with that replica.  If successful, the replicas
-are submitted to be restarted. % \alnote{see comment about BJ
+The difference in the implementation of the asynchronous (centralised)
+RE-Manager, is that instead of waiting for \emph{all} replicas to
+finish running before making exchanges, whenever the asynchronous
+(centralized) RE-Manager finds a replica that has finished running, it
+tries to find a partner to make an exchange. In order to find a
+partner, the RE Manager goes over the list of all the replicas in the
+ensemble. If it finds a replica available it attempts the exchange. If
+a replica is not found available, the RE Manager queries the SAGA
+BigJob Manager for the latest replica states and updates its local
+list. It then loops over the list to find a replica that has finished
+running and a partner to exchange with that replica.  If successful,
+the replicas are submitted to be
+restarted. % \alnote{see comment about BJ
 %   impl. detail above}.
 The RE-Manager counts the successful
 exchanges. This process is repeated till all the exchanges are made.
+
 
 % \alnote{Not sure what we should do with the following paragraph}
 % \jhanote{Does not belong here} It should be noted that where as in the
@@ -535,7 +570,10 @@ exchanges. This process is repeated till all the exchanges are made.
 
 \subsubsection{Asynchronous (decentralized) RE-Manager and the replica agent}
 
-In the asynchronous (decentralized) implementation, the RE Manager's responsibility is greatly reduced and it only needs to keep count of the number of exchanges completed. When the required number of exchanges are done, the RE Manager ends the experiment. 
+In the asynchronous (decentralized) implementation, the RE Manager's
+responsibility is greatly reduced and it only needs to keep count of
+the number of exchanges completed. When the required number of
+exchanges are done, the RE Manager ends the experiment.
 
 In order to conduct the exchanges in a decentralized fashion, replica-agents are launched in place of replicas. As mentioned earlier, the replica agent is just a wrapper script for the replica, which starts, makes exchanges and restarts the replica. Thus, after the replica-agents are launched, the RE Manager and the SAGA BigJob Manager don't have any responsibilities.  
 
@@ -660,6 +698,11 @@ restarted, they finish the run slightly faster (68 seconds).  And the
 total time the ensemble of replicas spend running is $71 \times 8 =
 568$ seconds.
   
+For all implementations, in the event of a successful exchange, jobs
+are restarted~\citep{Luckow:2008fp} with new temperature values.  In
+the case of an unsuccessful exchange, jobs are restarted without
+exchanging the configuration.
+ 
 Also, we are primarily interested in learning the scale-up and
 scale-out properties of synchronous and asynchronous RE and hence are
 not concerned by the queue wait time. Therefore, we only start
