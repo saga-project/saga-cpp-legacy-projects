@@ -83,28 +83,30 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}  
 
-  Developing applications that are able to orchestrate heterogeneous
-  resources across distributed resources is a complex
-  task. Inevitably, the design and development of an application is
-  influenced and constrained by the programming systems and the
-  infrastructure it is developed against. Breaking this coupling
-  between the development and the underlying infrastructure, to enable
-  applications to be flexible (across infrastructure), extensible (to
-  new methods of communication and coordination) and scalable is an
-  important design objective of both logically and physically
-  distributed applications.  In this work, we focus on the
+  The design and development of an application is often influenced and
+  constrained by the programming systems and the infrastructure it is
+  developed against.  It is important to breaking the coupling between
+  the development and the underlying infrastructure, in order to
+  enable applications to be flexible (across infrastructure),
+  extensible (to new methods of communication and coordination) and
+  scalable.  Developing applications that are able to orchestrate
+  heterogeneous resources across distributed resources is a complex
+  task yet is an important design objective of both logically and
+  physically distributed applications.  In this work, we focus on the
   Replica-Exchange (RE) Methods which represent a class of algorithms
-  that involve a large number of loosely-coupled ensembles. RE
-  simulations are used to understand physical phenomena Ð ranging from
-  protein folding dynamics to binding affinity calculations.  In this
-  work, we develop a flexible, extensible and scalable implementation
-  of RE that can utilise a range of infrastructure concurrently, that
-  supports different coordination mechanisms (publish-subscribe
-  \jhanote{do we?}, centralised notification), different replica
-  pairing mechanisms (synchronous versus asynchronous) and thereby
-  different variants of the RE algorithm. We implement and demonstrate
-  how a flexible and robust implementation enables the efficient use
-  of a broad range of infrastructure.
+  that involve a large number of loosely-coupled ensembles and are
+  used to understand physical phenomena -- ranging from protein
+  folding dynamics to binding affinity calculations.  We develop a
+  flexible, extensible and scalable implementation of RE that can
+  utilise a range of production cyberinfrastructure concurrently, that
+  supports different replica pairing mechanisms (synchronous versus
+  asynchronous) and coordination mechanisms, and thereby different
+  variants of the RE algorithm. We implement and characterise the
+  performance of our implementation at unprecedented scales.
+
+%  flexible and robust implementation enables the efficient use of a
+%   broad range of infrastructure.
+%   (publish-subscribe centralised notification),
 
 % Developing applications that are able to orchestrate heterogeneous
 % resources across distributed resources is a complex task. Inevitably,
@@ -130,6 +132,12 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 % efficient use of a broad range of infrastructure.
 
 \end{abstract}
+
+\jhanote{Since this is going to Her Majesty's Land, we need to be
+  consistent with ``s'' over ``z'' -- organise not organize etc}
+
+\jhanote{In general please don't use hard numbers, but use pointers to
+  sections!}
 
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
@@ -158,44 +166,45 @@ simulations, which is based on
 CometG~\citep{Li:2005:CSC:1090948.1091381}, a decentralised
 computational infrastructure for Desktop Grid environments.
 
-We develop a flexible, extensible and scalable implementation of RE
-that can utilize a range of infrastructure concurrently that supports
-different coordination mechanisms (publish-subscribe, centralised
-notification), different replica pairing mechanisms (synchronous
-versus asynchronous) and thereby different variants of the RE
-algorithm.  Application formulations that are scalable while being
-flexible and extensible are better suited to using the diverse range
-of traditional and hybrid infrastructure (e.g., Grid-Cloud and
-heterogeneous resources).  
+Application formulations that are scalable while being flexible and
+extensible are better suited to using the diverse range of traditional
+and hybrid infrastructure (e.g., Grid-Cloud and heterogeneous
+resources).  Along with application formulations that facilitate the
+flexible utilisation of a range of infrastructure, it is imperative to
+have the correct run-time abstractions that support flexible
+deployment of these applications.  In support of flexible and scalable
+formulations of the RE class of algorithms, we develop a RE Framework
+that supports multiple formulations, is extensible to a broad range of
+infrastructure and as we shall show is scales-up and scales-out.
 
-Along with application formulations that facilitate the flexible
-utilisation of a range of infrastructure, it is imperative to have the
-correct run-time abstractions that support flexible deployment of
-these applications.  Consequently, we utilize a flexible pilot-job
-implementation (SAGA BigJob) to support the execution of our
-formulations.  We implement and demonstrate how a flexible and robust
-implementation enables the efficient use of a broad range of
-infrastructure. We compare and analyze the performance of the
-different RE models (synchronous and asynchronous) when we scale-up to
-256 replicas and scale-out to 4 machines. We present results using
-which the reader can understand which model of RE is most suited for a
-particular set of resources (distributed, local etc.,)
+Our RE Framework utilises a flexible pilot-job implementation (SAGA
+BigJob) to support the execution of the ensembles.  It supports
+scalable implementation of RE that can utilize a range of
+infrastructure concurrently that supports different coordination
+mechanisms (publish-subscribe, centralised notification), different
+replica pairing mechanisms (synchronous versus asynchronous) and
+thereby different variants of the RE algorithm.  We compare and
+analyze the performance of the different RE formulations (synchronous
+and asynchronous) when scaled-up to 256 replicas, and scaled-out to 4
+machines. % \jhanote{Last sentence is unclear} We present results using
+% which the reader can understand which model of RE is most suited for a
+% particular set of resources (distributed, local etc.,)
 
-The rest of the paper is organized as follows. Section II sketches out
-the different RE algorithms that we investigate. Section III outlines
-the architecture of the SAGA BigJob and how it supports the dynamic
-execution of multiple replicas (ensembles). In Section IV, we present
-the implementation details of the RE algorithms and understand
-the primary determinants of performance; we also present
-an approximate mathematical model for the different algorithms.
-% We also present
-% different implementations of the asynchronous RE algorithm. 
-In Section V, we describe the experiments performed with a view to
-understanding the performance when scaling-up (on a single machine) as
-the number of replicas increases. Section V also investigates the
-scaling-out characteristics, namely performance as the number of
-replicas are increased while the (distributed) resources employed
-increases. %  while keeping the number of replicas on local and
+The paper is organized as follows. Section II sketches out the three
+different RE algorithms that are investigated; we also present an
+approximate mathematical model for the different algorithms.  Section
+III outlines the architecture of the RE Framework -- the SAGA BigJob
+(how it supports the dynamic execution of multiple replicas) and other
+important elements that make the framework flexible and extensible.
+In Section IV, we present our implementation of the RE algorithms and
+understand the primary determinants of performance and relate it to
+the mathematical model of \S~\ref{sec:repex-approach}.  In Section V,
+we describe the experiments performed to assess and understand
+performance when scaling-up (on a single machine) as the number of
+replicas increases. Section V also investigates the scaling-out
+characteristics, namely performance as the number of replicas are
+increased while the (distributed) resources employed
+increases. % while keeping the number of replicas on local and
 % distributed resources.  \jhanote{Currently we have only Section 6
 %   and no 7}.
 We present the results and analysis, in Section VI and Section VII
@@ -205,66 +214,18 @@ concludes the paper and discusses future work.
 %   Hepatitis...?}  \jhanote{given the tightness of space, I think we
 %   should try to avoid it. OK?}
 
-\section{Replica-Exchange Algorithms}
-\label{sec:repex-approach}
+\section{Replica-Exchange Algorithms}\label{sec:repex-approach}
 
-% \jhanote{Abhinav: I still note the inconsistent and variable use of
-%   algorithms, methods(?) and cases/approaches. I think we should refer
-%   to Replica-Exchange as a ``class of algorithms'' or ``algorithm'',
-%   and different implementations -- sync versus async} 
-
-% \athotanote{RE class of algorithms - synchronous and asynchronous
-%   models within RE class of algorithms; later sync, centralized-async,
-%   decent-async implementation. right? or - RE class of algorithms -
-%   synchronous and asynchronous implementation of RE class of
-%   algorithms; later sync, centralized-async, decent-async
-%   implementations. please suggest.}  \jhanote{I would say (i) RE Class
-%   of Algorithms, (ii) Sync/Async algorithms too, and then centralized
-%   or decentralized implementations of these sync versus async RE
-%   algorithm}
-  
 The RE class of algorithms involve the concurrent execution of
 \emph{replicas} - which are defined as instances of essentially
 similar simulations but with minor differences, such as the defining
 temperature of the replica. These replicas are loosely coupled, in
-that there is an infrequent exchange between pairs of % \jhanote{do we
-%   want to say paired?} \athotanote{fixed}
-replicas. In addition to the
-frequency of communication between the replicas being small (relative
-to within a single replica), the amount of information/data exchanged
-between replicas is small (relative to the operating data-set
-size). In the next subsection we develop a mathematical model which
-aims to introduce the different components that make up the total
-runtime of a RE experiment.
-
-%\subsection{Mathematical Model}
-%\alnote{I think we should discuss the mathematical model before going
-  %into the specifics of sync/async RE.}
-
-%Here we first provide a basic mathematical model for different RE
-%models which explains the terms involved. In this section, we aim to
-%develop an equation for total time to run any RE simulation. If $t$ is
-%the average time between successful exchanges, and $p$ is the
-%probability of a successful exchange,
-%\begin{eqnarray}
-%t=  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]} 
-%\label{eq:timebtw}
-%\end{eqnarray}
-
-%where $T_{X}$ is the time to carry-out a pairwise exchange, which is
-%comprised of (i) finding a partner, (ii) exchanging states including
-%file transfer, (iii) book-keeping, and (iv) (re)starting the replica;
-%$T_{W}$ is the time spent waiting for all replicas to complete running.
-
-
-%Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
-
-%and for ${T_{X}}^{async}, T_W = 0$
-
-%The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
-
-%If there are $\eta$ independent exchange events occurring
-%concurrently, then the time $T$ for N$_x$ exchanges is $T \over \eta$.
+that there is an infrequent exchange between pairs of 
+% \jhanote{do we want to say paired?} \athotanote{fixed}
+replicas; in addition to the frequency of communication between the
+replicas being low (relative to within a single replica), the amount
+of information/data exchanged between replicas is small (relative to
+the operating data-set size).
 
 \alnote{We should give a number for $\eta$ for sync
   RE}\athotanote{wouldn't that be implementation dependent?}
@@ -276,123 +237,63 @@ runtime of a RE experiment.
   a time(single master process) and $\eta_{async-decent}$ should be
   $N_R \over 2$, as each pair is involved in negotiating an
   exchange. since this depends on implementation, i am not including
-  the $\eta$ values here.}
+  the $\eta$ values here.} \jhanote{Andre: If the points in the above
+  exchange have been addressed, could you please comment out? Thanks.}
 
 \subsection{Mathematical Model}
-% \athotanote{i am not able to fit the sync, cent, decent
-%   implementations into the math model. the problem is: $t$. in theory
-%   $t$ may be possible, but if you look at the implementation, there
-%   isn't a corresponding value. the exchanges don't happen in a way
-%   where you could define $t$ in the way we define it in the original
-%   math model. $T_{MD}$ of a single replica can't be considered for $t$
-%   because replicas run in parallel, we don't have a distinct $T_{MD}$
-%   for every $t$. }
 
-% At this point, let us define the term \emph{generation} as one
-% concurrent run of the ensemble of replicas. Thus, after each
-% generation, exchangs are made and the replicas restarted.  A more
-% practical equation for total time would look like this.  \alnote{Why
-%   is the second $N_X$ not divided by $\eta$}
- 
-Let us begin by considering an ideal scenario where there is no
-overhead involved in running an RE experiment. Then, the total time to
-complete an experiment would be equal to the concurrent runtime of the
-ensemble of replicas. In an RE experiment, the probability of a
-successful exchange is not 1. The decision to make the exchange or not
-is made using the Metropolis scheme (~\citep). In case of an
-unsuccessful exchange, the replicas are restarted without exchanging
-the configuration. Let the probability of a successful exchange be
-$p$. If the ensemble contains $N_R$ replicas, the total number of
-pairwise exchanges is $N_X$ and the runtime of a replica to complete a
-defined number of time steps is $T_{MD}$, then the total time to
-complete the RE experiment, $T$ would be: ${1 \over p} \times T_{MD}
-\times {N_X \over {N_R \over 2}}$.
-
-But it is not actually possible to implement an RE experiment without
-overhead.  The time $T$ to complete the RE experiment where N$_X$ is
-the total number of exchanges is:
+In the this subsection we develop a mathematical model that captures
+the primary components that make up the total runtime of a RE
+experiment. In an ideal scenario, the total time to complete an
+experiment would be equal to the concurrent runtime of the ensemble of
+replicas and there would be no overhead associated with the
+coordination of the replicas.  If the ensemble contains $N_R$
+replicas, the total number of pairwise exchanges is $N_X$ and the
+runtime of a replica to complete a defined number of time steps is
+$T_{MD}$, then the total time to complete the RE experiment, $T$ would
+be:
 \begin{eqnarray}
-T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + {(T_{X} + T_{W}) \over \eta} \times N_X]
+T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}}) 
 \label{eq:totaltime}
 \end{eqnarray}
-
-Where $T_{X}$ is the time to make a pairwise exchange and would
-include components like time to find a partner ($T_F$), time to
-exchange files or to write and transfer files ($T_{ex}$) and
-book-keeping ($T_{coord}$). $T_W$ is the time spent by a replica
-waiting for other replicas to become available ($T_w$), the time spent
-waiting till it is restarted after each exchange ($T_r$) and any other
-miscellaneous costs. Thus $T_{X} = T_{F} + T_{ex}+T_{coord}$ and
-$T_W=T_w+T_r$, and where $\eta$ is the number of independent exchange
-events occurring concurrently,
-
-% \begin{eqnarray}
-% T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{X} + T_{W}) \times N_X]
-% \label{eq:totaltime}
-% \end{eqnarray}
-
-\alnote{Using ex and EX as subscripts is very
-  confusing!} \jhanote{Why not use T$_X$ in lieu of $T_{EX}$? }
-
-
-% Equation \ref{eq:totaltime} gives the total time to complete an RE
-% experiment. The next equation aims to calculate the time to complete
-% particular number of exchanges ($N_z$), where $0 \geq N_z \geq N_X$.
-
-% \begin{eqnarray}
-% T_z = {1\over p} \times [(T_{MD} \times  \lceil{N_z \over {N_R \over 2}}\rceil) + (T_{EX} + T_{W}) \times N_z]
-% \label{eq:parttime}
-% \end{eqnarray}
-
-% Here $\lceil$ $\rceil$ denotes the ceiling function. The reason we put the term ${N_z \over {N_R \over 2}}$ under a ceiling function is because the ensemble of replicas run concurrently and for each concurrent run, $N_R \over 2$ exchanges are possible. Therefore, only the coordination and waiting costs effect the total time. 
-
-% \athotanote{please suggest alternative terms if you find anything
-%   confusing}
-
-%It should be noted that only the coordination and waiting costs are divided by $\eta$. The ensemble of replicas are already running concurrently and 
-
-
-% The RE algorithm involves the concurrent execution of multiple similar
-% simulations, the \emph{replicas}.  There is a loose-coupling between
-% the replicas in form of periodic exchange attempts between paired
-% replicas. The traditional approach to RE is the synchronous model,
-% which works well in an ideal scenario with a well defined model of
-% resource availability. But with heterogenous systems and fluctuating
-% resource availability, the asynchronous RE model could be more
-% effectively used to conduct simulations. 
-% >>>>>>> .r3441
-
-
-%Previously, we demonstrated the usage of the SAGA Pilot-Job
-%framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to run
-%RE simulations across multiple, heterogeneous distributed Grid and
-%Cloud infrastructures~\citep{Luckow:2008fp}.
-%\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes} The Simple API for Grid Applications (SAGA)~\citep{saga_gfd90} is an API standardization effort within the Open Grid Forum (OGF)~\citep{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
-%Further, we introduced several adaptivity modes, e.\,g.\ adaptive
-%sampling that are able to react to dynamic changes in resource
-%availabilities.
-
-%\alnote{Not sure how many technical we need to provide...}  
-
-%Traditionally, depending
-%on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
-%of replicas.  Before launching a job, the manager ensures that all
-%required input files are transferred to the respective resource. For
-%this purpose, the SAGA File API and the GridFTP adaptor are used. The
-%replica jobs are then submitted to the resource using the SAGA CPR
-%API and the MIGOL/GRAM middleware.
-
-%\jhanote{Mention that these are SAGA-based implementations. Something  else would be implemented differently}
-%\alnote{Proposed structure: a) math. model b) sync c) async. We should give the reader some orientation in this section.}
+where, p is defined as the probability of a successful exchange be $p$
+(as the probability of a successful exchange is not 1, but the
+probability of whether to accept an exchange or not is made using the
+Metropolis scheme.  However, any RE experiment will entail an overhead
+of coordination, job-submission \& termination etc. Thus, the time $T$
+to complete the RE experiment where N$_X$ is the total number of
+exchanges is:
+\begin{eqnarray}
+  T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
+  {(T_{X} + T_{W}) \over \eta} \times N_X]
+%   T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) +
+%   {(T_{X} + T_{W}) \over \eta} \times N_X]
+\label{eq:totaltime}
+\end{eqnarray}
+where, $T_{X}$ is the time to perform a pairwise exchange and includes
+the following components, (i) time to find a partner ($T_F$), (ii)
+time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
+book-keeping associated with replica pairing/exchanging ($T_{coord}$)
+(thus $T_{X} = T_{F} + T_{ex}+T_{coord}$); $T_W$ is comprised of (i)
+the time spent by a replica waiting for other replicas to become
+available, the time spent waiting to be restarted after each exchange
+($T_r$) and any other associated costs, and $\eta$ is the number of
+independent exchange events occurring concurrently,
 
 \subsection{Synchronous Replica Exchange}
 
-%\alnote{Are we already introducing cases in this sec?} \athotanote{nope, i don't think so!}
-  In the synchronous (traditional)
-model of the RE algorithm, depending upon on the number of replicas ${N_R}$, 
-${N_R \over 2}$ pairs of replicas are created. When \emph{all} the replicas in the ensemble reach a
-pre-determined state (e.g. the MD simulation completes a pre-determined
-number of steps), % a decision as to whether to exchange temperatures
+\jhanote{this is an implementation detail. Abhinav: IIUC we restart in
+  both cases -- successful and unsuccessful exchanges. Non?} In the
+case of an unsuccessful exchange, the replicas are restarted without
+exchanging the configuration.
+
+
+In the synchronous (traditional) model of the RE algorithm, depending
+upon on the number of replicas ${N_R}$, ${N_R \over 2}$ pairs of
+replicas are created. When \emph{all} the replicas in the ensemble
+reach a pre-determined state (e.g. the MD simulation completes a
+pre-determined number of
+steps), % a decision as to whether to exchange temperatures
 %between previously
 an exchange of temperatures between the paired replicas is attempted
 using the Metropolis scheme. %  The ensembles of replicas executes
@@ -478,7 +379,7 @@ after an exchange and any other miscellaneous costs.
 %\jhanote{There is no basis for this sentence at the moment. REMOVE}
 
 
-\section{Replica-Exchange Framework}
+\section{Replica-Exchange Framework}\label{repexfw}
 
 The RE Framework we present is independent of the underlying infrastructure and provides the capability to implement a variety of RE algorithms. 
 An important motivation for us to come up with an RE Framework is to present an infrastructure independent solution that makes it possible to implement a variety of RE algorithms, such as synchronous and asynchronous, that can dynamically utilise a range of infrastructures.
@@ -1183,3 +1084,99 @@ Further, we compare the traditional RE model (case I) and the centralised (case 
 \bibliography{saga,literature}    
 \end{document}
 
+
+% and $T_W=T_w+T_r$, and where
+%($T_w$), 
+
+% \begin{eqnarray}
+% T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{X} + T_{W}) \times N_X]
+% \label{eq:totaltime}
+% \end{eqnarray}
+
+% \alnote{Using ex and EX as subscripts is very
+%   confusing!} \jhanote{Why not use T$_X$ in lieu of $T_{EX}$? }
+
+% Equation \ref{eq:totaltime} gives the total time to complete an RE
+% experiment. The next equation aims to calculate the time to complete
+% particular number of exchanges ($N_z$), where $0 \geq N_z \geq N_X$.
+
+% \begin{eqnarray}
+% T_z = {1\over p} \times [(T_{MD} \times  \lceil{N_z \over {N_R \over 2}}\rceil) + (T_{EX} + T_{W}) \times N_z]
+% \label{eq:parttime}
+% \end{eqnarray}
+
+% Here $\lceil$ $\rceil$ denotes the ceiling function. The reason we put the term ${N_z \over {N_R \over 2}}$ under a ceiling function is because the ensemble of replicas run concurrently and for each concurrent run, $N_R \over 2$ exchanges are possible. Therefore, only the coordination and waiting costs effect the total time. 
+
+% \athotanote{please suggest alternative terms if you find anything
+%   confusing}
+
+%It should be noted that only the coordination and waiting costs are divided by $\eta$. The ensemble of replicas are already running concurrently and 
+
+
+% The RE algorithm involves the concurrent execution of multiple similar
+% simulations, the \emph{replicas}.  There is a loose-coupling between
+% the replicas in form of periodic exchange attempts between paired
+% replicas. The traditional approach to RE is the synchronous model,
+% which works well in an ideal scenario with a well defined model of
+% resource availability. But with heterogenous systems and fluctuating
+% resource availability, the asynchronous RE model could be more
+% effectively used to conduct simulations. 
+% >>>>>>> .r3441
+
+
+%Previously, we demonstrated the usage of the SAGA Pilot-Job
+%framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to run
+%RE simulations across multiple, heterogeneous distributed Grid and
+%Cloud infrastructures~\citep{Luckow:2008fp}.
+%\alnote{maybe we should also intro SAGA at some point} \jhanote{Yes} The Simple API for Grid Applications (SAGA)~\citep{saga_gfd90} is an API standardization effort within the Open Grid Forum (OGF)~\citep{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. The various tasks that are carried out using the SAGA APIs include file staging, job spawning and the conduction of the exchange attempts.
+%Further, we introduced several adaptivity modes, e.\,g.\ adaptive
+%sampling that are able to react to dynamic changes in resource
+%availabilities.
+
+%\alnote{Not sure how many technical we need to provide...}  
+
+%Traditionally, depending
+%on the number of processes \texttt{N}, the manager creates \texttt{N/2} pairs
+%of replicas.  Before launching a job, the manager ensures that all
+%required input files are transferred to the respective resource. For
+%this purpose, the SAGA File API and the GridFTP adaptor are used. The
+%replica jobs are then submitted to the resource using the SAGA CPR
+%API and the MIGOL/GRAM middleware.
+
+%\jhanote{Mention that these are SAGA-based implementations. Something  else would be implemented differently}
+%\alnote{Proposed structure: a) math. model b) sync c) async. We should give the reader some orientation in this section.}
+% \jhanote{Abhinav: I still note the inconsistent and variable use of
+%   algorithms, methods(?) and cases/approaches. I think we should refer
+%   to Replica-Exchange as a ``class of algorithms'' or ``algorithm'',
+%   and different implementations -- sync versus async} 
+
+% \athotanote{RE class of algorithms - synchronous and asynchronous
+%   models within RE class of algorithms; later sync, centralized-async,
+%   decent-async implementation. right? or - RE class of algorithms -
+%   synchronous and asynchronous implementation of RE class of
+%   algorithms; later sync, centralized-async, decent-async
+%   implementations. please suggest.}  \jhanote{I would say (i) RE Class
+%   of Algorithms, (ii) Sync/Async algorithms too, and then centralized
+%   or decentralized implementations of these sync versus async RE
+%   algorithm}
+%\subsection{Mathematical Model}
+%\alnote{I think we should discuss the mathematical model before going
+%  into the specifics of sync/async RE.}
+%Here we first provide a basic mathematical model for different RE
+% models which explains the terms involved. In this section, we aim to
+% develop an equation for total time to run any RE simulation. If $t$
+% is the average time between successful exchanges, and $p$ is the
+% probability of a successful exchange,
+%\begin{eqnarray}
+%t=  {1 \over p} \times {[T_{MD} + T_{X} + T_{W}]} 
+%\label{eq:timebtw}
+%\end{eqnarray}
+%where $T_{X}$ is the time to carry-out a pairwise exchange, which is
+%comprised of (i) finding a partner, (ii) exchanging states including
+%file transfer, (iii) book-keeping, and (iv) (re)starting the replica;
+%$T_{W}$ is the time spent waiting for all replicas to complete running.
+%Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+%and for ${T_{X}}^{async}, T_W = 0$
+%The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
+%If there are $\eta$ independent exchange events occurring
+%concurrently, then the time $T$ for N$_x$ exchanges is $T \over \eta$.
