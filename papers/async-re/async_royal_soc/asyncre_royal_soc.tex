@@ -36,9 +36,9 @@
 
 
 
-\title[Efficient Replica-Exchange Simulations on
-  Large-Scale Production Infrastructure]{Efficient Replica-Exchange Simulations on
-  Large-Scale Production Infrastructure}
+\title[Efficient Large-Scale Replica-Exchange Simulations on
+Production Infrastructure]{Efficient Large-Scale Replica-Exchange
+  Simulations on Production Infrastructure}
 
 \author[Thota, Luckow, Jha]{
   Abhinav Thota$^{1,2}$, Andr\'e Luckow$^{1}$ and Shantenu Jha$^{1,2,3}$\\
@@ -98,14 +98,13 @@
   simulations are used to understand physical phenomena Ð ranging from
   protein folding dynamics to binding affinity calculations.  In this
   work, we develop a flexible, extensible and scalable implementation
-  of RE that can utilise a range of infrastructure concurrently
-  \jhanote{(and autonomically/adaptively): Do we?}, that supports
-  different coordination mechanisms (publish-subscribe \jhanote{do
-    we?}, centralised notification), different replica pairing
-  mechanisms (synchronous versus asynchronous) and thereby different
-  variants of the RE algorithm. We implement and demonstrate how a
-  flexible and robust implementation enables the efficient use of a
-  broad range of infrastructure.
+  of RE that can utilise a range of infrastructure concurrently, that
+  supports different coordination mechanisms (publish-subscribe
+  \jhanote{do we?}, centralised notification), different replica
+  pairing mechanisms (synchronous versus asynchronous) and thereby
+  different variants of the RE algorithm. We implement and demonstrate
+  how a flexible and robust implementation enables the efficient use
+  of a broad range of infrastructure.
 
 % Developing applications that are able to orchestrate heterogeneous
 % resources across distributed resources is a complex task. Inevitably,
@@ -131,8 +130,6 @@
 % efficient use of a broad range of infrastructure.
 
 \end{abstract}
-
-\jhanote{please use \citep{} and not \cite{}}
 
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
@@ -199,10 +196,10 @@ the number of replicas increases. Section V also investigates the
 scaling-out characteristics, namely performance as the number of
 replicas are increased while the (distributed) resources employed
 increases. %  while keeping the number of replicas on local and
-% distributed resources. 
-\jhanote{Currently we have only Section 6 and no 7}. In Section VI, we
-present the results and analysis.  Section VII concludes the paper and
-discusses future work.
+% distributed resources.  \jhanote{Currently we have only Section 6
+%   and no 7}.
+We present the results and analysis, in Section VI and Section VII
+concludes the paper and discusses future work.
 
 % \alnote{Should we add a section with some scientific background: HIV,
 %   Hepatitis...?}  \jhanote{given the tightness of space, I think we
@@ -216,15 +213,15 @@ discusses future work.
 %   to Replica-Exchange as a ``class of algorithms'' or ``algorithm'',
 %   and different implementations -- sync versus async} 
 
-\athotanote{RE class of algorithms - synchronous and asynchronous
-  models within RE class of algorithms; later sync, centralized-async,
-  decent-async implementation. right? or - RE class of algorithms -
-  synchronous and asynchronous implementation of RE class of
-  algorithms; later sync, centralized-async, decent-async
-  implementations. please suggest.}  \jhanote{I would say (i) RE Class
-  of Algorithms, (ii) Sync/Async algorithms too, and then centralized
-  or decentralized implementations of these sync versus async RE
-  algorithm}
+% \athotanote{RE class of algorithms - synchronous and asynchronous
+%   models within RE class of algorithms; later sync, centralized-async,
+%   decent-async implementation. right? or - RE class of algorithms -
+%   synchronous and asynchronous implementation of RE class of
+%   algorithms; later sync, centralized-async, decent-async
+%   implementations. please suggest.}  \jhanote{I would say (i) RE Class
+%   of Algorithms, (ii) Sync/Async algorithms too, and then centralized
+%   or decentralized implementations of these sync versus async RE
+%   algorithm}
   
 The RE class of algorithms involve the concurrent execution of
 \emph{replicas} - which are defined as instances of essentially
@@ -291,6 +288,12 @@ runtime of a RE experiment.
 %   because replicas run in parallel, we don't have a distinct $T_{MD}$
 %   for every $t$. }
 
+% At this point, let us define the term \emph{generation} as one
+% concurrent run of the ensemble of replicas. Thus, after each
+% generation, exchangs are made and the replicas restarted.  A more
+% practical equation for total time would look like this.  \alnote{Why
+%   is the second $N_X$ not divided by $\eta$}
+ 
 Let us begin by considering an ideal scenario where there is no
 overhead involved in running an RE experiment. Then, the total time to
 complete an experiment would be equal to the concurrent runtime of the
@@ -303,13 +306,13 @@ $p$. If the ensemble contains $N_R$ replicas, the total number of
 pairwise exchanges is $N_X$ and the runtime of a replica to complete a
 defined number of time steps is $T_{MD}$, then the total time to
 complete the RE experiment, $T$ would be: ${1 \over p} \times T_{MD}
-\times {N_X \over {N_R \over
-    2}}$. %At this point, let us define the term \emph{generation} as one concurrent run of the ensemble of replicas. Thus, after each generation, exchangs are made and the replicas restarted.
+\times {N_X \over {N_R \over 2}}$.
+
 But it is not actually possible to implement an RE experiment without
-overhead. A more practical equation for total time would look like
-this.  \alnote{Why is the second $N_X$ not divided by $\eta$}
+overhead.  The time $T$ to complete the RE experiment where N$_X$ is
+the total number of exchanges is:
 \begin{eqnarray}
-T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{X} + T_{W}) \times N_X]
+T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + {(T_{X} + T_{W}) \over \eta} \times N_X]
 \label{eq:totaltime}
 \end{eqnarray}
 
@@ -320,8 +323,17 @@ book-keeping ($T_{coord}$). $T_W$ is the time spent by a replica
 waiting for other replicas to become available ($T_w$), the time spent
 waiting till it is restarted after each exchange ($T_r$) and any other
 miscellaneous costs. Thus $T_{X} = T_{F} + T_{ex}+T_{coord}$ and
-$T_W=T_w+T_r$.  \alnote{Using ex and EX as subscripts is very
+$T_W=T_w+T_r$, and where $\eta$ is the number of independent exchange
+events occurring concurrently,
+
+% \begin{eqnarray}
+% T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + (T_{X} + T_{W}) \times N_X]
+% \label{eq:totaltime}
+% \end{eqnarray}
+
+\alnote{Using ex and EX as subscripts is very
   confusing!} \jhanote{Why not use T$_X$ in lieu of $T_{EX}$? }
+
 
 % Equation \ref{eq:totaltime} gives the total time to complete an RE
 % experiment. The next equation aims to calculate the time to complete
@@ -333,15 +345,6 @@ $T_W=T_w+T_r$.  \alnote{Using ex and EX as subscripts is very
 % \end{eqnarray}
 
 % Here $\lceil$ $\rceil$ denotes the ceiling function. The reason we put the term ${N_z \over {N_R \over 2}}$ under a ceiling function is because the ensemble of replicas run concurrently and for each concurrent run, $N_R \over 2$ exchanges are possible. Therefore, only the coordination and waiting costs effect the total time. 
-
-Also, if there are $\eta$ independent exchange events occurring
-concurrently, then the time $T$ to complete the RE experiment where
-N$_X$ is the total number of exchanges is:
-
-\begin{eqnarray}
-T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) + {(T_{X} + T_{W}) \over \eta} \times N_X]
-\label{eq:totaltime}
-\end{eqnarray}
 
 % \athotanote{please suggest alternative terms if you find anything
 %   confusing}
