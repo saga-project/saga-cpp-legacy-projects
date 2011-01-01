@@ -266,8 +266,6 @@ exchanges is:
 \begin{eqnarray}
   T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
   {(T_{X} + T_{W}) \over \eta} \times N_X]
-%   T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2}}) +
-%   {(T_{X} + T_{W}) \over \eta} \times N_X]
 \label{eq:totaltime}
 \end{eqnarray}
 where, $T_{X}$ is the time to perform a pairwise exchange and includes
@@ -278,114 +276,105 @@ book-keeping associated with replica pairing/exchanging ($T_{coord}$)
 the time spent by a replica waiting for other replicas to become
 available, the time spent waiting to be restarted after each exchange
 ($T_r$) and any other associated costs, and $\eta$ is the number of
-independent exchange events occurring concurrently,
+independent exchange events occurring concurrently, As we will
+establish, the coordination and waiting costs differ for the different
+RE algorithms.
 
 \subsection{Synchronous Replica Exchange}
 
-\jhanote{this is an implementation detail. Abhinav: IIUC we restart in
-  both cases -- successful and unsuccessful exchanges. Non?} In the
-case of an unsuccessful exchange, the replicas are restarted without
-exchanging the configuration.
-
-
-In the synchronous (traditional) model of the RE algorithm, depending
-upon on the number of replicas ${N_R}$, ${N_R \over 2}$ pairs of
-replicas are created. When \emph{all} the replicas in the ensemble
+Traditionally, RE algorithms have been implemented such that the
+exchanges have been synchronous.  If the number of replicas is
+${N_R}$, this leads to a {\it fixed} number of ${N_R \over 2}$ pairs
+of replicas are created.  When \emph{all} the replicas in the ensemble
 reach a pre-determined state (e.g. the MD simulation completes a
-pre-determined number of
-steps), % a decision as to whether to exchange temperatures
-%between previously
-an exchange of temperatures between the paired replicas is attempted
-using the Metropolis scheme. %  The ensembles of replicas executes
-% concurrently, and the subsequent pairwise exchange attempt are
-% referred to as generation. No two replicas can belong to different
-% generations. 
-If the exchange attempt is successful, parameters such as the
-temperature are swapped. Both jobs are then
-restarted~\citep{Luckow:2008fp}.
+pre-determined number of steps), an exchange of temperatures between
+the paired replicas is attempted using the Metropolis scheme.  If the
+exchange attempt is successful, parameters such as the temperature are
+swapped.
 
-%As mentioned in the equation (~\ref{eq:totaltime}), if $T$ is the total time to complete RE experiment and $p$ the probability of a successful pairwise exchange, then:
+% In Equation~\ref{eq:totaltime}, we introduced the various components
+% that make up the total time to complete an RE experiment. Only 
+% 1 para limitation on traditional replica exchange
+%running concurrently
 
-%$T = {1\over p} \times [T_{MD}+ [T_{X} + T_{W}] \times N_X]$
-
-%It should be noted that we are discussing the average values of each of the term in the equation above.
-%If there are $\eta$ independent exchange events occurring concurrently, then the time $T$ for 
-%N$_x$ exchanges is $T \over \eta$.
-
-% \jhanote{let us be consistent. Is the entire RE process/workflow a
-%   simulation or is an individual replica/task a simulation? I prefer
-%   the latter, in which case the T$_C$ is not of a simulation but that
-%   of a RE run/work/process?} \athotanote{i am calling the whole RE
-%   process/worklow as an RE experiment}
-
-In equation \ref{eq:totaltime2}, we introduced the various components
-that make up the total time to complete an RE experiment. Only the
-coordination and waiting costs would differ with different models of
-the RE algorithm. That would be the terms $T_{X}$ and $T_W$. In a
-synchronous RE experiment, since all the replicas complete running
-before the exchanges are made, $T_F = 0$. And $T_W$ would include the
-time waiting for all the replicas in an ensemble running concurrently
-to complete running, the time spent waiting before the replicas are
+For synchronous RE formulation, all replicas must reach a
+pre-determined state ({\texttt DONE}), before exchanges are performed.
+$T_W$ includes the time waiting for all the replicas in the ensemble
+to reach this state, the time spent waiting before the replicas are
 restarted after each exchange and any other miscellaneous costs.
 
- % 1 para limitation on traditional replica exchange
-
-A major limitation of this model is that the replicas are paired in
-fixed groups and thus exchanges take place between pre-determined
-pairs of replicas.  This limits the number of possible exchange
-partners that are available for a given replica, and thus also
+A major limitation of this model is that replicas are paired in fixed
+groups and thus exchanges take place between pre-determined pairs of
+replicas.  As a consequence, of pairs being determined before an
+exchange, although $T_F$ is $0$, this limits the number of possible
+exchange partners that are available for a given replica; this
 inhibits exchanges between replicas with non-nearest temperatures, and
-ultimately negates th≈ß≈çe possibility of crosswalks. (A crosswalk is said
-to occur when a replica originally with a low temperature reaches the
-upper temperature range and then returns to the lower temperature
-range.)  Rigid replica-pairing works well in a homogeneous
-environment, but with heterogeneous systems, where the resource
-availability and performance fluctuates, the need for synchronisation
-leads to slow-down \& inefficiencies.
+ultimately negates the possibility of crosswalks -- where a crosswalk
+is said to occur when a replica originally with a low temperature
+reaches the upper temperature range and then returns to the lower
+temperature range.
 
- 
+In addition to limitations in modelling the physics, there are rigid
+replica-pairing is efficient only in homogeneous environments; for
+heterogeneous environments \& systems, where resource availability and
+performance fluctuates, the need for synchronisation leads to
+slow-down \& inefficiencies. We show how these limitiations are
+overcome in the asynchronous (exchange) formulations of RE.
+
 \subsection{Asynchronous Replica Exchange}
-%- Introduce asynchronous Replica Exchange --  1 para on case II and case III (algorithmically)
 
-%To overcome these limitations
+% - Introduce asynchronous Replica Exchange -- 1 para on case II and
+% case III (algorithmically) To overcome these limitations and
+% implement çit on distributed grid resources.
 
-We take the asynchronous RE algorithm proposed by
-~\citep{parashar_arepex}, ~\citep{??} \jhanote{Also please cite the
-  JCC paper of Gallichio, Levy and Parashar. See references/ directory
-  please} and implement çit on distributed grid resources. By
-asynchronous, we mean that a replica does not have to wait for all the
-replicas to finish running. An exchange occurs whenever a pair of
-replicas are available, and where a replica can perform exchanges
-asynchronously with any other replica in the ensemble.
-% \jhanote{Is the algorithm similar or identical? If it is not
-%   identical, how is it different, or is it just the case that the
-%   implementation is different?} \athotanote{is it ok now? i think we
-%   are taking the async algorithm as is and implementing it on
-%   production infrastructure. ?}
+In asynchronous formulations of the RE algorithms
+(References~\citep{parashar_arepex}, ~\citep{??}  \jhanote{Also please
+  cite the JCC paper of Gallichio, Levy and Parashar. See references/
+  directory please} a replica does not have to wait for {\it all}
+other replicas to reach a pre-determined state. An exchange occurs
+whenever a replica reaches a pre-determined state and perform an
+exchange with another suitable replica in the ensemble.  The reduction
+in {\it synchronization} (wait) times comes at the cost of increased
+{\it coordination} costs.  The specific values of the terms $T_{X}$
+and $T_W$, in Equation\ref{eq:totaltime} differ from the synchronous
+formulations.  Since each replica on completing a run has to find a
+{\it new} partner, $T_F \neq 0$.  Additionally, $T_W$ only includes
+the time spent waiting for the next replica to become available, any
+time spent waiting before the replicas are restarted after an exchange
+and any other miscellaneous costs.
 
-Let us look at how the ≈ß≈ç and waiting costs introduced in
-equation \ref{eq:totaltime2} behave. That would be the terms $T_{X}$
-and $T_W$. In an asynchronous RE experiment, since each replica on
-completing a run has to find a partner, $T_F \neq 0$. And $T_W$ would
-only include the time spent waiting for the next replica to become
-available, any time spent waiting before the replicas are restarted
-after an exchange and any other miscellaneous costs.
+% a pair of replicas are available, and where \jhanote{Is the
+%   algorithm similar or identical? If it is not identical, how is it
+%   different, or is it just the case that the implementation is
+%   different?} \athotanote{is it ok now? i think we are taking the
+%   async algorithm as is and implementing it on production
+%   infrastructure. ?}
+% Let us look at how the ≈ß≈ç and waiting costs introduced in
+% equation \ref{eq:totaltime2} behave. 
 
-%\alnote{This is too general.   We should drop the redundancy of explaining every component and rather analyze the differences.} \athotanote{you are right; i am adding a couple of lines here. does it help?} \jhanote{As currently written, $T_W$ has not been defined or ``different components'' discussed, i.e., this paragraph should come after the modelling section}
+% \alnote{This is too general.  We should drop the redundancy of
+%   explaining every component and rather analyze the differences.}
+% \athotanote{you are right; i am adding a couple of lines here. does
+%   it help?} \jhanote{As currently written, $T_W$ has not been
+%   defined or ``different components'' discussed, i.e., this
+%   paragraph should come after the modelling section}
 
 % But also, an asynchronous RE algorithm has the potential to perform
 % better than the traditional RE: (i) when we scale-up the number of
 % replicas and (ii) when we scale-out across many machines.
 %\jhanote{There is no basis for this sentence at the moment. REMOVE}
 
-
 \section{Replica-Exchange Framework}\label{repexfw}
 
-The RE Framework we present is independent of the underlying infrastructure and provides the capability to implement a variety of RE algorithms. 
-An important motivation for us to come up with an RE Framework is to present an infrastructure independent solution that makes it possible to implement a variety of RE algorithms, such as synchronous and asynchronous, that can dynamically utilise a range of infrastructures.
- It is also important to have a scheme
-that does not depend on a static set of resources that are pre-defined
-at the time of workload submission.  
+The RE Framework we present is independent of the underlying
+infrastructure and provides the capability to implement a variety of
+RE algorithms.  An important motivation for us to come up with an RE
+Framework is to present an infrastructure independent solution that
+makes it possible to implement a variety of RE algorithms, such as
+synchronous and asynchronous, that can dynamically utilise a range of
+infrastructures.  It is also important to have a scheme that does not
+depend on a static set of resources that are pre-defined at the time
+of workload submission.
 % \jhanote{If we are talking about differences in the impelementation,
 %   then that does not belong here. If we are talking about the
 %   algorithm, then it belongs here} \athotanote{moved this from section 2 to here}
@@ -479,6 +468,13 @@ We explain how the synchronous and asynchronous (centralized) RE Manager works i
   Service.}
 \label{fig:coordination}
 \end{figure}
+
+\jhanote{this is an implementation detail. Abhinav: IIUC we restart in
+  both cases -- successful and unsuccessful exchanges. Non? ALso don't
+  toggle between ``replicas'' and ``jobs''!}  Jobs are then
+restarted~\citep{Luckow:2008fp} with new temperature values.  In the
+case of an unsuccessful exchange, jobs are restarted without
+exchanging the configuration.
 
 \subsubsection{Synchronous and Asynchronous (centralized) RE-Manager}
 
