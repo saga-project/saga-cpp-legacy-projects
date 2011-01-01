@@ -73,7 +73,8 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 \newcommand{\T}[1]{\texttt{#1}}
 
 \newcommand{\glidein}[1]{Glide-In }  
-\newcommand{\replicaagent}[1]{Replica-Agent }         
+\newcommand{\ReplicaAgent}[1]{Replica-Agent }         
+\newcommand{\replicaagent}[1]{replica-agent }         
 \newcommand{\remanager}[1]{RE-Manager }
 
 \begin{document} 
@@ -458,8 +459,9 @@ components of the framework and aspects of the exchanges.  The RE
 Manager % is an abstraction that
 uses the SAGA BigJob Manager; the actual tasks that the RE Manager
 performs out depend on which RE algorithm is being investigated.  A
-replica agent is a wrapper script typically manages an individual
-replica and facilitiates the exchange of that replica.
+replica agent is a wrapper script that manages an individual
+replica  -- starts, facilitiates the exchange of that replica,
+and restarts it.
 
 % And at the least, it is the SAGA BigJob Manager.  At the most,
 % launched in place of the replica. The replica agent implementation
@@ -527,7 +529,6 @@ combination works.
 The control flow of a centralized RE scheme is shown in
 Figure~\ref{fig:coordination}a), which can be used to understand both
 the asynchronous (centralized) RE and synchronous RE implementations.
-
 Once the BigJobs and replicas are running, the RE Manager constantly
 queries the SAGA BigJob Manager for the latest replica states.  When
 the RE-Manager finds a replica that has finished running, it collects
@@ -570,54 +571,122 @@ exchanges. This process is repeated till all the exchanges are made.
 
 \subsubsection{Asynchronous (decentralized) RE-Manager and the replica agent}
 
-In the asynchronous (decentralized) implementation, the RE Manager's
-responsibility is greatly reduced and it only needs to keep count of
-the number of exchanges completed. When the required number of
-exchanges are done, the RE Manager ends the experiment.
+% Thus, after the replica-agents are launched, the RE Manager and the
+% SAGA BigJob Manager don't have any responsibilities.
+ 
 
-In order to conduct the exchanges in a decentralized fashion, replica-agents are launched in place of replicas. As mentioned earlier, the replica agent is just a wrapper script for the replica, which starts, makes exchanges and restarts the replica. Thus, after the replica-agents are launched, the RE Manager and the SAGA BigJob Manager don't have any responsibilities.  
+Figure~\ref{fig:coordination}b shows the asynchronous (decentralized)
+RE control-flow.  In the asynchronous (decentralized) implementation,
+in order to conduct the exchanges the RE-Manager launches multiple
+replica-agents (in lieu of replicas directly).  Replica-agents then
+take control of replica start/re-start and exchange attempts.  The
+replica-agents upon launch, run the replicas; the nodefile is passed
+to the replica-agent as an argument at startup. The replica-agent
+constantly monitors the replica, and when the replica finishes, it
+updates the advert server with the current state of that replica.  It
+also reads the temperature and energy from the output files, and posts
+the values to the advert server.  The RE Manager is is primarily
+responsible for keeping track and count of the number of exchanges
+performed; when the desired number of exchanges are done, the RE
+Manager ends the experiment.
 
-\jhanote{ISNT THE NEXT PARAGRAPH ESSENTIALLY THE SAME AS THE PREVIOUS
-  PARAGRAHGP? WHY DONT YOU REFER TO THE FIGURE AND THE BASIC StePS
-  OUTLINED IN THE FIGURE?}
+% \jhanote{ISNT THE NEXT PARAGRAPH ESSENTIALLY THE SAME AS THE PREVIOUS
+%   PARAGRAHGP? WHY DONT YOU REFER TO THE FIGURE AND THE BASIC StePS
+%   OUTLINED IN THE FIGURE?}
   
-\begin{figure}[t]
-      \centering
-          \includegraphics[width=0.82\textwidth]{../figures/decent_state.pdf}
-          \caption{\footnotesize Asynchronous (decentralized) RE replica state diagram
-              } \alnote{This chart is not correct yet. There can't be state changes on conditional fields}
-      \label{fig:state}
-\end{figure}
+% \begin{figure}[t] \centering
+%           \includegraphics[width=0.82\textwidth]{../figures/decent_state.pdf}
+%           \caption{\footnotesize Asynchronous (decentralized) RE
+% replica state diagram } \alnote{This chart is not correct yet. There
+% can't be state changes on conditional fields} \jhanote{is this a four
+% state model or a 3 state model?}
+%       \label{fig:state}
+% \end{figure}
+
+% As shown in state diagram  (Figure \ref{fig:state}) 
+% The replica-agent also goes through the list of replicas randomly to
+% try to find an exchange partner.  
 
 
-Figure~\ref{fig:coordination}b shows the asynchronous (decentralized) RE
-control-flow. Figure \ref{fig:state} shows the replica state diagram. The replica agent upon launch, runs the replica. The nodefile is passed to the replica agent as an argument at startup. The replica agent constantly monitors the replica and when the replica finishes its run, it updates the advert server with
-the current state of the replica. It also reads the temperature and
-energy from the output files and posts the values to the advert
-server. It then goes through the list of replicas in the ensemble in a random order and tries to find an
-exchange partner. The search for an exchange partner is conducted in a random manner so as to avoid having all the replicas starting at the first replica, which causes contention and failed exchanges. If it finds another replica available, it
-re-verifies the states of both itself and the other replica and if it
-finds both still available, marks their states as "Pending". Let the replica initiating the exchange be $R_a$ and the other replica be $R_b$.
-The replica $R_a$ which initiates the exchange is the replica in-charge of the exchange. $R_a$
-then exchanges their temperature values on the advert server.  \alnote{We
-  should detail the exchange protocol. How do we ensure that the
-  exchange is atomic? figure?}  It then modifies its configuration
-files locally, sets its state as running and runs the replica. On the
-other hand, the $R_b$'s state is set as "Ready" by $R_a$ and that
-makes the $R_b$'s replica agent to retrieve its own
-temperature (modified by the $R_a$) from the advert server, modify its configuration file
-locally and run the replica. \alnote{Why does it need to modify its
-  own config if it uses its own temperature?} \athotanote{fixed} This removes the need to stage the configuration files to
-different machines. This is possible because there is a replica agent
-for each replica locally. Where as earlier, the RE-Manager and the
-replica might be located on different machines. 
-  If the state of any of the replicas negotiating the exchange changes at the time of re-verifying the replica pair's states, that would mean that one or both of the replicas' is now in the process of making an exchange with a different replica. In that case one or both of the replica agents will wait till their state is set as "Ready" and start their next run. If one of the replicas is still available, it tries to find a new partner for exchange.  \alnote{How often is the process repeated until the replica
-  is started with the old temperature?} \athotanote{fixed}The replica agent that
-initiated the exchange increments the exchange count by one.
-If an exchange fails due to contention, the replica agent tries to find a new partner. If an exchange is deemed unsuccessful after comparison of energies or temperatures, the replicas are restarted with their old configurations. 
+A replica can be in one of the three states: (i) \texttt{running},
+(ii) \texttt{done} and (iii) \texttt{pending} (for an exchange).  When
+a replica reaches a pre-determined state it (the replica-agent acts as
+the proxy for the replica) transitions from \texttt{running} to
+\texttt{done}. If it initiates the search for a partner.  ( The search
+for an exchange partner is conducted in a random manner so as to avoid
+having all the replicas starting at the first replica, which causes
+contention and failed exchanges).  If a replica finds another replica
+available sets their states as \texttt{pending}.
 
-\jhanote{Do we have a pending state? Accoridng to Abhinav there is
-  only a two-state model -- run and done?!} \athotanote{should i keep the state diagram? do you suggest any corrections to the state diagram? i also think that instead of having the current control flows, we should have figures showing how the exchanges are made or instead hae state diagrams. the control flows right now show a lot of stuff already shown in the bigjob architecture figure. }
+If an exchange fails due to contention \jhanote{ I don't understand
+  fails due to contention?}, the replica-agent tries to find a new
+partner. If an exchange is deemed unsuccessful after comparison of
+energies or temperatures, the replicas are restarted with their old
+configurations.
+
+\subsubsection*{This paragraph to be removed on discussion}
+
+% , it re-verifies the
+% states of both itself and the other replica and if both are still
+% available, 
+% exchanges their temperature values on the advert server.  
+
+\jhanote{I though the RE-Manager did the following} The replica-agent
+that initiated the exchange increments the exchange count by one.
+
+\jhanote{I don't understand any of the stuff below. State changes have
+  to be atomic!?:  If the state of any of the replicas negotiating the
+exchange changes at the time of re-verifying the replica pair's
+states, that would mean that one or both of the replicas' is now in
+the process of making an exchange with a different replica. In that
+case one or both of the replica agents will wait till their state is
+set as "Ready" and start their next run. If one of the replicas is
+still available, it tries to find a new partner for exchange.}
+
+% The search for an exchange partner is conducted in a random manner so
+% as to avoid having all the replicas starting at the first replica,
+% which causes contention and failed exchanges. If it finds another
+% replica available, it re-verifies the states of both itself and the
+% other replica and if it finds both still available, marks their states
+% as "Pending". Let the replica initiating the exchange be $R_a$ and the
+% other replica be $R_b$.  The replica $R_a$ which initiates the
+% exchange is the replica in-charge of the exchange. $R_a$ then
+% exchanges their temperature values on the advert server.  \alnote{We
+%   should detail the exchange protocol. How do we ensure that the
+%   exchange is atomic? figure?}  It then modifies its configuration
+% files locally, sets its state as running and runs the replica. On the
+% other hand, the $R_b$'s state is set as "Ready" by $R_a$ and that
+% makes the $R_b$'s replica agent to retrieve its own temperature
+% (modified by the $R_a$) from the advert server, modify its
+% configuration file locally and run the replica. \alnote{Why does it
+%   need to modify its own config if it uses its own temperature?}
+% \athotanote{fixed} This removes the need to stage the configuration
+% files to different machines. This is possible because there is a
+% replica agent for each replica locally. Where as earlier, the
+% RE-Manager and the replica might be located on different machines.  If
+% the state of any of the replicas negotiating the exchange changes at
+% the time of re-verifying the replica pair's states, that would mean
+% that one or both of the replicas' is now in the process of making an
+% exchange with a different replica. In that case one or both of the
+% replica agents will wait till their state is set as "Ready" and start
+% their next run. If one of the replicas is still available, it tries to
+% find a new partner for exchange.  \alnote{How often is the process
+%   repeated until the replica is started with the old temperature?}
+% \athotanote{fixed}The replica agent that initiated the exchange
+% increments the exchange count by one.  If an exchange fails due to
+% contention, the replica agent tries to find a new partner. If an
+% exchange is deemed unsuccessful after comparison of energies or
+% temperatures, the replicas are restarted with their old
+% configurations.
+
+% \jhanote{Do we have a pending state? Accoridng to Abhinav there is
+%   only a two-state model -- run and done?!} 
+% \athotanote{should i keep the state diagram? do you suggest any
+%   corrections to the state diagram? i also think that instead of
+%   having the current control flows, we should have figures showing how
+%   the exchanges are made or instead hae state diagrams. the control
+%   flows right now show a lot of stuff already shown in the bigjob
+%   architecture figure. }
   
 
 \section{Implementation of Synchronous and Asynchronous RE}
