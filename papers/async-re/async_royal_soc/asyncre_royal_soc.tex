@@ -700,15 +700,19 @@ asynchronous (centralized and decentralized) RE implementations here.
 	\hline
 	$T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
 	\hline
-	$T_{W}$           &2.6\,sec &1\,sec &\\
+	$T_{W}$        &2.6\,sec &1\,sec &\\
 	\hline
-	$T_{X}$          &&0.8\,sec &\\
 	\hline
-	$T_{F}$           &0\,sec   &0.2\,sec &\\
+	$T_{X}$        &         &0.8\,sec &\\
 	\hline
-	$T_{EX}$       &&&\\
+	$T_{F}$        &0\,sec   &0.2\,sec &1.65\,sec \alnote{we need to analyze this mis-match}\\
 	\hline
-    $T_{COORD}$       &&&\\
+	$T_{EX}$       &0.4\,sec &0.4\,sec &1.65\,sec???\\
+	\hline
+    $T_{COORD}$    &0.2\,sec &0.2\,sec    &0.1\,sec\\
+	\hline
+	\hline
+	$T_{C}$        & &    &\\
 	\hline
     \end{tabular}
 	\caption{Replica-Exchange Performance}
@@ -850,10 +854,10 @@ for 32 replicas, on average, $T_F$ is $16\times
 0.01=0.16\,sec$. \alnote{i.e. per average 16 queries are necessary in
   order to find a partner? Why 16?}  $T_{ex}$ is the time it takes to
 update the configuration files and copy them locally. That would be
-$({0.2+0.01})\times 2=0.42\,sec.$ $T_{coord}$ is the time it takes to
+$({0.2+0.01})\times 2=0.42\,sec$. $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
 $0.11\times 2 = 0.22$ seconds. Therefore, $T_{X}$ is
-$0.16+0.42+0.22=0.8$ seconds. Therefore, on average, it takes 0.78
+$0.16+0.42+0.22=0.8$ seconds. On average, it takes 0.78
 seconds for the RE-Manager to make an exchange.
 
 % The point we are trying to make is that the BigJob agent might not
@@ -882,25 +886,31 @@ agents and the replica agents in turn start the replicas. It takes 0.3
 seconds to start a replica-agent.  The replica agent creates the
 output and error files, reads the configuration and starts the
 replica. All these actions, which are repeated after every exchange,
-take 1.3 seconds.
+take 1.3 seconds. \alnote{How do you get 1.3 sec? The starting of the replica-agent
+must not be repeated after every exchange, correct?}
 
-The replica agent constantly monitors the replica and when it finds
-that the replica finished running, it updates its state in the advert
-server, which takes 0.11 seconds and also retrieves the energy and
+The replica agent constantly monitors all replicas. If it finds
+a replica that completed its run, it updates its state in the advert
+server, which takes 0.11 seconds \alnote{A advert modification took in the previous
+cases 0.01\,sec? What is different here?}. Also, it retrieves the energy and
 temperature from the output files, each of which actions take 0.2
 seconds. It then posts both these values to the advert server. Thus,
-$T_W$ is 1.3+0.7=2 seconds.
+$T_W$ is 1.3 + 0.7=2 seconds.\alnote{Where is the 0.7 sec coming from?}
 
 We observed that on average, the replica agent makes 15 queries before
-it finds a partner. Each query is 0.11 seconds, thus $T_F$ is 1.65
+it finds a partner.\alnote{Why 15? Previously, it has been 16.} 
+Each query is 0.11 seconds, thus $T_F$ is 1.65
 seconds. The process of re-verifying the states, changing the states
 and temperatures in the advert server and finally writing new
 configuration files and restarting the replica takes on average 15
-queries to the advert server. Thus $T_{ex}$ is 1.65 seconds. And even
-in the other scenario, where the replica in question is not the
+queries to the advert server. Thus $T_{ex}$ is 1.65 seconds. 
+\alnote{What is the difference between $T_F$ and $T_{ex}$ here?} 
+And even in the other scenario, where the replica in question is not the
 initiator of the exchange, on average, a similar amount of time is
 spent negotiating an exchange.  $T_{coord}$ is the time it takes to
-update the state in the advert server, which is 0.11 seconds. Thus,
+update the state in the advert server, which is 0.11 seconds. \alnote{In the other
+cases the state must be updated in the advert server as well. Why don't we consider
+this in the other cases as well?} Thus,
 $T_{X}$ is $1.65+1.65+0.11= 3.41$ seconds.
 
 It should be noted here that in the centralized version of
@@ -908,16 +918,17 @@ asynchronous RE, where only 2 connections to the advert server existed
 (RE-Manager, BigJob agent), each query took only 0.01 seconds. But in
 the decentralized version, since each replica agent maintains an open
 connection to the advert server, there are 32+2=34 connections
-open. This effects the performance of the advert server.
+open. This effects the performance of the advert server. \alnote{Is this the reason why
+the query takes 0.11\,sec instead of 0.01\,sec now? These would be a severe performance
+degradation.}
 
-In the decentralised implementation, there would be many pairs of
+In the decentralised implementation, there are many pairs of
 replica agents negotiating the exchanges concurrently. While this
 causes the time taken per unit exchange to go up, more exchanges occur
 in unit time.
 
 
-Substituting the above values in equation
-~\ref{eq:totaltime2}, we get:
+Substituting the above values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
 T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16}} = {1 \over p} \times 611
 \label{eq:decent}
