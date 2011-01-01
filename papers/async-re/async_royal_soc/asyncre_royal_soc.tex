@@ -527,7 +527,7 @@ combination works.
 % Figure~\ref{fig:coordination}a) shows the control flow.
 
 The control flow of a centralized RE scheme is shown in
-Figure~\ref{fig:coordination}a), which can be used to understand both
+Figure~\ref{fig:coordination}(a), which can be used to understand both
 the asynchronous (centralized) RE and synchronous RE implementations.
 Once the BigJobs and replicas are running, the RE Manager constantly
 queries the SAGA BigJob Manager for the latest replica states.  When
@@ -537,10 +537,8 @@ file. Once \emph{all} the replicas have finished running, the
 RE-Manager makes the exchanges. The exchange is done by exchanging the
 temperatures and writing new configuration files. The new
 configuration files are staged to the appropriate location. The
-RE-Manager then submits the replicas for restarting.  \alnote{The
-  RE-Manager spawns a new sub-job. BJ uses the advert service to
-  dispatch this subjob. See comments above} \jhanote{Needs fixing}The
-BigJob agent finds the replicas and restarts them. The RE-Manager
+RE-Manager then submits the replicas for restarting. % \alnote{The  RE-Manager spawns a new sub-job. BJ uses the advert service to  dispatch this subjob. See comments above} \jhanote{Needs fixing}
+The SAGA BigJob Manager restarts them. The RE-Manager
 counts the successful exchanges. This process is repeated until the
 required number of exchanges are done.
 
@@ -575,7 +573,7 @@ exchanges. This process is repeated till all the exchanges are made.
 % SAGA BigJob Manager don't have any responsibilities.
  
 
-Figure~\ref{fig:coordination}b shows the asynchronous (decentralized)
+Figure~\ref{fig:coordination}(b) shows the asynchronous (decentralized)
 RE control-flow.  In the asynchronous (decentralized) implementation,
 in order to conduct the exchanges the RE-Manager launches multiple
 replica-agents (in lieu of replicas directly).  Replica-agents then
@@ -610,20 +608,16 @@ Manager ends the experiment.
 \alnote{In the original state chart we had a ``free'' state. I think this state
 is needed to ensure the atomicity property of the exchange protocol (2pc style).}
 A replica can be in one of the three states: (i) \texttt{running},
-(ii) \texttt{done} and (iii) \texttt{pending} (for an exchange).  When
+(ii) \texttt{done}, (iii) \texttt{pending} (for an exchange) and (iv) \texttt{complete} (exchange has been completed).\athotanote{after an exchange is complete, the state has to be set as complete by the exchange-initiator, so that the other replica-agent can restart its replica}    When
 a replica reaches a pre-determined state it (the replica-agent acts as
 the proxy for the replica) transitions from \texttt{running} to
-\texttt{done}. If it initiates the search for a partner.  (The search
+\texttt{done}. It initiates the search for a partner.  (The search
 for an exchange partner is conducted in a random manner so as to avoid
 having all the replicas starting at the first replica, which causes
 contention and failed exchanges).  If a replica finds another replica
-available sets their states as \texttt{pending}.
+available, it reverifies their states (to ensure that both replicas are still in \texttt{done} state) and sets their states as \texttt{pending}. After making the exchange (changing the temperature of both replicas in the advert server), it sets their states as \texttt{complete}. Now both replica-agents write new configuration files with the updated temperatures from the advert server and restart their replicas. 
 
-If an exchange fails due to contention \jhanote{ I don't understand
-  fails due to contention?}, the replica-agent tries to find a new
-partner. If an exchange is deemed unsuccessful after comparison of
-energies or temperatures, the replicas are restarted with their old
-configurations.
+At the point where the first replica reverifies the states, if one of the replicas' states have changed: (i) if it is the second replica, the replica agent tries to find a new replica; (ii) if it is the first replica itself, that would mean another replica has set the replica as \texttt{pending}. The replica then aborts the exchange process it initiated and waits for its state to be set to \texttt{complete}, so that it can restart its replica. The replica that initiates the exchange (first replica) increments the exchange count. The RE Manager constantly queries the advert server for the latest exchange count and when all exchanges have been made, it stops the experiment. 
 
 \subsubsection*{This paragraph to be removed on discussion}
 
@@ -632,8 +626,7 @@ configurations.
 % available, 
 % exchanges their temperature values on the advert server.  
 
-\jhanote{I though the RE-Manager did the following} The replica-agent
-that initiated the exchange increments the exchange count by one.
+\jhanote{I though the RE-Manager did the following} \athotanote{the replica agent increments the count, the RE Manager gets the count from the advert server. Please look at the above para and tell me it makes sense}
 
 \jhanote{I don't understand any of the stuff below. State changes have
   to be atomic!?:  If the state of any of the replicas negotiating the
@@ -642,7 +635,7 @@ states, that would mean that one or both of the replicas' is now in
 the process of making an exchange with a different replica. In that
 case one or both of the replica agents will wait till their state is
 set as "Ready" and start their next run. If one of the replicas is
-still available, it tries to find a new partner for exchange.}
+still available, it tries to find a new partner for exchange.} \athotanote{i was trying to say the following: replca 1 finds replica 2 in done state, but before it locks replica 2, it reverifies both states. (replica 1, while searching  could have been set to pending by replica x) If states are still done, the replicas are locked and exchange is made. I made some changes in the explanation. please see if its easier to understand now}
 
 % The search for an exchange partner is conducted in a random manner so
 % as to avoid having all the replicas starting at the first replica,
