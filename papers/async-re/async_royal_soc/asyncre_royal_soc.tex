@@ -317,7 +317,7 @@ is said to occur when a replica originally with a low temperature
 reaches the upper temperature range and then returns to the lower
 temperature range.
 
-In addition to limitations in modelling the physics, there are rigid
+In addition to limitations in modeling the physics, there are rigid
 replica-pairing is efficient only in homogeneous environments; for
 heterogeneous environments \& systems, where resource availability and
 performance fluctuates, the need for synchronisation leads to
@@ -511,7 +511,7 @@ functionally similar to the SAGA BigJob Manager.
 %   toggle between ``replicas'' and ``jobs''!}  
 
 We first explain how the synchronous and asynchronous (centralized) RE
-Manager works in the following section followed by an explaination of
+Manager works in the following section followed by an explanation of
 how the asynchronous (decentralized) RE Manager/replica agent
 combination works.
 
@@ -710,7 +710,7 @@ still available, it tries to find a new partner for exchange.}
     \centering
 	\begin{tabular}{|l|c|c|c|}
 	\hline
-	                        &sync.  &async. central. &async. decent.\\
+	                        &synchronous  &asynchronous-centralised &asynchronous-decentralised\\
 	% \hline
 	%  $T_{MD\_init}$  &23\,sec &23\,sec &23\,sec\\
 	%  \hline
@@ -751,7 +751,7 @@ effectively. The total number of replicas ($N_R$) in the ensemble are
 ensemble of replicas are run concurrently, 16 pairwise exchanges are
 possible after each concurrent run. Thus, each replica on average is
 restarted 7 times.  Our experiments are performed on LONI and Teragrid
-shared resource \emph{QueenBee}. Each replica is configured to run 500
+shared resource \emph{QueenBee (QB)}. Each replica is configured to run 500
 time-steps and is allocated 16 processors. It should be noted that we
 are talking about the average values whenever we mention
 quantities. % Each replica takes 91 seconds to complete the
@@ -779,7 +779,7 @@ almost every time, the RE Manager completes submitting the replicas
 before the BigJob becomes active.
 
 \subsection{Synchronous RE}
-
+\label{sec:impl_sync_re}
 % The replicas are run by the BigJob agent after the BigJob becomes
 % active. The average time the Bigjob agent takes to start one replica
 % is 0.3 seconds.  \alnote{Is this the time agent only? Or does it
@@ -985,21 +985,34 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 
 \section{Scale-Up and Scale-Out: Experiments and Results}
 \label{sec:performance}
-In this section we present the experiments that we conducted on 
-production level infrastructure. One set of experiments are modeled to 
-analyze the performance of the algorithms and implementations when we 
-increase the number of replicas while keeping the number of machines 
-a constant. The other set of experiments are modeled to analyze the 
-performance when the number of replicas is kept a constant but the 
-number of machines is increased. We call the former "scale-up" and 
-the latter "scale-out" scenario.
+
+To evaluate the performance of the different RE implementations, several 
+experiments have been conducted on TG and LONI resources. In particular, 
+we investigate the performance of the three RE implementations -- synchronous (case I),
+asynchronous-centralised (case~II) and asynchronous-decentralised (case III) -- with
+respect to different number of replicas and machine configurations.
+While in the ``scale-up'' scenario a single machine is used, in the ``scale-out''
+scenario up a RE simulation is carried out on up to 4 machines concurrently.
+As in the previous analysis we use NAMD to carry out MD simulations. Each
+replica uses 16 MPI processes and runs 500 time steps. A temperature range 
+between 300 and 3000 K is sampled.
+\alnote{Should we reference the model used? Not sure which model it is
+Hepatitis or HIV?}
+
+% One set of experiments are modeled to 
+% analyze the performance of the algorithms and implementations when we 
+% increase the number of replicas while keeping the number of machines 
+% a constant. The other set of experiments are modeled to analyze the 
+% performance when the number of replicas is kept a constant but the 
+% number of machines is increased. We call the former "scale-up" and 
+% the latter "scale-out" scenario.
 
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
 \includegraphics[width=0.7\textwidth]{../data/scale_up.pdf}
-\caption{\small \textbf{Scale-Up Performance for 8 to 1024 Replicas:} 
+\caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:} 
   The graph shows the runtimes for the different RE implementations.
   The asynchronous decentralized RE implementation shows the best
   scaling behaviour. Both centralised RE versions scale less well mainly due
@@ -1010,54 +1023,59 @@ the latter "scale-out" scenario.
 
 \subsection{Scale-Up}
 
-\subsubsection{Experiments}
-In this section we describe the experiments we did increasing the
-number of replicas on a single machine. We configured the cases I, II
-\& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and
-256 replicas sampling a temperature between 300 and 3000 K on Teragrid
-machines QueenBee and Ranger. \alnote{Note to ourselves: we need to make sure that
-case I-III are introduced.} In each
-simulation, one BigJob is launched with sufficient cores while each
-replica uses 16 MPI processes and runs 500 time steps between exchange
-attempts. Up to 128 replicas, all simulations were conducted on
-QueenBee, but the 256 replica simulations were conducted on Ranger as
-QueenBee allocates a maximum of 2048 cores per job. The metric used
-for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time
-to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges,
-respectively. \alnote{This is a little confusing. In the model we talk
-about successful exchanges all the time. Opinions?} 
-It should be noted that the ratio between the number of
-replicas and the number of attempted exchanges is kept constant, for
-the purpose of comparison between each of these cases. It means that
-we are keeping the number of times each replica restarts,
-approximately, a constant.
+{\it Experiments: }
+In this scenario we run the defined RE configuration using the three RE implementations 
+and between 4 and 256 replicas on the Teragrid resources QB and Ranger.
+Both resources deliver a comparable performance; QB however has a maximum
+core limit of 2048 cores per jobs. For all runs, a single BigJob with a 
+sufficient number of cores is used. 
+% Up to 128 replicas, all simulations were conducted on
+% QueenBee, but the 256 replica simulations were conducted on Ranger as
+% QueenBee allocates a maximum of 2048 cores per job. 
+We measure the time-to-completion $T_{C}$ for four 
+exchange attempts per replica, i.\,e.\ for 4 replicas $T_{C}$
+for 16 attempts, for 8 replicas $T_{C}$ for 32 attempts,
+etc., is measured. The ratio between the number of
+replicas and attempted exchanges is kept constant, for
+the purpose of comparison between each of these cases. Further,
+we do not consider the initial queuing time for the BigJob.
 
-The mean run time is obtained by subtracting the queue wait time of
-the BigJob from the total time. As the ratio between the number of
-replicas and number of exchanges is kept constant, ideally, the
-runtime must remain constant too. In the graph
-(Figure~\ref{fig:graph}), we see an increase in the time to completion
-as the number of replicas increases. The increase in the completion
-time is not uniform across the three cases. We see the most slow down
-in case I and the least in case III.
+% It means that
+% we are keeping the number of times each replica restarts,
+% approximately, a constant.
+% The metric used
+% for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time
+% to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges,
+% respectively. \alnote{This is a little confusing. In the model we talk
+% about successful exchanges all the time. Opinions?} 
+% The mean runtime is obtained by subtracting the queue wait time of
+% the BigJob from the total time. As the ratio between the number of
+% replicas and number of exchanges is kept constant, ideally, the
+% runtime must remain constant too. 
 
-\subsubsection{Scale up performance: Results and Analysis}
+%\subsubsection{Scale up performance: Results and Analysis}
 
-{\it Results:}\\
+{\it Results:} Figure~\ref{fig:graph} shows the results of this 
+experiment. As the number of replicas increases, $T_{C}$ increases 
+as well. This increase, however, is not uniform across the three cases. 
+We see the most slow down in case I and the least in case III.
 
-{\it Analysis: } From the graph (Figure~\ref{fig:graph}), we see that
-Case I does not scale very well when we increase the number of
-replicas. This is due to an inability to start and end all the
-replicas at the same time and also due to the centralized control of 
-the workflow. With more and more replicas, the time to start the replicas increases  and 
-synchronization cost tends to increase too.  In Case II, the exchanges happen in
-an asynchronous manner, but they are still conducted by the master
-alone. As the number of replicas increases, the master quickly becomes
-a bottleneck. But in Case III, the exchanges are all carried out in a
-decentralised manner. Many exchanges can occur between different pairs
-of replicas at the same time. Therefore, we say that the asynchronous
+\alnote{need to be aligned with sec 4}
+{\it Analysis: } The synchronous version (case I) shows the
+worst scaling behaviour due to various reasons: as described in section~\ref{sec:impl_sync_re},
+$T_{W}$, i.\,e.\ the time spent waiting for other replicas of a generation to finish,
+is the main driver of this performance degradation. Since replicas are currently started
+sequentially by the master, a delay between the start and thus the termination of the first and 
+last replica exists. Further, different nodes of a machine tend to show a slightly 
+different performance. With more replicas, the time to start the replicas as well as the
+synchronization time increases.  In case II, exchanges happen in
+an asynchronous manner, but they are still orchestrated by the master. 
+As the number of replicas increases, the master quickly becomes
+a bottleneck. But in case III, the exchanges are all carried out in a
+decentralised way, i.\,e.\ exchanges can occur concurrently between 
+different pairs of replicas. Therefore, it can be concluded that the asynchronous
 RE algorithm scales better and that the decentralised implementation
-is better than the centralised implementation.
+is superior to the centralised one.
 
 %
 %%%%% FIGURE %%%%%
