@@ -613,7 +613,7 @@ asynchronous (centralized and decentralized) RE implementations here.
     $T_{COORD}$    &0.2\,sec &0.2\,sec    &0.1\,sec\\
 	\hline
 	\hline
-	$T_{C}$        & &    &\\
+	$\mathbf{T_{C}}$        &\textbf{990\,sec} &\textbf{796\,sec}    &\textbf{611\,sec}\\
 	\hline
     \end{tabular}
 	\caption{Replica-Exchange Performance}
@@ -863,20 +863,25 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(3.41+2)\times 128\over 16
 
 \section{Scale-Up and Scale-Out: Experiments and Results}
 
-In this section we present the experiments that we conducted on production level infrastructure. One set of experiments are modeled to analyze the performance of the algorithms and implementations when we increase the number of replicas while keeping the number of machines a constant. The other set of experiments are modeled to analyze the performance when the number of replicas is kept a constant but the number of machines is increased. We call the former "scale-up" and the latter "scale-out" experiments.
+In this section we present the experiments that we conducted on 
+production level infrastructure. One set of experiments are modeled to 
+analyze the performance of the algorithms and implementations when we 
+increase the number of replicas while keeping the number of machines 
+a constant. The other set of experiments are modeled to analyze the 
+performance when the number of replicas is kept a constant but the 
+number of machines is increased. We call the former "scale-up" and 
+the latter "scale-out" scenario.
 
 %
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{../data/scale_up.pdf}
-\caption{\small The graph shows the mean run times of synchronous and
-  asynchronous - centralised/decentralised RE simulations on one
-  machine. We repeated the experiments with up to 256 replicas. Up to
-  128 replicas, the experiments were conducted on QB and 256 replicas
-  experiments were conducted on Ranger.}
-  \alnote{Abhinav: could you prepare a figure version for the final paper without the 
-  fitting function, please?}
+\includegraphics[width=0.7\textwidth]{../data/scale_up.pdf}
+\caption{\small \textbf{Scale-Up Performance for 8 to 1024 Replicas:} 
+  The graph shows the runtimes for the different RE implementations.
+  The asynchronous decentralized RE implementation shows the best
+  scaling behaviour. Both centralised RE versions scale less well mainly due
+  to the limitations of the single master, which becomes a bottleneck.}
 \label{fig:graph}
 \vspace{-1em}
 \end{figure}
@@ -885,10 +890,11 @@ In this section we present the experiments that we conducted on production level
 
 \subsubsection{Experiments}
 In this section we describe the experiments we did increasing the
-number of replicas on a single machine. We configured the Cases I, II
+number of replicas on a single machine. We configured the cases I, II
 \& III to run parallel NAMD simulations with 4, 8, 16, 32, 64, 128 and
 256 replicas sampling a temperature between 300 and 3000 K on Teragrid
-machines QueenBee and Ranger. \alnote{What resource?} In each
+machines QueenBee and Ranger. \alnote{Note to ourselves: we need to make sure that
+case I-III are introduced.} In each
 simulation, one BigJob is launched with sufficient cores while each
 replica uses 16 MPI processes and runs 500 time steps between exchange
 attempts. Up to 128 replicas, all simulations were conducted on
@@ -896,7 +902,9 @@ QueenBee, but the 256 replica simulations were conducted on Ranger as
 QueenBee allocates a maximum of 2048 cores per job. The metric used
 for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time
 to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges,
-respectively. It should be noted that the ratio between the number of
+respectively. \alnote{This is a little confusing. In the model we talk
+about successful exchanges all the time. Opinions?} 
+It should be noted that the ratio between the number of
 replicas and the number of attempted exchanges is kept constant, for
 the purpose of comparison between each of these cases. It means that
 we are keeping the number of times each replica restarts,
@@ -918,7 +926,8 @@ in case I and the least in case III.
 {\it Analysis: } From the graph (Figure~\ref{fig:graph}), we see that
 Case I does not scale very well when we increase the number of
 replicas. This is due to an inability to start and end all the
-replicas at the same time and also due to the centralized control of the workflow. With more and more replicas, the time to start the replicas increases  and 
+replicas at the same time and also due to the centralized control of 
+the workflow. With more and more replicas, the time to start the replicas increases  and 
 synchronization cost tends to increase too.  In Case II, the exchanges happen in
 an asynchronous manner, but they are still conducted by the master
 alone. As the number of replicas increases, the master quickly becomes
@@ -934,9 +943,11 @@ is better than the centralised implementation.
 \centering
 \subfigure[Central]{\includegraphics[width=0.47\textwidth]{../data/8rep.pdf}}\qquad
 \subfigure[Decentral]{\includegraphics[width=0.47\textwidth]{../data/32rep.pdf}}\\
-\caption{\textbf{8 and 16 replicas distributed:} The graph shows the mean run times of synchronous and
+\caption{\textbf{Scale-out Performance for 8 and 16 Replicas:} 
+  The graph shows the mean run times of synchronous and
   asynchronous - centralised/decentralised RE simulations across two
   and four machines.}
+  \alnote{16 or 32 replicas? Why is the centralized async performing better for 8 replicas and a small number of machines? bar chart instead of lines? opinions?}
 \label{fig:24machines}
 \end{figure}
 
@@ -948,10 +959,11 @@ the number of machines across which the experiments were done. We
 chose LONI and Teragrid machines to run the experiments. We did
 experiments distributed across two and four machines with 8, 16 and 32
 replicas distributed equally across the machines.
-Figure~\ref{fig:2machines} and Figure~\ref{fig:4machines} show the
-behavior of Cases I, II and III across one, two and four machines,
+Figure~\ref{fig:24machines} shows the behaviour of the three scenarios 
+across one, two and four machines,
 respectively. Overall, there is not much difference between the local
-and distributed runs in any case. The reason being that there is very
+and distributed runs in any case. \alnote{see comment above: Why is case II faster than III 
+in the 8rep/[1,2] machine scenario?} The reason being that there is very
 little interaction between the replicas. A very small configuration
 file is staged to the remote machines after an exchange, which will
 not add more than a couple of seconds per exchange. The rest of the
@@ -970,7 +982,7 @@ the performance.
 {\it Results:}\\
 
 
-{\it Analysis: } In Figure~\ref{fig:2machines}, we see the performance
+{\it Analysis: } In Figure~\ref{fig:24machines}, we see the performance
 of all three cases when run in a distributed manner across two
 machines. As the data that is exchanged between replicas is very
 small, the Cases I, II and III behave in a similar manner to the way
