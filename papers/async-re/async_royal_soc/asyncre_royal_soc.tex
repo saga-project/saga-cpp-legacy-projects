@@ -137,7 +137,7 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \jhanote{In general please don't use hard numbers, but use pointers to
   sections!}
-
+\athotanote{do you mean this: \S\ref{repexfw}}
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
 resources across distributed resources is a complex task.  Inevitably,
@@ -256,9 +256,9 @@ T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}})
 \label{eq:totaltime}
 \end{eqnarray}
 where, p is defined as the probability of a successful exchange be $p$
-(as the probability of a successful exchange is not 1, but the
-probability of whether to accept an exchange or not is made using the
-Metropolis scheme.  However, any RE experiment will entail an overhead
+(the probability of a successful exchange is not 1, the
+decision to accept an exchange or not is made using the
+Metropolis scheme~\cite{??}). However, any RE experiment will entail an overhead
 of coordination, job-submission \& termination etc. Thus, the time $T$
 to complete the RE experiment where N$_X$ is the total number of
 exchanges is:
@@ -606,7 +606,7 @@ Manager ends the experiment.
 \alnote{In the original state chart we had a ``free'' state. I think
   this state is needed to ensure the atomicity property of the
   exchange protocol (2pc style).} \jhanote{Would the \texttt{free}
-  state the same as the \texttt{complete} state?} A replica can be in
+  state the same as the \texttt{complete} state?} \athotanote{i think a replica in \texttt{free} state implies that it is available to make exchanges (meanwhile it also searches or a partner). in the present explanation, that would be \texttt{done} state}   A replica can be in
 one of the three states: (i) \texttt{running}, (ii) \texttt{done},
 (iii) \texttt{pending} (for an exchange) and (iv) \texttt{complete}
 (exchange has been completed). \athotanote{after an exchange is
@@ -631,10 +631,10 @@ replica finds an exchange partner, it {\it reverifies} its state,
 i.e., it has not been chosen by another partner in the duration that
 it was finding a partner.  If the initiating replica's state has
 changed, then the replica aborts the exchange process it initiated,
-and waits for its state to be set to \texttt{complete}, so that it can
-restart its replica. \jhanote{I don't understand how its state is set
-  to complete and then to restart the replica}.  The replica
-\jhanote{Do you mean replica-agent?} that initiated the exchange
+and waits for its state to be set to \texttt{complete} by the other replica, so that it can
+restart its replica. Here the state \texttt{complete} is a flag/maker which tells the replica-agent that the exchange has been made, the configuration files are in place and to restart the replica. \jhanote{I don't understand how its state is set
+  to complete and then to restart the replica} \athotanote{is it better now?}.  The replica-agent
+\jhanote{Do you mean replica-agent?} \athotanote{yes, fixed.} that initiated the exchange
 increments the exchange count. The RE Manager constantly queries the
 advert server for the latest exchange count and when all exchanges
 have been made, it stops the experiment.
@@ -728,28 +728,28 @@ have been made, it stops the experiment.
     \centering
 	\begin{tabular}{|l|c|c|c|}
 	\hline
-	                        &synchronous  &asynchronous-centralised &asynchronous-decentralised\\
+	                        &synchronous  &asynchronous (centralised) &asynchronous (decentralised)\\
 	% \hline
 	%  $T_{MD\_init}$  &23\,sec &23\,sec &23\,sec\\
 	%  \hline
 	%  $T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
 	\hline
-	$T_{MD}$       &71\,sec &71\,sec &71\,sec\\
+	$T_{MD}$       &71\,seconds &71\,seconds &71\,seconds\\
 	\hline
 	\hline
-	$T_{W}$        &2.64\,sec &1.02\,sec &2.03\,sec\alnote{todo discuss!}\\
+	$T_{W}$        &2.64\,seconds &1.02\,seconds &2.03\,seconds\alnote{todo discuss!}\\
 	\hline
 	\hline
-	$T_{X}$        &0.62\,sec &0.78\,sec &2.29\,sec\\
+	$T_{X}$        &0.62\,seconds &0.78\,seconds &2.29\,seconds\\
 	\hline
-	\hspace{2mm}$T_{F}$        &0\,sec   &0.16\,sec &1.65\,sec \alnote{we need to analyze this mis-match}\\
+	\hspace{2mm}$T_{F}$        &0\,seconds   &0.16\,seconds &1.65\,seconds \alnote{we need to analyze this mis-match}\\
 	\hline
-	\hspace{2mm}$T_{EX}$       &0.4\,sec &0.4\,sec &0.64\,sec???\\
+	\hspace{2mm}$T_{ex}$       &0.4\,seconds &0.4\,seconds &0.64\,seconds???\\
 	\hline
-    \hspace{2mm}$T_{COORD}$    &0.22\,sec &0.22\,sec    &NA (included in $T_W$)\,\\
+    \hspace{2mm}$T_{coord}$    &0.22\,seconds &0.22\,seconds    &NA (included in $T_W$)\,\\
 	\hline
 	\hline
-	$\mathbf{T_{C}}$        &\textbf{990\,sec} &\textbf{798\,sec}    &\textbf{603\,sec}\\
+	$\mathbf{T_{C}}$        &\textbf{990\,seconds} &\textbf{798\,seconds}    &\textbf{603\,seconds}\\
 	\hline
     \end{tabular}
 	\caption{Replica-Exchange Performance}
@@ -789,7 +789,7 @@ restarted~\citep{Luckow:2008fp} with new temperature values.  In the
 case of an unsuccessful exchange, jobs are restarted without
 exchanging the configuration.
 
-\jhanote{Can the following be eliminated or moved to someplace later}
+\jhanote{Can the following be eliminated or moved to someplace later} \athotanote{yes, can be deleted}
 It should be noted that the replicas take longer (91 seconds) to
 complete their 500 time-steps from a fresh start. But when they are
 restarted, they finish the run slightly faster (68 seconds).  And the
@@ -803,10 +803,11 @@ eventually be primarily interested in learning the scale-up and
 scale-out properties of synchronous and asynchronous RE and hence are
 not concerned by the queue wait time. Therefore, we start measuring
 time lapsed only when the BigJob agent starts running the
-replicas. \jhanote{Ths last sentence is incomplete and incorrect
-  grammatically. Please fix. Does it need to be merged with the
-  previous sentence?} Because, almost every time, the RE Manager
+replicas because, almost every time, the RE Manager
 completes submitting the replicas before the BigJob becomes active.
+\jhanote{Ths last sentence is incomplete and incorrect
+  grammatically. Please fix. Does it need to be merged with the
+  previous sentence?} \athotanote{yes, merged}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -841,23 +842,23 @@ pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.
   for actually doing something, but not waiting times!} \athotanote{is
   it better now?}  \jhanote{in the previous paragraph you write
   ``seconds''; in the following paragraphs you write {\it sec}. Need
-  consistency!} \jhanote{Previous paragraph has to be simplified.  Too
+  consistency!} \athotanote{fixed} \jhanote{Previous paragraph has to be simplified.  Too
   difficult to understand. REMEMBER: Short simple (ie non compound)
   sentences}.
 
 As replica pairs are pre-determined and the replicas finish running
-before any exchanges are attempted $T_F$ is 0 seconds.  $T_{ex}$
+before any exchanges are attempted $T _F$ is 0 seconds.  $T_{ex}$
 includes updating configuration files and transferring the them to
 their respective directories; it takes 0.2 seconds to write and copy a
-file locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. \jhanote{EXPLAIN
-  the factor of two!}
+file locally. And for a pair of replicas, $T_{ex} = 0.2 \times 2=0.4$ seconds. \jhanote{EXPLAIN
+  the factor of two!} \athotanote{fixed}
 
-\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency}
-$T_{coord}$ is the time required by the RE-Manager to restart a pair
-of replicas. \jhanote{Abhinav - is the previous sentence correct?
-  ``resubmitting a pair of replicas for restarting'' was too vague!}
-On average $T_{coord}$ amounts to $0.11\,sec \times 2 =
-0.22\,sec$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
+\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency} \athotanote{it should be $T_{coord}$, fixed}
+$T_{coord}$ is the time required by the RE-Manager to post a pair 
+of replica descriptions to the advert server, to be restarted by the BigJob agent. \jhanote{Abhinav - is the previous sentence correct?
+  ``resubmitting a pair of replicas for restarting'' was too vague!} \athotanote{fixed. it may be the case, but we actually explain the actual process after every exchange - that the replicas job descriptions are posted to the advert server, the bigjob agent restarts}
+On average $T_{coord}$ amounts to $0.11\,seconds \times 2 =
+0.22\,seconds$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
 % \alnote{We need to decide whether we use capital letters or not:
 %   $T_{ex}$ vs. $T_{EX}$}
 Substituting the above values in equation~\ref{eq:totaltime}, we get
@@ -865,9 +866,9 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
   T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
 \label{eq:sync}
 \end{eqnarray}
-
+\athotanote{should we mention somewhere that $p$ is one in our experiments and that we dont use metropolis scheme? or can we just leave $p$ as is in the equation?}
 \jhanote{For this particular configuration, is this consistent with
-  Data in Section 5?}
+  Data in Section 5?} \athotanote{within error bars, yes.}
 
 \subsection{Asynchronous (centralised) RE}
 % \alnote{please don't just copy paste. Only focus on the differences}
@@ -903,10 +904,10 @@ replicas, where the RE-Manager tries to find a partner randomly. We
 observed that this only improves the performance when the ensemble
 contains more than 128 replicas. It takes 0.01 seconds per
 query to advert server. \alnote{Is this a remote query to the advert service?} \athotanote{yes}  If the RE Manager tries to find a partner for exchange in a linear fashion, it would have to go through 0 to 32 replicas. On average, it would go through 16 replicas to find a partner. $T_F$ is $16\times
-0.01=0.16\,sec$. \alnote{i.e. per average 16 queries are necessary in
+0.01=0.16\,seconds$. \alnote{i.e. per average 16 queries are necessary in
   order to find a partner? Why 16?} \athotanote{explained} $T_{ex}$ is the time it takes to
 update the configuration files and copy them locally. That would be
-$({0.2})\times 2=0.4\,sec$. $T_{coord}$ is the time it takes to
+$({0.2})\times 2=0.4\,seconds$. $T_{coord}$ is the time it takes to
 resubmit the pair of replicas to the advert server, which is
 $0.11\times 2 = 0.22$ seconds. Therefore, $T_{X}$ is
 $0.16+0.4+0.22=0.78$ seconds. 
