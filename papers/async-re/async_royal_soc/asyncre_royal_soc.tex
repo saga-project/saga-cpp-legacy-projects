@@ -287,11 +287,11 @@ Traditionally, RE algorithms have been implemented such that the
 exchanges have been synchronous.  If the number of replicas is
 ${N_R}$, this leads to a {\it fixed} number of ${N_R \over 2}$ pairs
 of replicas are created.  When \emph{all} the replicas in the ensemble
-reach a pre-determined state (e.g. the MD simulation completes a
-pre-determined number of steps), an exchange of temperatures between
-the paired replicas is attempted using the Metropolis scheme.  If the
-exchange attempt is successful, parameters such as the temperature are
-swapped.
+reach a pre-determined state (e.g. the Molecular Dynamics (MD)
+simulation completes a pre-determined number of steps), an exchange of
+temperatures between the paired replicas is attempted using the
+Metropolis scheme.  If the exchange attempt is successful, parameters
+such as the temperature are swapped.
 
 % In Equation~\ref{eq:totaltime}, we introduced the various components
 % that make up the total time to complete an RE experiment. Only 
@@ -723,19 +723,6 @@ have been made, it stops the experiment.
 
 \section{Implementation of Synchronous and Asynchronous RE}
 \label{sec:re_impl}
-% \jhanote{This section should help the reader understand the control
-%   flow - which is YOUR IMPLEMENTATION of the RE algorithm. Need to
-%   make reference to Figures 2a and 2b} \athotanote{i think we are doing this in section 3?}\jhanote{Yes}
-
-% \alnote{General remark: What do you guys think of summarizing the data into 
-% a table? This way the reader can track the numbers at one central place.}
-% \jhanote{YES. I have suggested the same too}
-
-
-% \jhanote{Explain centralized and decentralized} \alnote{The question
-%   is: where do we explain it? There are already a lot of details in
-%   sec III}\jhanote{Yes. Old remark. Will be removed}
-
 
 \begin{table}
     \centering
@@ -769,45 +756,57 @@ have been made, it stops the experiment.
 	\label{table:repex_perf}
 \end{table}
 
-\alnote{Do we want to present impl. details here?} \athotanote{i too think that we are explaining how we implemented in section 3(RE Framework). Here we are analyzing our implementation?}
-In this section we present the implementation of the different RE scenarios. 
-Further, we analyse the primary components that impact the performance of a RE
-simulation.  For this purpose the following configuration is used:
-Nanoscale molecular dynamics (NAMD)~\citep{Phillips:2005gd}, a highly
-scalable, parallel MD code, is utilised to carry out the MD simulation
-corresponding to each replica run. It is important to mention that any
-other MD or Monte Carlo code could be used just as simply and
-effectively. The total number of replicas ($N_R$) in the ensemble are
-32 and the total number of pairwise exchanges ($N_X$) is 128. As the
-ensemble of replicas are run concurrently, 16 pairwise exchanges are
-possible after each concurrent run. Thus, each replica on average is
-restarted 7 times.  Our experiments are performed on LONI and Teragrid
-shared resource \emph{QueenBee (QB)}. Each replica is configured to run 500
-time-steps and is allocated 16 processors. It should be noted that we
-are talking about the average values whenever we mention
-quantities. % Each replica takes 91 seconds to complete the
-% 500 time-steps from a fresh start and 68 seconds every time it is
-% restarted. Thus, if each replica is restarted 7 times, the average
-% time to complete 500 time-steps ($T_{MD}$) is ${(91+68\times 7) \over8} =
-On average each 500 time-step run takes $71$ seconds. 
-%\alnote{The 71\,sec average won't hold for larger $N_{x}$}
+\alnote{Do we want to present impl. details here?}  \athotanote{i too
+  think that we are explaining how we implemented in section 3(RE
+  Framework). Here we are analyzing our implementation?}
+\jhanote{``Basic characterization of the performance of our implementation''}
+
+In \S\ref{repexfw} we presented the basic components of the RE
+framework and discussed the control flow for the three RE algorithm
+formulations.  In this section we provide further details of the
+working of the RE framework, as well as basic characterization of the
+performance of the RE framework for the three RE algorithm formulations.
+
+% Further, we analyse the primary components
+% that impact the performance of a RE simulation.
+
+For the basic characterisation, the following experimental
+configuration is used: (i) Infrastructure: Our experiments are
+performed on LONI and Teragrid shared resource \emph{QueenBee (QB)}. A
+highly scalable, parallel MD code -- NAMD~\citep{Phillips:2005gd}, is
+utilised to perform the MD simulations for each replica (although, it
+is important to mention that any other MD or Monte Carlo code could be
+used just as simply and effectively with the RE framework).  (ii)
+Replica-Exchange Configuration: The total number of replicas ($N_R$)
+in the ensemble are 32 and the total number of pairwise exchanges
+($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
+pairwise exchanges are possible after each concurrent run. Thus, each
+replica on average is restarted 7 times.  Each replica is configured
+to run 500 time-steps and is allocated 16 processors.  On average each
+500 time-step run takes $71$ seconds.  For all implementations, in the
+event of a successful exchange, jobs are
+restarted~\citep{Luckow:2008fp} with new temperature values.  In the
+case of an unsuccessful exchange, jobs are restarted without
+exchanging the configuration.
+
+\jhanote{Can the following be eliminated or moved to someplace later}
 It should be noted that the replicas take longer (91 seconds) to
 complete their 500 time-steps from a fresh start. But when they are
 restarted, they finish the run slightly faster (68 seconds).  And the
 total time the ensemble of replicas spend running is $71 \times 8 =
 568$ seconds.
-  
-For all implementations, in the event of a successful exchange, jobs
-are restarted~\citep{Luckow:2008fp} with new temperature values.  In
-the case of an unsuccessful exchange, jobs are restarted without
-exchanging the configuration.
- 
-Also, we are primarily interested in learning the scale-up and
+
+The different RE algorithms were repeated multiple ($\approx$ 10)
+times, during different load factors; therefore specific queue wait
+times can be approximated to be similar.  Additionally, we will
+eventually be primarily interested in learning the scale-up and
 scale-out properties of synchronous and asynchronous RE and hence are
-not concerned by the queue wait time. Therefore, we only start
-measuring when the BigJob agent starts running the replicas. Because,
-almost every time, the RE Manager completes submitting the replicas
-before the BigJob becomes active.
+not concerned by the queue wait time. Therefore, we start measuring
+time lapsed only when the BigJob agent starts running the
+replicas. \jhanote{Ths last sentence is incomplete and incorrect
+  grammatically. Please fix. Does it need to be merged with the
+  previous sentence?} Because, almost every time, the RE Manager
+completes submitting the replicas before the BigJob becomes active.
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -823,26 +822,41 @@ before the BigJob becomes active.
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 seconds.
 
-The BigJob agent takes 0.92 seconds to process a replica that
-has completed running.  That is the time it takes to update the state and
-mark the nodes as free. Since the whole ensemble of replicas need to complete running, it is
-sufficient to consider the longer of the time to start and the time to
-mark the end of a replica run. Therefore, $T_r$ is included in $T_w$. The time spent waiting for all replica to complete running is $0.92\times32=29.44$ seconds. For a pair of replicas, $T_w$ is 29.44/16=1.84 seconds. The RE-Manager constantly queries
-the advert server for the latest replica states and marks the replicas
-which finish running as done and retrieves the current energies and
-temperatures by reading the output files. Thus, the associated cost is 0.4 seconds per
-replica and 0.8 seconds for a pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.  \alnote{What is the component that
-  is actually spent waiting for the other replicas to complete. The
-  times you mention above are times for actually doing something, but
-  not waiting times!} \athotanote{is it better now?}
+The BigJob agent takes 0.92 seconds to process a replica that has
+completed running.  That is the time it takes to update the state and
+mark the nodes as free.  Since the whole ensemble of replicas need to
+complete running, it is sufficient to consider the longer of the time
+to start and the time to mark the end of a replica run. Therefore,
+$T_r$ is included in $T_w$.  The time spent waiting for all replica to
+complete running is $0.92\times32=29.44$ seconds. For a pair of
+replicas, $T_w$ is 29.44/16=1.84 seconds.  The RE-Manager constantly
+queries the advert server for the latest replica states and marks the
+replicas which finish running as done and retrieves the current
+energies and temperatures by reading the output files. Thus, the
+associated cost is 0.4 seconds per replica and 0.8 seconds for a
+pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.  
 
-Since all the replicas finish running before the exchanges are
-started, the RE manager won't spend any time searching for partners
-and $T_F$ is 0 seconds. $T_{ex}$ includes updating configuration files
-and transferring the them to their respective directories, in this
-case, locally. It takes 0.2 seconds to write and copy a file
-locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. $T_{coord}$ is the time
-required by the RE-Manager to resubmit the pair of replicas for restarting. On average $T_{coord}$ amounts to $0.11\,sec \times 2 =
+\alnote{What is the component that is actually spent waiting for the
+  other replicas to complete. The times you mention above are times
+  for actually doing something, but not waiting times!} \athotanote{is
+  it better now?}  \jhanote{in the previous paragraph you write
+  ``seconds''; in the following paragraphs you write {\it sec}. Need
+  consistency!} \jhanote{Previous paragraph has to be simplified.  Too
+  difficult to understand. REMEMBER: Short simple (ie non compound)
+  sentences}.
+
+As replica pairs are pre-determined and the replicas finish running
+before any exchanges are attempted $T_F$ is 0 seconds.  $T_{ex}$
+includes updating configuration files and transferring the them to
+their respective directories; it takes 0.2 seconds to write and copy a
+file locally. $T_{ex} = 0.2 \times 2=0.4$ seconds. \jhanote{EXPLAIN
+  the factor of two!}
+
+\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency}
+$T_{coord}$ is the time required by the RE-Manager to restart a pair
+of replicas. \jhanote{Abhinav - is the previous sentence correct?
+  ``resubmitting a pair of replicas for restarting'' was too vague!}
+On average $T_{coord}$ amounts to $0.11\,sec \times 2 =
 0.22\,sec$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
 % \alnote{We need to decide whether we use capital letters or not:
 %   $T_{ex}$ vs. $T_{EX}$}
@@ -851,8 +865,9 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
   T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
 \label{eq:sync}
 \end{eqnarray}
-%\alnote{$T_{MD}$ should be also x Nx?}
 
+\jhanote{For this particular configuration, is this consistent with
+  Data in Section 5?}
 
 \subsection{Asynchronous (centralised) RE}
 % \alnote{please don't just copy paste. Only focus on the differences}
@@ -1091,9 +1106,9 @@ is superior to the centralised one.
 %%%%% FIGURE %%%%%
 \begin{figure}%
 \centering
-\subfigure[8 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleo_8.pdf}}\qquad
-\subfigure[16 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleo_16.pdf}}\\
-\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleo_32.pdf}}
+\subfigure[8 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_8.pdf}}\qquad
+% \subfigure[16 replicas]{\includegraphics[width=0.55\textwidth]{../data/scaleo_16.pdf}}\\
+\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
 \caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas:} 
   TBD.}
   \alnote{16 or 32 replicas? Why is the centralised async performing better for 8 replicas and a small number of machines? bar chart instead of lines? opinions?}
