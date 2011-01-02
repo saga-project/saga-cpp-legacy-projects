@@ -785,7 +785,7 @@ in the ensemble are 32 and the total number of pairwise exchanges
 ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
 pairwise exchanges are possible after each concurrent run. Thus, each
 replica on average is restarted 7 times.  Each replica is configured
-to run 500 time-steps and is allocated 16 processors.  On average each
+to run 500 time-steps and is allocated 16 processors. One BigJob of size 512 processors is requested. On average each
 500 time-step run takes $71$ seconds.  For all implementations, in the
 event of a successful exchange, jobs are
 restarted~\citep{Luckow:2008fp} with new temperature values.  In the
@@ -1029,26 +1029,12 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(2.29+2.03)\times 128\over
 \section{Scale-Up and Scale-Out: Experiments and Results}
 \label{sec:performance}
 
-To evaluate the performance of the different RE implementations, several 
-experiments have been conducted on TG and LONI resources. In particular, 
-we investigate the performance of the three RE implementations -- synchronous (case I),
-asynchronous-centralised (case~II) and asynchronous-decentralised (case III) -- with
-respect to different number of replicas and machine configurations.
-While in the ``scale-up'' scenario a single machine is used, in the ``scale-out''
-scenario up a RE simulation is carried out on up to 4 machines concurrently.
-As in the previous analysis we use NAMD to carry out MD simulations. Each
-replica uses 16 MPI processes and runs 500 time steps. A temperature range 
-between 300 and 3000 K is sampled.
+To evaluate the scale-up and scale-out properties of the different RE algorithms and implementations, we conducted several 
+experiments on TG and LONI resources. By ``scale-up", we mean increasing the number of replicas while keeping the number of machines constant and by ``scale-out", we mean increasing the number of machines while keeping the number of replicas constant. 
+In this section we detail the experiments that were conducted, the experimental results and the analysis.
+
 \alnote{Should we reference the model used? Not sure which model it is
 Hepatitis or HIV?}
-
-% One set of experiments are modeled to 
-% analyze the performance of the algorithms and implementations when we 
-% increase the number of replicas while keeping the number of machines 
-% a constant. The other set of experiments are modeled to analyze the 
-% performance when the number of replicas is kept a constant but the 
-% number of machines is increased. We call the former "scale-up" and 
-% the latter "scale-out" scenario.
 
 %
 %%%%% FIGURE %%%%%
@@ -1060,7 +1046,7 @@ Hepatitis or HIV?}
   The asynchronous decentralised RE implementation shows the best
   scaling behaviour. Both centralised RE versions scale less well mainly due
   to the limitations of the single master, which becomes a bottleneck.}
-\label{fig:graph}
+\label{fig:scaleup}
 \alnote{The notation of the x- and y-label is kind of confusing. On the y-axis
 the unit is in parentheses. On the x-axis \#exchanges. Since we keep the ratio between
 \#replica and \#attempted exchanges constant, do we need both values on the x-axis?}
@@ -1069,40 +1055,20 @@ the unit is in parentheses. On the x-axis \#exchanges. Since we keep the ratio b
 
 \subsection{Scale-Up}
 
-{\it Experiments: }
-In this scenario we run the defined RE configuration using the three RE implementations 
-and between 4 and 256 replicas on the Teragrid resources QB and Ranger.
-Both resources deliver a comparable performance; QB however has a maximum
-core limit of 2048 cores per jobs. For all runs, a single big-job with a 
-sufficient number of cores is used. 
-% Up to 128 replicas, all simulations were conducted on
-% QueenBee, but the 256 replica simulations were conducted on Ranger as
-% QueenBee allocates a maximum of 2048 cores per job. 
-We measure the time-to-completion $T_{C}$ for four 
-exchange attempts per replica, i.\,e.\ for 4 replicas $T_{C}$
-for 16 attempts, for 8 replicas $T_{C}$ for 32 attempts,
-etc., is measured. The ratio between the number of
-replicas and attempted exchanges is kept constant, for
-the purpose of comparison between each of these cases. Further,
-we do not consider the initial queuing time for the BigJob.
 
-% It means that
-% we are keeping the number of times each replica restarts,
-% approximately, a constant.
-% The metric used
-% for comparison of 4, 8, 16, 32, 64, 128 and 256 replicas is the time
-% to complete 16, 32, 64, 128, 256, 512 and 1024 attempted exchanges,
-% respectively. \alnote{This is a little confusing. In the model we talk
-% about successful exchanges all the time. Opinions?} 
-% The mean runtime is obtained by subtracting the queue wait time of
-% the BigJob from the total time. As the ratio between the number of
-% replicas and number of exchanges is kept constant, ideally, the
-% runtime must remain constant too. 
+{\it Experiments: }
+We repeated each of the synchronous and asynchronous experiments with 4, 8, 16, 32, 64, 128 and 256 replicas making 16, 32, 64, 128, 256, 512 and 1024 exchanges, respectively, on one machine. Each replica is configured to run 500 time-steps and is allocated 16 processors. The experiments consisting up to 128 replicas are done on {\it QueenBee}, while the experiments with 256 replicas are done on \emph{Ranger} (this is because \emph{QueenBee} only allocates a maximum of 2048 processors per job request). But we have normalised the data from {\it Ranger} to compare with results from \emph{QueenBee}.
+It should be noted that the ratio between the number of
+replicas and attempted exchanges is kept constant, so that it allows for comparison between each of these experiments.
 
 %\subsubsection{Scale up performance: Results and Analysis}
 
-{\it Results:} Figure~\ref{fig:graph} shows the results of this 
-experiment. As the number of replicas increases, $T_{C}$ increases 
+{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by running the 
+experiments mentioned previously. 
+
+
+
+As the number of replicas increases, $T_{C}$ increases 
 as well. This increase, however, is not uniform across the three cases. 
 We see the most slow down in case I and the least in case III.
 
