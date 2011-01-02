@@ -1073,7 +1073,7 @@ the unit is in parentheses. On the x-axis \#exchanges. Since we keep the ratio b
 In this scenario we run the defined RE configuration using the three RE implementations 
 and between 4 and 256 replicas on the Teragrid resources QB and Ranger.
 Both resources deliver a comparable performance; QB however has a maximum
-core limit of 2048 cores per jobs. For all runs, a single BigJob with a 
+core limit of 2048 cores per jobs. For all runs, a single big-job with a 
 sufficient number of cores is used. 
 % Up to 128 replicas, all simulations were conducted on
 % QueenBee, but the 256 replica simulations were conducted on Ranger as
@@ -1132,7 +1132,7 @@ is superior to the centralised one.
 \subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
 \caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas:} 
   TBD.}
-  \alnote{16 or 32 replicas? Why is the centralised async performing better for 8 replicas and a small number of machines? bar chart instead of lines? opinions?}
+  \alnote{16 or 32 replicas? Why is the centralised async performing better for 8 replicas and a small number of machines? We should consider showing only the 32 replica scenario. bar chart instead of lines? opinions?}
 \alnote{Could you check the figures again. They look very pixelated. Further I would propose to just have numbers on the x-axis und not 1Machine, 2Machines,.... If otherwise, please use a space between 1 and machine.}
 \label{fig:24machines}
 
@@ -1140,41 +1140,60 @@ is superior to the centralised one.
 
 \subsection{Scale out}
 
-\subsubsection{Experiments}
-In this section, we describe the experiments we did while increasing
-the number of machines across which the experiments were done. We
-chose LONI and Teragrid machines to run the experiments. We did
-experiments distributed across two and four machines with 8, 16 and 32
-replicas distributed equally across the machines.
-Figure~\ref{fig:24machines} shows the behaviour of the three scenarios 
-across one, two and four machines,
-respectively. Overall, there is not much difference between the local
-and distributed runs in any case. \alnote{see comment above: Why is case II faster than III 
-in the 8rep/[1,2] machine scenario?} The reason being that there is very
-little interaction between the replicas. A very small configuration
-file is staged to the remote machines after an exchange, which will
-not add more than a couple of seconds per exchange. The rest of the
-co-ordination is done via the advert service, which is usually located
-on a remote machine in any case. Each query to the advert server is in
-the order of milli seconds and does not produce a noticeable effect on
-the performance.
+{\it Experiments:} In this scenario we investigate the scale-out behaviour
+of the three RE implementations. For this purpose we used the following
+LONI and TG resources: QueenBee, Ranger, Abe, ?\alnote{Abhinav: could you
+please provide the machines used?}  We utilised up to four machines concurrently
+running between 8 and 32 replicas. All experiments have been conducted using four big-jobs.
+The replicas and big-jobs are evenly distributed across all resources. Once all big-jobs became 
+active, the replicas are assigned to them by the RE-Manager. For all
+experiments we only consider the runtime and not the queuing time at the local 
+LRMS. \alnote{Is this correct? When do we start to assign the replicas? If the 
+queue time is included, we had at least an explanation for the high stddev-}
+\alnote{How many repeats?}
 
-\subsubsection{Scale out performance: Results and Analysis}
+{\it Results:} As seen in Figure~\ref{fig:24machines} the performance of the 
+synchronous RE implementation degrades significantly the more resources are used.
+In particular with a larger number of replicas the asynchronous RE implementations
+performs very well. The asynchronous-decentralised RE version shows as expected
+the best performance.
 
-{\it Results:}\\
+\alnote{To-be-answered: Why is case II faster than III 
+in the 8rep/[1,2] machine scenario?}
+{\it Analysis: } The slowdown of the synchronous version is mainly
+caused by the synchronization phase after each generation and the associated 
+high $T_{W}$ value. In a heterogeneous, distributed environment the performance
+deteriorates even more since the slowest machine determines the overall progress of
+the simulation. The asynchronous RE versions do not have this limitation. As in
+the scale-up scenario, the asynchronous-decentralised version performs
+better with a large number of replicas mainly due to the fact that exchanges
+can be carried out concurrently via the advert service without 
+involvement of a central coordinator.
+
+% Overall, there is not much difference between the local and distributed 
+% runs in any case. The reason being that there is very
+% little interaction between the replicas. A very small configuration
+% file is staged to the remote machines after an exchange, which will
+% not add more than a couple of seconds per exchange. The rest of the
+% co-ordination is done via the advert service, which is usually located
+% on a remote machine in any case. Each query to the advert server is in
+% the order of milli seconds and does not produce a noticeable effect on
+% the performance.
+
+% \subsubsection{Scale out performance: Results and Analysis}
 
 
-{\it Analysis: } In Figure~\ref{fig:24machines}, we see the performance
-of all three cases when run in a distributed manner across two
-machines. As the data that is exchanged between replicas is very
-small, the Cases I, II and III behave in a similar manner to the way
-they behave on a single machine. \alnote{we should add some numbers
-  and maybe a graph for an example scenario: x: machines y:
-  time-to-solution} Again, asynchronous RE is better suited for
-distributed runs and the decentralised implementation scales best. The
-reason is, since each replica has its own replica agent, there is no
-need to transfer any files between machines. The required
-configuration files are created locally by the replica agent.
+%  In Figure~\ref{fig:24machines}, we see the performance
+% of all three cases when run in a distributed manner across two
+% machines. As the data that is exchanged between replicas is very
+% small, the cases I, II and III behave in a similar manner to the way
+% they behave on a single machine. \alnote{we should add some numbers
+%   and maybe a graph for an example scenario: x: machines y:
+%   time-to-solution} Again, asynchronous RE is better suited for
+% distributed runs and the decentralised implementation scales best. The
+% reason is, since each replica has its own replica agent, there is no
+% need to transfer any files between machines. The required
+% configuration files are created locally by the replica agent.
 
 
 %In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
