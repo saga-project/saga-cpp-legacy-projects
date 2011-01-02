@@ -258,7 +258,7 @@ T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}})
 where, p is defined as the probability of a successful exchange be $p$
 (the probability of a successful exchange is not 1, the
 decision to accept an exchange or not is made using the
-Metropolis scheme~\cite{??}). However, any RE experiment will entail an overhead
+Metropolis scheme~\citep{metropolis:1087}). However, any RE experiment will entail an overhead
 of coordination, job-submission \& termination etc. Thus, the time $T$
 to complete the RE experiment where N$_X$ is the total number of
 exchanges is:
@@ -371,8 +371,8 @@ framework that provides the capability to implement and compare the
 performance of the different RE algorithms formulations at
 large-scales.  In addition, it is important that framework be
 independent of the underlying infrastructure.  It is useful to
-highlight that we differ from other RE implementations (e.g.,
-\citep{parashar_arepex}) in that we use {\it production grade}
+highlight that we differ from other RE implementations (e.g.
+\cite{parashar_arepex}) in that we use {\it production grade}
 national and regional cyberinfrastructure, such as the US TeraGrid and
 LONI~\citep{LONI_web}, using general purpose and standard
 capabilities.  Additionally, our framework {\it natively} supports
@@ -739,7 +739,10 @@ have been made, it stops the experiment.
 	\hline
 	$T_{W}$        &2.64\,seconds &1.02\,seconds &2.03\,seconds\alnote{todo discuss!}\\
 	\hline
+	\hspace{2mm}$T_{w}$ &&&0\,second\\ 
 	\hline
+	\hspace{2mm}$T_{r}$ &&&1\,second\\
+	\hline\hline
 	$T_{X}$        &0.62\,seconds &0.78\,seconds &2.29\,seconds\\
 	\hline
 	\hspace{2mm}$T_{F}$        &0\,seconds   &0.16\,seconds &1.65\,seconds \alnote{we need to analyze this mis-match}\\
@@ -752,7 +755,7 @@ have been made, it stops the experiment.
 	$\mathbf{T_{C}}$        &\textbf{990\,seconds} &\textbf{798\,seconds}    &\textbf{603\,seconds}\\
 	\hline
     \end{tabular}
-	\caption{Replica-Exchange Performance}
+	\caption{Replica-Exchange Performance:}
 	\label{table:repex_perf}
 \end{table}
 
@@ -882,16 +885,30 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
 %would be ready to restart the replicas by the time the RE-Manager
 %submits to the advert server. %\alnote{Not consistent with a) Where is the 71s number?}
 
-As mentioned earlier, the BigJob agent takes 0.92 seconds to find that
-a replica is done, update the state and free the nodes. But in this
+As previously described, the BigJob agent has an average delay of 0.92 seconds 
+for discovering that a sub-job has terminated and for book-keeping, i.\,e. for
+updating the list of free/busy nodes. But in this
 implementation, we also make the BigJob agent also retrieve the energy
 and temperature from the output files, which adds 0.2 seconds per
 replica. In summary it takes 1.12 $\times$ 32 = 35.84 seconds for 32
-replicas. As soon as the first pair of replicas are marked as done by the
-BigJob agent, the RE-Manager makes the exchange between
-that pair of replicas - and that pair of replicas would wait 32.8 seconds ($35.84-1.12\times2-T_X$) before the BigJob agent is able to restart
-them. It can be seen from this equation that later pairs of replicas wait a smaller amount of time before they are restarted by the BigJob agent (the BigJob agent alternates between starting all replicas that are new and ending all replicas that are done). On average, this group (16 pairs) of replicas waits  32.8/2=16.4 seconds. Or each pair waited ($T_r$) 16.4/16=1.02 seconds.  \alnote{I don't understand the notion of pair in this context. Is 32 sec == $T_W$?}\athotanote{is it better now?} It should be noted that the timelines
-of the RE-Manager and the BigJob agent run concurrently. Also, the time RE Manager waits for the next replica to become available, $T_w$ is included in $T_F$. Thus $T_W$ is 1.02 seconds.
+replicas. \alnote{This somehow assumes that all replica terminate at
+the same time, right?} As soon as the first pair of replicas are marked as done by the
+BigJob agent, the RE-Manager makes the exchange between that pair of replicas 
+- and that pair of replicas would wait 32.8 seconds ($35.84-1.12\times2-T_X$) 
+\alnote{What value for $T_{X}$ do we assume?} 
+before the BigJob agent is able to restart them. It can be seen from this 
+equation that later pairs of replicas wait a smaller amount of time before 
+they are restarted by the BigJob agent (the BigJob agent alternates between 
+starting all replicas that are new and ending all replicas that are done). 
+On average, this group (16 pairs) of replicas waits  32.8/2=16.4 seconds. 
+Or each pair waited ($T_r$) 16.4/16=1.02 seconds.  \alnote{I don't understand 
+the notion of pair in this context. Is 32 sec == $T_W$?}\athotanote{is it better now?}\alnote{yes. I think
+we can shorten it and directly break the 32 sec down to $T_W$ for 1 replica: 32.8/32=1 sec.} 
+It should be noted that the timelines of the RE-Manager and the BigJob 
+agent run concurrently. Also, the time RE Manager waits for the next replica to 
+become available, $T_w$ is included in $T_F$.\alnote{That is somehow imprecise now! We should only
+include it in one component.} 
+Thus $T_W$ is 1.02 seconds. \alnote{Abhinav: could you please update table 1 with those numbers?}
 
 The time the RE Manager takes to find a partner ($T_F$) depends on
 $N_R$ and also on the number of replicas the RE-Manager has to sift
