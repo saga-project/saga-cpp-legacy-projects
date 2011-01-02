@@ -721,7 +721,8 @@ have been made, it stops the experiment.
 %   architecture figure. }
   
 
-\section{Implementation of Synchronous and Asynchronous RE}
+%\section{Implementation of Synchronous and Asynchronous RE}
+\section{RE Framework: Implementation and Performance}
 \label{sec:re_impl}
 
 \begin{table}
@@ -759,10 +760,10 @@ have been made, it stops the experiment.
 	\label{table:repex_perf}
 \end{table}
 
-\alnote{Do we want to present impl. details here?}  \athotanote{i too
-  think that we are explaining how we implemented in section 3(RE
-  Framework). Here we are analyzing our implementation?}
-\jhanote{``Basic characterization of the performance of our implementation''}
+% \alnote{Do we want to present impl. details here?}  \athotanote{i too
+%   think that we are explaining how we implemented in section 3(RE
+%   Framework). Here we are analyzing our implementation?}
+% \jhanote{``Basic characterization of the performance of our implementation''}
 
 In \S\ref{repexfw} we presented the basic components of the RE
 framework and discussed the control flow for the three RE algorithm
@@ -785,19 +786,19 @@ in the ensemble are 32 and the total number of pairwise exchanges
 ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
 pairwise exchanges are possible after each concurrent run. Thus, each
 replica on average is restarted 7 times.  Each replica is configured
-to run 500 time-steps and is allocated 16 processors. One BigJob of size 512 processors is requested. On average each
-500 time-step run takes $71$ seconds.  For all implementations, in the
-event of a successful exchange, jobs are
-restarted~\citep{Luckow:2008fp} with new temperature values.  In the
-case of an unsuccessful exchange, jobs are restarted without
-exchanging the configuration.
+to run 500 time-steps and is allocated 16 processors. One BigJob of
+size 512 processors is requested. On average each 500 time-step run
+takes $71$ seconds.  For all implementations, in the event of a
+successful exchange, jobs are restarted~\citep{Luckow:2008fp} with new
+temperature values.  In the case of an unsuccessful exchange, jobs are
+restarted without exchanging the configuration.
 
-\jhanote{Can the following be eliminated or moved to someplace later} \athotanote{yes, can be deleted}
-It should be noted that the replicas take longer (91 seconds) to
-complete their 500 time-steps from a fresh start. But when they are
-restarted, they finish the run slightly faster (68 seconds).  And the
-total time the ensemble of replicas spend running is $71 \times 8 =
-568$ seconds.
+% \jhanote{Can the following be eliminated or moved to someplace later} \athotanote{yes, can be deleted}
+% It should be noted that the replicas take longer (91 seconds) to
+% complete their 500 time-steps from a fresh start. But when they are
+% restarted, they finish the run slightly faster (68 seconds).  And the
+% total time the ensemble of replicas spend running is $71 \times 8 =
+% 568$ seconds.
 
 The different RE algorithms were repeated multiple ($\approx$ 10)
 times, during different load factors; therefore specific queue wait
@@ -805,12 +806,11 @@ times can be approximated to be similar.  Additionally, we will
 eventually be primarily interested in learning the scale-up and
 scale-out properties of synchronous and asynchronous RE and hence are
 not concerned by the queue wait time. Therefore, we start measuring
-time lapsed only when the BigJob agent starts running the
-replicas because, almost every time, the RE Manager
-completes submitting the replicas before the BigJob becomes active.
-\jhanote{Ths last sentence is incomplete and incorrect
-  grammatically. Please fix. Does it need to be merged with the
-  previous sentence?} \athotanote{yes, merged}
+time lapsed only when the BigJob agent starts running the replicas
+because, almost every time, the RE Manager completes submitting the
+replicas before the BigJob becomes active.  \jhanote{Ths last sentence
+  is incomplete and incorrect grammatically. Please fix. Does it need
+  to be merged with the previous sentence?} \athotanote{yes, merged}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -950,7 +950,7 @@ $0.16+0.4+0.22=0.78$ seconds.
 
 Substituting the above values in equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.02)\times 128]} = {1 \over p} \times 798.4 seconds
+T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.02)\times 128]} = {1 \over p} \times 798.4~seconds
 \label{eq:cent}
 \end{eqnarray}
 
@@ -973,27 +973,41 @@ temperature from the output files, each of which actions take 0.2
 seconds. It then posts both these values to the advert server. These are the associated costs: $0.11+0.2\times2+0.11\times2=0.73$ seconds.  Thus,
 $T_W$ is 1.3 + 0.73=2.03 seconds.\alnote{Where is the 0.7 sec coming from?} \athotanote{fixed. is it okay?}
 
-We observed that on average, the replica agent makes 15 random queries before
-it locks a partner to make the exchange. \alnote{Why 15? Previously, it has been 16.} \athotanote{random queries} \alnote{Even if it is random, why should the average \# be different in this case compared to the other case?} \athotanote{hmm.. i am not sure. 15 is the average i got after looking at the outputs}
-Each query is 0.11 seconds, thus $T_F$ is 1.65
-seconds. The process of changing the states
-and temperatures in the advert server and writing a new
-configuration file takes, $T_{ex} = 0.11\times 4 +0.2 = 0.64$ seconds.
-\alnote{What is the difference between $T_F$ and $T_{ex}$ here?} \athotanote{explained. better?}
-(And even in the other scenario, where the replica in question is not the
-initiator of the exchange, it has to wait for the other replica to set its state as complete, so that it can restart.) $T_{coord}$ is the time it takes to
-update the state in the advert server, which is included in $T_r$. \alnote{In the other
-cases the state must be updated in the advert server as well. Why don't we consider
-this in the other cases as well?}\athotanote{in the other two cases, the bigjob agent makes the state changes} \alnote{No matter who does the state changes, the time needed should be about the same. Either we put it into the model or we don't. If so, then consistent} \athotanote{we do include the time to update the states. but that is included in $T_W$}  Thus, $T_{X}$ is $1.65+0.64= 2.29$ seconds.
+We observed that on average, the replica agent makes 15 random queries
+before it locks a partner to make the exchange. \alnote{Why 15?
+  Previously, it has been 16.} \athotanote{random queries}
+\alnote{Even if it is random, why should the average \# be different
+  in this case compared to the other case?} \athotanote{hmm.. i am not
+  sure. 15 is the average i got after looking at the outputs} Each
+query is 0.11 seconds, thus $T_F$ is 1.65 seconds. The process of
+changing the states and temperatures in the advert server and writing
+a new configuration file takes, $T_{ex} = 0.11\times 4 +0.2 = 0.64$
+seconds.  \alnote{What is the difference between $T_F$ and $T_{ex}$
+  here?} \athotanote{explained. better?}  (And even in the other
+scenario, where the replica in question is not the initiator of the
+exchange, it has to wait for the other replica to set its state as
+complete, so that it can restart.) $T_{coord}$ is the time it takes to
+update the state in the advert server, which is included in
+$T_r$. \alnote{In the other cases the state must be updated in the
+  advert server as well. Why don't we consider this in the other cases
+  as well?}\athotanote{in the other two cases, the bigjob agent makes
+  the state changes} \alnote{No matter who does the state changes, the
+  time needed should be about the same. Either we put it into the
+  model or we don't. If so, then consistent} \athotanote{we do include
+  the time to update the states. but that is included in $T_W$} Thus,
+$T_{X}$ is $1.65+0.64= 2.29$ seconds.
 
 It should be noted here that in the centralised version of
 asynchronous RE, where only 2 connections to the advert server existed
 (RE-Manager, BigJob agent), each query took only 0.01 seconds. But in
 the decentralised version, since each replica agent maintains an open
 connection to the advert server, there are 32+2=34 connections
-open. This effects the performance of the advert server. This is the reason we find that each query is 0.01 seconds in the centralised implementation and 0.11 seconds in the decentralised implementations. \alnote{Is this the reason why
-the query takes 0.11\,sec instead of 0.01\,sec now? These would be a severe performance
-degradation.}
+open. This effects the performance of the advert server. This is the
+reason we find that each query is 0.01 seconds in the centralised
+implementation and 0.11 seconds in the decentralised
+implementations. \alnote{Is this the reason why the query takes
+  0.11\,sec instead of 0.01\,sec now? These would be a severe
+  performance degradation.}
 
 \athotanote{ do we need this para?}In the decentralised implementation, there are many pairs of
 replica agents negotiating the exchanges concurrently. While this
@@ -1002,7 +1016,7 @@ in unit time.
 
 Substituting the above values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(2.29+2.03)\times 128\over 16}} = {1 \over p} \times 603 seconds
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(2.29+2.03)\times 128\over 16}} = {1 \over p} \times 603~seconds
 \label{eq:decent}
 \end{eqnarray}
 
@@ -1035,9 +1049,14 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(2.29+2.03)\times 128\over
 \section{Scale-Up and Scale-Out: Experiments and Results}
 \label{sec:performance}
 
-To evaluate the scale-up and scale-out properties of the different RE algorithms and implementations, we conducted several 
-experiments on TG and LONI resources. By ``scale-up", we mean increasing the number of replicas while keeping the number of machines constant and by ``scale-out", we mean increasing the number of machines while keeping the number of replicas constant. 
-In this section we detail the experiments that were conducted, the experimental results and the analysis.
+To evaluate the scale-up and scale-out properties of the different RE
+algorithms and implementations, we conducted several experiments on TG
+and LONI resources. By ``scale-up", we mean increasing the number of
+replicas while keeping the number of machines constant and by
+``scale-out", we mean increasing the number of machines while keeping
+the number of replicas constant.  In this section we detail the
+experiments that were conducted, the experimental results and the
+analysis.
 
 \alnote{Should we reference the model used? Not sure which model it is
 Hepatitis or HIV?}
@@ -1047,16 +1066,18 @@ Hepatitis or HIV?}
 \begin{figure}
 \centering
 \includegraphics[width=0.9\textwidth]{../data/scale_up_gnu.pdf}
-\caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:} 
+\caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:}
   The graph shows the runtimes for the different RE implementations.
   The asynchronous decentralised RE implementation shows the best
-  scaling behaviour. Both centralised RE versions scale less well mainly due
-  to the limitations of the single master, which becomes a bottleneck.}
+  scaling behaviour. Both centralised RE versions scale less well
+  mainly due to the limitations of the single master, which becomes a
+  bottleneck.}
 \label{fig:scaleup}
-\alnote{The notation of the x- and y-label is kind of confusing. On the y-axis
-the unit is in parentheses. On the x-axis \#exchanges. Since we keep the ratio between
-\#replica and \#attempted exchanges constant, do we need both values on the x-axis?}
-\vspace{-1em}
+\alnote{The notation of the x- and y-label is kind of confusing. On
+  the y-axis the unit is in parentheses. On the x-axis
+  \#exchanges. Since we keep the ratio between \#replica and
+  \#attempted exchanges constant, do we need both values on the
+  x-axis?}  \vspace{-1em}
 \end{figure}
 
 \subsection{Scale-Up}
@@ -1104,8 +1125,14 @@ is superior to the centralised one.
 \subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
 \caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas:} 
   TBD.}
-  \alnote{16 or 32 replicas? Why is the centralised async performing better for 8 replicas and a small number of machines? We should consider showing only the 32 replica scenario. bar chart instead of lines? opinions?}
-\alnote{Could you check the figures again. They look very pixelated. Further I would propose to just have numbers on the x-axis und not 1Machine, 2Machines,.... If otherwise, please use a space between 1 and machine.}
+\alnote{16 or 32 replicas? Why is the centralised async performing
+  better for 8 replicas and a small number of machines? We should
+  consider showing only the 32 replica scenario. bar chart instead of
+  lines? opinions?}  \alnote{Could you check the figures again. They
+  look very pixelated. Further I would propose to just have numbers on
+  the x-axis und not 1Machine, 2Machines,.... If otherwise, please use
+  a space between 1 and machine.} \jhanote{the labels have to be made
+  larger. Currently can't be read}
 \label{fig:24machines}
 
 \end{figure}
