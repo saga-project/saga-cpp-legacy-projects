@@ -1224,31 +1224,88 @@ analysis.
 \subsection{Scale-Up}
 
 
-{\it Experiments: }
-We repeated each of the synchronous and asynchronous experiments with 4, 8, 16, 32, 64, 128 and 256 replicas making 16, 32, 64, 128, 256, 512 and 1024 exchanges, respectively, on one machine. Each replica is configured to run 500 time-steps and is allocated 16 processors. The experiments consisting up to 128 replicas are done on {\it QueenBee}, while the experiments with 256 replicas are done on \emph{Ranger} (this is because \emph{QueenBee} only allocates a maximum of 2048 processors per job request). But we have normalised the data from {\it Ranger} to compare with results from \emph{QueenBee}.
-It should be noted that the ratio between the number of
-replicas and attempted exchanges is kept constant, so that it allows for comparison between each of these experiments.
+{\it Experiments: } We repeated each of the synchronous and
+asynchronous experiments with 4, 8, 16, 32, 64, 128 and 256 replicas
+making 16, 32, 64, 128, 256, 512 and 1024 exchanges, respectively, on
+one machine. Each replica is configured to run 500 time-steps and is
+allocated 16 processors. The experiments consisting up to 128 replicas
+are done on {\it QueenBee}, while the experiments with 256 replicas
+are done on \emph{Ranger} (this is because \emph{QueenBee} only
+allocates a maximum of 2048 processors per job request). But we have
+normalised the data from {\it Ranger} to compare with results from
+\emph{QueenBee}.  It should be noted that the ratio between the number
+of replicas and attempted exchanges is kept constant, so that it
+allows for comparison between each of these experiments.
 
 %\subsubsection{Scale up performance: Results and Analysis}
 
-{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by running the scale-up
-experiments mentioned. In all the implementations, as the number of replicas increases, $T_{C}$ increases 
-as well. But this increase, however, is not uniform across the three implementations. 
-We see the biggest increase in the synchronous RE and the least in asynchronous (decentralised) RE. We will now discuss why that is the case. 
+{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by
+running the scale-up experiments mentioned.  The ratio of the number
+of exchanges ($N_X$) to the number replicas ($N_R$) is kept constant,
+i.e., the number of generations is a constant for different replica
+counts.  Thus the variation in $T_C$, as $N_R$ increases, is due to
+the coordination component of Eqn~\ref{eq:totaltime}.  The increase,
+however, is not uniform across the three implementations.  The largest
+increase is for synchronous RE, and the least for asynchronous
+(decentralised) RE.
 
-\alnote{need to be aligned with sec 4}
-{\it Analysis: } We see the biggest increase in $T_C$ in the synchronous RE
- due to various reasons: as described in section~\ref{sec:impl_sync_re},
-$T_{w}$, i.\,e.\ the time spent waiting for other replicas to finish,
-is the main driver of this performance degradation. Since replicas are currently started
-sequentially by the master, a delay between the start and thus the termination of the first and 
-last replica exists. Further, different nodes of a machine tend to show a slightly 
-different performance. With more replicas, the time to start the replicas as well as the
-synchronization time increases. From table1\ref{}, it can be seen that in synchronous RE, the biggest component causing slow down is $T_W$. And with increasing $N_R$, $N_X$ (number of pairwise exchanges) increases, while $\eta$ remains a constant. Thus by substituting the values from the table in the eqn2.2, and changing $N_X$, we can understand how the values in graph1 are possible. 
+%\alnote{need to be aligned with sec 4} 
 
-In asynchronous (centralized) RE, it can be seen from the table1\ref{} that $T_W$ is still the biggest component. $T_X$ also has slightly increased. But since the RE Manager makes the exchanges serially, even without the large waiting times seen in the synchronous RE, we see an increase in the time to completion. Again, by changing/substituting $N_X$ in the eqn2.2\ref{} along with values for asynchronous (centralized) RE mentioned in the table1\ref{}  we can arrive at the results seen in the graph1\ref{}.
 
-In the asynchronous (decentralized) RE, as can be seen from the table1\ref{}, the individual values for each of the components that make up the time to make a pairwise exchange are not smaller. In fact, $T_X$ is very large when compared to other cases. But, making the exchanges in a decentralised manner, instead of having the RE-Manager make the exchanges serially makes all the difference. In this implementation, the reason for increasing the $T_C$ is that $T_f$ increases with increasing $N_R$. The replicas contend with each other to lock a partner for exchange, but this only gets worse with increasing number of replicas. 
+%(i) total coordination time taken (at every generation)
+% (ii) hetereogeneity due to different nodes of a machine. We do not
+% have any quantitative information. Just mention it as a factor; 
+% do not discusss.
+
+% We see the biggest increase in $T_C$ in the synchronous RE due to
+% various reasons: as described in section~\ref{sec:impl_sync_re},
+%$T_{w}$, i.\,e.\ 
+
+\jhanote{What changes in sync RE as the $N_R$ increases} 
+In the synchronous RE algorithm, there is an explicit synchronisation
+of all replicas; thus early replicas wait for other replicas to
+finish. As can be seen from Table~\ref{}, this is a major component of
+the $T_C$.  As $N_R$ increases, the number of exchanges at a given
+exchange step increases; consequently the total coordination time at
+each exchange step increases. \jhanote{Now QUANTIFY THIS AND MAKE
+CONNECTION WITH THE DATA IN FIG ..}
+
+In addition to the above explicable changes, as $N_R$ increases,
+different nodes of a machine tend to perform differently.  thus
+influencing the time to completion of different replicas.
+Consequently, as then $N_R$ increases, the synchronization time
+typically increases, as does the time to start the replicas.
+
+% Since replicas are currently started sequentially by the master, a
+% delay between the start and thus the termination of the first and last
+% replica exists.
+% From table1\ref{}, it can be seen that in synchronous RE, the largest
+% component causing slow down is $T_W$. 
+% (number of pairwise
+% exchanges) increases, while
+% Thus by substituting the values from the table in the
+% eqn2.2, and changing $N_X$, we can understand how the values in graph1
+% are possible.
+
+In asynchronous (centralized) RE, it can be seen from the table1\ref{}
+that $T_W$ is still the biggest component. $T_X$ also has slightly
+increased. But since the RE Manager makes the exchanges serially, even
+without the large waiting times seen in the synchronous RE, we see an
+increase in the time to completion. Again, by changing/substituting
+$N_X$ in the eqn2.2\ref{} along with values for asynchronous
+(centralized) RE mentioned in the table1\ref{} we can arrive at the
+results seen in the graph1\ref{}.
+
+In the asynchronous (decentralized) RE, as can be seen from the
+table1\ref{}, the individual values for each of the components that
+make up the time to make a pairwise exchange are not smaller. In fact,
+$T_X$ is very large when compared to other cases. But, making the
+exchanges in a decentralised manner, instead of having the RE-Manager
+make the exchanges serially makes all the difference. In this
+implementation, the reason for increasing the $T_C$ is that $T_f$
+increases with increasing $N_R$. The replicas contend with each other
+to lock a partner for exchange, but this only gets worse with
+increasing number of replicas.
 
 %
 %%%%% FIGURE %%%%%
