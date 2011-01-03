@@ -582,16 +582,17 @@ Replica-agents then take control of replica start/re-start and
 exchange attempts.  The replica-agents upon launch, run the replicas;
 %\jhanote{what is nodefile? I know what it is but use the
 %  general description of what is happening here} 
-\alnote{refined} \jhanote{Thanks Andre. Should have been clear, it was
-  for Abhinav to understand. Sorry you had to do it} A list of nodes
-that is used to carry out the MD run is passed to the replica-agent as
-an argument at startup.  The replica-agent constantly monitors the
-replica, and when the replica finishes, it updates the advert server
-with the current state of that replica.  It also reads the temperature
-and energy from the output files, and posts the values to the advert
-server.  The RE-Manager is primarily responsible for keeping track and
-count of the number of exchanges performed; when the desired number of
-exchanges are done, the RE-Manager ends the experiment.
+% \alnote{refined} \jhanote{Thanks Andre. Should have been clear, it was
+%   for Abhinav to understand. Sorry you had to do it}
+A list of nodes that is used to carry out the MD run is passed to the
+replica-agent as an argument at startup.  The replica-agent constantly
+monitors the replica, and when the replica finishes, it updates the
+advert server with the current state of that replica.  It also reads
+the temperature and energy from the output files, and posts the values
+to the advert server.  The RE-Manager is primarily responsible for
+keeping track and count of the number of exchanges performed; when the
+desired number of exchanges are done, the RE-Manager ends the
+experiment.
 
 % \jhanote{ISNT THE NEXT PARAGRAPH ESSENTIALLY THE SAME AS THE PREVIOUS
 %   PARAGRAHGP? WHY DONT YOU REFER TO THE FIGURE AND THE BASIC StePS
@@ -621,29 +622,52 @@ exchanges are done, the RE-Manager ends the experiment.
 %   state} 
 
 
-\jhanote{Are the four states/description common to all RE cases? If
-  yes, why is it in this paragraph and not in a subsection that is in
-  scope for all three cases? If not, what are the states for the other
-  cases?} \athotanote{not common. added a sentence in the previous section mentioning the states.}
+% \jhanote{Are the four states/description common to all RE cases? If
+%   yes, why is it in this paragraph and not in a subsection that is in
+%   scope for all three cases? If not, what are the states for the other
+%   cases?} \athotanote{not common. added a sentence in the previous section mentioning the states.}
 
-A replica can be in one of the these four states: (i) \texttt{running},
-(ii) \texttt{done}, (iii) \texttt{pending} (for an exchange) and (iv)
-\texttt{complete} (exchange has been completed). % \athotanote{after an
+% \athotanote{after an
 %   exchange is complete, the state has to be set as complete by the
 %   exchange-initiator, so that the other replica-agent can restart its
-%   replica}
-When a replica reaches a pre-determined state it (the
-replica-agent acts as the proxy for the replica) transitions from
-\texttt{running} to \texttt{done}. It initiates the search for a
-partner, and scans the list of replicas randomly, so as to avoid
-contention if multiple replicas have initiated a search for a
-partner. If a replica finds another replica available, it reverifies
-their states (to ensure that both replicas are still in \texttt{done}
-state), and sets their states as \texttt{pending}. After the exchange
-is performed (the temperature of both replicas in the advert server
-has been changed), their states are set as \texttt{complete}. Both
-replica-agents write new configuration files with the updated
-temperatures from the advert server and restart their replicas.
+%   replica} 
+
+A replica can be in one of the these four states: (i)
+\texttt{running}, (ii) \texttt{done}, (iii) \texttt{pending} (for an
+exchange) and (iv) \texttt{complete} (exchange has been completed).
+When a replica reaches a pre-determined state it (the replica-agent
+acts as the proxy for the replica) transitions from \texttt{running}
+to \texttt{done}. It initiates the search for a partner, and scans the
+list of replicas randomly, so as to avoid contention if multiple
+replicas have initiated a search for a partner.  If a replica finds
+another replica available, it reverifies that their states as still in
+\texttt{done} state; if both are in \texttt{done} state, the exchange
+can proceed and their states are set as \texttt{pending}.  When {\it
+  reverifying} the state of the replicas, if the state of the
+initiating replica has already been changed (to \texttt{pending}), the
+current exchange attempt is aborted; if not, the exchange attempt
+proceeds.
+
+% , and waits for its state to
+% be set to \texttt{complete} by the other replica (the initiating replica now).
+% \jhanote{Is this ``it'' the initiating replica or the ``other
+%   replica''?}  \jhanote{Please read the
+%   previous sentence carefully: ``... it can restart its replica..''
+%   something is wrong!} \athotanote{modified. any better?}
+
+After the exchange is performed (the temperature of both replicas in
+the advert server has been changed), their states are set as
+\texttt{complete}. Here the state \texttt{complete} is a marker
+which tells the replica-agent that the exchange has been made, the
+configuration files are in place and to restart the replica.  
+The associated replica-agents write new
+configuration files with updated temperatures, and restart their
+replicas. The replica-agent that initiated the exchange increments the
+exchange count. The RE-Manager constantly queries the advert server
+for the latest exchange count and when all exchanges have been made,
+it stops the experiment.
+
+
 
 % The search for an exchange partner is conducted in a random
 % manner when the number of replicas in the ensemble is large, so as to
@@ -655,20 +679,7 @@ temperatures from the advert server and restart their replicas.
 % replica finds an exchange partner, it {\it reverifies} its state,
 % i.e., it has not been chosen by another partner in the duration that
 % it was finding a partner.  
-When {\it reverifying} the state of the replicas, if the initiating
-replica finds that its state has been changed, then it %, i.e., {\it initiating replica}
-aborts the exchange process it initiated, and waits for its state to
-be set to \texttt{complete} by the other replica (the initiating replica now).
-\jhanote{Is this ``it'' the initiating replica or the ``other
-  replica''?}  \jhanote{Please read the
-  previous sentence carefully: ``... it can restart its replica..''
-  something is wrong!} \athotanote{modified. any better?} Here the state \texttt{complete} is a marker
-which tells the replica-agent that the exchange has been made, the
-configuration files are in place and to restart the replica.  The
-replica-agent that initiated the exchange increments the exchange
-count. The RE-Manager constantly queries the advert server for the
-latest exchange count and when all exchanges have been made, it stops
-the experiment.
+
 
 % \athotanote{i was trying to say the following: replca 1 finds replica
 %   2 in done state, but before it locks replica 2, it reverifies both
@@ -797,11 +808,13 @@ the experiment.
 	$\mathbf{T_{C}}$        &\textbf{990\,seconds} &\textbf{798\,seconds}    &\textbf{653\,seconds}\\
 	\hline
     \end{tabular}
-    \caption{Replica-Exchange Performance }
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms}
         \alnote{Should we generally add $T_{coord}$ to $T_{w}$ to avoid confusion?} \athotanote{we can do that.. should I?}
         \alnote{Can we put in 0 s instead of NA?} \athotanote{yes..}
 	\label{table:repex_perf}
 \end{table}
+
+
 
 % \alnote{Do we want to present impl. details here?}  \athotanote{i too
 %   think that we are explaining how we implemented in section 3(RE
@@ -855,9 +868,9 @@ of synchronous and asynchronous RE, we are not concerned by the
 queue wait time.  Therefore, we start measuring time lapsed only when
 the BigJob agent starts running the replicas/replica-agents because, almost every
 time, the RE-Manager completes submitting them before the
-BigJob becomes active. \jhanote{Is this not just specific to the Synch
-  case? i.e.  for async decentralised case, the replica-agent submits
-  the replicas and not the RE-Manager?!} \athotanote{fixed.}
+BigJob becomes active. % \jhanote{Is this not just specific to the Synch
+%   case? i.e.  for async decentralised case, the replica-agent submits
+%   the replicas and not the RE-Manager?!} \athotanote{fixed.}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -886,8 +899,8 @@ the startup of the first and the last replica. Also, the
 post-processing of each replica run, i.\,e.\ updating the state and
 marking nodes free, is done sequentially. The longer of both times --
 in this case the post-processing time -- determines the overall time
-spent waiting for other replicas. In average, it takes 0.92\,seconds
-to process a replica that has completed running. In an ensamble of 32
+spent waiting for other replicas. On average, it takes 0.92\,seconds
+to process a replica that has completed running. In an ensemble of 32
 replicas the delay between the termination of the first and last
 replica adds up to 29.4\,seconds, i.\,e.\ for one replica pair (there
 are in total 16 pairs in a 32 replica ensemble): $T_{w} =
