@@ -243,7 +243,7 @@ the operating data-set size).
 %   exchange have been addressed, could you please comment out? Thanks.}
 
 \subsection{Mathematical Model}
-
+\label{sec:math-model}
 In the this subsection we develop a mathematical model that captures
 the primary components that make up the total runtime of a RE
 experiment. In an ideal scenario, the total time to complete an
@@ -764,30 +764,32 @@ the experiment.
 
 \begin{table}
     \centering
-	\begin{tabular}{|l|c|c|c|}
+	\begin{tabular}{|l|r|r|r|}
 	\hline
-	                        &synchronous  &asynchronous (centralised) &asynchronous (decentralised)\\
+	                        &\textbf{synchronous}  &\textbf{asynchronous (centralised)} 
+	                        &\textbf{asynchronous (decentralised)}\\
 	% \hline
 	%  $T_{MD\_init}$  &23\,sec &23\,sec &23\,sec\\
 	%  \hline
 	%  $T_{MD\_run}$   &68\,sec &68\,sec &68\,sec\\
 	\hline
+	\hline
 	$T_{MD}$       &71\,seconds &71\,seconds &71\,seconds\\
 	\hline
 	\hline
-	$T_{W}$        &2.64\,seconds &1.02\,seconds &2.03\,seconds\alnote{todo discuss!}\\
+	$T_{W}$        &2.6\,seconds &1.02\,seconds &2.03\,seconds\\
 	\hline
-	\hspace{2mm}$T_{w}$ &1.84\,seconds &NA (included in $T_r$)&0.73\,second\\ 
+	\hspace{2mm}$T_{w}$ &1.8\,seconds &NA (included in $T_r$)&0.73\,seconds\\ 
 	\hline
-	\hspace{2mm}$T_{r}$ &0.8 seconds&1.02 seconds&1.3\,second\\
+	\hspace{2mm}$T_{r}$ &0.8 seconds&1.02 seconds&1.3\,seconds\\
 	\hline\hline
-	$T_{X}$        &0.62\,seconds &0.78\,seconds &8.68\,seconds\\
+	$T_{X}$        &0.6\,seconds &0.78\,seconds &8.68\,seconds\\
 	\hline
-	\hspace{2mm}$T_{f}$        &0\,seconds   &0.16\,seconds &7.04\,seconds \alnote{we need to analyze this mis-match}\\
+	\hspace{2mm}$T_{f}$        &0\,seconds   &0.16\,seconds &7.04\,seconds\\
 	\hline
-	\hspace{2mm}$T_{ex}$       &0.4\,seconds &0.4\,seconds &0.64\,seconds???\\
+	\hspace{2mm}$T_{ex}$       &0.4\,seconds &0.4\,seconds &0.64\,seconds\\
 	\hline
-    \hspace{2mm}$T_{coord}$    &0.22\,seconds &0.22\,seconds    &NA (included in $T_W$)\,\\
+    \hspace{2mm}$T_{coord}$    &0.2\,seconds &0.22\,seconds    &NA (included in $T_W$)\\
 	\hline
 	\hline
 	$\mathbf{T_{C}}$        &\textbf{990\,seconds} &\textbf{798\,seconds}    &\textbf{653\,seconds}\\
@@ -795,6 +797,7 @@ the experiment.
     \end{tabular}
     \caption{Replica-Exchange Performance \jhanote{Didn't we agree
         to use lower-case for the sub components?} }
+        \alnote{Should we generally add $T_{coord}$ to $T_{w}$ to avoid confusion?}
 	\label{table:repex_perf}
 \end{table}
 
@@ -868,17 +871,39 @@ BigJob becomes active. \jhanote{Is this not just specific to the Synch
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 seconds.
 
-The BigJob agent takes 0.92 seconds to process a replica that has
-completed running.  That is the time it takes to update the state and
-mark the nodes as free.  Since the whole ensemble of replicas needs to
-complete running, it is sufficient to consider the longer of the time
-to start and the time to mark the end of a replica run. Therefore,
-$T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble,
-for a pair of replicas, $T_w$ is 29.44/16=1.84 seconds.  The
-RE-Manager marks the replicas which finish running as done and
+\alnote{We are very imprecise when using units in equations. Also I would propose
+to abbrev. seconds to s or sec (makes it in my opinion easier to parse)}
+
+As explained in section~\ref{sec:repex-approach} (\ref{sec:math-model}), the overall performance of
+a RE implementation is primarily determined by the waiting time $T_W$ and the time for
+conducting the exchange $T_X$. In the synchronous RE implementation
+replicas are started sequentially, i.\,e.\ there is a delay between
+the startup of the first and the last replica. Also, the post-processing
+of each replica run, i.\,e.\ updating the state and marking nodes free, 
+is done sequentially. The longer of both times -- in this case the
+post-processing time -- determines the overall time spent waiting for 
+other replicas. In average, it takes 0.92\,seconds to process 
+a replica that has completed running. In an ensamble of 32 replicas
+the delay between the termination of the first and last replica adds
+up to 29.4\,seconds, i.\,e.\ for one replica pair (there are in total 16 
+pairs in a 32 replica ensemble): $T_{w} = 1.8$\,seconds.
+
+% That is the time it takes to update the state and
+% mark the nodes as free.  Since the whole ensemble of replicas needs to
+% complete running, it is sufficient to consider the longer of the time
+% to start and the time to mark the end of a replica run. Therefore,
+% $T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble,
+% for a pair of replicas, $T_w$ is 29.44/16=1.84 seconds.  
+
+\alnote{We need to be careful here. If I understand this correctly: stageout of
+file is $T_r$ and stagein $T_{ex}$? Shouldn't we rather consider the stageout
+time above in $T_w$ (since it is part of the delay between the termination of the first
+and last replica)?}
+The RE-Manager marks the replicas which finish running as done and
 retrieves the energies and temperatures by reading the output
 files. That costs 0.4 seconds per replica and 0.8 seconds for a
-pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.
+pair. Thus, $T_W = 1.84 + 0.8=2.64$\,seconds.
+
 
 % \alnote{What is the component that is actually spent waiting for the
 %   other replicas to complete. The times you mention above are times
@@ -890,35 +915,40 @@ pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.
 %   difficult to understand. REMEMBER: Short simple (ie non compound)
 %   sentences}. \athotanote{i think its slightly better now..}
 
-As replica pairs are pre-determined and the replicas finish running
-before any exchanges are attempted $T _f$ is 0 seconds.  $T_{ex}$
-includes updating configuration files and transferring them to their
-respective directories; it takes 0.2 seconds to write and copy a file
-locally. For a pair of replicas involved in the exchange, $T_{ex} =
-0.2 \times 2=0.4$ seconds, as file writing and copy is done
-sequentially,
+$T_{X}$ comprises of three sub-components: $T_f$, $T_{ex}$ and $T_{coord}$.
+In this scenario $T_{f}=0$\,seconds due to the fact that the algorithm
+assumes a fixed set of replica pairs.  $T_{ex}$, i.\,e.\ the
+updating and stage-out of the configuration files, can be
+approximated to 0.2\,seconds per replica and thus, 0.4\,seconds per
+replica pair (the transfer of the input files in done sequentially).
+$T_{coord}$ is the time required by the RE-Manager to restart the 
+replicas using the BigJob framework.  
+% \jhanote{Abhinav - is the previous sentence correct?
+%   ``resubmitting a pair of replicas for restarting'' was too vague!}
+% \athotanote{fixed. it may be the case, but we actually explain the
+%   actual process after every exchange - that the replicas job
+%   descriptions are posted to the advert server, the bigjob agent
+%   restarts}
+On average $T_{coord}$ amounts to $0.1$\,seconds per replica, i.\,e.\  $0.2$\,seconds per
+replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ seconds.
 
+\alnote{``$T_{ex}$ includes updating configuration files and transferring them to their
+respective directories; it takes 0.2 seconds to write and copy a file
+locally.`'' At least in the synchronous version I used there was 
+a remote copy involved. Do we have a number for that?} 
+
+% For a pair of replicas involved in the exchange, $T_{ex} =
+% 0.2 \times 2=0.4$ seconds, as file writing and copy is done
+% sequentially,
 % \jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency}
 % \athotanote{it should be $T_{coord}$, fixed} 
 \alnote{We should be
   consistent with all subscripts: Why $T_F$, but $T_{ex}$?}
 \athotanote{changed to $T_f$.} \jhanote{Table still needs attention}
 
-$T_{coord}$ is the time required by the RE-Manager to post a pair of
-replica descriptions to the advert server, to be restarted by the
-BigJob agent. % \jhanote{Abhinav - is the previous sentence correct?
-%   ``resubmitting a pair of replicas for restarting'' was too vague!}
-% \athotanote{fixed. it may be the case, but we actually explain the
-%   actual process after every exchange - that the replicas job
-%   descriptions are posted to the advert server, the bigjob agent
-%   restarts}
-On average $T_{coord}$ amounts to $0.11\,seconds \times 2
-= 0.22\,seconds$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
-% \alnote{We need to decide whether we use capital letters or not:
-%   $T_{ex}$ vs. $T_{EX}$}
 Substituting the above values in equation~\ref{eq:totaltime}, we get
 \begin{eqnarray}
-  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
+  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990) \,seconds
 \label{eq:sync}
 \end{eqnarray}
 
@@ -1090,6 +1120,7 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(8.68+2.03)\times 128\over
 \label{eq:decent}
 \end{eqnarray}
 
+\subsection{Summary}
 
 %\alnote {one could ask why is the config file staged in case I and II then?} 
 
