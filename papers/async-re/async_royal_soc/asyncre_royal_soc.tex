@@ -449,37 +449,37 @@ server for new jobs.
 
 % \jhanote{Abhinav: This subsection should help the reader understand
 %   the basic and common elements of the RE Framework -- job submission,
-%   role of bigjob-agent, replica agent, replica-exchange manager etc
-%   etc} \athotanote{job submission, bigjob agent are explained in 3a. RE Manager is explained below. replica agent is touched upon but a more detailed explanation in section 3b(ii)}
+%   role of bigjob-agent, replica-agent, replica-exchange manager etc
+%   etc} \athotanote{job submission, bigjob agent are explained in 3a. RE-Manager is explained below. replica-agent is touched upon but a more detailed explanation in section 3b(ii)}
   
 %   \jhanote{ABHINAV: DEFINE THE ROLE OF RE-MANAGER HERE.  Possibly BIGJOB
 %   AGENT here if not in previous subsection.}  \athotanote{please check if it's ok now}
   
-The RE Manager is the master process controlling the different
+The RE-Manager is the master process controlling the different
 components of the framework and aspects of the exchanges.  The RE
 Manager % is an abstraction that
-uses the SAGA BigJob Manager; the actual tasks that the RE Manager
+uses the SAGA BigJob Manager; the actual tasks that the RE-Manager
 performs out depend on which RE algorithm is being investigated.  A
-replica agent is a wrapper script that manages an individual
+replica-agent is a wrapper script that manages an individual
 replica  -- starts, facilitates the exchange of that replica,
 and restarts it.
 
 % And at the least, it is the SAGA BigJob Manager.  At the most,
-% launched in place of the replica. The replica agent implementation
-% where the RE Manager does a lot of work (a centralized
+% launched in place of the replica. The replica-agent implementation
+% where the RE-Manager does a lot of work (a centralized
 % implementation). But in an implementation where there is a
-% \emph{replica agent} for every replica, the It should be noted that
+% \emph{replica-agent} for every replica, the It should be noted that
 % synchronous and asynchronous RE are different algorithms and the
 % implementation of same algorithm could be centralized and
 % decentralized.
 
 The asynchronous RE algorithm can be implemented using a centralised
-or decentralised coordination scheme.  In the former, the RE Manager
+or decentralised coordination scheme.  In the former, the RE-Manager
 manages all the replicas and performs the exchanges; in the
 decentralised coordination implementation, multiple replica-agents
 take on that responsibility.  It is worth noting that the synchronous
 RE algorithm has centralised coordination scheme.  Interestingly, for
-decentralised coordination implementation, the RE Manager is
+decentralised coordination implementation, the RE-Manager is
 functionally similar to the SAGA BigJob Manager.
 
 % Synchronous RE is implemented in a centralised fashion. Centralized
@@ -513,24 +513,24 @@ functionally similar to the SAGA BigJob Manager.
 
 We first explain how the synchronous and asynchronous (centralised) RE
 Manager works in the following section followed by an explanation of
-how the asynchronous (decentralised) RE Manager/replica agent
+how the asynchronous (decentralised) RE-Manager/replica-agent
 combination works.
 
 \subsubsection{Synchronous and Asynchronous (centralised) RE-Manager}
 
-% We first explain how the synchronous RE Manager works and then
-% explain asynchronous (centralized) RE Manager. 
+% We first explain how the synchronous RE-Manager works and then
+% explain asynchronous (centralized) RE-Manager. 
 % centralized implementation, Figure~\ref{fig:coordination}a) can be
 % used to describe both.
 
 % The architecture of an asynchronous (centralized) RE-Manager is
-% similar to that of synchronous RE Manager.
+% similar to that of synchronous RE-Manager.
 % Figure~\ref{fig:coordination}a) shows the control flow.
 
 The control flow of a centralised RE scheme is shown in
 Figure~\ref{fig:coordination}(a), which can be used to understand both
 the asynchronous (centralised) RE and synchronous RE implementations.
-Once the BigJobs and replicas are running, the RE Manager constantly
+Once the BigJobs and replicas are running, the RE-Manager constantly
 queries the SAGA BigJob Manager for the latest replica states.  When
 the RE-Manager finds a replica that has finished running, it collects
 the energy and temperature of that replica by reading the output
@@ -547,10 +547,10 @@ different from the synchronous RE-Manager, in that, instead of waiting
 for \emph{all} replicas to finish running before performing \emph{all}
 exchanges, whenever the asynchronous (centralised) RE-Manager finds a
 replica that has finished running, it tries to find a partner to make
-an exchange. In order to find a partner, the RE Manager goes over the
+an exchange. In order to find a partner, the RE-Manager goes over the
 list of all the replicas in the ensemble. If it finds a replica
 available it attempts the exchange. If a replica is not found
-available, the RE Manager queries the SAGA BigJob Manager for the
+available, the RE-Manager queries the SAGA BigJob Manager for the
 latest replica states and updates its local list. It then loops over
 the list to find a replica that has finished running and a partner to
 exchange with that replica.  If successful, the replicas are submitted
@@ -567,9 +567,9 @@ to be restarted. % \alnote{see comment about BJ
 % are completed. But in an asynchronous (centralized) RE, the exchanges
 % are conducted whenever possible and the replicas are restarted.
 
-\subsubsection{Asynchronous (decentralised) RE-Manager and the replica agent}
+\subsubsection{Asynchronous (decentralised) RE-Manager and the replica-agent}
 
-% Thus, after the replica-agents are launched, the RE Manager and the
+% Thus, after the replica-agents are launched, the RE-Manager and the
 % SAGA BigJob Manager don't have any responsibilities.
  
 
@@ -579,15 +579,16 @@ implementation, in order to conduct the exchanges the RE-Manager
 launches multiple replica-agents (in lieu of replicas directly).
 Replica-agents then take control of replica start/re-start and
 exchange attempts.  The replica-agents upon launch, run the replicas;
-the nodefile \jhanote{what is nodefile? I know what it is but use the
-  general description of what is happening here} is passed to the
+\jhanote{what is nodefile? I know what it is but use the
+  general description of what is happening here} \alnote{refined} 
+A list of nodes that is used to carry out the MD run is passed to the
 replica-agent as an argument at startup.  The replica-agent constantly
 monitors the replica, and when the replica finishes, it updates the
 advert server with the current state of that replica.  It also reads
 the temperature and energy from the output files, and posts the values
-to the advert server.  The RE Manager is primarily responsible for
+to the advert server.  The RE-Manager is primarily responsible for
 keeping track and count of the number of exchanges performed; when the
-desired number of exchanges are done, the RE Manager ends the
+desired number of exchanges are done, the RE-Manager ends the
 experiment.
 
 % \jhanote{ISNT THE NEXT PARAGRAPH ESSENTIALLY THE SAME AS THE PREVIOUS
@@ -663,7 +664,7 @@ be set to \texttt{complete} by the other replica, so that it
 which tells the replica-agent that the exchange has been made, the
 configuration files are in place and to restart the replica.  The
 replica-agent that initiated the exchange increments the exchange
-count. The RE Manager constantly queries the advert server for the
+count. The RE-Manager constantly queries the advert server for the
 latest exchange count and when all exchanges have been made, it stops
 the experiment.
 
@@ -682,7 +683,7 @@ the experiment.
 
 % At the point where the first replica reverifies the states, if one of
 % the replicas' states have changed: (i) if it is the second replica,
-% the replica agent tries to find a new replica; (ii) if it is the first
+% the replica-agent tries to find a new replica; (ii) if it is the first
 % replica itself, that would mean another replica has set the replica as
 % \texttt{pending}. 
 
@@ -694,7 +695,7 @@ the experiment.
 % exchanges their temperature values on the advert server.  
 
 % \jhanote{I though the RE-Manager did the following} \athotanote{the
-%   replica agent increments the count, the RE Manager gets the count
+%   replica-agent increments the count, the RE-Manager gets the count
 %   from the advert server. Please look at the above para and tell me it
 %   makes sense}\jhanote{OK. thanks}
 
@@ -703,7 +704,7 @@ the experiment.
 %   exchange changes at the time of re-verifying the replica pair's
 %   states, that would mean that one or both of the replicas' is now in
 %   the process of making an exchange with a different replica. In that
-%   case one or both of the replica agents will wait till their state is
+%   case one or both of the replica-agents will wait till their state is
 %   set as "Ready" and start their next run. If one of the replicas is
 %   still available, it tries to find a new partner for exchange.}
 % \jhanote{Lets talk about this. I
@@ -724,25 +725,25 @@ the experiment.
 %   exchange is atomic? figure?}  It then modifies its configuration
 % files locally, sets its state as running and runs the replica. On the
 % other hand, the $R_b$'s state is set as "Ready" by $R_a$ and that
-% makes the $R_b$'s replica agent to retrieve its own temperature
+% makes the $R_b$'s replica-agent to retrieve its own temperature
 % (modified by the $R_a$) from the advert server, modify its
 % configuration file locally and run the replica. \alnote{Why does it
 %   need to modify its own config if it uses its own temperature?}
 % \athotanote{fixed} This removes the need to stage the configuration
 % files to different machines. This is possible because there is a
-% replica agent for each replica locally. Where as earlier, the
+% replica-agent for each replica locally. Where as earlier, the
 % RE-Manager and the replica might be located on different machines.  If
 % the state of any of the replicas negotiating the exchange changes at
 % the time of re-verifying the replica pair's states, that would mean
 % that one or both of the replicas' is now in the process of making an
 % exchange with a different replica. In that case one or both of the
-% replica agents will wait till their state is set as "Ready" and start
+% replica-agents will wait till their state is set as "Ready" and start
 % their next run. If one of the replicas is still available, it tries to
 % find a new partner for exchange.  \alnote{How often is the process
 %   repeated until the replica is started with the old temperature?}
-% \athotanote{fixed}The replica agent that initiated the exchange
+% \athotanote{fixed}The replica-agent that initiated the exchange
 % increments the exchange count by one.  If an exchange fails due to
-% contention, the replica agent tries to find a new partner. If an
+% contention, the replica-agent tries to find a new partner. If an
 % exchange is deemed unsuccessful after comparison of energies or
 % temperatures, the replicas are restarted with their old
 % configurations.
@@ -848,10 +849,10 @@ be interested in understanding the scale-up and scale-out properties
 of synchronous and asynchronous RE, hence are not concerned by the
 queue wait time.  Therefore, we start measuring time lapsed only when
 the BigJob agent starts running the replicas because, almost every
-time, the RE Manager completes submitting the replicas before the
+time, the RE-Manager completes submitting the replicas before the
 BigJob becomes active. \jhanote{Is this not just specific to the Synch
-  case? i.e.  for async decentralised case, the replica agent submits
-  the replicas and not the RE Manager?!}
+  case? i.e.  for async decentralised case, the replica-agent submits
+  the replicas and not the RE-Manager?!}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -945,7 +946,7 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
 %would be ready to restart the replicas by the time the RE-Manager
 %submits to the advert server. %\alnote{Not consistent with a) Where is the 71s number?}
 
-The time the RE Manager takes to find a partner ($T_f$) depends on
+The time the RE-Manager takes to find a partner ($T_f$) depends on
 $N_R$ and also on the number of replicas the RE-Manager has to sift
 through to finds an available replica. On average, RE-Manager will
 sift through $N_R/2$ replicas before it finds a partner. % \alnote{I
@@ -958,7 +959,7 @@ observed that this only improves the performance when the ensemble
 contains more than 128 replicas. It takes 0.01 seconds per
 query to advert server. 
 %\alnote{Is this a remote query to the advert service?} \athotanote{yes}  
-If the RE Manager tries to find a partner for exchange in a linear fashion, it would have to go through 0 to 32 replicas. On average, it would go through 16 replicas to find a partner. $T_f$ is $16\times
+If the RE-Manager tries to find a partner for exchange in a linear fashion, it would have to go through 0 to 32 replicas. On average, it would go through 16 replicas to find a partner. $T_f$ is $16\times
 0.01=0.16\,seconds$. 
 % \alnote{i.e. per average 16 queries are necessary in
 %   order to find a partner? Why 16?} \athotanote{explained} 
@@ -1026,17 +1027,17 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.02)\times 128]}
 \subsection{Asynchronous (decentralised) RE}
 
 \athotanote{we can remove the sentence about 0.3/10 seconds, what do you think?}When the BigJob becomes active, the BigJob agent starts the replica
-agents and the replica agents in turn start the replicas. It takes 0.3
+agents and the replica-agents in turn start the replicas. It takes 0.3
 seconds to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 seconds). 
 
-The replica agent creates the
+The replica-agent creates the
 output and error files, reads the configuration, opens a connection to the advert server, sets the state to running and starts the
 replica. All these actions, which are repeated after every exchange,
 take ($T_r$) 1.3 seconds. 
 % \alnote{How do you get 1.3 sec? The starting of the replica-agent
 % must not be repeated after every exchange, correct?} \athotanote{fixed. is it ok now?}
 
-The replica agent constantly monitors all replicas. If it finds
+The replica-agent constantly monitors all replicas. If it finds
 a replica that completed its run, it updates its state in the advert
 server, which takes 0.11 seconds. 
 % \alnote{A advert modification took in the previous
@@ -1047,7 +1048,7 @@ seconds. It then posts both these values to the advert server. These are the ass
 $T_W$ is 1.3 + 0.73=2.03 seconds. %\alnote{Where is the 0.7 sec coming from?} \athotanote{fixed. is it okay?}
 
 
-We observed that on average, the replica agent makes loops over the list of replicas twice
+We observed that on average, the replica-agent makes loops over the list of replicas twice
 before it locks a partner to make the exchange. 
 % \alnote{Why 15?
 %   Previously, it has been 16.} \athotanote{random queries}
@@ -1071,7 +1072,7 @@ update the state in the advert server, which in this case is done while restarti
   the time to update the states. but that is included in $T_W$} Thus,
 $T_{X}$ is $7.04+0.64= 8.68$ seconds.
 
-In this case too, we implement a random search of replicas by each replica agent when the total number of replicas if the ensemble is 128 or more, which reduces contention. It should be noted here that in the centralised implementation of
+In this case too, we implement a random search of replicas by each replica-agent when the total number of replicas if the ensemble is 128 or more, which reduces contention. It should be noted here that in the centralised implementation of
 asynchronous RE, each query took only 0.01 seconds. But in
 the decentralised version, each query is shown as 0.11 seconds. This is due to the fact that each replica-agent stores its replica's data (state, energy, temperature) in a unique directory and changing the directory after each query causes the action to take longer.
 % \alnote{Is this the reason why the query takes
@@ -1079,7 +1080,7 @@ the decentralised version, each query is shown as 0.11 seconds. This is due to t
 %   performance degradation.}
 
 % \athotanote{ do we need this para?} In the decentralised implementation, there are many pairs of
-% replica agents negotiating the exchanges concurrently. While this
+% replica-agents negotiating the exchanges concurrently. While this
 % causes the time taken per unit exchange to go up, more exchanges occur
 % in unit time.
 
@@ -1097,7 +1098,7 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(8.68+2.03)\times 128\over
 % %\subfigure[Control Flow: Decentralized Replica Exchange]{
 % \includegraphics[width=0.9\textwidth]{asyncre.pdf}
 % %\label{fig:async:b}
-% \caption{\small Decentralized control flow: In the decentralized asynchronous RE, for  each replica there is a replica agent which individually manages the replica.}
+% \caption{\small Decentralized control flow: In the decentralized asynchronous RE, for  each replica there is a replica-agent which individually manages the replica.}
 % \label{fig:decent}
 % %\vspace{-1em}
 % \end{figure}
@@ -1260,9 +1261,9 @@ involvement of a central coordinator.
 %   and maybe a graph for an example scenario: x: machines y:
 %   time-to-solution} Again, asynchronous RE is better suited for
 % distributed runs and the decentralised implementation scales best. The
-% reason is, since each replica has its own replica agent, there is no
+% reason is, since each replica has its own replica-agent, there is no
 % need to transfer any files between machines. The required
-% configuration files are created locally by the replica agent.
+% configuration files are created locally by the replica-agent.
 
 
 %In Case I, the pair-wise replica exchange can occur only between replicas of the same generation. Therefore, each exchange step is attempted only after all the replicas have finished running. After the exchange, all the replicas are restarted sequentially. This inserts a delay between the start time of the first replica, the last replica and the replicas in between. %As more resources become available at different times, the replicas already running or done are forced to wait for the newly running replicas to finish before moving on to the next exchange step. %Each exchange step is counted as an exchange.
