@@ -617,7 +617,7 @@ replica-agent acts as the proxy for the replica) transitions from
 \texttt{running} to \texttt{done}. It initiates the search for a
 partner. The search for an exchange partner is conducted in a random
 manner when the number of replicas in the ensemble is large, so as to avoid having all the replicas starting at the first
-replica, which causes contention and failed exchanges. But for for smaller number of replicas, a simple search over all the replicas also works. If a replica
+replica, which causes contention and failed exchanges. But for for smaller number of replicas, a linear search over all the replicas also works. If a replica
 finds another replica available, it reverifies their states (to ensure
 that both replicas are still in \texttt{done} state) and sets their
 states as \texttt{pending}. After making the exchange (changing the
@@ -1011,15 +1011,9 @@ update the state in the advert server, which in this case is done while restarti
   the time to update the states. but that is included in $T_W$} Thus,
 $T_{X}$ is $7.04+0.64= 8.68$ seconds.
 
-In this case too, we implement a random search of replicas by each replica agent when the total number of replicas in the ensemble is 128 or more, which reduces contention. It should be noted here that in the centralised version of
-asynchronous RE, where only 2 connections to the advert server existed
-(RE-Manager, BigJob agent), each query took only 0.01 seconds. But in
-the decentralised version, since each replica agent maintains an open
-connection to the advert server, there are 32+2=34 connections
-open. This effects the performance of the advert server. This is the
-reason we find that each query is 0.01 seconds in the centralised
-implementation and 0.11 seconds in the decentralised
-implementations. 
+In this case too, we implement a random search of replicas by each replica agent when the total number of replicas if the ensemble is 128 or more, which reduces contention. It should be noted here that in the centralised implementation of
+asynchronous RE, each query took only 0.01 seconds. But in
+the decentralised version, each query is shown as 0.11 seconds. This is due to the fact that each replica-agent stores its replica's data (state, energy, temperature) in a unique directory and changing the directory after each query causes the action to take longer.
 % \alnote{Is this the reason why the query takes
 %   0.11\,sec instead of 0.01\,sec now? These would be a severe
 %   performance degradation.}
