@@ -897,15 +897,16 @@ is primarily determined by the waiting time $T_W$ and the time for
 conducting the exchange $T_X$. In the synchronous RE implementation
 replicas are started sequentially, i.\,e.\ there is a delay between
 the startup of the first and the last replica. Also, the
-post-processing of each replica run, i.\,e.\ updating the state and
-marking nodes free, is done sequentially. The longer of both times --
-in this case the post-processing time -- determines the overall time
-spent waiting for other replicas. On average, it takes 0.92\,s
-to process a replica that has completed running. In an ensemble of 32
-replicas the delay between the termination of the first and last
-replica adds up to 29.4\,s, i.\,e.\ for one replica pair (there
-are in total 16 pairs in a 32 replica ensemble): $T_{w} =
-1.8$\,s.
+post-processing of each replica run, i.\,e.\ updating the state,
+marking nodes free, the stage-out of the output file, is done sequentially. 
+The longer of both times -- in this case the post-processing time -- 
+determines the overall time spent waiting for other replicas. 
+\alnote{I added 0.92\,s bigjob postproc + 0.4\,s for stageout together}
+On average, it takes 1.3\,s to process a replica that has completed 
+running. In an ensemble of 32 replicas the delay between the termination 
+of the first and last replica adds up to 41.6\,s, i.\,e.\ for one replica 
+pair (there are in total 16 pairs in a 32 replica ensemble): $T_{W} =
+2.6$\,s.
 
 % That is the time it takes to update the state and
 % mark the nodes as free.  Since the whole ensemble of replicas needs to
@@ -914,14 +915,16 @@ are in total 16 pairs in a 32 replica ensemble): $T_{w} =
 % $T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble,
 % for a pair of replicas, $T_w$ is 29.44/16=1.84 s.  
 
-\alnote{We need to be careful here. If I understand this correctly: stageout of
-file is $T_r$ and stagein $T_{ex}$? Shouldn't we rather consider the stageout
-time above in $T_w$ (since it is part of the delay between the termination of the first
-and last replica)?} \athotanote{i am thinking like this: stageout is done before the exchange and it delays all the replicas becoming available. stagein is done after the exchange. only after the stagein the replicas are submitted to restarting.}
+% \alnote{We need to be careful here. If I understand this correctly: stageout of
+% file is $T_r$ and stagein $T_{ex}$? Shouldn't we rather consider the stageout
+% time above in $T_w$ (since it is part of the delay between the termination of the first
+% and last replica)?} \athotanote{i am thinking like this: stageout is done before the exchange and it delays all the replicas becoming available. stagein is done after the exchange. only after the stagein the replicas are submitted to restarting.}
+\alnote{\textbf{included stage-out time into $T_W$ above - just so that you guys can
+follow my steps (comment and paragraph below can be deleted):}
 The RE-Manager marks the replicas which finish running as done and
 retrieves the energies and temperatures by reading the output
 files. That costs 0.4 s per replica and 0.8 s for a
-pair. Thus, $T_W = 1.84 + 0.8=2.64$\,s.
+pair. Thus, $T_W = 1.84 + 0.8=2.64$\,s.}
 
 
 % \alnote{What is the component that is actually spent waiting for the
@@ -969,7 +972,7 @@ replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ s.
 Substituting the above values in equation~\ref{eq:totaltime}, we get
 \alnote{TODO: validate numbers with just one decimal position!}
 \begin{eqnarray}
-  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990) \,s
+  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.6 + 2.6)\times 128]} = {1 \over p} \times (990) \,s
 \label{eq:sync}
 \end{eqnarray}
 
