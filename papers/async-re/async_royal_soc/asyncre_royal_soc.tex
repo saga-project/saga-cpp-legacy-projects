@@ -269,10 +269,10 @@ exchanges is:
 \label{eq:totaltime}
 \end{eqnarray}
 where, $T_{X}$ is the time to perform a pairwise exchange and includes
-the following components, (i) time to find a partner ($T_F$), (ii)
+the following components, (i) time to find a partner ($T_f$), (ii)
 time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
 book-keeping associated with replica pairing/exchanging ($T_{coord}$)
-(thus $T_{X} = T_{F} + T_{ex}+T_{coord}$); 
+(thus $T_{X} = T_{f} + T_{ex}+T_{coord}$); 
 %\alnote{Do we need to split up$T_{W}$? I don't see a (ii).}
 $T_W$ is comprised of the time spent by a replica waiting for other
 replicas to become available ($T_w$), the time spent waiting to be restarted
@@ -307,7 +307,7 @@ restarted after each exchange and any other miscellaneous costs.
 A major limitation of this model is that replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
 replicas.  As a consequence, of pairs being determined before an
-exchange, although $T_F$ is $0$, this limits the number of possible
+exchange, although $T_f$ is $0$, this limits the number of possible
 exchange partners that are available for a given replica; this
 inhibits exchanges between replicas with non-nearest temperatures, and
 ultimately negates the possibility of crosswalks -- where a crosswalk
@@ -338,7 +338,7 @@ replica in the ensemble.  The reduction in {\it synchronization}
 The specific values of the terms $T_{X}$ and $T_W$, in
 Equation\ref{eq:totaltime} differ from the synchronous formulations.
 Since each replica on completing a run has to find a {\it new}
-partner, $T_F \neq 0$.  Additionally, $T_W$ only includes the time
+partner, $T_f \neq 0$.  Additionally, $T_W$ only includes the time
 spent waiting for the next replica to become available, any time spent
 waiting before the replicas are restarted after an exchange and any
 other miscellaneous costs.
@@ -746,7 +746,7 @@ have been made, it stops the experiment.
 	\hline\hline
 	$T_{X}$        &0.62\,seconds &0.78\,seconds &2.29\,seconds\\
 	\hline
-	\hspace{2mm}$T_{F}$        &0\,seconds   &0.16\,seconds &1.65\,seconds \alnote{we need to analyze this mis-match}\\
+	\hspace{2mm}$T_{f}$        &0\,seconds   &0.16\,seconds &1.65\,seconds \alnote{we need to analyze this mis-match}\\
 	\hline
 	\hspace{2mm}$T_{ex}$       &0.4\,seconds &0.4\,seconds &0.64\,seconds???\\
 	\hline
@@ -828,16 +828,14 @@ replicas before the BigJob becomes active.  \jhanote{Ths last sentence
 
 The BigJob agent takes 0.92 seconds to process a replica that has
 completed running.  That is the time it takes to update the state and
-mark the nodes as free.  Since the whole ensemble of replicas need to
+mark the nodes as free.  Since the whole ensemble of replicas needs to
 complete running, it is sufficient to consider the longer of the time
 to start and the time to mark the end of a replica run. Therefore,
-$T_r$ is included in $T_w$.  The time spent waiting for all replica to
-complete running is $0.92\times32=29.44$ seconds. For a pair of
-replicas, $T_w$ is 29.44/16=1.84 seconds.  The RE-Manager constantly
-queries the advert server for the latest replica states and marks the
-replicas which finish running as done and retrieves the current
-energies and temperatures by reading the output files. Thus, the
-associated cost is 0.4 seconds per replica and 0.8 seconds for a
+$T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble, for a pair of
+replicas, $T_w$ is 29.44/16=1.84 seconds.  The RE-Manager marks the
+replicas which finish running as done and retrieves the
+energies and temperatures by reading the output files. That
+ costs 0.4 seconds per replica and 0.8 seconds for a
 pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.  
 
 % \alnote{What is the component that is actually spent waiting for the
@@ -848,16 +846,16 @@ pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.
   ``seconds''; in the following paragraphs you write {\it sec}. Need
   consistency!} \athotanote{fixed} \jhanote{Previous paragraph has to be simplified.  Too
   difficult to understand. REMEMBER: Short simple (ie non compound)
-  sentences}.
+  sentences}. \athotanote{i think its slightly better now..}
 
 As replica pairs are pre-determined and the replicas finish running
-before any exchanges are attempted $T _F$ is 0 seconds.  $T_{ex}$
+before any exchanges are attempted $T _f$ is 0 seconds.  $T_{ex}$
 includes updating configuration files and transferring the them to
 their respective directories; it takes 0.2 seconds to write and copy a
 file locally. And for a pair of replicas, $T_{ex} = 0.2 \times 2=0.4$ seconds. \jhanote{EXPLAIN
   the factor of two!} \athotanote{fixed}
 
-\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency} \athotanote{it should be $T_{coord}$, fixed} \alnote{We should be consistent with all subscripts: Why $T_F$, but $T_{ex}$?} \athotanote{ok, i will make it $T_f$}
+\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency} \athotanote{it should be $T_{coord}$, fixed} \alnote{We should be consistent with all subscripts: Why $T_F$, but $T_{ex}$?} \athotanote{changed to $T_f$.}
 $T_{coord}$ is the time required by the RE-Manager to post a pair 
 of replica descriptions to the advert server, to be restarted by the BigJob agent. \jhanote{Abhinav - is the previous sentence correct?
   ``resubmitting a pair of replicas for restarting'' was too vague!} \athotanote{fixed. it may be the case, but we actually explain the actual process after every exchange - that the replicas job descriptions are posted to the advert server, the bigjob agent restarts}
@@ -920,7 +918,7 @@ therefore, $T_W$ is still left with $T_r$(time waiting to be restarted at the bi
 Thus, $T_W$ is 1.02 seconds. \alnote{Abhinav: could you please update table 1 with those numbers?} \athotanote{the numbers are already in place}\alnote{no, please double-check. $T_w$ and $T_r$ is 
 missing for I and II e.g. Please also check numbers.}
 
-The time the RE Manager takes to find a partner ($T_F$) depends on
+The time the RE Manager takes to find a partner ($T_f$) depends on
 $N_R$ and also on the number of replicas the RE-Manager has to sift
 through to finds an available replica. On average, RE-Manager will
 sift through $N_R/2$ replicas before it finds a partner. % \alnote{I
@@ -933,7 +931,7 @@ observed that this only improves the performance when the ensemble
 contains more than 128 replicas. It takes 0.01 seconds per
 query to advert server. 
 %\alnote{Is this a remote query to the advert service?} \athotanote{yes}  
-If the RE Manager tries to find a partner for exchange in a linear fashion, it would have to go through 0 to 32 replicas. On average, it would go through 16 replicas to find a partner. $T_F$ is $16\times
+If the RE Manager tries to find a partner for exchange in a linear fashion, it would have to go through 0 to 32 replicas. On average, it would go through 16 replicas to find a partner. $T_f$ is $16\times
 0.01=0.16\,seconds$. 
 % \alnote{i.e. per average 16 queries are necessary in
 %   order to find a partner? Why 16?} \athotanote{explained} 
@@ -992,10 +990,10 @@ before it locks a partner to make the exchange.
 % \alnote{Even if it is random, why should the average \# be different
 %   in this case compared to the other case?} \athotanote{hmm.. i am not
 %   sure. 15 is the average i got after looking at the outputs} 
-Each query is 0.11 seconds, thus $T_F$ is 1.65 seconds. The process of
+Each query is 0.11 seconds, thus $T_f$ is 1.65 seconds. The process of
 changing the states and temperatures in the advert server and writing
 a new configuration file takes, $T_{ex} = 0.11\times 4 +0.2 = 0.64$
-seconds.  \alnote{What is the difference between $T_F$ and $T_{ex}$
+seconds.  \alnote{What is the difference between $T_f$ and $T_{ex}$
   here?} \athotanote{explained. better?}  (And even in the other
 scenario, where the replica in question is not the initiator of the
 exchange, it has to wait for the other replica to set its state as
