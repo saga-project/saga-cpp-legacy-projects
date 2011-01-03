@@ -1191,31 +1191,24 @@ replicas and attempted exchanges is kept constant, so that it allows for compari
 
 %\subsubsection{Scale up performance: Results and Analysis}
 
-{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by running the 
-experiments mentioned previously. 
-
-
-
-As the number of replicas increases, $T_{C}$ increases 
-as well. This increase, however, is not uniform across the three cases. 
-We see the most slow down in case I and the least in case III.
+{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by running the scale-up
+experiments mentioned. In all the implementations, as the number of replicas increases, $T_{C}$ increases 
+as well. But this increase, however, is not uniform across the three implementations. 
+We see the biggest increase in the synchronous RE and the least in asynchronous (decentralised) RE. We will now discuss why that is the case. 
 
 \alnote{need to be aligned with sec 4}
-{\it Analysis: } The synchronous version (case I) shows the
-worst scaling behaviour due to various reasons: as described in section~\ref{sec:impl_sync_re},
-$T_{W}$, i.\,e.\ the time spent waiting for other replicas of a generation to finish,
+{\it Analysis: } We see the biggest increase in $T_C$ in the synchronous RE
+ due to various reasons: as described in section~\ref{sec:impl_sync_re},
+$T_{w}$, i.\,e.\ the time spent waiting for other replicas to finish,
 is the main driver of this performance degradation. Since replicas are currently started
 sequentially by the master, a delay between the start and thus the termination of the first and 
 last replica exists. Further, different nodes of a machine tend to show a slightly 
 different performance. With more replicas, the time to start the replicas as well as the
-synchronization time increases.  In case II, exchanges happen in
-an asynchronous manner, but they are still orchestrated by the master. 
-As the number of replicas increases, the master quickly becomes
-a bottleneck. But in case III, the exchanges are all carried out in a
-decentralised way, i.\,e.\ exchanges can occur concurrently between 
-different pairs of replicas. Therefore, it can be concluded that the asynchronous
-RE algorithm scales better and that the decentralised implementation
-is superior to the centralised one.
+synchronization time increases. From table1\ref{}, it can be seen that in synchronous RE, the biggest component causing slow down is $T_W$. And with increasing $N_R$, $N_X$ (number of pairwise exchanges) increases, while $\eta$ remains a constant. Thus by substituting the values from the table in the eqn2.2, and changing $N_X$, we can understand how the values in graph1 are possible. 
+
+In asynchronous (centralized) RE, it can be seen from the table1\ref{} that $T_W$ is still the biggest component. $T_X$ also has slightly increased. But since the RE Manager makes the exchanges serially, even without the large waiting times seen in the synchronous RE, we see an increase in the time to completion. Again, by changing/substituting $N_X$ in the eqn2.2\ref{} along with values for asynchronous (centralized) RE mentioned in the table1\ref{}  we can arrive at the results seen in the graph1\ref{}.
+
+In the asynchronous (decentralized) RE, as can be seen from the table1\ref{}, the individual values for each of the components that make up the time to make a pairwise exchange are not smaller. In fact, $T_X$ is very large when compared to other cases. But, making the exchanges in a decentralised manner, instead of having the RE-Manager make the exchanges serially makes all the difference. In this implementation, the reason for increasing the $T_C$ is that $T_f$ increases with increasing $N_R$. The replicas contend with each other to lock a partner for exchange, but this only gets worse with increasing number of replicas. 
 
 %
 %%%%% FIGURE %%%%%
@@ -1240,36 +1233,24 @@ is superior to the centralised one.
 
 \subsection{Scale out}
 
-{\it Experiments:} In this scenario we investigate the scale-out behaviour
-of the three RE implementations. For this purpose we used the following
-LONI and TG resources: QueenBee, Ranger, Abe, ?\alnote{Abhinav: could you
-please provide the machines used?}  We utilised up to four machines concurrently
-running between 8 and 32 replicas. All experiments have been conducted using four big-jobs.
-The replicas and big-jobs are evenly distributed across all resources. Once all big-jobs became 
-active, the replicas are assigned to them by the RE-Manager. For all
-experiments we only consider the runtime and not the queuing time at the local 
-LRMS. \alnote{Is this correct? When do we start to assign the replicas? If the 
+{\it Experiments:} To evaluate the performance of the different implementations when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. \alnote{Abhinav: could you
+please provide the machines used?}  The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 seconds of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
+ \alnote{Is this correct? When do we start to assign the replicas? If the 
 queue time is included, we had at least an explanation for the high stddev-}
-\alnote{How many repeats?}
+\alnote{How many repeats?} 
 
-{\it Results:} As seen in Figure~\ref{fig:24machines} the performance of the 
-synchronous RE implementation degrades significantly the more resources are used.
-In particular with a larger number of replicas the asynchronous RE implementations
-performs very well. The asynchronous-decentralised RE version shows as expected
-the best performance.
+{\it Results:} The results obtained are shown in figure~\ref{fig:24machines}. In the synchronous RE, the total time to completion consistently increases with increasing number of machines. But we do not see a consistent increase of decrease in the other two implementations. The changes that we do see are within error bars. 
 
+{\it Analysis: } In the synchronous RE, with increasing number of machines, the synchronization cost only increases. Which is even more true in a heterogeneous environment. Also, with more machines, the RE-Manager has to stage-in more remote files to retrieve the energy and temperature of a replica and  stage-out more configuration files to remote machines. A remote file transfer is much more expensive than a local file copy. These two factors make the total time to completion consistently increase with increasing number of machines. 
+
+In the asynchronous (centralised) RE, there is no synchronization cost. That helps improve the performance. Also, in this case the BigJob agent retrieves the temperature and energy of a replica and posts the value in the advert server, which is much more efficient than staging-in the output files to the local machine to retrieve the values. But the RE Manager still has to stage-out the modified configuration files after each exchange. From 1 machines to 2 machines, we see a change in $T_C$ within error bars and with 4 machines we notice an increase outside the error bars. That shows the cost of staging-out files to 3 remote machines.
+
+In the asynchronous (decentralised) RE, compared to the centralised implementation, there is no need to stage-in or stage-out the configuration files at any time. The energy and temperature values are exchanged via the advert server and the configurations files are modified locally by the replica-agent. Thus, even with increasing number of machines, we don't actually see a difference in $T_C$ outside the error bars. 
 \alnote{To-be-answered: Why is case II faster than III 
 in the 8rep/[1,2] machine scenario?}
-{\it Analysis: } The slowdown of the synchronous version is mainly
-caused by the synchronization phase after each generation and the associated 
-high $T_{W}$ value. In a heterogeneous, distributed environment the performance
-deteriorates even more since the slowest machine determines the overall progress of
-the simulation. The asynchronous RE versions do not have this limitation. As in
-the scale-up scenario, the asynchronous-decentralised version performs
-better with a large number of replicas mainly due to the fact that exchanges
-can be carried out concurrently via the advert service without 
-involvement of a central coordinator.
+We see in figure4(a)\ref{} that the asynchronous (centralised) is faster than the decentralised implementation. This is because with a small number of replicas (8 in this case), it more efficient to conduct the exchanges in a centralised manner. This way we avoid the contention for exchange partner that is seen in the decentralised implementation. 
 \alnote{TODO: Local vs. distributed coordination, BigJob startup times}
+\athotanote{could you elaborate a bit please? }
 
 % Overall, there is not much difference between the local and distributed 
 % runs in any case. The reason being that there is very
@@ -1340,21 +1321,13 @@ involvement of a central coordinator.
 %\end{figure}
 %%%%% FIGURE %%%%%
 
-An important motivation for this work is to implement a scheme that does not depend on a
-static, well defined model of resource availability. %We test and scale
+An important motivation for this work has been to implement a scheme for the RE class of algorithms that does not depend on a static, well defined model of resource availability. %We test and scale
 %our implementation on production level grids such as Teragrid and
 %LONI~\citep{LONI_web}.
-Preliminary results, shown in Figure~\ref{fig:graph}, indicate the
-most important advantages of asynchronous RE and SAGA/BigJob over
-traditional RE: (a) allows for exchanges to occur between replicas
-with non-nearest temperatures, which in turn allows crosswalks to
-happen (b) a reduced time to completion when running on more than one
-machine due to improved resource availabilities, (c) the advantage of
-using a pilot-job mechanism, which eliminates the waiting times at the
-local resource manager, \alnote{have shown this in prev. papers, but
-  we don't really have data in this one} and (d) the ability to scale
-out across different production level infrastructure, such as, the
-Teragrid and LONI.
+Results shown in figures~\ref{fig:scaleup} and figure-scaleout\ref{} indicate the good scale-up and scale-out properties on different production level infrastructure, such as, the Teragrid and LONI.
+%most important advantages of asynchronous RE and SAGA/BigJob over
+%traditional RE: %(a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen  %(b) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, \alnote{have shown this in prev. papers, but  we don't really have data in this one} and 
+
 % It performs well even after doubling and quadrupling the number of
 % exchanges required to complete the simulation. The time to
 % completion only increases by 35\% after doubling and 117\% after
@@ -1367,7 +1340,7 @@ Teragrid and LONI.
 %In summary, we have established the ability to scale-out across different
 %infrastructure and compared the performance of the asynchronous
 %RE with the synchronous RE at large scales. 
-Further, we compare the traditional RE model (case I) and the centralised (case II) and decentralised (case III) models of the asynchronous replica exchange by modeling and repeating the experiments a reasonable number of times, so as to accurately quantify the scientific and performance gains. %We also propose to measure the frequency with which crosswalks occur with increasing number of replicas and measure the advantages due to a decentralized implementation in the full paper.
+Further, we compare the synchronous and asynchronous RE algorithms and implementations by modeling and repeating the experiments a reasonable number of times, so as to accurately quantify the scientific and performance benefits. %We also propose to measure the frequency with which crosswalks occur with increasing number of replicas and measure the advantages due to a decentralized implementation in the full paper.
 
 
 %With this asynchronous replica exchange mechanism we can improve the
