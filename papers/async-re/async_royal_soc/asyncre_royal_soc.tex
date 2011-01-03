@@ -1289,21 +1289,60 @@ typically increases, as does the time to start the replicas.
 % eqn2.2, and changing $N_X$, we can understand how the values in graph1
 % are possible.
 
-In asynchronous (centralized) RE, since the RE Manager makes the exchanges serially, we see an
-increase in the time to completion. Again, we explain in eqn 4.2 the total time for 32 replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation4.1\ref{}, the new coordination time is $(0.78+1.02) \times 256$. That is the change we see from 32 replicas to 64 replicas in the graph1\ref{}. We have verified this for different number of replicas and found it to be consistent.
+In asynchronous (centralized) RE, since the RE Manager makes the
+exchanges serially, we see an increase in the time to
+completion. Again, we explain in eqn 4.2 the total time for 32
+replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation4.1\ref{},
+the new coordination time is $(0.78+1.02) \times 256$. That is the
+change we see from 32 replicas to 64 replicas in the graph1\ref{}. We
+have verified this for different number of replicas and found it to be
+consistent.
 
-In the asynchronous (decentralized) RE, as can be seen from the
-table1\ref{}, the individual values for each of the components that
-make up the time to make a pairwise exchange are not smaller. In fact,
-$T_X$ is very large when compared to other cases. But, making the
-exchanges in a decentralised manner, instead of having the RE-Manager
-make the exchanges serially makes all the difference. In this
-implementation, the reason for increasing the $T_C$ is that $T_f$
-increases with increasing $N_R$. The replicas contend with each other
-to lock a partner for exchange, but this only gets worse with
-increasing number of replicas. 
+% In the asynchronous (decentralized) RE, as can be seen from the
+% table1\ref{}, the individual values for each of the components that
+% make up the time to make a pairwise exchange are not smaller. In fact,
+% $T_X$ is very large when compared to other cases. 
 
-Typically, when searching serially, we observed that the replica-agent finds a partner after looping over the all the replicas between 2 and 2.5 times. That is, $T_f$ is $2 \times N_R \times 0.11$. And when searching randomly, it makes between 1 and 1.5 times $N_R$ calls to find a partner. Up to 32 replicas, we implemented a serial search and from 64 to 256 replicas we implemented a random search. For example, in eqn4.3 we see that for 32 replicas, $T_f$ is approximately $2 \times 32 \times 0.11 = 7.04$ seconds. For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 = 10.56$ seconds. Only $T_f$ changes with the number of replicas.
+In contrast to the other cases, the exchanges are performed by the
+replica-agents instead of having the RE-Manager make the exchanges
+centrally (\jhanote{or serially}).  Thus finding a partner -- and thus
+$T_f$, has two components: a search and reverify stage, which 
+must both be successful before an exchange is carried out.
+%a successful search and reverify stage.
+
+When searching for a replica randomly, on average it takes $N_R \over
+2$ attempts to find a replica that is in the \texttt{done} state.
+However, finding a replica in the \texttt{done} state is not enough to
+ensure an exchange attempt; a reverify step must occur to ensure there
+has been no change in the states of either of the two replicas
+involved. Given that there are several ``active exchanges'' being
+attempted, often the reverify step leads to an aborted exchange
+attempt. Empirical observation suggests that between 2-5 find and
+reverify attempts are made before an exchange is attempted. The exact
+number is a random variable, determined by the number of replicas, the
+distribution of states and whether the attempt to find a replica is
+random or sequential. But in general, replicas contend with each other
+to lock a partner for exchange; this gets worse with increasing number
+of replicas, i.e., $T_f$ increases with increasing $N_R$.
+
+% In this implementation, the reason for increasing the $T_C$ is that
+
+Specifically, for the random access case, we find $T_f$ is $2 \times
+N_R \times 0.11$ (where $0.11$ is the typical time to set/get a value
+to/from the advert server) and for the sequential access case, we find
+$T_f$ is $2.5 \times N_R \times 0.11$.  We implemented a serial search
+for upto 32 replicas, and a random search for $N_R$ value greater than
+32.
+% and from 64 to 256 replicas we implemented a random search. 
+For example, in eqn 4.3 we see that for 32 replicas, $T_f$ is
+approximately $2 \times 32 \times 0.11 = 7.04$ seconds. For 64
+replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 = 10.56$
+seconds. % Only $T_f$ changes with the number of replicas.
+
+% When searching serially, we observed that the replica-agent
+% finds a partner after looping over the all the replicas between 2 and
+% 2.5 times. 
+%makes between 1 and 1.5 times $N_R$ calls to find a partner.
 
 %
 %%%%% FIGURE %%%%%
