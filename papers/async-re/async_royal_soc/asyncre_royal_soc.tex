@@ -792,7 +792,8 @@ the experiment.
 	$\mathbf{T_{C}}$        &\textbf{990\,seconds} &\textbf{798\,seconds}    &\textbf{653\,seconds}\\
 	\hline
     \end{tabular}
-	\caption{Replica-Exchange Performance}
+    \caption{Replica-Exchange Performance \jhanote{Didn't we agree
+        to use lower-case for the sub components?} }
 	\label{table:repex_perf}
 \end{table}
 
@@ -843,16 +844,14 @@ The different RE algorithms were repeated multiple ($\approx$ 10)
 times, during different load factors; therefore specific queue wait
 times can be approximated to be similar.  Additionally, as we will
 %eventually be primarily 
-be interested in understanding the scale-up and scale-out properties of
-synchronous and asynchronous RE, hence are not concerned by the
-queue wait time. 
-
-Therefore, we start measuring time lapsed only when the BigJob agent
-starts running the replicas because, almost every time, the RE Manager
-completes submitting the replicas before the BigJob becomes
-active. \jhanote{Is this not just specific to the Synch case? i.e.
-  for async decentralised case, the replica agent submits the replicas
-  and not the RE Manager?!}
+be interested in understanding the scale-up and scale-out properties
+of synchronous and asynchronous RE, hence are not concerned by the
+queue wait time.  Therefore, we start measuring time lapsed only when
+the BigJob agent starts running the replicas because, almost every
+time, the RE Manager completes submitting the replicas before the
+BigJob becomes active. \jhanote{Is this not just specific to the Synch
+  case? i.e.  for async decentralised case, the replica agent submits
+  the replicas and not the RE Manager?!}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -873,36 +872,47 @@ completed running.  That is the time it takes to update the state and
 mark the nodes as free.  Since the whole ensemble of replicas needs to
 complete running, it is sufficient to consider the longer of the time
 to start and the time to mark the end of a replica run. Therefore,
-$T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble, for a pair of
-replicas, $T_w$ is 29.44/16=1.84 seconds.  The RE-Manager marks the
-replicas which finish running as done and retrieves the
-energies and temperatures by reading the output files. That
- costs 0.4 seconds per replica and 0.8 seconds for a
-pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.  
+$T_r$ is included in $T_w$. Since there are 16 pairs in the ensemble,
+for a pair of replicas, $T_w$ is 29.44/16=1.84 seconds.  The
+RE-Manager marks the replicas which finish running as done and
+retrieves the energies and temperatures by reading the output
+files. That costs 0.4 seconds per replica and 0.8 seconds for a
+pair. Thus, $T_W$ = 1.84+0.8=2.64 seconds.
 
 % \alnote{What is the component that is actually spent waiting for the
 %   other replicas to complete. The times you mention above are times
 %   for actually doing something, but not waiting times!} \athotanote{is
 %   it better now?}  
-  \jhanote{in the previous paragraph you write
-  ``seconds''; in the following paragraphs you write {\it sec}. Need
-  consistency!} \athotanote{fixed} \jhanote{Previous paragraph has to be simplified.  Too
-  difficult to understand. REMEMBER: Short simple (ie non compound)
-  sentences}. \athotanote{i think its slightly better now..}
+%   \jhanote{in the previous paragraph you write
+%   ``seconds''; in the following paragraphs you write {\it sec}. Need
+%   consistency!} \athotanote{fixed} \jhanote{Previous paragraph has to be simplified.  Too
+%   difficult to understand. REMEMBER: Short simple (ie non compound)
+%   sentences}. \athotanote{i think its slightly better now..}
 
 As replica pairs are pre-determined and the replicas finish running
 before any exchanges are attempted $T _f$ is 0 seconds.  $T_{ex}$
-includes updating configuration files and transferring the them to
-their respective directories; it takes 0.2 seconds to write and copy a
-file locally. And for a pair of replicas, $T_{ex} = 0.2 \times 2=0.4$ seconds. \jhanote{EXPLAIN
-  the factor of two!} \athotanote{fixed}
+includes updating configuration files and transferring them to their
+respective directories; it takes 0.2 seconds to write and copy a file
+locally. For a pair of replicas involved in the exchange, $T_{ex} =
+0.2 \times 2=0.4$ seconds, as file writing and copy is done
+sequentially,
 
-\jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency} \athotanote{it should be $T_{coord}$, fixed} \alnote{We should be consistent with all subscripts: Why $T_F$, but $T_{ex}$?} \athotanote{changed to $T_f$.}
-$T_{coord}$ is the time required by the RE-Manager to post a pair 
-of replica descriptions to the advert server, to be restarted by the BigJob agent. \jhanote{Abhinav - is the previous sentence correct?
-  ``resubmitting a pair of replicas for restarting'' was too vague!} \athotanote{fixed. it may be the case, but we actually explain the actual process after every exchange - that the replicas job descriptions are posted to the advert server, the bigjob agent restarts}
-On average $T_{coord}$ amounts to $0.11\,seconds \times 2 =
-0.22\,seconds$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
+% \jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency}
+% \athotanote{it should be $T_{coord}$, fixed} 
+\alnote{We should be
+  consistent with all subscripts: Why $T_F$, but $T_{ex}$?}
+\athotanote{changed to $T_f$.} \jhanote{Table still needs attention}
+
+$T_{coord}$ is the time required by the RE-Manager to post a pair of
+replica descriptions to the advert server, to be restarted by the
+BigJob agent. % \jhanote{Abhinav - is the previous sentence correct?
+%   ``resubmitting a pair of replicas for restarting'' was too vague!}
+% \athotanote{fixed. it may be the case, but we actually explain the
+%   actual process after every exchange - that the replicas job
+%   descriptions are posted to the advert server, the bigjob agent
+%   restarts}
+On average $T_{coord}$ amounts to $0.11\,seconds \times 2
+= 0.22\,seconds$. Therefore, $T_{X}$ is $0+0.4+0.22=0.62$ seconds.
 % \alnote{We need to decide whether we use capital letters or not:
 %   $T_{ex}$ vs. $T_{EX}$}
 Substituting the above values in equation~\ref{eq:totaltime}, we get
@@ -910,11 +920,19 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
   T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.62 + 2.64)\times 128]} = {1 \over p} \times (990)
 \label{eq:sync}
 \end{eqnarray}
-\athotanote{should we mention somewhere that $p$ is one in our experiments and that we dont use metropolis scheme? or can we just leave $p$ as is in the equation?}
-\jhanote{For this particular configuration, is this consistent with
-  Data in Section 5?} \athotanote{within error bars, yes.} 
-  \alnote{What about case III: 641+/-2.4 in comparison to 603? But, I guess this doesn't invalidate the model completely}
-  \athotanote{yes. i saw this. in the other two cases, substituting $N_X$ in the equation satisfies the all the experiments in section 5. but in decentralized, $T_f$ changes with $N_R$. as to why its 603 and not closer to 640: i think its something to do the time to find a replica ($T_f$).}
+
+\jhanote{Why is seconds within math mode sometime, and outside math
+  mode at others?}  \athotanote{should we mention somewhere that $p$
+  is one in our experiments and that we dont use metropolis scheme? or
+  can we just leave $p$ as is in the equation?}  \jhanote{For this
+  particular configuration, is this consistent with Data in Section
+  5?}  \athotanote{within error bars, yes.}  \alnote{What about case
+  III: 641+/-2.4 in comparison to 603? But, I guess this doesn't
+  invalidate the model completely} \athotanote{yes. i saw this. in the
+  other two cases, substituting $N_X$ in the equation satisfies the
+  all the experiments in section 5. but in decentralized, $T_f$
+  changes with $N_R$. as to why its 603 and not closer to 640: i think
+  its something to do the time to find a replica ($T_f$).}
 
 \subsection{Asynchronous (centralised) RE}
 % \alnote{please don't just copy paste. Only focus on the differences}
