@@ -530,7 +530,8 @@ combination works.
 The control flow of a centralised RE scheme is shown in
 Figure~\ref{fig:coordination}(a), which can be used to understand both
 the asynchronous (centralised) RE and synchronous RE implementations.
-Once the BigJobs and replicas are running, the RE-Manager constantly
+A replica can be in one of these three states: (i) \texttt{new} (submitted but not started), (ii) \texttt{running} and (iii) \texttt{done}.
+Once the BigJob(s) is active and replicas are \texttt{running}, the RE-Manager constantly
 queries the SAGA BigJob Manager for the latest replica states.  When
 the RE-Manager finds a replica that has finished running, it collects
 the energy and temperature of that replica by reading the output
@@ -623,9 +624,9 @@ exchanges are done, the RE-Manager ends the experiment.
 \jhanote{Are the four states/description common to all RE cases? If
   yes, why is it in this paragraph and not in a subsection that is in
   scope for all three cases? If not, what are the states for the other
-  cases?}
+  cases?} \athotanote{not common. added a sentence in the previous section mentioning the states.}
 
-A replica can be in one of the three states: (i) \texttt{running},
+A replica can be in one of the these four states: (i) \texttt{running},
 (ii) \texttt{done}, (iii) \texttt{pending} (for an exchange) and (iv)
 \texttt{complete} (exchange has been completed). % \athotanote{after an
 %   exchange is complete, the state has to be set as complete by the
@@ -655,13 +656,13 @@ temperatures from the advert server and restart their replicas.
 % i.e., it has not been chosen by another partner in the duration that
 % it was finding a partner.  
 When {\it reverifying} the state of the replicas, if the initiating
-replica's state has changed, then it %, i.e., {\it initiating replica}
+replica finds that its state has been changed, then it %, i.e., {\it initiating replica}
 aborts the exchange process it initiated, and waits for its state to
-be set to \texttt{complete} by the other replica, so that it
+be set to \texttt{complete} by the other replica (the initiating replica now).
 \jhanote{Is this ``it'' the initiating replica or the ``other
-  replica''?} can restart its replica. \jhanote{Please read the
+  replica''?}  \jhanote{Please read the
   previous sentence carefully: ``... it can restart its replica..''
-  something is wrong!}  Here the state \texttt{complete} is a marker
+  something is wrong!} \athotanote{modified. any better?} Here the state \texttt{complete} is a marker
 which tells the replica-agent that the exchange has been made, the
 configuration files are in place and to restart the replica.  The
 replica-agent that initiated the exchange increments the exchange
@@ -797,8 +798,8 @@ the experiment.
 	\hline
     \end{tabular}
     \caption{Replica-Exchange Performance }
-        \alnote{Should we generally add $T_{coord}$ to $T_{w}$ to avoid confusion?}
-        \alnote{Can we put in 0 s instead of NA?}
+        \alnote{Should we generally add $T_{coord}$ to $T_{w}$ to avoid confusion?} \athotanote{we can do that.. should I?}
+        \alnote{Can we put in 0 s instead of NA?} \athotanote{yes..}
 	\label{table:repex_perf}
 \end{table}
 
@@ -850,13 +851,13 @@ times, during different load factors; therefore specific queue wait
 times can be approximated to be similar.  Additionally, as we will
 %eventually be primarily 
 be interested in understanding the scale-up and scale-out properties
-of synchronous and asynchronous RE, hence are not concerned by the
+of synchronous and asynchronous RE, we are not concerned by the
 queue wait time.  Therefore, we start measuring time lapsed only when
-the BigJob agent starts running the replicas because, almost every
-time, the RE-Manager completes submitting the replicas before the
+the BigJob agent starts running the replicas/replica-agents because, almost every
+time, the RE-Manager completes submitting them before the
 BigJob becomes active. \jhanote{Is this not just specific to the Synch
   case? i.e.  for async decentralised case, the replica-agent submits
-  the replicas and not the RE-Manager?!}
+  the replicas and not the RE-Manager?!} \athotanote{fixed.}
 
 \subsection{Synchronous RE}
 \label{sec:impl_sync_re}
@@ -874,7 +875,7 @@ BigJob becomes active. \jhanote{Is this not just specific to the Synch
 
 \alnote{We are very imprecise when using units in equations. Also I
   would propose to abbrev. seconds to s or sec (makes it in my opinion
-  easier to parse)} \jhanote{Yes, I agree on both accounts}
+  easier to parse)} \jhanote{Yes, I agree on both accounts} \athotanote{s or sec?}
 
 As explained in section~\ref{sec:repex-approach}
 (\ref{sec:math-model}), the overall performance of a RE implementation
@@ -902,7 +903,7 @@ are in total 16 pairs in a 32 replica ensemble): $T_{w} =
 \alnote{We need to be careful here. If I understand this correctly: stageout of
 file is $T_r$ and stagein $T_{ex}$? Shouldn't we rather consider the stageout
 time above in $T_w$ (since it is part of the delay between the termination of the first
-and last replica)?}
+and last replica)?} \athotanote{i am thinking like this: stageout is done before the exchange and it delays all the replicas becoming available. stagein is done after the exchange. only after the stagein the replicas are submitted to restarting.}
 The RE-Manager marks the replicas which finish running as done and
 retrieves the energies and temperatures by reading the output
 files. That costs 0.4 seconds per replica and 0.8 seconds for a
@@ -928,7 +929,7 @@ replica pair (the transfer of the input files in done sequentially).
 \alnote{Original text: ``$T_{ex}$ includes updating configuration files and transferring them to their
 respective directories; it takes 0.2 seconds to write and copy a file
 locally.`'' At least in the synchronous version I used there was 
-a remote copy involved. Do we have a number for that?}
+a remote copy involved. Do we have a number for that?} \athotanote{but this is single machine. local copy right?}
 $T_{coord}$ is the time required by the RE-Manager to restart the 
 replicas using the BigJob framework.  
 % \jhanote{Abhinav - is the previous sentence correct?
@@ -965,11 +966,7 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
   particular configuration, is this consistent with Data in Section
   5?}  \athotanote{within error bars, yes.}  \alnote{What about case
   III: 641+/-2.4 in comparison to 603? But, I guess this doesn't
-  invalidate the model completely} \athotanote{yes. i saw this. in the
-  other two cases, substituting $N_X$ in the equation satisfies the
-  all the experiments in section 5. but in decentralized, $T_f$
-  changes with $N_R$. as to why its 603 and not closer to 640: i think
-  its something to do the time to find a replica ($T_f$).}
+  invalidate the model completely}% \athotanote{yes. i saw this. in the  other two cases, substituting $N_X$ in the equation satisfies the  all the experiments in section 5. but in decentralized, $T_f$  changes with $N_R$. as to why its 603 and not closer to 640: i think  its something to do the time to find a replica ($T_f$).}
 
 \subsection{Asynchronous (centralised) RE}
 % \alnote{please don't just copy paste. Only focus on the differences}
@@ -1019,10 +1016,10 @@ between all replicas after each generation, there is some amount of
 waiting involved, which is mainly caused by the centralised, single-threaded 
 implementation. In worst case a replica in state \texttt{done} has to
 wait until the RE-Manager has processed the $\frac{N_{R}}{2}-1$ other replica
-pairs.
+pairs. \athotanote{replicas don't wait at the RE Manager. they wait at the bigjob agent..}
 
 \alnote{\textbf{Abhinav: Could you improve the description of this paragraph, please? In particular
-I don't really get the last sentence. Is this the worst or average case?}
+I don't really get the last sentence. Is this the worst or average case?} \athotanote{to do..}
 As previously described, the BigJob agent has an average delay of 0.92 seconds 
 for discovering that a sub-job has terminated and for book-keeping, i.\,e. for
 updating the list of free/busy nodes. But in this
@@ -1078,11 +1075,11 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.02)\times 128]}
 
 \subsection{Asynchronous (decentralised) RE}
 
-\athotanote{we can remove the sentence about 0.3/10 seconds, what do you think?}
-\alnote{yes, please remove. Also, I don't understand how 0.3 s can add up to 10 s}
-When the BigJob becomes active, the BigJob agent starts the replica
-agents and the replica-agents in turn start the replicas. It takes 0.3
-seconds to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 seconds). 
+%\athotanote{we can remove the sentence about 0.3/10 seconds, what do you think?}
+%\alnote{yes, please remove. Also, I don't understand how 0.3 s can add up to 10 s}
+%When the BigJob becomes active, the BigJob agent starts the replica
+%agents and the replica-agents in turn start the replicas. It takes 0.3
+%seconds to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 seconds). 
 
 The replica-agent creates the
 output and error files, reads the configuration, opens a connection to the advert server, sets the state to running and starts the
