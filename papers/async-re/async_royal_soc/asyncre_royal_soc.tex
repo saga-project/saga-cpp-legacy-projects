@@ -615,9 +615,9 @@ one of the three states: (i) \texttt{running}, (ii) \texttt{done},
   replica} When a replica reaches a pre-determined state it (the
 replica-agent acts as the proxy for the replica) transitions from
 \texttt{running} to \texttt{done}. It initiates the search for a
-partner.  (The search for an exchange partner is conducted in a random
-manner so as to avoid having all the replicas starting at the first
-replica, which causes contention and failed exchanges).  If a replica
+partner. The search for an exchange partner is conducted in a random
+manner when the number of replicas in the ensemble is high, so as to avoid having all the replicas starting at the first
+replica, which causes contention and failed exchanges. But for for smaller number of replicas, a simple search over all the replicas also works. If a replica
 finds another replica available, it reverifies their states (to ensure
 that both replicas are still in \texttt{done} state) and sets their
 states as \texttt{pending}. After making the exchange (changing the
@@ -885,39 +885,6 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
 %would be ready to restart the replicas by the time the RE-Manager
 %submits to the advert server. %\alnote{Not consistent with a) Where is the 71s number?}
 
-As previously described, the BigJob agent has an average delay of 0.92 seconds 
-for discovering that a sub-job has terminated and for book-keeping, i.\,e. for
-updating the list of free/busy nodes. But in this
-implementation, we also make the BigJob agent retrieve the energy
-and temperature from the output files, which adds 0.2 seconds per
-replica. In summary it takes 1.12 $\times$ 32 = 35.84 seconds for 32
-replicas. 
-% \alnote{This somehow assumes that all replica terminate at
-% the same time, right?} \athotanote{as this is the first iteration, 
-% all replicas will end within those 35.84 seconds of the 1st and last replica. on a homogeneous resource} 
-As soon as the first pair of replicas are marked as done by the
-BigJob agent, the RE-Manager makes the exchange between that pair of replicas 
-- and that pair of replicas would wait 32.8 seconds ($35.84-1.12\times2-T_X$) 
-\alnote{What value for $T_{X}$ do we assume?} \athotanote{I just let it be $T_X$ because we did not introduce $T_X$ in this section yet.} \alnote{OK. Consider as discussed introducing $T_X$ before $T_W$}
-before the BigJob agent is able to restart them. It can be seen from this 
-equation that later pairs of replicas wait a smaller amount of time before 
-they are restarted by the BigJob agent (the BigJob agent alternates between 
-starting all replicas that are new and ending all replicas that are done). 
-On average, this group (16 pairs) of replicas waits  32.8/2=16.4 seconds. 
-Or each pair waited ($T_r$) 16.4/16=1.02 seconds.  \alnote{I don't understand 
-the notion of pair in this context. Is 32 sec == $T_W$?}\athotanote{is it better now?}\alnote{yes. I think
-we can shorten it and directly break the 32 sec down to $T_W$ for 1 replica: 32.8/32=1 sec.} \athotanote{ok..}
-It should be noted that the timelines of the RE-Manager and the BigJob 
-agent run concurrently. Also, the time RE-Manager\alnote{consistent spelling: RE\textbf{-}Manager} 
-waits for the next replica to  become available, and that component $T_w$ is included in $T_f$.
-\alnote{That is somehow imprecise now! We should only
-include it in one component.} {\athotanote{this $T_w$ is not $T_W$. it 
-is only part of $T_W$(time waiting for the next replica to become available. 
-therefore, $T_W$ is still left with $T_r$(time waiting to be restarted at the bigjob agent }
-\alnote{My point is that the last sentence confuses the reader: either it is $T_f$ or $T_w$.}
-Thus, $T_W$ is 1.02 seconds. \alnote{Abhinav: could you please update table 1 with those numbers?} \athotanote{the numbers are already in place}\alnote{no, please double-check. $T_w$ and $T_r$ is 
-missing for I and II e.g. Please also check numbers.}
-
 The time the RE Manager takes to find a partner ($T_f$) depends on
 $N_R$ and also on the number of replicas the RE-Manager has to sift
 through to finds an available replica. On average, RE-Manager will
@@ -942,6 +909,41 @@ resubmit the pair of replicas to the advert server, which is
 $0.11\times 2 = 0.22$ seconds. Therefore, $T_{X}$ is
 $0.16+0.4+0.22=0.78$ seconds. 
 
+
+As previously described, the BigJob agent has an average delay of 0.92 seconds 
+for discovering that a sub-job has terminated and for book-keeping, i.\,e. for
+updating the list of free/busy nodes. But in this
+implementation, we also make the BigJob agent retrieve the energy
+and temperature from the output files, which adds 0.2 seconds per
+replica. In summary it takes 1.12 $\times$ 32 = 35.84 seconds for 32
+replicas. 
+% \alnote{This somehow assumes that all replica terminate at
+% the same time, right?} \athotanote{as this is the first iteration, 
+% all replicas will end within those 35.84 seconds of the 1st and last replica. on a homogeneous resource} 
+As soon as the first pair of replicas are marked as done by the
+BigJob agent, the RE-Manager makes the exchange between that pair of replicas 
+- and that pair of replicas would wait 32.8 seconds ($35.84-1.12\times2-T_X$) 
+\alnote{What value for $T_{X}$ do we assume?} \athotanote{I just let it be $T_X$ because we did not introduce $T_X$ in this section yet.} \alnote{OK. Consider as discussed introducing $T_X$ before $T_W$} \athotanote{done}
+before the BigJob agent is able to restart them. It can be seen from this 
+equation that later pairs of replicas wait a smaller amount of time before 
+they are restarted by the BigJob agent (the BigJob agent alternates between 
+starting all replicas that are new and ending all replicas that are done). 
+On average, a replica waits $T_r$ = 32.8/32=1.02 seconds to be restarted. 
+  \alnote{I don't understand 
+the notion of pair in this context. Is 32 sec == $T_W$?}\athotanote{is it better now?}\alnote{yes. I think
+we can shorten it and directly break the 32 sec down to $T_W$ for 1 replica: 32.8/32=1 sec.} \athotanote{ok..}
+It should be noted that the timelines of the RE-Manager and the BigJob 
+agent run concurrently. Also, the time RE-Manager\alnote{consistent spelling: RE\textbf{-}Manager} 
+waits for the next replica to  become available, $T_w$ is included in $T_f$.
+\alnote{That is somehow imprecise now! We should only
+include it in one component.} {\athotanote{this $T_w$ is not $T_W$. it 
+is only part of $T_W$(time waiting for the next replica to become available. 
+therefore, $T_W$ is still left with $T_r$(time waiting to be restarted at the bigjob agent }
+\alnote{My point is that the last sentence confuses the reader: either it is $T_f$ or $T_w$.}
+Thus, $T_W$ is 1.02 seconds. \alnote{Abhinav: could you please update table 1 with those numbers?} \athotanote{the numbers are already in place}\alnote{no, please double-check. $T_w$ and $T_r$ is 
+missing for I and II e.g. Please also check numbers.}
+
+
 % The point we are trying to make is that the BigJob agent might not
 % be free while the RE-Manager submits the replicas to be
 % restarted. But as the experiment progresses, instead of all the
@@ -965,7 +967,9 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.78 + 1.02)\times 128]}
 
 \athotanote{we can remove the sentence about 0.3/10 seconds, what do you think?}When the BigJob becomes active, the BigJob agent starts the replica
 agents and the replica agents in turn start the replicas. It takes 0.3
-seconds to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 seconds). The replica agent creates the
+seconds to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 seconds). 
+
+The replica agent creates the
 output and error files, reads the configuration, opens a connection to the advert server, sets the state to running and starts the
 replica. All these actions, which are repeated after every exchange,
 take ($T_r$) 1.3 seconds. 
@@ -983,14 +987,14 @@ seconds. It then posts both these values to the advert server. These are the ass
 $T_W$ is 1.3 + 0.73=2.03 seconds. %\alnote{Where is the 0.7 sec coming from?} \athotanote{fixed. is it okay?}
 
 
-We observed that on average, the replica agent makes 15 random queries
+We observed that on average, the replica agent makes loops over the list of replicas twice
 before it locks a partner to make the exchange. 
 % \alnote{Why 15?
 %   Previously, it has been 16.} \athotanote{random queries}
 % \alnote{Even if it is random, why should the average \# be different
 %   in this case compared to the other case?} \athotanote{hmm.. i am not
 %   sure. 15 is the average i got after looking at the outputs} 
-Each query is 0.11 seconds, thus $T_f$ is 1.65 seconds. The process of
+Each query is 0.11 seconds, thus $T_f$ is $0.11\times64=7.04$ seconds. The process of
 changing the states and temperatures in the advert server and writing
 a new configuration file takes, $T_{ex} = 0.11\times 4 +0.2 = 0.64$
 seconds.  \alnote{What is the difference between $T_f$ and $T_{ex}$
@@ -998,17 +1002,16 @@ seconds.  \alnote{What is the difference between $T_f$ and $T_{ex}$
 scenario, where the replica in question is not the initiator of the
 exchange, it has to wait for the other replica to set its state as
 complete, so that it can restart.) $T_{coord}$ is the time it takes to
-update the state in the advert server, which is included in
-$T_r$. \alnote{In the other cases the state must be updated in the
+update the state in the advert server, which in this case is done while restarting the replicas by the replica-agent, is included in $T_r$. \alnote{In the other cases the state must be updated in the
   advert server as well. Why don't we consider this in the other cases
   as well?}\athotanote{in the other two cases, the bigjob agent makes
   the state changes} \alnote{No matter who does the state changes, the
   time needed should be about the same. Either we put it into the
   model or we don't. If so, then consistent} \athotanote{we do include
   the time to update the states. but that is included in $T_W$} Thus,
-$T_{X}$ is $1.65+0.64= 2.29$ seconds.
+$T_{X}$ is $7.04+0.64= 8.68$ seconds.
 
-It should be noted here that in the centralised version of
+In this case too, we implement a random search of replicas by each replica agent when the total number of replicas in the ensemble is 128 or more, which reduces contention. It should be noted here that in the centralised version of
 asynchronous RE, where only 2 connections to the advert server existed
 (RE-Manager, BigJob agent), each query took only 0.01 seconds. But in
 the decentralised version, since each replica agent maintains an open
@@ -1028,7 +1031,7 @@ implementations.
 
 Substituting the above values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(2.29+2.03)\times 128\over 16}} = {1 \over p} \times 603~seconds
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(8.68+2.03)\times 128\over 16}} = {1 \over p} \times 653~seconds
 \label{eq:decent}
 \end{eqnarray}
 
