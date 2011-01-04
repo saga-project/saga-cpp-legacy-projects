@@ -234,7 +234,7 @@ However, confined to parallel execution on conventional production system with b
 
 We are focusing on investigating numerical issues of applying the hybrid CFD-MD scheme to a nano-fluidic system, as well as designing and developing an efficient runtime framework for a coupled multi-component simulation. We consider the implementation of a 'generic' hybrid interface which can be easily attached to various kinds of incompressible CFD codes and MD packages, and the building of a 'portable' framework which is acceptable for most computer architectures. 
 
-Regarding numerical simulation, we develop the hybrid simulation framework based on the constrained Lagrangian dynamics and apply it to prototype examples. We propose the determination of coupling parameters based on the strength of statistical noise in stationary flow. Also we explore to the moderate-speed flow simulation in O(10) m/s velocity, which is the first successful analysis by a hybrid approach. Excessive statistical noise in this flow condition is shrunk by sampling multiple individual experiments. For physically unsteady flow simulation, we design a temporal coupling scheme, named 'prediction-correction approach'. Compared to conventional scheme, our approach provides better accuracy by eliminating the overshoot/undershoot phenomena and diminishing the time-lagging pattern.
+Regarding numerical simulation, we develop the hybrid simulation framework based on the constrained Lagrangian dynamics and apply it to prototype examples. We propose the determination of coupling parameters based on the strength of statistical noise in stationary flow. Also we explore to the moderate-speed flow simulation in O(10) m/s velocity, which is the first successful analysis by a hybrid approach. Excessive statistical noise in this flow condition is shrunk by sampling multiple individual experiments. For physically unsteady flow simulation, we design a novel temporal coupling scheme, named 'prediction-correction approach'. Compared to conventional scheme, our approach provides better accuracy by eliminating the overshoot/undershoot phenomena and diminishing the time-lagging pattern.
 
 In view of computational science, we believe our trial is the first documented coupled multi-physics simulation utilizing a virtually unified simulation package, called "Pilot-Job". We claim that there are several distinct advantages of using Pilot-Job: (i) obviates the need for a co-scheduler while preserving performance, (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. %But given the lack of system or service-level support to address the challenges outlined above, there is a need to address the solution at the application level. This paper aims to provide novel solutions to the above problem using frameworks that are in user (application) space.
 
@@ -333,7 +333,7 @@ The current in-house continuum hydrodynamics code solves the unsteady incompress
 %\vspace{-.2em}
 \vskip-.6cm
 \begin{eqnarray}
-\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {\partial p} {\partial {x}_{j}} + \nu \frac {{\partial} {u}_{i}} {\partial {x}_{j} \partial {x}_{j}} \nonumber
+\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {\partial p} {\partial {x}_{i}} + \nu \frac {{\partial}^2 {u}_{i}} {{\partial} {x}_{j} \partial {x}_{j}} \nonumber
 \end{eqnarray}
 where $\nu$ is the kinematic viscosity.
 
@@ -522,7 +522,7 @@ The continuum velocity and the mean microscopic velocity from MD over control do
 
 
 \subsection{Statistical Error and Coupling Parameters}
-
+\label{sec:numerical_noise}
 
 %Molecular dynamics inherently describes the fluctuating pattern of particles, which becomes a noise in CFD solution. How to reduce this statistical error~\cite{Hadjicon3,Time_Mechanism} of averaged MD profile determines the accuracy of CFD solution. 
 
@@ -820,15 +820,29 @@ The generation of an application manager and the changes in application codes ra
 
 \section{Multi-physics Flow Simulations in Various Flow Conditions}
 \label{sec:accuracy}
-A hybrid CFD-MD framework is employed to solve the multi-physics flow in nano-scale. Experimented problems are a sudden-start Couette flow and the oscillating boundary problem. We start from a novel approach of easily determining coupling conditions to the validation and verification of the hybrid simulation framework, then to the exploration of the moderate flow conditions in view of flow velocity and system scale.
+A hybrid CFD-MD framework is employed to solve the multi-physics flow in nano-scale. Experimented problems are a sudden-start Couette flow and the oscillating boundary problem. We start from determining coupling parameters to the validation and verification of the hybrid simulation framework, then to the exploration of the moderate-speed flow simulation and time-accurate hybrid simulation.
 
 \subsection{Problem Description and Coupling Conditions}
 \label{sec:accuracy_conditions}
 
 All applications we examine are internal flow fields filled with the liquid argon. Characteristic length of liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and time scale is $\tau=2.2{\times}10^{-12}$. Density is $0.81m{\sigma}^{-3}$, which means 0.81 atoms are included in the characteristic volume.
-The fluid domain is a channel system which consists of two parallel plates in vertical direction. Liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. The slip ratio between fluid and solid particles are set 0.6.\skonote{check and include why people set the slip ratio as 0.6} Channel height is set to In view of system size, two fluid systems are solved in our experiments, i.e., 10$^{-8}$ (52 $\sigma$) and 10$^{-7}$ (520 $\sigma$) meters in the height of channel. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
+The fluid domain is a channel system which consists of two parallel plates placed in vertical direction. Liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. The slip ratio between fluid and solid particles are set 0.6, to satisfy the linear velocity gradient along the vertical direction.~\cite{Nie}~\skonote{can we change to any other sentence?}
+%Channel height is set to In view of system size, two fluid systems are solved in our experiments, i.e., 10$^{-8}$ (52 $\sigma$) and 10$^{-7}$ (520 $\sigma$) meters in the height of channel. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
+Channel is 52 $\sigma$ in height, which is O(10$^{-8}$) meters. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
 
-As has been proposed in Sec.(Refer to Section 2.4!!!), we solve a stationary flow in particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration in 10$^{-8}$ meter domain. Experiments were conducted with different system width changing from 35 $\sigma$ to 70 and 140 $\sigma$. From the individual test, we can find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 $\sigma$ to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. Next, by comparing the first and third experiments, we find that the statistical error in general becomes half when the system size is 4 times bigger. This does not support the conclusion of statistical error analyses~\cite{Hadjicon3,Time_Mechanism} where the strength of error is inversely proportional to the system size. We assume that the upper and lower walls hinder the noise from being damped out.\skonote{needs to change the above sentence: in case the system scale is so small, higher fluctuation by the molecular interaction between solid wall and fluid particles decelerates the noise reduction} Nevertheless, increasing the system domain is more effective than numerically increasing the size of averaged layer in reducing the statistical error. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
+
+\skonote{To start from here!!!!!}
+
+
+As has been proposed in Sec.~\ref{sec:numerical_parameters}, we solve a stationary flow in particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration in 10$^{-8}$ meter domain. Experiments were conducted with different system width changing from 35 $\sigma$ to 70 and 140 $\sigma$. From the individual test, we can find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 $\sigma$ to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. 
+
+
+Next, by comparing the first and third experiments, we find that the statistical error in general becomes half when the system size is 4 times bigger. 
+
+~\ref{sec:numerical_noise}
+
+
+This supports the conclusion of statistical error analyses~\cite{Hadjicon3,Time_Mechanism} where the strength of error is inversely proportional to the square of system size. We assume that the upper and lower walls hinder the noise from being damped out.\skonote{needs to change the above sentence: in case the system scale is so small, higher fluctuation by the molecular interaction between solid wall and fluid particles decelerates the noise reduction} Nevertheless, increasing the system domain is more effective than numerically increasing the size of averaged layer in reducing the statistical error. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
 
 
 % Table formats; h,t,b,p - here,top,bottom,page of floats
