@@ -1257,14 +1257,15 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.1+1.0)\times 128\over 1
 \section{Scale-Up and Scale-Out: Experiments and Results}
 \label{sec:performance}
 
-To evaluate the scale-up and scale-out properties of the different RE
-algorithms and implementations, we conducted several experiments on TG
-and LONI resources. By ``scale-up", we mean increasing the number of
-replicas while keeping the number of machines constant and by
-``scale-out", we mean increasing the number of machines while keeping
-the number of replicas constant.  In this section we detail the
-experiments that were conducted, the experimental results and the
-analysis.
+To evaluate the scaling properties of the different RE algorithms and
+implementations, we conducted several experiments on TG and LONI
+resources. We initially increased the number of replicas while keeping
+the number of machines constant (``scale-up"); then for the
+asynchronous-centralised case, for a given number of replicas, we
+varied the number of distributed machines utilised (``scale-out''). In
+this section we outline the experiments conducted. Results of these
+experiments establish the advantages of asynchronous formulations for
+both scaling-up and scaling-out.
 
 % \alnote{Should we reference the model used? Not sure which model it is
 %   Hepatitis or HIV?}
@@ -1291,18 +1292,23 @@ analysis.
 \subsection{Scale-Up}
 
 
-{\it Experiments: } We repeated each of the synchronous and
-asynchronous experiments with 4, 8, 16, 32, 64, 128 and 256 replicas
-making 16, 32, 64, 128, 256, 512 and 1024 exchanges, respectively, on
-one machine. Each replica is configured to run 500 time-steps and is
-allocated 16 processors. The experiments consisting up to 128 replicas
-are done on {\it QueenBee}, while the experiments with 256 replicas
-are done on \emph{Ranger} (this is because \emph{QueenBee} only
-allocates a maximum of 2048 processors per job request). But we have
-normalised the data from {\it Ranger} to compare with results from
-\emph{QueenBee}.  It should be noted that the ratio between the number
-of replicas and attempted exchanges is kept constant, so that it
-allows for comparison between each of these experiments.
+{\it Experiments: } To understand the scaling behaviour of the three
+cases, we compute the $T_C$ for 4, 8, 16, 32, 64, 128 and 256 replicas
+making 16, 32, 64, 128, 256, 512 and 1024 exchanges respectively. This
+fixes the ratio of the number of exchanges to the number of replicas
+($N_X \over N_R$).  As a consequence of the ratio of the number of
+attempted exchanges to of replicas is kept constant, the $T_{MD}$ term
+across the different values of $N_R$ is essentially the same; hence
+comparison between different cases will reveal differences in the
+coordination cost ($T_W \& T_X$).  Each replica is configured to run
+500 time-steps before an exchange is attempted, and is allocated 16
+processors. Experiments up to 128 replicas are performed on {\it
+  QueenBee}, while experiments with 256 replicas are done on
+\emph{Ranger}; this is because \emph{QueenBee} only allocates a
+maximum of 2048 processors per job request. We have normalised the the
+data to factor in the difference in performance of {\it Ranger} and
+{\it QueenBee}.
+
 
 %\subsubsection{Scale up performance: Results and Analysis}
 
@@ -1329,21 +1335,23 @@ increase is for synchronous RE, and the least for asynchronous
 %$T_{w}$, i.\,e.\ 
 
 \jhanote{What changes in sync RE as the $N_R$ increases} 
+
+We analysed $T_C$ and the values of its components for 32 replicas in
+\S~4.1; we use that analysis as the basis to understand the 
+scale-up behaviour of the three cases.
+ 
 In the synchronous RE algorithm, there is an explicit synchronisation
 of all replicas; thus early replicas wait for other replicas to
-finish. As can be seen from Table~\ref{}, this is a major component of
-the $T_C$.  As $N_R$ increases, the number of exchanges at a given
-exchange step increases; consequently the total coordination time at
-each exchange step increases. \jhanote{Now QUANTIFY THIS AND MAKE
-CONNECTION WITH THE DATA IN FIG ..}
-
-We have explained in section 4.1 the total time for 32 replicas. If $N_R$ is 64 and $N_X$ is 256, from equation4.1\ref{}, the new coordination time is $(0.62+2.64) \times 256$. That is the change we see from 32 replicas to 64 replicas in the graph1\ref{}. We have verified this for different number of replicas and found it to be consistent.
-
-In addition to the above explicable changes, as $N_R$ increases,
-different nodes of a machine tend to perform differently.  thus
-influencing the time to completion of different replicas.
-Consequently, as then $N_R$ increases, the synchronization time
-typically increases, as does the time to start the replicas.
+finish. As can be seen from Table~\ref{table:repex_perf}, this is a
+major component of the $T_C$.  As $N_R$ increases, the number of
+exchanges at a given exchange step increases; consequently the total
+coordination time at each exchange step increases.  For a value of
+$N_R$ of 64 and $N_X$ of 256, using Eqn.\ref{eq:totaltime}, the new
+coordination time is $(0.62+2.64) \times 256$.  The new coordination
+time is consistent with the difference in $T_C$ for 32 and 64 replicas
+in the Fig.~\ref{fig:scaleup}. A similar analysis was performed for
+different replica and exchange counts and the values obtained are in
+agreement with the empirical data in Fig.~\ref{fig:scaleup}.
 
 % Since replicas are currently started sequentially by the master, a
 % delay between the start and thus the termination of the first and last
@@ -1359,7 +1367,7 @@ typically increases, as does the time to start the replicas.
 In asynchronous (centralized) RE, since the RE Manager makes the
 exchanges serially, we see an increase in the time to
 completion. Again, we explain in eqn 4.2 the total time for 32
-replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation4.1\ref{},
+replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation 4.1\ref{},
 the new coordination time is $(0.78+1.02) \times 256$. That is the
 change we see from 32 replicas to 64 replicas in the graph1\ref{}. We
 have verified this for different number of replicas and found it to be
@@ -1373,8 +1381,8 @@ consistent.
 In contrast to the other cases, the exchanges are performed by the
 replica-agents instead of having the RE-Manager make the exchanges
 centrally (\jhanote{or serially}).  Thus finding a partner -- and thus
-$T_f$, has two components: a search and reverify stage, which 
-must both be successful before an exchange is carried out.
+$T_f$, has two components: a search and reverify stage, which must
+both be successful before an exchange is carried out.
 %a successful search and reverify stage.
 
 When searching for a replica randomly, on average it takes $N_R \over
@@ -1392,8 +1400,6 @@ random or sequential. But in general, replicas contend with each other
 to lock a partner for exchange; this gets worse with increasing number
 of replicas, i.e., $T_f$ increases with increasing $N_R$.
 
-% In this implementation, the reason for increasing the $T_C$ is that
-
 Specifically, for the random access case, we find $T_f$ is $2 \times
 N_R \times 0.11$ (where $0.11$ is the typical time to set/get a value
 to/from the advert server) and for the sequential access case, we find
@@ -1405,6 +1411,14 @@ For example, in eqn 4.3 we see that for 32 replicas, $T_f$ is
 approximately $2 \times 32 \times 0.11 = 7.04$ s. For 64
 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 = 10.56$
 s. % Only $T_f$ changes with the number of replicas.
+
+In addition to the above explicable changes, as $N_R$ increases,
+different nodes of a machine tend to perform differently.  thus
+influencing the time to completion of different replicas.
+Consequently, as then $N_R$ increases, the synchronization time
+typically increases, as does the time to start the replicas.
+
+
 
 % When searching serially, we observed that the replica-agent
 % finds a partner after looping over the all the replicas between 2 and
