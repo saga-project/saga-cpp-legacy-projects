@@ -132,15 +132,6 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \end{abstract}
 
-\jhanote{Since this is going to Her Majesty's Land, we need to be
-  consistent with ``s'' over ``z'' -- organise not organize etc}
-
-\jhanote{In general please don't use hard numbers, but use pointers to
-  sections!}
-\athotanote{do you mean this: \S\ref{repexfw}}
-\jhanote{Not necessary the~\S~but definitely the
-  used of ref{sectionlabel} }
-
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
 resources across distributed resources is a complex task.  Inevitably,
@@ -955,8 +946,8 @@ replica pair (the transfer of the input files in done sequentially).
 % respective directories; it takes 0.2 s to write and copy a file
 % locally.`'' At least in the synchronous version I used there was 
 % a remote copy involved. Do we have a number for that?} \athotanote{but this is single machine. local copy right?}
-$T_{coord}$ is the time required by the RE-Manager to restart the 
-replicas using the BigJob framework.  
+$T_{coord}$ is the time required by the RE-Manager to restart the
+replicas using the BigJob framework.
 % \jhanote{Abhinav - is the previous sentence correct?
 %   ``resubmitting a pair of replicas for restarting'' was too vague!}
 % \athotanote{fixed. it may be the case, but we actually explain the
@@ -999,19 +990,20 @@ Substituting the above values in equation~\ref{eq:totaltime}, we get
 %start one replica is 0.3 s. For 32 replicas, it is 9.6
 %s. Thus, the BigJob agent finishes starting the last replica before the a replica completes its run. 
 
-In contrast to the synchronous case, $T_X$ for the asynchronous centralised
-case has a small $T_f$ component since replica pairs are dynamically
-determined and not fixed. $T_f$ depends on the overall number of replicas
-$N_R$, which determines the number of records the RE-Manager has scan 
-in order to find an available replica. On average the RE-Manager must
-search through $N_R/2$ replicas before it finds a partner. 
-The exchanges are made by the RE-Manager and only one exchange takes 
-place at a time ($\eta$ is 1). \alnote{Not sure whether this view
-helps us here. I am aware of the sequential part at the central master,
-but couldn't that be considered quasi-parallel? Also, the same limitation
-would apply to the synchronous case. An option would be to introduce
-a $\eta_{MD}$ and $\eta_{coord}$ in equation~\ref{eq:totaltime}: one for the MD part and
-one for the coordination part.}
+In contrast to the synchronous case, $T_X$ for the asynchronous
+centralised case has a small $T_f$ component since replica pairs are
+dynamically determined and not fixed. $T_f$ depends on the overall
+number of replicas ($N_R$), which determines the number of records the
+RE-Manager has to scan in order to find an available replica. On
+average the RE-Manager must search through $N_R/2$ replicas before it
+finds a partner.  The exchanges are made by the RE-Manager and only
+one exchange takes place at a time ($\eta$ is 1). \alnote{Not sure
+  whether this view helps us here. I am aware of the sequential part
+  at the central master, but couldn't that be considered
+  quasi-parallel?  Also, the same limitation would apply to the
+  synchronous case. An option would be to introduce a $\eta_{MD}$ and
+  $\eta_{coord}$ in equation~\ref{eq:totaltime}: one for the MD part
+  and one for the coordination part.}
 % \alnote{I 
 %   think this conflicts with the ```deterministic'' approach we
 %   discussed yesterday}
@@ -1042,25 +1034,24 @@ $T_{X}$ is in sum: $0.2+0.4+0.2=0.8\,s$.
 % $0.11\times 2 = 0.22$ s. Therefore, $T_{X}$ is
 % $0.16+0.4+0.22=0.78$ s. 
 
-\alnote{Abhinav: please cross-check.}
-While the asynchronous algorithm does not require a synchronization
-between all replicas after each generation, there is some amount of 
-waiting involved, which is mainly caused by the single-threaded 
-BigJob implementation, which leads to some delays at the agent.
-In particular, we observed a delay of new sub-jobs in cases where 
-the BigJob agent was busy processing other sub-jobs after their 
-termination. In this scenario the post-processing of a sub-job 
-requires with 1.1\,s about 0.2\,s more than in the synchronous
+\alnote{Abhinav: please cross-check.}  While the asynchronous
+algorithm does not require synchronization between all replicas
+after each generation, there is some amount of waiting involved, which
+is mainly caused by the single-threaded BigJob implementation, which
+leads to some delays at the agent.  In particular, a delay arises %of
+new sub-jobs in cases where the BigJob agent was busy processing other
+sub-jobs after their termination. In this scenario the post-processing
+of a sub-job requires 1.1\,s about 0.2\,s more than in the synchronous
 case. \alnote{Abhinav please check: in my opinion this is the worst
-case not the average case. The second replica eg has to wait less.} 
-\athotanote{well...}
-In the worst case, the first replica pair that is restarted has
-to wait for the processing of the other remaining 30 replicas: 
-$1.1\,s \times 30 = 33\,s$. This corresponds to $T_{W}$ of $1.1\,s$ per
-replica.\alnote{I still have some issues with that formula i) we don't model
-anything related to the central master ii) I am not sure whether the per replica
-view is correct. What is a reasonable $\eta$ (resp. $\eta_{MD}$ and $\eta_{coord}$) 
-for async RE?}
+  case not the average case. The second replica eg has to wait less.}
+\athotanote{well...}  In the worst case, the first replica pair that
+is restarted has to wait for the processing of the other remaining 30
+replicas: $1.1\,s \times 30 = 33\,s$. This corresponds to $T_{W}$ of
+$1.1\,s$ per replica.\alnote{I still have some issues with that
+  formula i) we don't model anything related to the central master ii)
+  I am not sure whether the per replica view is correct. What is a
+  reasonable $\eta$ (resp. $\eta_{MD}$ and $\eta_{coord}$) for async
+  RE?}
  
 
 % \alnote{\textbf{Abhinav: Could you improve the description of this paragraph, please? In particular
@@ -1087,15 +1078,22 @@ for async RE?}
 %   \alnote{I don't understand 
 % the notion of pair in this context. Is 32 sec == $T_W$?}\athotanote{is it better now?}\alnote{yes. I think
 % we can shorten it and directly break the 32 sec down to $T_W$ for 1 replica: 32.8/32=1 sec.} \athotanote{done}
-\alnote{\textbf{I propose to take the rest of this paragraph out and not go into the details of $T_r$ and $T_w$:} It should be noted that the timelines of the RE-Manager and the BigJob 
-agent run concurrently. Also, the time RE-Manager
-waits for the next replica to  become available, $T_w$ is included in $T_r$. This is because we already included the time each replica waits at the BigJob agent before it is restarted ($T_r$). This would be the same time a replica waits for the next replica to become available. Thus, $T_W$ is $1.1\,s$. }
-\alnote{That is somehow imprecise now! We should only
-include it in one component.} {\athotanote{this $T_w$ is not $T_W$. it 
-is only part of $T_W$(time waiting for the next replica to become available. 
-therefore, $T_W$ is still left with $T_r$(time waiting to be restarted at the bigjob agent }
-\alnote{My point is that the last sentence confuses the reader: either it is $T_f$ or $T_w$.} \athotanote{corrections made.}
-\athotanote{can be deleted}
+\alnote{\textbf{I propose to take the rest of this paragraph out and
+    not go into the details of $T_r$ and $T_w$:} It should be noted
+  that the timelines of the RE-Manager and the BigJob agent run
+  concurrently. Also, the time RE-Manager waits for the next replica
+  to become available, $T_w$ is included in $T_r$. This is because we
+  already included the time each replica waits at the BigJob agent
+  before it is restarted ($T_r$). This would be the same time a
+  replica waits for the next replica to become available. Thus, $T_W$
+  is $1.1\,s$. } \alnote{That is somehow imprecise now! We should only
+  include it in one component.} {\athotanote{this $T_w$ is not
+    $T_W$. it is only part of $T_W$(time waiting for the next replica
+    to become available.  therefore, $T_W$ is still left with
+    $T_r$(time waiting to be restarted at the bigjob agent }
+  \alnote{My point is that the last sentence confuses the reader:
+    either it is $T_f$ or $T_w$.} \athotanote{corrections made.}
+  \athotanote{can be deleted}
 
 
 
@@ -1131,16 +1129,19 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} =
 % be lower than in the async-cent. case since we don't have a central coordinator?}
 
 
-As in the asynchronous-centralised case the algorithm does not demand any waiting times; the
-implementation, however, shows minor waiting times, e.\,g.\ for managing simulation runs, for 
-updating the advert service, etc. Also, queries and updates
-to the advert service take longer in the decentralised than in the other both case
--- mainly due to the higher number of connections and requests. In total, there
-are three advert updates required: one for updating the state, two for posting the
-simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum
-about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as
-well as processing of output file. Thus, in total a $T_{W}$ value of $1\,s$ can 
-be approximated.
+As in the asynchronous-centralised case the,
+asynchronous-decentralised implementation does not involve a replica
+waiting for other replicas to reach a specific state before initiating
+an exchange. There are other types of holding that contribute to the
+overall $T_C$, e.\,g.\ for managing simulation runs, for updating the
+advert service, etc. Also, queries and updates to the advert service
+take longer in the decentralised than in the other both case -- mainly
+due to the higher number of connections and requests. In total, there
+are three advert updates required: one for updating the state, two for
+posting the simulation results. Each update requires about $0.1\,s$,
+i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required
+for monitoring, restarting replicas as well as processing of output
+file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
 
 \alnote{\textbf{Old Paragraph - please check whether I put the important points into
 the paragraph above. Also check my comments in original paragraph.}
@@ -1161,12 +1162,12 @@ a replica that completed its run, it updates its state in the advert
 server, which takes $0.1\,s$. 
 % \alnote{A advert modification took in the previous
 % cases 0.01\,sec? What is different here?}.\athotanote{yes, the number of 
-connections to the advert server effects the performance} 
-Also, it retrieves the energy and temperature from the output files, 
-each of which actions take $0.2\,s$. It then posts both these values to the advert server. 
-These are the associated costs: $0.1+0.2\times2+0.1\times2=0.7\,s$.  In sum,
-the waiting time can be computed as follows: $T_W = 0.3 + 0.7=1\,s$. 
-}
+connections to the advert server effects the performance} Also, it
+retrieves the energy and temperature from the output files, each of
+which actions take $0.2\,s$. It then posts both these values to the
+advert server.  These are the associated costs:
+$0.1+0.2\times2+0.1\times2=0.7\,s$.  In sum, the waiting time can be
+computed as follows: $T_W = 0.3 + 0.7=1\,s$.  }
 
 $T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary to find
 an exchange partner. On average the replica-agent must scan the list of 
