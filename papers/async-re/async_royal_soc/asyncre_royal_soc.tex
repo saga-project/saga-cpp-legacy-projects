@@ -132,6 +132,10 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \end{abstract}
 
+
+\alnote{replaced with s}
+
+
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
 resources across distributed resources is a complex task.  Inevitably,
@@ -767,11 +771,6 @@ it stops the experiment.
 %\section{Implementation of Synchronous and Asynchronous RE}
 \section{RE Framework: Implementation and Performance}
 \label{sec:re_impl}
-
-
-
-
-
 % \alnote{Do we want to present impl. details here?}  \athotanote{i too
 %   think that we are explaining how we implemented in section 3(RE
 %   Framework). Here we are analyzing our implementation?}
@@ -865,8 +864,6 @@ discuss each case in the following sections.
 	\hline
     \end{tabular}
     \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas/time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{coord}$=updating states after exchange; $T_C$=total time to completion. }
-        \alnote{Should we generally add $T_{coord}$ to $T_{w}$ to avoid confusion?} \athotanote{we can do that.. should I?}
-        \alnote{Can we put in 0 s instead of NA?} \athotanote{yes..}
 	\label{table:repex_perf}
 \end{table}
 
@@ -884,30 +881,22 @@ discuss each case in the following sections.
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 s.
 
-\alnote{We are very imprecise when using units in equations. Also I
-  would propose to abbrev. seconds to s or sec (makes it in my opinion
-  easier to parse)} \jhanote{Yes, I agree on both accounts} \athotanote{s or sec?} 
-  \alnote{replaced with s}
-
 As explained in section~\ref{sec:repex-approach}
 (\ref{sec:math-model}), the overall performance of a RE implementation
 is primarily determined by the waiting time $T_W$ and the time for
 conducting the exchange $T_X$. In the following we analyse the average
-values for $T_{W}$ and $T_X$ for each replica pair. 
-In the synchronous RE implementation
-replicas are started sequentially, i.\,e.\ there is a delay between
-the startup of the first and the last replica. Also, the
-post-processing of each replica run, i.\,e.\ updating the state,
-marking nodes free, the stage-out of the output file, is done sequentially. 
-The longer of both times -- in this case the post-processing time -- 
-determines the overall time spent waiting for other replicas. 
-\alnote{I added 0.92\,s bigjob postproc + 0.4\,s for stageout together} 
-\athotanote{we are losing around 15 seconds with the approximations. so, i'm making 1.3=1.4}
-On average, it takes $1.4\,s$ to process a replica that has completed 
-running. In an ensemble of 32 replicas the delay between the termination 
-of the first and last replica adds up to $44.8\,s$, i.\,e.\ for one replica 
-pair (there are in total 16 pairs in a 32 replica ensemble): $T_{W} =
-2.8\,s$.
+values for $T_{W}$ and $T_X$ for each replica pair.  In the
+synchronous RE implementation replicas are started sequentially,
+i.\,e.\ there is a delay between the startup of the first and the last
+replica. Also, the post-processing of each replica run, i.\,e.\
+updating the state, marking nodes free, the stage-out of the output
+file, is done sequentially.  The longer of both times -- in this case
+the post-processing time -- determines the overall time spent waiting
+for other replicas.  On average, it takes $1.4\,s$ to process a
+replica that has completed running. In an ensemble of 32 replicas the
+delay between the termination of the first and last replica adds up to
+$44.8\,s$, i.\,e.\ for one replica pair (there are in total 16 pairs
+in a 32 replica ensemble): $T_{W} = 2.8\,s$.
 
 % That is the time it takes to update the state and
 % mark the nodes as free.  Since the whole ensemble of replicas needs to
@@ -920,12 +909,13 @@ pair (there are in total 16 pairs in a 32 replica ensemble): $T_{W} =
 % file is $T_r$ and stagein $T_{ex}$? Shouldn't we rather consider the stageout
 % time above in $T_w$ (since it is part of the delay between the termination of the first
 % and last replica)?} \athotanote{i am thinking like this: stageout is done before the exchange and it delays all the replicas becoming available. stagein is done after the exchange. only after the stagein the replicas are submitted to restarting.}
-\alnote{\textbf{included stage-out time into $T_W$ above - just so that you guys can
-follow my steps (comment and paragraph below can be deleted):}
-The RE-Manager marks the replicas which finish running as done and
-retrieves the energies and temperatures by reading the output
-files. That costs $0.4\,s$ per replica and $0.8\,s$ for a
-pair. Thus, $T_W = 1.84 + 0.8=2.64$\,s.}
+
+% \alnote{\textbf{included stage-out time into $T_W$ above - just so
+%     that you guys can follow my steps (comment and paragraph below can
+%     be deleted):} The RE-Manager marks the replicas which finish
+%   running as done and retrieves the energies and temperatures by
+%   reading the output files. That costs $0.4\,s$ per replica and
+%   $0.8\,s$ for a pair. Thus, $T_W = 1.84 + 0.8=2.64$\,s.}
 
 
 % \alnote{What is the component that is actually spent waiting for the
@@ -956,10 +946,14 @@ replicas using the BigJob framework.
 %   actual process after every exchange - that the replicas job
 %   descriptions are posted to the advert server, the bigjob agent
 %   restarts}
-On average $T_{coord}$ amounts to $0.1$\,s per replica, i.\,e.\  $0.2$\,s per
-replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ s.
-
-
+On average $T_{coord}$ amounts to $0.1$\,s per replica, i.\,e.\
+$0.2$\,s per replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ s.
+Substituting the above values in equation~\ref{eq:totaltime}, we get
+% \alnote{TODO: validate numbers with just one decimal position!}
+\begin{eqnarray}
+  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.6 + 2.8)\times 128]} = {1 \over p} \times 1003\,s
+\label{eq:sync}
+\end{eqnarray}
 
 % For a pair of replicas involved in the exchange, $T_{ex} =
 % 0.2 \times 2=0.4$ s, as file writing and copy is done
@@ -970,21 +964,20 @@ replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ s.
 %   consistent with all subscripts: Why $T_F$, but $T_{ex}$?}
 % \athotanote{changed to $T_f$.} \jhanote{Table still needs attention}
 
-Substituting the above values in equation~\ref{eq:totaltime}, we get
-\alnote{TODO: validate numbers with just one decimal position!}
-\begin{eqnarray}
-  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.6 + 2.8)\times 128]} = {1 \over p} \times 1003\,s
-\label{eq:sync}
-\end{eqnarray}
+% \jhanote{Why is seconds within math mode sometime, and outside math
+%   mode at others?}  \athotanote{should we mention somewhere that $p$
+%   is one in our experiments and that we dont use metropolis scheme? or
+%   can we just leave $p$ as is in the equation?}  \jhanote{For this
+%   particular configuration, is this consistent with Data in Section
+%   5?}  \athotanote{within error bars, yes.}  \alnote{What about case
+%   III: 641+/-2.4 in comparison to 603? But, I guess this doesn't
+%   invalidate the model completely}
 
-\jhanote{Why is seconds within math mode sometime, and outside math
-  mode at others?}  \athotanote{should we mention somewhere that $p$
-  is one in our experiments and that we dont use metropolis scheme? or
-  can we just leave $p$ as is in the equation?}  \jhanote{For this
-  particular configuration, is this consistent with Data in Section
-  5?}  \athotanote{within error bars, yes.}  \alnote{What about case
-  III: 641+/-2.4 in comparison to 603? But, I guess this doesn't
-  invalidate the model completely}% \athotanote{yes. i saw this. in the  other two cases, substituting $N_X$ in the equation satisfies the  all the experiments in section 5. but in decentralized, $T_f$  changes with $N_R$. as to why its 603 and not closer to 640: i think  its something to do the time to find a replica ($T_f$).}
+% \athotanote{yes. i saw this. in the other two cases, substituting
+%   $N_X$ in the equation satisfies the all the experiments in section
+%   5. but in decentralized, $T_f$ changes with $N_R$. as to why its
+%   603 and not closer to 640: i think its something to do the time to
+%   find a replica ($T_f$).}
 
 \subsection{Asynchronous (centralised) RE}
 \alnote{Discuss $\eta$} \athotanote{done}
@@ -999,26 +992,31 @@ number of replicas ($N_R$), which determines the number of records the
 RE-Manager has to scan in order to find an available replica. On
 average the RE-Manager must search through $N_R/2$ replicas before it
 finds a partner.  The exchanges are made by the RE-Manager and only
-one exchange takes place at a time ($\eta$ is 1). \alnote{Not sure
-  whether this view helps us here. I am aware of the sequential part
-  at the central master, but couldn't that be considered
-  quasi-parallel?  Also, the same limitation would apply to the
-  synchronous case. An option would be to introduce a $\eta_{MD}$ and
-  $\eta_{coord}$ in equation~\ref{eq:totaltime}: one for the MD part
-  and one for the coordination part.}
+one exchange takes place at a time .
+
+% ($\eta$ is 1). % \alnote{Not sure
+% whether this view helps us here. I am aware of the sequential part
+% at the central master, but couldn't that be considered
+% quasi-parallel?  Also, the same limitation would apply to the
+% synchronous case. An option would be to introduce a $\eta_{MD}$ and
+% $\eta_{coord}$ in equation~\ref{eq:totaltime}: one for the MD part
+% and one for the coordination part.}
+
 % \alnote{I 
 %   think this conflicts with the ```deterministic'' approach we
 %   discussed yesterday}
-\alnote{``It should be noted that we also implemented a
-special case for an ensemble containing a very large number of
-replicas, where the RE-Manager tries to find a partner randomly. 
-We observed that this only improves the performance when the ensemble
-contains more than 128 replicas.'' Either we should
-state how much this effects $T_f$ or we should not mention it in my opinion. 
-to be discussed} \athotanote{can be deleted}
-An advert query for a replica state takes 0.01\,s. In the 32 replica
-scenario the RE-Manager must request in average 16 other replica states
-before it finds a partner; thus, the $T_f$ is in total $0.2\,s$. Both
+
+% \alnote{``It should be noted that we also implemented a
+% special case for an ensemble containing a very large number of
+% replicas, where the RE-Manager tries to find a partner randomly. 
+% We observed that this only improves the performance when the ensemble
+% contains more than 128 replicas.'' Either we should
+% state how much this effects $T_f$ or we should not mention it in my opinion. 
+% to be discussed} \athotanote{can be deleted}
+
+An advert query for a replica state takes 0.01\,s. For 32 replicas,
+the RE-Manager must request on average 16 other replica states before
+it finds a partner; thus, the $T_f$ is in total $0.2\,s$. Both
 $T_{ex}$ and $T_{coord}$ are same as in the synchronous case, i.\,e.\
 $T_{X}$ is in sum: $0.2+0.4+0.2=0.8\,s$.
 
