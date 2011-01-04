@@ -1431,10 +1431,10 @@ typically increases, as does the time to start the replicas.
 %%%%% FIGURE %%%%%
 \begin{figure}%
 \centering
-\subfigure[8 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_8.pdf}}\qquad
+\subfigure[8 replicas]{\includegraphics[width=0.8\textwidth]{../data/cent_scaleout.pdf}}\qquad
 %\subfigure[16 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_16.pdf}}\\
-\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
-\caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas:} 
+%\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
+\caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas, asynchronous (centralised):} 
   TBD.}
 \label{fig:24machines}
 
@@ -1449,27 +1449,33 @@ typically increases, as does the time to start the replicas.
 
 \end{figure}
 
-\subsection{Scale out}
+\subsection{Scale out - Asynchronous (centralised)}
 
-{\it Experiments:} To evaluate the performance of the different implementations when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 seconds of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
+{\it Experiments:} To evaluate the performance of asynchronous (centralised) implementation when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 seconds of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
  \alnote{Is this correct? When do we start to assign the replicas? If the 
 queue time is included, we had at least an explanation for the high stddev-}
 \alnote{How many repeats?} 
 
-{\it Results:} The results obtained are shown in figure~\ref{fig:24machines}. In the synchronous RE, the total time to completion consistently increases with increasing number of machines. But we do not see a consistent increase of decrease in the other two implementations. The changes that we do see are within error bars. 
+{\it Results:} The results obtained are shown in figure~\ref{fig:24machines}. 
+%In the synchronous RE, the total time to completion consistently increases with increasing number of machines. But we do not see a consistent increase of decrease in the other two implementations. The changes that we do see are within error bars. 
 
-{\it Analysis: } In the synchronous RE, with increasing number of machines, the synchronization cost only increases. Which is even more true in a heterogeneous environment. Also, with more machines, the RE-Manager has to stage-in more remote files to retrieve the energy and temperature of a replica and  stage-out more configuration files to remote machines. A remote file transfer is much more expensive than a local file copy. These two factors make the total time to completion consistently increase with increasing number of machines. 
+
+{\it Analysis: }
+% In the synchronous RE, with increasing number of machines, the synchronization cost only increases. Which is even more true in a heterogeneous environment. Also, with more machines, the RE-Manager has to stage-in more remote files to retrieve the energy and temperature of a replica and  stage-out more configuration files to remote machines. A remote file transfer is much more expensive than a local file copy. These two factors make the total time to completion consistently increase with increasing number of machines. 
 
 In the asynchronous (centralised) RE, there is no synchronization cost. That helps improve the performance. Also, in this case the BigJob agent retrieves the temperature and energy of a replica and posts the value in the advert server, which is much more efficient than staging-in the output files to the local machine to retrieve the values. But the RE Manager still has to stage-out the modified configuration files after each exchange. From 1 machines to 2 machines, we see a change in $T_C$ within error bars and with 4 machines we notice an increase outside the error bars. That shows the cost of staging-out files to 3 remote machines.
 
-In the asynchronous (decentralised) RE, compared to the centralised implementation, there is no need to stage-in or stage-out the configuration files at any time. The energy and temperature values are exchanged via the advert server and the configurations files are modified locally by the replica-agent. Thus, even with increasing number of machines, we don't actually see a difference in $T_C$ outside the error bars. 
-\alnote{To-be-answered: Why is case II faster than III 
-in the 8rep/[1,2] machine scenario?}
-We see in figure4(a)\ref{} that the asynchronous (centralised) is faster than the decentralised implementation. This is because with a small number of replicas (8 in this case), it more efficient to conduct the exchanges in a centralised manner.  This way we avoid the contention for exchange partner that is seen in the decentralised implementation. 
+From the figure~\ref{fig:24machines}, we see that total time to completion is approximately constant for different number of machines, when $N_R$ is between 8 and 32 and number of BigJobs ($N_{BJ}$ is 4. Comparing with data from the figure~\ref{fig:scaleup}, we can see that $T_C$ for 8, 16 and 32 replicas goes up when $N_{BJ}$ is reduced. It should also be noted that if $N_R$ is 64 and $N_{BJ}$ is still 4, $T_C$ might start to go up, but it would still be less than what it would be for 1 BigJob. Therefore, we can say that if ${N_R \over N_{BJ} }\approx$ constant then $T_C \approx$ constant.
+
+
+
+%In the asynchronous (decentralised) RE, compared to the centralised implementation, there is no need to stage-in or stage-out the configuration files at any time. The energy and temperature values are exchanged via the advert server and the configurations files are modified locally by the replica-agent. Thus, even with increasing number of machines, we don't actually see a difference in $T_C$ outside the error bars. 
+%\alnote{To-be-answered: Why is case II faster than III in the 8rep/[1,2] machine scenario?}
+%We see in figure4(a)\ref{} that the asynchronous (centralised) is faster than the decentralised implementation. This is because with a small number of replicas (8 in this case), it more efficient to conduct the exchanges in a centralised manner.  This way we avoid the contention for exchange partner that is seen in the decentralised implementation. 
 \alnote{Why is that? fewer replicas should also mean less load on the advert service? How is this reflected in 
 our math. model?}
 \alnote{TODO: Local vs. distributed coordination, BigJob startup times}
-\athotanote{could you elaborate a bit please? }
+
 
 % Overall, there is not much difference between the local and distributed 
 % runs in any case. The reason being that there is very
