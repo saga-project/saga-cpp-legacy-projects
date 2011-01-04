@@ -420,9 +420,9 @@ The hybrid simulation requires the implementation of hybrid interfaces and schem
   \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of the entire fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
   \label{table:interface_implementation}
   \centering
-  \resizebox{0.8\linewidth}{!} {
-  \begin{tabular}{>{\centering}p{0.15\linewidth} || p{0.35\linewidth} | p{0.35\linewidth} }
-%\multicolumn{3}{c}{\phantom{\tiny 100}}\\
+%  \resizebox{0.8\linewidth}{!} {
+\footnotesize
+ \begin{tabular}{>{\centering}p{0.15\linewidth} || p{0.3\linewidth} | p{0.3\linewidth} }
 \hline
   & \centering CFD & \multicolumn{1}{c}{MD} \\
 \hline
@@ -436,7 +436,7 @@ The hybrid simulation requires the implementation of hybrid interfaces and schem
 \hline
  MDtoCFD & File Interface: Receiver & File Interface: Sender \\
 \hline
-\end{tabular} }
+\end{tabular} %}
 \vspace{-1em}
 \end{table}
 
@@ -826,23 +826,55 @@ A hybrid CFD-MD framework is employed to solve the multi-physics flow in nano-sc
 \label{sec:accuracy_conditions}
 
 All applications we examine are internal flow fields filled with the liquid argon. Characteristic length of liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and time scale is $\tau=2.2{\times}10^{-12}$. Density is $0.81m{\sigma}^{-3}$, which means 0.81 atoms are included in the characteristic volume.
-The fluid domain is a channel system which consists of two parallel plates placed in vertical direction. Liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. The slip ratio between fluid and solid particles are set 0.6, to satisfy the linear velocity gradient along the vertical direction.~\cite{Nie}~\skonote{can we change to any other sentence?}
+The fluid domain is a channel system which consists of two parallel plates placed in vertical direction. Liquid argon particles are filled in the domain and both walls have artificial properties which is the same as those of liquid argon. The slip ratio between fluid and solid particles are set 0.6, to satisfy the linear velocity gradient along the vertical direction.~\cite{Nie}
 %Channel height is set to In view of system size, two fluid systems are solved in our experiments, i.e., 10$^{-8}$ (52 $\sigma$) and 10$^{-7}$ (520 $\sigma$) meters in the height of channel. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
 Channel is 52 $\sigma$ in height, which is O(10$^{-8}$) meters. Applications covered in this work are periodic systems in the perpendicular direction and the flow variation is derived by the horizontal motion of an upper plate.
 
 
-\skonote{To start from here!!!!!}
+As has been proposed in Sec.~\ref{sec:numerical_parameters}, we solve a stationary flow in particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity depending on the layer size and sampling duration in 10$^{-8}$ meter domain. Experiments were conducted with different lengths of the domain, changing from 35 $\sigma$ to 70 and 140 $\sigma$. Noises around 0.2 height above the wall are presented. 
+
+From the individual test, we find that mathematical expressions on the strength of noise according to the height of sampled layer and sampling duration~\cite{Hadjicon3,Time_Mechanism} do not coincide with our experiment. From the first table, increasing the height of averaged layer from 0.1 to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration.
+%From the individual test, we find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration.
+This is contradictory to previous mathematical expressions which has been introduced in Sec.~\ref{sec:numerical_noise}.
+%, where noise is inversely proportional to the root of layer height or sampling interval and these two factors are not coupled. 
+From the data analysis, we figure out that the magnitude of sampling noise depending on the layer size and sampling duration is far more complicated: $V_{N} = a \times SD^b \times LH^c \times SD^{d \times ln(LH)}$, where $V_N$ represents the velocity magnitude of the noise, $SD$ denotes sampling duration and $LH$ is the height of the layer.
+%The mathematical expression on the strength of noise depending on the layer size and sampling duration is far more complicated than have been addressed in previous analyses: $V_{N} = a \times SD^b \times LH^c \times SD^{d \times ln(LH)}$, where $V_N$ represents the velocity magnitude of the noise, $SD$ denotes sampling duration and $LH$ is the height of the layer.
+This equation is rewritten in simpler logarithmic formulation as,
+
+\vspace{-.2em}
+\footnotesize
+\begin{eqnarray}
+ln(V_{N}) = ln(a) +b~ ln(SD) +c~ ln(LH) +d~ ln(SD)~ ln(LH)\nonumber
+\label{eq:Noise1}
+\end{eqnarray}
+\normalsize
+and these coefficients in our specific case are as,
 
 
-As has been proposed in Sec.~\ref{sec:numerical_parameters}, we solve a stationary flow in particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity on different layer size and sampling duration in 10$^{-8}$ meter domain. Experiments were conducted with different system width changing from 35 $\sigma$ to 70 and 140 $\sigma$. From the individual test, we can find that increasing sampling duration or height of averaged layer does not linearly decrease the statistical error. At the first test, increasing the height of averaged layer from 0.1 $\sigma$ to 6.4 $\sigma$ reduces the statistical error by 4 times when sampling duration is 1 $\tau$ and this ratio even gets worse as sampling duration increases. The same situation also happens on sampling duration. 
+\vspace{-.2em}
+\footnotesize
+\begin{eqnarray}
+&L = 35 \sigma :   &a = 33.67,~b= - 0.18,~c= - 0.30,~d=0.052\nonumber \\
+&L = 70 \sigma :   &a=25.85,~b=- 0.19,~c= - 0.27,~d=0.062\nonumber \\
+&L = 140 \sigma : &a=17.78,~b= - 0.18,~c=-0.25,~d=0.060\nonumber
+\label{eq:Noise2}
+\end{eqnarray}
+\normalsize
+which directly expresses that 4 times longer sampling duration or 4 times larger layer height is far insufficient to half the noise.
 
+%\vspace{-.2em}
+%\footnotesize
+%\begin{eqnarray}
+%L = 35 \sigma :   ln(V_{N}) & = & ln(33.67) - 0.18~ ln(SD) - 0.30~ ln(LH) \nonumber \\
+%& + & 0.052~ ln(SD)~ ln(LH)\nonumber \\
+%L = 70 \sigma :   ln(V_{N}) &=& ln(25.85) - 0.19~ ln(SD) - 0.27~ ln(LH) \nonumber \\
+%&+& 0.062~ ln(SD)~ ln(LH) \\
+%L = 140 \sigma :   ln(V_{N}) &=& ln(17.78) - 0.18~ ln(SD) - 0.25~ ln(LH) \nonumber \\
+%&+& 0.060~ ln(SD)~ ln(LH)\nonumber
+%\label{eq:Noise}
+%\end{eqnarray}
+%\normalsize
 
-Next, by comparing the first and third experiments, we find that the statistical error in general becomes half when the system size is 4 times bigger. 
-
-~\ref{sec:numerical_noise}
-
-
-This supports the conclusion of statistical error analyses~\cite{Hadjicon3,Time_Mechanism} where the strength of error is inversely proportional to the square of system size. We assume that the upper and lower walls hinder the noise from being damped out.\skonote{needs to change the above sentence: in case the system scale is so small, higher fluctuation by the molecular interaction between solid wall and fluid particles decelerates the noise reduction} Nevertheless, increasing the system domain is more effective than numerically increasing the size of averaged layer in reducing the statistical error. Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
 
 
 % Table formats; h,t,b,p - here,top,bottom,page of floats
@@ -851,7 +883,8 @@ This supports the conclusion of statistical error analyses~\cite{Hadjicon3,Time_
   \caption{\small Statistical Error in Stationary Flow Simulation; Pure MD simulations of 35 $\times$ 52, 70 $\times$ 52 and 140 $\times$ 52 ${\sigma}^2$ are conducted. Liquid is bound in Y-direction by upper and lower walls and able to move in X-direction where periodic boundary condition is imposed. Initial data up to 100 $\tau$ are disregarded to provide enough time for minimization. Velocity of particles around the central layer are accumulated over 512 $\tau$ by using {\it{fix-ave-spatial}} function in LAMMPS package and post-processed to get the average velocity at different layer size and sampling duration conditions. Statistical noise becomes about half at 4 times bigger domain. The unit is 1/1000 of non-dimensional MD velocity (1$\sigma$ / $\tau$).}
   \label{table:MD_Vel0}
   \centering
-  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\linewidth}{!} {
+\footnotesize
   \begin{tabular}{c || c c c c c c c}
 \hline
 	&	1 $\tau$	&	2 $\tau$	&	4 $\tau$	&	8 $\tau$	&	16 $\tau$	 &	32 $\tau$	&	64 $\tau$	\\
@@ -949,12 +982,23 @@ This supports the conclusion of statistical error analyses~\cite{Hadjicon3,Time_
 %6.4 $\sigma$	&	6.758 	&	6.651 	&	6.557 	&	6.227 	&	6.120 	&	 5.176 	&	4.483 	\\
 %12.8 $\sigma$	&	4.816 	&	4.712 	&	4.581 	&	4.484 	&	4.337 	&	 4.032 	&	3.617 	\\
 %\hline
-\end{tabular} }
+\end{tabular} %}
 \vspace{-1em}
 \end{table}
 
 
-CFD and MD computational domains are generated based on the above experiment, as depicted in Fig.~\ref{Couette_Val_Domain}. Pure MD region is specified to be 10$\sigma$, which was reported to be sufficient to prevent strong fluctuation between fluid particles and wall materials from directly transported to CFD domains.~\cite{Yen} This implies that the steady-state velocity in the hybrid domain will be around 0.2 $\sigma$/$\tau$. We design the strength of the statistical error not to exceed 5 percent ($\approx$ 0.01 $\sigma$/$\tau$) of steady-state velocity. This lead us to set the width of MD domain in the principal flow direction as 140 $\sigma$, the cell size of CFD mesh to be 2$\sigma$ in Y-direction, and sampling duration to be 10 $\tau$. Two layer boundary zones from particle to continuum domain is placed ahead of pure MD region, from 10 to 14$\sigma$. Two layers of continuum to particle boundary is positioned from 18 to 22$\sigma$ and external force region is place at the top of hybrid region, from 24 to 26$\sigma$.
+Another result we observe from the above mathematical expression is that increasing the system size into the periodic direction is more effective in reducing the noise. Setting SD and LH to 1 $\tau$ and 1 $\sigma$, we find that the magnitude of the noise reduces from 33.67 to 17.78 if system size is quadrupled. This result supports previous mathematical expressions on statistical error.
+
+
+%Lastly, though not included in this table, we also conducted numbers of experiments by changing time step in MD simulation, $\Delta t_{MD}$. We could not find much difference in the strength of statistical noise with different time step and this concludes us that this fluctuation and its scale is physically natural phenomenon. So, time step for MD simulation is fixed as $\Delta t_{MD}=5 \times 10^3 \tau$ on all simulations.
+
+
+Following conclusions are deduced from the sampling noise analysis in the stationary flow. First, previous analyses on statistical error cannot be applied on wall-bounded nanoscale systems. As our empirical equation presents, the layer height and sampling duration are coupled together and noise reduction by handling these factors are less effective than have been reported. This emphasizes that the actual measurement of the sampling noise is inevitable to determine coupling parameters in the specific system.
+%We assume that higher molecular fluctuation near the fluid-solid interface decelerates the noise reduction.
+Second, increasing the size of sampling layer in the periodic direction is more effective on reducing the sampling noise. This leads us to an unfavorable conclusion that additional computational cost should be sacrificed to get the acceptable sampled solution.
+
+
+Finally, CFD and MD computational domains are generated based on the above experiment, as depicted in Fig.~\ref{Couette_Val_Domain}. Pure MD region is specified to be 10$\sigma$, which was reported to be sufficient to prevent strong fluctuation between fluid particles and wall materials from directly transported to CFD domains.~\cite{Yen} This implies that the steady-state velocity in the hybrid domain will be around 0.2 $\sigma$/$\tau$. We design the strength of the statistical error not to exceed 5 percent ($\approx$ 0.01 $\sigma$/$\tau$) of steady-state velocity. This lead us to set the width of MD domain in the principal flow direction as 140 $\sigma$, the cell size of CFD mesh to be 2$\sigma$ in Y-direction, and sampling duration to be 10 $\tau$. Two layer boundary zones from particle to continuum domain is placed ahead of pure MD region, from 10 to 14$\sigma$. Two layers of continuum to particle boundary is positioned from 18 to 22$\sigma$ and external force region is place at the top of hybrid region, from 24 to 26$\sigma$.
 %Regarding the temporal conditions, MD time scale $\Delta{t_{MD}}$ is set $5\times{10^{3}}\tau$. CFD solver evolves by  $\Delta{t_{CFD}}=0.1\tau$. Finally, sampling duration and interval are set 10 $\tau$, to have enough time for sampling but frequent enough to exchange the physical variation from individual domain.
 
 
@@ -968,49 +1012,45 @@ CFD and MD computational domains are generated based on the above experiment, as
 \end{figure}
 
 
-The same measurement has been conducted on 10$^{-7}$ meter domain. Table~\ref{table:MD_Vel0_L} shows that the strength of statistical error with different layer height and sampling duration. The length of the system domain is fixed to be 140 $\sigma$.
-%for the direct comparison with the last experiment in Table~\ref{table:MD_Vel0}.
-The strength of the noise in this large system is globally milder than the result in small system in Table~\ref{table:MD_Vel0}. Furthermore, the quantitative comparison between this result and the above solution at the same domain length (third table in Table~\ref{table:MD_Vel0}) proves that the noise in large system is always smaller at the same conditions, e.g., measured noise at 4$\sigma$-40$\tau$ condition in large system is smaller than the noise at 6.4$\sigma$-64$\tau$ condition in small system. However, more delicate selection of coupling conditions is highly required as system size increases, because the hydrodynamic characteristic time scale (or time for steadiness) is proportional to the square of system height.~\cite{Hadjicon3} In our simulation, we set the CFD cell size (the same as the height of individual layer) as 16$\sigma$, sampling duration as 100$\tau$. This force us to place the hybrid domain 80 $\sigma$ above the bottom wall, where the statistical error is about 2.5 percent of the steady-state velocity in Couette flow.
-
-\skonote{This will be used in conclusion: Our simple and direct idea of measuring statistical error is very effective on determining coupling conditions. Solving the stationary flow does not inquire large computational cost and human labor, in contrast to the traditional trial-and-error approach to get a stable solution. This idea is especially recommended in determining the coupling conditions of wall-bounded flows with O(10) nanometer level, where existing statistical models can not predict the strong influence by solid boundaries. We suggest our model to be used in conjunction with former statistical error analyses~\cite{Hadjicon3,Time_Mechanism} for cost-effectiveness in cases of larger system domains, i.e., reduce the domain size in periodic direction and apply the inverse linearity between system scale and noise strength. (or I'll be using this sentence: We argue that our aporoach is still valid on setting coupling conditions for larger domains, by reducing the domain size in periodic direction and importing the inverse linearity between system scale and noise strength from former statistical error analyses~\cite{Hadjicon3,Time_Mechanism}.)
-}
+%The same measurement has been conducted on 10$^{-7}$ meter domain. Table~\ref{table:MD_Vel0_L} shows that the strength of statistical error with different layer height and sampling duration. The length of the system domain is fixed to be 140 $\sigma$ for the direct comparison with the last experiment in Table~\ref{table:MD_Vel0}.
+%The strength of the noise in this large system is globally milder than the result in small system in Table~\ref{table:MD_Vel0}. Furthermore, the quantitative comparison between this result and the above solution at the same domain length (third table in Table~\ref{table:MD_Vel0}) proves that the noise in large system is always smaller at the same conditions, e.g., measured noise at 4$\sigma$-40$\tau$ condition in large system is smaller than the noise at 6.4$\sigma$-64$\tau$ condition in small system. However, more delicate selection of coupling conditions is highly required as system size increases, because the hydrodynamic characteristic time scale (or time for steadiness) is proportional to the square of system height.~\cite{Hadjicon3} In our simulation, we set the CFD cell size (the same as the height of individual layer) as 16$\sigma$, sampling duration as 100$\tau$. This force us to place the hybrid domain 80 $\sigma$ above the bottom wall, where the statistical error is about 2.5 percent of the steady-state velocity in Couette flow.
 
 
-% Table formats; h,t,b,p - here,top,bottom,page of floats
-%\begin{table}[t]
-\begin{table}
-  \caption{\small Statistical Error Measurement on Large System Domain; System is bound by upper and lower walls and has the domain of 140 $\times$ 520 ${\sigma}^2$. Data from 1000 $\tau$ to 3560 $\tau$ are accumulated and post-processed to figure out the variation of statistical noise at different layer size and sampling duration conditions. The unit is 1/1000 of non-dimensional MD velocity (1$\sigma / \tau$).}
-  \label{table:MD_Vel0_L}
-  \centering
-    \resizebox{0.8\linewidth}{!} {
-  \begin{tabular}{c || c c c c c c c}
-\hline
-	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
-\hline
-1 $\sigma$	&	11.711 	&	9.739 	&	8.287 	&	6.607 	&	5.284 	&	4.201 	 &	2.698 	\\
-2 $\sigma$	&	10.375 	&	9.116 	&	7.760 	&	6.271 	&	5.112 	&	3.802 	 &	2.760 	\\
-4 $\sigma$	&	8.362 	&	7.804 	&	6.870 	&	5.983 	&	5.236 	&	3.760 	 &	2.952 	\\
-8 $\sigma$	&	6.046 	&	5.763 	&	5.346 	&	4.826 	&	4.429 	&	3.674 	 &	3.056 	\\
-16 $\sigma$	&	4.424 	&	4.348 	&	4.272 	&	4.030 	&	3.941 	&	3.629 	 &	2.850 	\\
-32 $\sigma$	&	2.706 	&	2.683 	&	2.639 	&	2.603 	&	2.481 	&	2.277 	 &	1.981 	\\
-64 $\sigma$	&	1.757 	&	1.735 	&	1.714 	&	1.697 	&	1.642 	&	1.535 	 &	1.505 	\\
-%128 $\sigma$	&	0.975 	&	0.970 	&	0.964 	&	0.958 	&	0.934 	&	 0.925 	&	0.925 	\\
-\hline
+%% Table formats; h,t,b,p - here,top,bottom,page of floats
+%%\begin{table}[t]
+%\begin{table}
+% \caption{\small Statistical Error Measurement on Large System Domain; System is bound by upper and lower walls and has the domain of 140 $\times$ 520 ${\sigma}^2$. Data from 1000 $\tau$ to 3560 $\tau$ are accumulated and post-processed to figure out the variation of statistical noise at different layer size and sampling duration conditions. The unit is 1/1000 of non-dimensional MD velocity (1$\sigma / \tau$).}
+% \label{table:MD_Vel0_L}
+% \centering
+%  \resizebox{0.8\linewidth}{!} {
+%  \begin{tabular}{c || c c c c c c c}
 %\hline
-%L=140,Vtot	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	 160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
+%	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
 %\hline
-%1 $\sigma$	&	11.833 	&	9.914 	&	8.642 	&	7.527 	&	6.130 	&	5.746 	 &	5.322 	\\
-%2 $\sigma$	&	10.585 	&	9.280 	&	8.611 	&	7.570 	&	6.630 	&	6.103 	 &	5.694 	\\
-%4 $\sigma$	&	9.048 	&	8.498 	&	8.027 	&	7.422 	&	6.489 	&	6.256 	 &	6.076 	\\
-%8 $\sigma$	&	7.391 	&	7.185 	&	6.957 	&	6.762 	&	6.392 	&	6.248 	 &	6.189 	\\
-%16 $\sigma$	&	6.764 	&	6.719 	&	6.633 	&	6.588 	&	6.444 	&	 6.428 	&	6.428 	\\
-%32 $\sigma$	&	5.656 	&	5.648 	&	5.636 	&	5.631 	&	5.626 	&	 5.627 	&	5.627 	\\
-%64 $\sigma$	&	3.721 	&	3.717 	&	3.717 	&	3.717 	&	3.702 	&	 3.684 	&	3.684 	\\
-%%128 $\sigma$	&	1.802 	&	1.795 	&	1.790 	&	1.779 	&	1.761 	&	 1.743 	&	1.678 	\\
+%1 $\sigma$	&	11.711 	&	9.739 	&	8.287 	&	6.607 	&	5.284 	&	4.201 	 &	2.698 	\\
+%2 $\sigma$	&	10.375 	&	9.116 	&	7.760 	&	6.271 	&	5.112 	&	3.802 	 &	2.760 	\\
+%4 $\sigma$	&	8.362 	&	7.804 	&	6.870 	&	5.983 	&	5.236 	&	3.760 	 &	2.952 	\\
+%8 $\sigma$	&	6.046 	&	5.763 	&	5.346 	&	4.826 	&	4.429 	&	3.674 	 &	3.056 	\\
+%16 $\sigma$	&	4.424 	&	4.348 	&	4.272 	&	4.030 	&	3.941 	&	3.629 	 &	2.850 	\\
+%32 $\sigma$	&	2.706 	&	2.683 	&	2.639 	&	2.603 	&	2.481 	&	2.277 	 &	1.981 	\\
+%64 $\sigma$	&	1.757 	&	1.735 	&	1.714 	&	1.697 	&	1.642 	&	1.535 	 &	1.505 	\\
+%%128 $\sigma$	&	0.975 	&	0.970 	&	0.964 	&	0.958 	&	0.934 	&	 0.925 	&	0.925 	\\
 %\hline
-\end{tabular} }
-\vspace{-1em}
-\end{table}
+%%\hline
+%%L=140,Vtot	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	 160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
+%%\hline
+%%1 $\sigma$	&	11.833 	&	9.914 	&	8.642 	&	7.527 	&	6.130 	&	5.746 	 &	5.322 	\\
+%%2 $\sigma$	&	10.585 	&	9.280 	&	8.611 	&	7.570 	&	6.630 	&	6.103 	 &	5.694 	\\
+%%4 $\sigma$	&	9.048 	&	8.498 	&	8.027 	&	7.422 	&	6.489 	&	6.256 	 &	6.076 	\\
+%%8 $\sigma$	&	7.391 	&	7.185 	&	6.957 	&	6.762 	&	6.392 	&	6.248 	 &	6.189 	\\
+%%16 $\sigma$	&	6.764 	&	6.719 	&	6.633 	&	6.588 	&	6.444 	&	 6.428 	&	6.428 	\\
+%%32 $\sigma$	&	5.656 	&	5.648 	&	5.636 	&	5.631 	&	5.626 	&	 5.627 	&	5.627 	\\
+%%64 $\sigma$	&	3.721 	&	3.717 	&	3.717 	&	3.717 	&	3.702 	&	 3.684 	&	3.684 	\\
+%%%128 $\sigma$	&	1.802 	&	1.795 	&	1.790 	&	1.779 	&	1.761 	&	 1.743 	&	1.678 	\\
+%%\hline
+%\end{tabular} }
+%\vspace{-1em}
+%\end{table}
 
 
 
@@ -1178,9 +1218,12 @@ The benefit of a BigJob as a way of reducing the waiting time on the local queue
     the variance of actual queue waiting times.}
 \label{table:waitingtime}
 \centering
-  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\linewidth}{!} {
+\footnotesize
 \begin{tabular}
-{p{0.4in} || p{0.4in} p{0.4in} p{0.4in} p{0.4in} p{0.4in}}
+{p{0.15\linewidth} || p{0.1\linewidth} p{0.1\linewidth} p{0.1\linewidth} p{0.1\linewidth} p{0.1\linewidth}}
+%{>{\centering}p{0.15\linewidth} || p{0.3\linewidth} | p{0.3\linewidth} }
+
 \multicolumn{6}{c}{\phantom{\tiny 100}}\\
 \hline
 %\midrule
@@ -1253,7 +1296,7 @@ The benefit of a BigJob as a way of reducing the waiting time on the local queue
 \\
 \hline
 %\midrule
-\end{tabular} }
+\end{tabular} %}
 \vspace{-1em}
 \end{table}
 
@@ -1345,8 +1388,10 @@ Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{t
     conventional submission.}
 \label{table:oneBJ_Test}
 \centering
-  \resizebox{0.8\linewidth}{!} {
-\begin{tabular} {p{0.5in} || p{0.7in} p{0.7in} p{0.7in}}
+%  \resizebox{0.8\linewidth}{!} {
+%\begin{tabular} {p{0.5in} || p{0.7in} p{0.7in} p{0.7in}}
+\footnotesize
+\begin{tabular} {c || c c c}
   \multicolumn{4}{c}{\phantom{\tiny 100}}\\
   \hline
   & \nyc Conventional
@@ -1358,7 +1403,7 @@ Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{t
   \nyc Large sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
   \hline
 %\midrule
-\end{tabular} }
+\end{tabular} %}
 \vspace{-1em}
 \end{table}
 
@@ -1429,19 +1474,19 @@ Plots on the right side of Fig.~\ref{Fig:LBLarge} show a non-monotonically chang
 \section{Next Step: Further Refinement}
 \label{sec:futureworks}
 
-The unstable solution at Fig.~\ref{Couette_Noisy} represents the result of Couette flow simulation with 0.1 $\sigma / \tau$ upper plate velocity in O(100) nanometer system. The diverging solution is intuitively natural, according to the statistical noise measurement in Table~\ref{table:MD_Vel0_L}: the amount of statistical error is 25 percent of the steady-state velocity in MDtoCFD layer. For the worse, the signal-to-noise ratio is even larger at early stage. Thus the strong initial instability makes it harder for the solver to reach the steady-state solution. Increasing the sampling duration to 1000 $\tau$ did not help; increasing the height of layers implies the abandonment of hybrid method's merit over pure MD method.
+The empirical mathematical equation on sampling noise has been presented in Sec.~\ref{sec:accuracy_conditions}. We argue that this is a refined model compared to previous mathematical expressions. However, the formulation has not been verified by various systems and conditions: coefficients will be changing according to the distance from the wall, characteristics of fluid and solid elements, etc. More rigorous research is required to address a globally acceptable equation of sampling noise.
 
+%The unstable solution at Fig.~\ref{Couette_Noisy} represents the result of Couette flow simulation with 0.1 $\sigma / \tau$ upper plate velocity in O(100) nanometer system. The diverging solution is intuitively natural, according to the statistical noise measurement in Table~\ref{table:MD_Vel0_L}: the amount of statistical error is 25 percent of the steady-state velocity in MDtoCFD layer. For the worse, the signal-to-noise ratio is even larger at early stage. Thus the strong initial instability makes it harder for the solver to reach the steady-state solution. Increasing the sampling duration to 1000 $\tau$ did not help; increasing the height of layers implies the abandonment of hybrid method's merit over pure MD method.
+%Clearly, this is one of the most important issues to make the family of hybrid methods a powerful tool which describes the detailed phenomena between solid obstacles and surrounding fluids more accurately. So far, two possible ways are observed at the first glance. First, setting the initial MD condition the same as steady-state CFD profile and starting hybrid simulation will, at least, alleviate the influence of noise at early stage. However, time-accurate unsteady solution can not be gained by this approach. Second, \skonote{check the clear term of zeta at Nie's formulation!} increasing $\zeta$ looks helpful in alleviating the noise in system level. However, this is worried whether excessive suppress of particles' vibration results in the breakup of fluid physics, i.e., breakup of energy conservation. A thorough investigation on the characteristics of statistical noise and design of numerical algorithm for acquiring the accurate solution without numerical damping are highly required.
 
-Clearly, this is one of the most important issues to make the family of hybrid methods a powerful tool which describes the detailed phenomena between solid obstacles and surrounding fluids more accurately. So far, two possible ways are observed at the first glance. First, setting the initial MD condition the same as steady-state CFD profile and starting hybrid simulation will, at least, alleviate the influence of noise at early stage. However, time-accurate unsteady solution can not be gained by this approach. Second, \skonote{check the clear term of zeta at Nie's formulation!} increasing $\zeta$ looks helpful in alleviating the noise in system level. However, this is worried whether excessive suppress of particles' vibration results in the breakup of fluid physics, i.e., breakup of energy conservation. A thorough investigation on the characteristics of statistical noise and design of numerical algorithm for acquiring the accurate solution without numerical damping are highly required.
-
-%\begin{figure}[ht!]
-\begin{figure}
-\centering
-\includegraphics[width=0.6\linewidth]{Couette_Noisy.pdf}
-\vskip-0.2cm
-\caption{\small Unstable Solution at Low Shear Rate; Velocity of the upper plate is 0.1 $\sigma / \tau$ and all other conditions are identical to the Couette flow simulation in large domain. The solution diverges at early stage, since the statistical error is very large compared to the hydrodynamic velocity.}
-\label{Stokes_Sol}
-\end{figure}
+%%\begin{figure}[ht!]
+%\begin{figure}
+%\centering
+%\includegraphics[width=0.6\linewidth]{Couette_Noisy.pdf}
+%\vskip-0.2cm
+%\caption{\small Unstable Solution at Low Shear Rate; Velocity of the upper plate is 0.1 $\sigma / \tau$ and all other conditions are identical to the Couette flow simulation in large domain. The solution diverges at early stage, since the statistical error is very large compared to the hydrodynamic velocity.}
+%\label{Stokes_Sol}
+%\end{figure}
 
 
 
@@ -1449,7 +1494,12 @@ Clearly, this is one of the most important issues to make the family of hybrid m
 \section{Conclusions}
 \label{sec:conclusion}
 
-To be included
+
+\skonote{This will be used in conclusion: Our simple and direct idea of measuring statistical error is very effective on determining coupling conditions. Solving the stationary flow does not inquire large computational cost and human labor, in contrast to the traditional trial-and-error approach to get a stable solution. This idea is especially recommended in determining the coupling conditions of wall-bounded flows with O(10) nanometer level, where existing statistical models can not predict the strong influence by solid boundaries. We suggest our model to be used in conjunction with former statistical error analyses~\cite{Hadjicon3,Time_Mechanism} for cost-effectiveness in cases of larger system domains, i.e., reduce the domain size in periodic direction and apply the inverse linearity between system scale and noise strength. (or I'll be using this sentence: We argue that our aporoach is still valid on setting coupling conditions for larger domains, by reducing the domain size in periodic direction and importing the inverse linearity between system scale and noise strength from former statistical error analyses~\cite{Hadjicon3,Time_Mechanism}.)
+}
+
+
+
 
 \section*{Acknowledgements}
 This work is part of the Cybertools (http://cybertools .loni.org)
