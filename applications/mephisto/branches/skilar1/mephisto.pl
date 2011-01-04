@@ -41,10 +41,12 @@ $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
 $meph_install_dir = "/tmp/meph_inst" . $< . "/";
-$boost_check 	  = "1.44.0";
+$boost_check 	  = "1.40.0";
 $globus           = 0;
 $saga_v		  = 0;
 $enab		  = 0;
+$dellist 	  = 0;
+$delitems         = 0;
 ######added########
 ##############################################################################
 ##
@@ -409,21 +411,24 @@ sub print_usage () {
     print "        Used for testing SAGA with different packages.\n\n";
 
     print " Options and Arguments:\n\n";
-	print "      --repository=     The repository version to use. By default,\n";
-	print "                        mephisto uses the latest version.\n\n";
+	print "      --repository=     		The repository version to use. By default,\n";
+	print "                        		mephisto uses the latest version.\n\n";
 
-	print "      --target-dir=     The base directory for the installation.\n";
-	print "                        All selected packages will end up in here.\n\n";
+	print "      --target-dir=     		The base directory for the installation.\n";
+	print "                        		All selected packages will end up in here.\n\n";
 
-	print "      --tmp-dir=        The directory mephisto should use for downloading\n";
-	print "                        and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
+	print "      --tmp-dir=        		The directory mephisto should use for downloading\n";
+	print "                        		and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
 	
-	print "      --with-packages=  Comma-separated list of optional packages to\n";
-	print "                        install. By default, mephisto installs all\n";
-	print "                        available packages.\n\n";
-	print "      --with-boost=     any boost library used should be specified with version number 'x.yy.z'.\n\n";
-	print "      --with-globus=    any globus installation should be specified with version number 'x.y.z'.(globus 2 & 3 versions are not supported)\n\n";		
-	print "      --with-saga=      saga version should be specified with version number\n\n";
+	print "      --with-packages=  		Comma-separated list of optional packages to\n";
+	print "                        		install. By default, mephisto installs all\n";
+	print "                        		available packages.\n\n";
+	print "      --with-boost-version=      any boost library used should be specified with version number 'x.yy.z'.\n\n";
+	print "      --with-globus-version=     any globus installation should be specified with version number 'x.y.z'.(globus 2 & 3 versions are not supported)\n\n";		
+	print "      --with-saga-version=       saga version should be specified with version number\n\n";
+	print "      --exclude=                 packages to be excluded from the downloads, choose from the list with commas separated(capitals only):PYTHON, BOOST, POSTGRESQL,SQLITE,SAGA,SAGA-PYTHON,SAGA-ADAPTORS-X509,\n";
+        print "	                                SAGA-ADAPTORS-SSH\n\n";
+	print "      Recommended: complete install      \n\n"; 
 }
 
 ##############################################################################
@@ -435,6 +440,9 @@ sub check_options () {
 	my $tmp_dir     = 0;
 	my $repository  = 0;
 	my $mode        = 0;
+	my $v   = 0;
+	my $temp2 = 0;
+	my $temp = 0;		
 	
 	# The first option HAS to be the mode (list/install/etc)
 	if( @ARGV < 1)
@@ -461,18 +469,16 @@ sub check_options () {
 	elsif( $ARGV[0] eq "install")
 	{
 		$mode = "install";
-		my $retval= GetOptions(            'target-dir=s'  => \$install_dir, 
-							  'help|?' => \$help,
-				         	   'tmp-dir=s'     => \$tmp_dir,
-				         	   'repository=s'  => \$repository,
-						   'with-boost=s'  => \$boost_check,
-						   'with-globus=s' => \$globus,
-						   'with-saga=s'   => \$saga_v) ; 
-
-#		@name = split("-",$boost_check);
-#               @name2 = split("-",$globus);
-		
-		
+		my $retval= GetOptions(            'target-dir=s'  		=> \$install_dir, 
+							  'help|?' 		=> \$help,
+				         	   'tmp-dir=s'     		=> \$tmp_dir,
+				         	   'repository=s'  		=> \$repository,
+						   'with-boost-version=s'  	=> \$boost_check,
+						   'with-globus-version=s' 	=> \$globus,
+						   'with-saga-version=s'   	=> \$saga_v,
+						   'exclude=s'	   		=> \$dellist) ; 
+                                                                         
+		@delitems = split(",",$dellist);	
 
 		if(!$retval)
 		{
@@ -580,7 +586,7 @@ foreach my $line (@index) {
     if ($packages[1] eq "BOOST") {
     print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
 	}
-#change $countp = 4 if you want  globus to be displayed after sqlite and before saga 
+######change $countp = 4 if you want  globus to be displayed after sqlite and before saga 
     elsif($countp eq 0  && $enab eq 1) {
     print " o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
     print " o $packages[1]: $packages[2]\n";
@@ -591,17 +597,31 @@ foreach my $line (@index) {
 	$countp = $countp + 1; 
   }
 
-#change $count = 4 if you want  globus to be installed after sqlite and before saga
+######change $count = 4 if you want  globus to be installed after sqlite and before saga
 my $count = 0;
+my $flag=0;
 my @index2 = split( "\n", $content );
 foreach my $line (@index2) {
     my @packages = split( ";;", $line );
-	if ($count eq 0 && $enab eq 1) {
+	foreach my $iter(@delitems) 
+	{
+		if ($packages[1] eq $iter)
+	  	   { $flag=1; 
+			 }
+	
+	}  
+	if ($flag eq 0) {	
+	if ($count eq 1 && $enab eq 1) {
 	pull_package(@midpack);
 	}
      $count = $count + 1;
      pull_package(@packages);
 	}
+	else {
+	$flag = 0;
+	}
+}
+
 #after the for loop, here packages  will store all the values as an array as was the case above
 
 
