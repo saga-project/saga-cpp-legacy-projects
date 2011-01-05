@@ -132,8 +132,7 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \end{abstract}
 
-
-\alnote{replaced with s}
+%\alnote{replaced with s}
 
 
 \section{Introduction}
@@ -1018,6 +1017,189 @@ equation~\ref{eq:totaltime}, we get:
 %   603 and not closer to 640: i think its something to do the time to
 %   find a replica ($T_f$).}
 
+\subsection{Asynchronous (decentralised) RE}
+
+%\athotanote{we can remove the sentence about 0.3/10 s, what do you think?}
+%\alnote{yes, please remove. Also, I don't understand how 0.3 s can add up to 10 s}
+%When the BigJob becomes active, the BigJob agent starts the replica
+%agents and the replica-agents in turn start the replicas. It takes 0.3
+%s to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 s). 
+
+% \alnote{Is it not clear to me: what is $T_{w}$ and what is $T_{r}$? Shouldn't these times
+% be lower than in the async-cent. case since we don't have a central coordinator?}
+
+
+%As in the asynchronous-centralised case the, asynchronous-decentralised implementation does not involve a replica waiting for other replicas to reach a specific state before initiating an exchange. There are other types of holding that contribute to the overall $T$, e.\,g.\ for managing simulation runs, for updating the advert service, etc. Also, queries and updates to the advert service take longer in the decentralised than in the other both case -- mainly due to the higher number of connections and requests. In total, there are three advert updates required: one for updating the state, two for posting the simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as well as processing of output file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
+
+A fundamental difference between synchronous and asynchronous
+formulations of RE is in synchronisation barrier for the replicas
+before exchanges, i.e., the former has one, the latter don't. However,
+the lack of a synchronisation barrier leads to a more involved
+implementation to dynamically pair replicas. So although, $T_s = 0$
+for asynchronous formulations, this comes at the cost of a higher
+$T_f$.
+
+In the asynchronous (decentralised) RE, the replicas are managed
+individually by replica-agents. There is no synchronisation
+involved. Also, the replicas do not wait at the BigJob agent. Thus,
+$T_s$ is 0 s.  The replica-agent constantly monitors all replicas. If
+it finds a replica that completed its run, it updates its state in the
+advert server, which takes $0.1\,s$.  The replica-agent retrieves the
+energy and temperature from the output files, each of which takes
+$0.2\,s$. It then posts both these values to the advert server.  The
+waiting times to retrieve these values is thus
+$0.1+0.2\times2+0.1\times2=0.7\,s$, and $T_r = 0.7\,s$.  Note that
+here $T_r$ involves waiting at the replica-agent and not the BigJob
+agent (like the centralised case). Therefore the value of $T_W$ is the
+same as $T_r$ ($0.7\,s$).
+
+% \alnote{\textbf{Old Paragraph - please check whether I put the important points into
+% the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
+% \alnote{Initial costs are not really part of our model? Do we 
+% need to consider all of them?: 
+% The replica-agent initially creates the output and error files, reads the configuration, 
+% opens a connection to the advert server, sets the state to running and starts the
+% replica. The replica is restarted after every exchange. Therefore, $T_r$, which is 
+% recurring is 0.3 seconds.} \alnote{Abhinav: not sure whether I understood everything correct: $T_r$ does not
+% include any advert update, or does it?} \alnote{Why does it take longer than in case I/II? 
+% \textbf{TODO Abhinav:} separate $T_{mgmt}$ out of $T_r$} \athotanote{done} \alnote{We took
+% about 1\,s out of $T_{w/r}$, but only add 0.1\,sec to $T_X$.}
+% \athotanote{we are now considering some actions as happening only at
+% the start}
+
+% \alnote{How do you get 1.3 sec? The starting of the replica-agent
+%   must not be repeated after every exchange, correct?}
+% \athotanote{fixed. is it ok now?}
+
+% \alnote{A advert modification took in the previous
+% cases 0.01\,sec? What is different here?}.\athotanote{yes, the number of 
+%connections to the advert server effects the performance}
+
+% \alnote{Yesterday, it scanned through 15 replicas; in the
+%   decent case it scans 16 replica; now it scans 64 replicas. Why is
+%   that?} \athotanote{discussed in call.} \alnote{ ok, we still need to
+%   explain why we need 4x more attempts than in the async-cent case.}
+% \athotanote{done}
+% \alnote{Why 15?
+%   Previously, it has been 16.} \athotanote{random queries}
+% \alnote{Even if it is random, why should the average \# be different
+%   in this case compared to the other case?} \athotanote{hmm.. i am not
+%   sure. 15 is the average i got after looking at the outputs} 
+
+
+% This is because, every time the replica-agent finds an
+% exchange partner in $N_R/2$ steps, we observe that this needs to be
+% repeated 2-4 times as the exchange does not proceed due to conflict
+% with another replica.
+% Each query requires $0.1\,s$,
+
+
+$T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
+to lock an exchange partner.  When searching for a replica randomly,
+\alnote{does randomly also apply to case II?}
+on average it takes $N_R \over 2$ attempts to find a replica that is
+in the \texttt{done} state.  However, finding a replica in the
+\texttt{done} state is not enough to ensure an exchange attempt.
+Given that there are several ``active exchanges'' being attempted,
+often the reverify step leads to an aborted exchange attempt; a
+reverify step must occur to ensure there has been no change in the
+states of either of the two replicas involved.  The exact number is a
+random variable, determined by the number of replicas, the
+distribution of states and whether the attempt to find a replica is
+random or sequential. Empirical observation suggests that between 2-4
+find and reverify attempts before an exchange is attempted.  But in
+general, replicas contend with each other to lock a partner for
+exchange; this gets worse with increasing number of replicas, i.e.,
+$T_f$ increases with increasing $N_R$.  Specifically, for the random
+access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
+is the typical time to set/get a value to/from the advert server).\alnote{Should we argue 
+with $\frac{N_R}{2}$*4 (in worst case) as previously described or is
+this too complex?}
+% On average the replica-agent must scan
+% the list of replicas 2-4 times before it finds a potential partner for
+% an exchange (due to conflicts with other attempting replicas).  As a
+% consequence of the data-structure and pairing approach used, we find
+% that $T_f$ is $0.1\times64=6.4\,s$.
+The process of exchanging the
+states and temperatures via the advert server and writing a new
+configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
+% even in the other scenario, where the replica in question is not the
+% initiator of the exchange, it has to wait for the other replica to set
+% its state as complete, so that it can restart).
+$T_{mgmt}$ is the time it takes to update the state in the advert
+server, which is $0.2\,s$.  Thus, $T_{X}$ is $6.4+0.6 +0.2=
+7.2\,s$.  It should be noted that $T_{X}$ is highly dependent on
+the actual implementation. While the current implementation is kept
+simple on purpose, this value can be improved in a more sophisticated 
+implementation.
+
+% \alnote{In the other cases the state must be updated in the
+%   advert server as well. Why don't we consider this in the other cases
+%   as well?}\athotanote{in the other two cases, the bigjob agent makes
+%   the state changes} \alnote{No matter who does the state changes, the
+%   time needed should be about the same. Either we put it into the
+%   model or we don't. If so, then consistent} \athotanote{we do include
+%   the time to update the states. but that is included in $T_W$} 
+%   \alnote{Should we just state that there is no central 
+%   coordination overhead since the sub-job must not be restarted? And the 
+%   time needed to spawn a local process is negligible.} \athotanote{fixed}
+
+% \alnote{The following paragraph can be removed.}
+% We also implement a random search of replicas by each replica-agent when the total 
+% number of replicas if the ensemble is 128 or more, which reduces contention. 
+% It should be noted here that in the centralised implementation of
+% asynchronous RE, each query took only 0.01 s. But in
+% the decentralised version, each query is shown as 0.1 s. This is due to the fact 
+% that each replica-agent stores its replica's data (state, energy, temperature) in 
+% a unique directory and changing the directory after each query 
+% causes the action to take longer.\alnote{Would it be possible to improve the
+% data structure used?}\athotanote{it might be possible..}
+
+
+
+% \alnote{Is this the reason why the query takes
+%   0.11\,sec instead of 0.01\,sec now? These would be a severe
+%   performance degradation.}
+
+% \athotanote{ do we need this para?} In the decentralised implementation, there are many pairs of
+% replica-agents negotiating the exchanges concurrently. While this
+% causes the time taken per unit exchange to go up, more exchanges occur
+% in unit time.
+
+As there are $N_R \over 2$ concurrent pairs, substituting the above
+values in equation~\ref{eq:totaltime}, we get:
+\begin{eqnarray}
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 16}} = {1 \over p} \times 631~s.
+\label{eq:decent}
+\end{eqnarray}
+
+% \subsection{Summary}
+
+%\alnote {one could ask why is the config file staged in case I and II then?} 
+
+% \begin{figure}
+% \centering
+% %\subfigure[Control Flow: Decentralized Replica Exchange]{
+% \includegraphics[width=0.9\textwidth]{asyncre.pdf}
+% %\label{fig:async:b}
+% \caption{\small Decentralized control flow: In the decentralized asynchronous RE, for  each replica there is a replica-agent which individually manages the replica.}
+% \label{fig:decent}
+% %\vspace{-1em}
+% \end{figure}
+
+%\alnote{we should write Case consistently with small or capital letter}
+% We have to bear in mind that while Case II and Case III both implement the same asynchronous RE algorithm, they do it differently.
+% At first glance it appears to be a question of philosophy, whether to
+% let the replicas be managed by a master or to let each replica be
+% managed individually.
+%There could be implications effecting the performance of the
+%algorithm. Where as in Case II, the master has to manage all the
+%replicas and since it can only manage one replica at a time, although negligible, it is a cause for concern with large number of replicas. %The effect could be negligible and might now effect the overall performance.
+%But the decentralized version (Case III) has no
+%such issues as each replica is managed individually. % \jhanote{The distinction between Case 3 and 2 needs to
+%  be made more clear. The following is ``implementation detail''. What
+%  is the conceptual difference between Case 3 and Case 2?}
+
 \subsection{Asynchronous (centralised) RE}
 \alnote{Yesterday, we discussed that we might move decentralised before
 centralised? Should we still do it?}
@@ -1180,190 +1362,14 @@ synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
 % RE-Manager is carried out sequentially; thus the effective number of
 % concurrently exchanging pairs is 1.  
 
-As in the synchronous case the effective number of concurrently exchanging pairs
-is 1 due to the fact that exchanges are sequentially carried out by the RE-Manager. 
-Substituting the above values in
+As in the synchronous case the effective number of concurrently
+exchanging pairs is 1 due to the fact that exchanges are sequentially
+carried out by the RE-Manager.  Substituting the above values in
 equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
 T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} = {1 \over p} \times 811~s.
 \label{eq:cent}
 \end{eqnarray}
-
-
-\subsection{Asynchronous (decentralised) RE}
-
-%\athotanote{we can remove the sentence about 0.3/10 s, what do you think?}
-%\alnote{yes, please remove. Also, I don't understand how 0.3 s can add up to 10 s}
-%When the BigJob becomes active, the BigJob agent starts the replica
-%agents and the replica-agents in turn start the replicas. It takes 0.3
-%s to start a replica-agent (but this is only a one time event and does not influence the overall time to completion by more than 10 s). 
-
-% \alnote{Is it not clear to me: what is $T_{w}$ and what is $T_{r}$? Shouldn't these times
-% be lower than in the async-cent. case since we don't have a central coordinator?}
-
-
-%As in the asynchronous-centralised case the, asynchronous-decentralised implementation does not involve a replica waiting for other replicas to reach a specific state before initiating an exchange. There are other types of holding that contribute to the overall $T$, e.\,g.\ for managing simulation runs, for updating the advert service, etc. Also, queries and updates to the advert service take longer in the decentralised than in the other both case -- mainly due to the higher number of connections and requests. In total, there are three advert updates required: one for updating the state, two for posting the simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as well as processing of output file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
-
-In the asynchronous (decentralised) RE, the replicas are managed
-individually by replica-agents. There is no synchronisation
-involved. Also, the replicas do not wait at the BigJob agent. Thus,
-$T_s$ is 0 s.  The replica-agent constantly monitors all replicas. If
-it finds a replica that completed its run, it updates its state in the
-advert server, which takes $0.1\,s$.  The replica-agent retrieves the
-energy and temperature from the output files, each of which takes
-$0.2\,s$. It then posts both these values to the advert server.  The
-waiting times to retrieve these values is thus
-$0.1+0.2\times2+0.1\times2=0.7\,s$, and $T_r = 0.7\,s$.  Note that
-here $T_r$ involves waiting at the replica-agent and not the BigJob
-agent (like the centralised case). Therefore the value of $T_W$ is the
-same as $T_r$ ($0.7\,s$).
-
-% \alnote{\textbf{Old Paragraph - please check whether I put the important points into
-% the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
-% \alnote{Initial costs are not really part of our model? Do we 
-% need to consider all of them?: 
-% The replica-agent initially creates the output and error files, reads the configuration, 
-% opens a connection to the advert server, sets the state to running and starts the
-% replica. The replica is restarted after every exchange. Therefore, $T_r$, which is 
-% recurring is 0.3 seconds.} \alnote{Abhinav: not sure whether I understood everything correct: $T_r$ does not
-% include any advert update, or does it?} \alnote{Why does it take longer than in case I/II? 
-% \textbf{TODO Abhinav:} separate $T_{mgmt}$ out of $T_r$} \athotanote{done} \alnote{We took
-% about 1\,s out of $T_{w/r}$, but only add 0.1\,sec to $T_X$.}
-% \athotanote{we are now considering some actions as happening only at
-% the start}
-
-% \alnote{How do you get 1.3 sec? The starting of the replica-agent
-%   must not be repeated after every exchange, correct?}
-% \athotanote{fixed. is it ok now?}
-
-% \alnote{A advert modification took in the previous
-% cases 0.01\,sec? What is different here?}.\athotanote{yes, the number of 
-%connections to the advert server effects the performance}
-
-% \alnote{Yesterday, it scanned through 15 replicas; in the
-%   decent case it scans 16 replica; now it scans 64 replicas. Why is
-%   that?} \athotanote{discussed in call.} \alnote{ ok, we still need to
-%   explain why we need 4x more attempts than in the async-cent case.}
-% \athotanote{done}
-% \alnote{Why 15?
-%   Previously, it has been 16.} \athotanote{random queries}
-% \alnote{Even if it is random, why should the average \# be different
-%   in this case compared to the other case?} \athotanote{hmm.. i am not
-%   sure. 15 is the average i got after looking at the outputs} 
-
-
-% This is because, every time the replica-agent finds an
-% exchange partner in $N_R/2$ steps, we observe that this needs to be
-% repeated 2-4 times as the exchange does not proceed due to conflict
-% with another replica.
-% Each query requires $0.1\,s$,
-
-
-$T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
-to lock an exchange partner.  When searching for a replica randomly,
-\alnote{does randomly also apply to case II?}
-on average it takes $N_R \over 2$ attempts to find a replica that is
-in the \texttt{done} state.  However, finding a replica in the
-\texttt{done} state is not enough to ensure an exchange attempt.
-Given that there are several ``active exchanges'' being attempted,
-often the reverify step leads to an aborted exchange attempt; a
-reverify step must occur to ensure there has been no change in the
-states of either of the two replicas involved.  The exact number is a
-random variable, determined by the number of replicas, the
-distribution of states and whether the attempt to find a replica is
-random or sequential. Empirical observation suggests that between 2-4
-find and reverify attempts before an exchange is attempted.  But in
-general, replicas contend with each other to lock a partner for
-exchange; this gets worse with increasing number of replicas, i.e.,
-$T_f$ increases with increasing $N_R$.  Specifically, for the random
-access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
-is the typical time to set/get a value to/from the advert server).\alnote{Should we argue 
-with $\frac{N_R}{2}$*4 (in worst case) as previously described or is
-this too complex?}
-% On average the replica-agent must scan
-% the list of replicas 2-4 times before it finds a potential partner for
-% an exchange (due to conflicts with other attempting replicas).  As a
-% consequence of the data-structure and pairing approach used, we find
-% that $T_f$ is $0.1\times64=6.4\,s$.
-The process of exchanging the
-states and temperatures via the advert server and writing a new
-configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
-% even in the other scenario, where the replica in question is not the
-% initiator of the exchange, it has to wait for the other replica to set
-% its state as complete, so that it can restart).
-$T_{mgmt}$ is the time it takes to update the state in the advert
-server, which is $0.2\,s$.  Thus, $T_{X}$ is $6.4+0.6 +0.2=
-7.2\,s$.  It should be noted that $T_{X}$ is highly dependent on
-the actual implementation. While the current implementation is kept
-simple on purpose, this value can be improved in a more sophisticated 
-implementation.
-
-% \alnote{In the other cases the state must be updated in the
-%   advert server as well. Why don't we consider this in the other cases
-%   as well?}\athotanote{in the other two cases, the bigjob agent makes
-%   the state changes} \alnote{No matter who does the state changes, the
-%   time needed should be about the same. Either we put it into the
-%   model or we don't. If so, then consistent} \athotanote{we do include
-%   the time to update the states. but that is included in $T_W$} 
-%   \alnote{Should we just state that there is no central 
-%   coordination overhead since the sub-job must not be restarted? And the 
-%   time needed to spawn a local process is negligible.} \athotanote{fixed}
-
-% \alnote{The following paragraph can be removed.}
-% We also implement a random search of replicas by each replica-agent when the total 
-% number of replicas if the ensemble is 128 or more, which reduces contention. 
-% It should be noted here that in the centralised implementation of
-% asynchronous RE, each query took only 0.01 s. But in
-% the decentralised version, each query is shown as 0.1 s. This is due to the fact 
-% that each replica-agent stores its replica's data (state, energy, temperature) in 
-% a unique directory and changing the directory after each query 
-% causes the action to take longer.\alnote{Would it be possible to improve the
-% data structure used?}\athotanote{it might be possible..}
-
-
-
-% \alnote{Is this the reason why the query takes
-%   0.11\,sec instead of 0.01\,sec now? These would be a severe
-%   performance degradation.}
-
-% \athotanote{ do we need this para?} In the decentralised implementation, there are many pairs of
-% replica-agents negotiating the exchanges concurrently. While this
-% causes the time taken per unit exchange to go up, more exchanges occur
-% in unit time.
-
-As there are $N_R \over 2$ concurrent pairs, substituting the above
-values in equation~\ref{eq:totaltime}, we get:
-\begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 16}} = {1 \over p} \times 631~s.
-\label{eq:decent}
-\end{eqnarray}
-
-% \subsection{Summary}
-
-%\alnote {one could ask why is the config file staged in case I and II then?} 
-
-% \begin{figure}
-% \centering
-% %\subfigure[Control Flow: Decentralized Replica Exchange]{
-% \includegraphics[width=0.9\textwidth]{asyncre.pdf}
-% %\label{fig:async:b}
-% \caption{\small Decentralized control flow: In the decentralized asynchronous RE, for  each replica there is a replica-agent which individually manages the replica.}
-% \label{fig:decent}
-% %\vspace{-1em}
-% \end{figure}
-
-%\alnote{we should write Case consistently with small or capital letter}
-% We have to bear in mind that while Case II and Case III both implement the same asynchronous RE algorithm, they do it differently.
-% At first glance it appears to be a question of philosophy, whether to
-% let the replicas be managed by a master or to let each replica be
-% managed individually.
-%There could be implications effecting the performance of the
-%algorithm. Where as in Case II, the master has to manage all the
-%replicas and since it can only manage one replica at a time, although negligible, it is a cause for concern with large number of replicas. %The effect could be negligible and might now effect the overall performance.
-%But the decentralized version (Case III) has no
-%such issues as each replica is managed individually. % \jhanote{The distinction between Case 3 and 2 needs to
-%  be made more clear. The following is ``implementation detail''. What
-%  is the conceptual difference between Case 3 and Case 2?}
 
 \section{Scale-Up and Scale-Out: Experiments and Results}
 \label{sec:performance}
