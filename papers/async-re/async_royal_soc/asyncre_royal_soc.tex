@@ -266,20 +266,28 @@ exchanges is:
   {(T_{X} + T_{W})} \times {N_X \over \eta}]
 \label{eq:totaltime}
 \end{eqnarray}
-where, $T_{X}$ is the time to perform a pairwise exchange and includes
-the following components, (i) time to find a partner ($T_f$), (ii)
-time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
-book-keeping associated with replica pairing/exchanging ($T_{coord}$)
-(thus $T_{X} = T_{f} + T_{ex}+T_{coord}$); 
-%\alnote{Do we need to split up$T_{W}$? I don't see a (ii).}
-$T_W$ is comprised of the synchronisation time spent by a replica waiting for other
-replicas to complete running ($T_s$), the time spent waiting to be restarted
-after each exchange ($T_r$) and any other associated costs, and $\eta$
-is the number of independent exchange events occurring concurrently,
-As we will establish, the coordination and waiting costs differ for
-the different RE algorithms.
+where, $T_{X}$ is the time to perform a {\it pairwise} exchange and
+includes the following components, (i) time to find a partner ($T_f$),
+(ii) time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
+managing state (e.g., in the advert-server) and book-keeping
+associated with replica pairing/exchanging ($T_{mgmt}$) (thus $T_{X} =
+T_{f} + T_{ex}+T_{mgmt}$); $T_W$ is comprised of the synchronisation
+time spent by a replica waiting for other replicas to complete running
+($T_s$), the time spent waiting to be restarted after each exchange
+and other associated costs ($T_r$). For example, in
+asynchronous-centralised case, $T_r$ arises due to serialisation at
+the exchanging agent.  Similarly $T_{mgmt}$ arises due do different
+reasons -- which may be related to
+implementation % Not suprisingly, the
+% management costs also differ for
+of the different RE algorithms. Finally, $\eta$ is the number of
+independent exchange events occurring concurrently.
 
-\athotanote{we are using both $T ~and ~T_C$. which one should i change}
+% It is worth
+% noting that depending upon the case in consideration, there might be
+% different causes leading to a synchronisation barrier, e.g., for
+% synchronous RE the synchronisation barrier is between replicas waiting
+% to complete; 
 
 \subsection{Synchronous Replica Exchange}
 
@@ -857,13 +865,13 @@ discuss each case in the following sections.
 	\hline
 	\hspace{2mm}$T_{ex}$       &0.4\,s &0.4\,s &0.6\,s\\
 	\hline
-    \hspace{2mm}$T_{coord}$    &0.2\,s &0.2\,s  &0.2\,s\\
+    \hspace{2mm}$T_{mgmt}$    &0.2\,s &0.2\,s  &0.2\,s\\
 	\hline
 	\hline
 	$\mathbf{T_{C}}$        &\textbf{1003\,s} &\textbf{811\,s}    &\textbf{633\,s}\\
 	\hline
     \end{tabular}
-    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas/time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{coord}$=updating states after exchange; $T_C$=total time to completion. }
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas/time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T_C$=total time to completion.}
 	\label{table:repex_perf}
 \end{table}
 
@@ -877,26 +885,41 @@ discuss each case in the following sections.
 %   submit the replicas is being included in $T_EX$. The time spent at
 %   BigJob agent is included in $T_W$. }  \alnote{Don't see any
 %   reference to $T_{EX}$ in last section. Later you refer to the
-%   resubmission time as $T_{coord}$. Also, I don't see this component
+%   resubmission time as $T_{mgmt}$. Also, I don't see this component
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 s.
 
+\jhanote{check that $T_r = 0$ is mentioned} 
+
 As explained in section~\ref{sec:repex-approach}
-(\ref{sec:math-model}), the overall performance of a RE implementation
+(\ref{sec:math-model}), the relative performance of RE implementations
 is primarily determined by the waiting time $T_W$ and the time for
 conducting the exchange $T_X$. In the following we analyse the average
-values for $T_{W}$ and $T_X$ for each replica pair.  In the
-synchronous RE implementation replicas are started sequentially,
-i.\,e.\ there is a delay between the startup of the first and the last
-replica. Also, the post-processing of each replica run, i.\,e.\
-updating the state, marking nodes free, the stage-out of the output
-file, is done sequentially.  The longer of both times -- in this case
-the post-processing time -- determines the overall time spent waiting ($T_s$)
-for other replicas.  On average, it takes $1.4\,s$ for the BigJob agent to process a
-replica that has completed running. In an ensemble of 32 replicas the
-delay between the termination of the first and last replica adds up to
-$44.8\,s$, i.\,e.\ for one replica pair (there are in total 16 pairs
-in a 32 replica ensemble): $T_{s} = 2.8\,s$. $T_r$ is 0 for synchronous RE, as the BigJob agent starts working only after the RE Manager completes all exchanges. There is now waiting time at the agent. Thus, $T_W$ is 2.8 s per replica pair.
+values for $T_{W}$ and $T_X$ for each replica pair.  
+
+In the synchronous RE implementation replicas are started
+sequentially, i.\,e.\ there is a delay between the startup of the
+first and the last replica. Also, the post-processing of each replica
+run, i.\,e.\ updating the state, marking nodes free, the stage-out of
+the output file, is done sequentially. The longer of the two
+determines the overall time spent waiting ($T_s$) for other replicas.
+In this case the post-processing time is the larger, and on average,
+it takes $1.4\,s$
+%for the % BigJob agent
+to process a replica that has completed running. Thus $T_{s}$ which is
+defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
+replicas (with 16 pairs) the delay between the first and last replica
+transitioning to \texttt{done} state adds up to $44.8\,s$. As the
+BigJob agent is ready to start replicas, there is no waiting time at
+the agent; thus $T_r$ is 0 for synchronous RE.
+
+
+% As the BigJob agent starts working only after the RE Manager completes
+% all exchanges.  
+
+
+
+%Thus, $T_W$ is 2.8 s per replica pair.
 
 % That is the time it takes to update the state and
 % mark the nodes as free.  Since the whole ensemble of replicas needs to
@@ -928,38 +951,42 @@ in a 32 replica ensemble): $T_{s} = 2.8\,s$. $T_r$ is 0 for synchronous RE, as t
 %   difficult to understand. REMEMBER: Short simple (ie non compound)
 %   sentences}. \athotanote{i think its slightly better now..}
 
-$T_{X}$ comprises of three sub-components: $T_f$, $T_{ex}$ and $T_{coord}$.
-In this scenario $T_{f}=0$\,s due to the fact that the algorithm
-assumes fixed replica pairs.  $T_{ex}$, i.\,e.\ the
-updating and stage-out of the configuration files, can be
-approximated to $0.2\,s$ per replica and thus, $0.4\,s$ per
-replica pair (the transfer of the input files in done sequentially).
+$T_{X}$ comprises of three sub-components: $T_f$, $T_{ex}$ and
+$T_{mgmt}$. In this scenario $T_{f}=0$\,s due to the fact that there
+is fixed pairing. The updating and stage-out of the configuration
+files, is obsereved to be approximately $0.2\,s$ per replica and thus,
+$T_{ex} = 0.4\,s$ per replica pair (the transfer of the input files in
+done sequentially). 
+$T_{mgmt}$ is the time required by the RE-Manager to post job
+description to the advert server. On average $T_{mgmt}$ amounts to
+$0.1$\,s per replica, i.\,e.\ $0.2$\,s per replica pair.
+Thus $T_{X}$ is: $0+0.4+0.2=0.6$ s. Substituting the above values in
+equation~\ref{eq:totaltime}, we get
+% \alnote{TODO: validate numbers with just one decimal position!}
+\begin{eqnarray}
+  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.6 + 2.8)\times 128]} = {1 \over p} \times 1003\,s
+  \label{eq:sync}
+\end{eqnarray}
+
+
 % \alnote{Original text: ``$T_{ex}$ includes updating configuration files and transferring them to their
 % respective directories; it takes 0.2 s to write and copy a file
 % locally.`'' At least in the synchronous version I used there was 
 % a remote copy involved. Do we have a number for that?} \athotanote{but this is single machine. local copy right?}
-$T_{coord}$ is the time required by the RE-Manager to restart the
-replicas using the BigJob framework.
 % \jhanote{Abhinav - is the previous sentence correct?
 %   ``resubmitting a pair of replicas for restarting'' was too vague!}
 % \athotanote{fixed. it may be the case, but we actually explain the
 %   actual process after every exchange - that the replicas job
 %   descriptions are posted to the advert server, the bigjob agent
 %   restarts}
-On average $T_{coord}$ amounts to $0.1$\,s per replica, i.\,e.\
-$0.2$\,s per replica pair. In total $T_{X}$ is: $0+0.4+0.2=0.6$ s.
-Substituting the above values in equation~\ref{eq:totaltime}, we get
-% \alnote{TODO: validate numbers with just one decimal position!}
-\begin{eqnarray}
-  T=  {1 \over p} \times {[ {(71\times {128\over 16}})+ (0.6 + 2.8)\times 128]} = {1 \over p} \times 1003\,s
-\label{eq:sync}
-\end{eqnarray}
+%restart the replicas using the BigJob framework.
+
 
 % For a pair of replicas involved in the exchange, $T_{ex} =
 % 0.2 \times 2=0.4$ s, as file writing and copy is done
 % sequentially,
-% \jhanote{Should it be $T_{coord}$ or $T_{COORD}$ ? Consistency}
-% \athotanote{it should be $T_{coord}$, fixed} 
+% \jhanote{Should it be $T_{mgmt}$ or $T_{MGMT}$ ? Consistency}
+% \athotanote{it should be $T_{mgmt}$, fixed} 
 % \alnote{We should be
 %   consistent with all subscripts: Why $T_F$, but $T_{ex}$?}
 % \athotanote{changed to $T_f$.} \jhanote{Table still needs attention}
@@ -999,7 +1026,7 @@ one exchange takes place at a time .
 % at the central master, but couldn't that be considered
 % quasi-parallel?  Also, the same limitation would apply to the
 % synchronous case. An option would be to introduce a $\eta_{MD}$ and
-% $\eta_{coord}$ in equation~\ref{eq:totaltime}: one for the MD part
+% $\eta_{mgmt}$ in equation~\ref{eq:totaltime}: one for the MD part
 % and one for the coordination part.}
 
 % \alnote{I 
@@ -1017,7 +1044,7 @@ one exchange takes place at a time .
 An advert query for a replica state takes 0.01\,s. For 32 replicas,
 the RE-Manager must request on average 16 other replica states before
 it finds a partner; thus, the $T_f$ is in total $0.2\,s$. Both
-$T_{ex}$ and $T_{coord}$ are same as in the synchronous case, i.\,e.\
+$T_{ex}$ and $T_{mgmt}$ are same as in the synchronous case, i.\,e.\
 $T_{X}$ is in sum: $0.2+0.4+0.2=0.8\,s$.
 
 
@@ -1029,7 +1056,7 @@ $T_{X}$ is in sum: $0.2+0.4+0.2=0.8\,s$.
 % %   order to find a partner? Why 16?} \athotanote{explained} 
 % $T_{ex}$ is the time it takes to
 % update the configuration files and copy them locally. That would be
-% $({0.2})\times 2=0.4\,s$. $T_{coord}$ is the time it takes to
+% $({0.2})\times 2=0.4\,s$. $T_{mgmt}$ is the time it takes to
 % resubmit the pair of replicas to the advert server, which is
 % $0.11\times 2 = 0.22$ s. Therefore, $T_{X}$ is
 % $0.16+0.4+0.22=0.78$ s. 
@@ -1050,7 +1077,7 @@ replicas: $1.1\,s \times 30 = 33\,s$. This corresponds to $T_{r}$ of
 $1.1\,s$ per replica. $T_s$ is 0 in asynchronous RE. Thus, $T_W$ is 1.1 s.\alnote{I still have some issues with that
   formula i) we don't model anything related to the central master ii)
   I am not sure whether the per replica view is correct. What is a
-  reasonable $\eta$ (resp. $\eta_{MD}$ and $\eta_{coord}$) for async
+  reasonable $\eta$ (resp. $\eta_{MD}$ and $\eta_{mgmt}$) for async
   RE?}
  
 
@@ -1142,7 +1169,7 @@ opens a connection to the advert server, sets the state to running and starts th
 replica. The replica is restarted after every exchange. Therefore, $T_r$, which is 
 recurring is 0.3 seconds.} \alnote{Abhinav: not sure whether I understood everything correct: $T_r$ does not
 include any advert update, or does it?} \alnote{Why does it take longer than in case I/II? 
-\textbf{TODO Abhinav:} separate $T_{coord}$ out of $T_r$} \athotanote{done} \alnote{We took
+\textbf{TODO Abhinav:} separate $T_{mgmt}$ out of $T_r$} \athotanote{done} \alnote{We took
 about 1\,s out of $T_{w/r}$, but only add 0.1\,sec to $T_X$.} \athotanote{we are now considering some actions as happening only at the start}
 % \alnote{How do you get 1.3 sec? The starting of the replica-agent
 % must not be repeated after every exchange, correct?} \athotanote{fixed. is it ok now?}
@@ -1178,7 +1205,7 @@ exchanging the states and temperatures via the advert server and writing
 a new configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$ 
 (And even in the other scenario, where the replica in question is 
 not the initiator of the exchange, it has to wait for the other replica to set its state as
-complete, so that it can restart). $T_{coord}$ is the time it takes to
+complete, so that it can restart). $T_{mgmt}$ is the time it takes to
 update the state in the advert server, which is $0.2\,s$. 
 Thus, $T_{X}$ is $6.4+0.6 +0.2= 7.2\,s$. 
 \alnote{I adjusted the table and equation. Could you check, please.} \athotanote{done}
@@ -1674,7 +1701,7 @@ Further, we compare the synchronous and asynchronous RE algorithms and implement
 %comprised of (i) finding a partner, (ii) exchanging states including
 %file transfer, (iii) book-keeping, and (iv) (re)starting the replica;
 %$T_{W}$ is the time spent waiting for all replicas to complete running.
-%Therefore, ${T_{X}} = {T_F + T_{ex} + T_{coord}}$ 
+%Therefore, ${T_{X}} = {T_F + T_{ex} + T_{mgmt}}$ 
 %and for ${T_{X}}^{async}, T_W = 0$
 %The time ($T$) for N$_{X}$ exchanges is therefore $N_{X} \times t$
 %If there are $\eta$ independent exchange events occurring
