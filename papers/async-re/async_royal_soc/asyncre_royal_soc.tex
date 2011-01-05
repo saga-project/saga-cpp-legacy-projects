@@ -92,7 +92,7 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
   heterogeneous resources across distributed resources is a complex
   task yet is an important design objective of both logically and
   physically distributed applications.  In this work, we focus on the
-  Replica-Exchange (RE) methods which represent a class of algorithms
+  Replica-Exchange (RE) Methods which represent a class of algorithms
   that involve a large number of loosely-coupled ensembles and are
   used to understand physical phenomena -- ranging from protein
   folding dynamics to binding affinity calculations.  We develop a
@@ -131,11 +131,12 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 % efficient use of a broad range of infrastructure.
 
 \end{abstract}
-
-%\alnote{replaced with s}
 \alnote{We are on about 13.5 pages (without comments). 
 Do we need to shorten it to 12? space-saving? Or is it sufficient
 to do it with the camera-ready version?}
+
+%\alnote{replaced with s}
+
 
 \section{Introduction}
 Developing applications that are able to orchestrate heterogeneous
@@ -257,7 +258,7 @@ T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}})
 where $p$ is defined as the probability of a successful exchange (the
 probability of a successful exchange is not 1, the decision to accept
 an exchange or not is made using the Metropolis
-scheme~\citep{metropolis:1087}. However, any RE experiment will
+scheme~\citep{metropolis:1087}). However, any RE experiment will
 entail an overhead of coordination, job-submission \& termination
 etc. Thus, the time $T$ to complete the RE experiment where N$_X$ is
 the total number of exchanges is:
@@ -505,9 +506,7 @@ functionally similar to the SAGA BigJob Manager.
 \subfigure[Central]{\includegraphics[width=0.47\textwidth]{../figures/central_AL.pdf}}\qquad
 \subfigure[Decentral]{\includegraphics[width=0.47\textwidth]{../figures/decentral_AL.pdf}}\\
 \caption{\textbf{Centralised vs. Decentralised Coordination:} Both
-  central coordination style is used both by the synchronous RE (case
-  I) and a version of the asynchronous RE (case II).  In the decentral
-  style -- used by another version of the asynchronous RE (case III)--
+  central coordination style is used both by the synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
   the master is only required for initially setting up all
   replicas. The later coordination is done peer-to-peer via the Advert
   Service.}
@@ -1209,6 +1208,7 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 1
 %start one replica is 0.3 s. For 32 replicas, it is 9.6
 %s. Thus, the BigJob agent finishes starting the last replica before the a replica completes its run. 
 
+
 % ($\eta$ is 1). % \alnote{Not sure
 % whether this view helps us here. I am aware of the sequential part
 % at the central master, but couldn't that be considered
@@ -1261,7 +1261,7 @@ restarted. But, we observed that - as the experiment progresses - the
 BigJob agent would be processing smaller groups of replicas and
 starting smaller groups of replicas. \jhanote{Abhinav: Andre and I
   agreed to use 2.2 and not 1.1. Table and values in the Equation need
-  to be updated to reflect this}
+  to be updated to reflect this} \athotanote{but this is the worst case possible and as the experiment progresses, the bigjob agent frequently moves between starting and marking jobs as done - instead of doing 32 in a row. if we make it 2.2 instead of 1.1 there would not be a difference between synchronous  and centralised. and the equation/model and the data dont support each other.}
 
 % On average replica pairs after an exchange actually wait 2.2/2=1.1 s
 % to be restarted by the BigJob agent.  \alnote{Shouldn't we use the
@@ -1404,6 +1404,7 @@ both scaling-up and scaling-out.
 \includegraphics[width=0.8\textwidth]{../data/scale_up.pdf}
 \caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:}
   The graph shows the runtimes for the different RE implementations.
+  The ratio between the number of exchanges and number of replicas is kept constant. Each replica is assigned 16 processors and run 500 timesteps. 
   The asynchronous decentralised RE implementation shows the best
   scaling behaviour. Both centralised RE versions scale less well
   mainly due to the limitations of the single master, which becomes a
@@ -1462,10 +1463,10 @@ exchanges at a given exchange step increases; consequently the total
 coordination time at each exchange step increases.  For a value of
 $N_R$ of 64 and $N_X$ of 256, using Equation~\ref{eq:totaltime}, the
 coordination time is $(0.6+2.8) \times 256 = 870.4$.  The difference
-in coordination times ($435.2$) accounts for almost all the difference
+in coordination times ($435.2$ s) accounts for almost all the difference
 in $T$ for 32 and 64 replicas in the
-Figure~\ref{fig:scaleup}. \jhanote{Abhinav: Please provide value of
-  the difference in T here please} A similar analysis was performed
+Figure~\ref{fig:scaleup}. The actual difference observed in $T$ from 32 to 64 replicas is 366 s. \jhanote{Abhinav: Please provide value of
+  the difference in T here please} \athotanote{mentioned} A similar analysis was performed
 for different replica and exchange counts and the values obtained are
 in agreement with the empirical data in Figure~\ref{fig:scaleup}.
 
@@ -1527,8 +1528,8 @@ example, in Equation~\ref{eq:decent} we see that for 64 replicas,
 $T_f$ is approximately $2 \times 64 \times 0.1 = 12.8$ s.  Thus the
 difference in $T_X$ when $N_R$ is 64 versus 32 is 51.2s, which
 accounts for the bulk of the increase in overall $T$ when $N_R$
-changes from 32 to 64. \jhanote{Abhinav: Please provide value of the
-  difference in T here please again}. The variation in $T$ with for
+changes from 32 to 64. The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
+  difference in T here please again}.\athotanote{done} The variation in $T$ with for
 other values of $N_R$ can, primarily be accounted for by changing
 values of $T_f$.
 
@@ -1546,8 +1547,8 @@ Equation~\ref{eq:cent} for 32 replicas as a basis: for $N_R =$ 64 and
 $N_X$ 256, leads to a new coordination time of $(0.8+1.1) \times 256 =
 486.4\,s$, up from $243.2$. This change accounts for a large component
 of the difference in $T$ as $N_R$ goes from 32 replicas to 64
-replicas, as shown in Figure~\ref{fig:scaleup}. \jhanote{Abhinav
-  provide specific values of T difference}. We have verified this for
+replicas, as shown in Figure~\ref{fig:scaleup}. The actual difference observed in $T$ from 32 to 64 replicas is 293 s. \jhanote{Abhinav
+  provide specific values of T difference}\athotanote{done}. We have verified this for
 different number of replicas and found it to be consistent.
 
 In addition to the above explicable changes arising from different
@@ -1570,11 +1571,11 @@ the replicas.
 %\subfigure[16 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_16.pdf}}\\
 %\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
 \caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas, asynchronous (centralised):} 
-  As the number of machines increases, the time-to-completion increases in most cases mainly
+  As the number of machines increases, the time-to-completion increases in general mainly
   due to higher exchange costs ($T_{X}$) caused by e.\,g.\  remote file copies and remote advert
   service updates.}
   \alnote{Can we increase the linewidth and order the entries in the legend in the same order
-  as the lines from top to down?}
+  as the lines from top to down?} \athotanote{reordered the legend. could not increase linewidth.. tried a few things but did not work}
 \label{fig:scaleout}
 
 % \alnote{16 or 32 replicas? Why is the centralised async performing
@@ -1725,7 +1726,7 @@ here?}
 
 Results shown in figures~\ref{fig:scaleup} and~\ref{fig:scaleout}
 indicate that using algorithmic formulations that impose less tight
-coordination constraints enable both a good scale-up and scale-out
+coordination constraints enable both good scale-up and scale-out
 behaviour.  Algorithms based on asynchronous coordination are
 typically more difficult to implement than synchronous ones; however,
 we find that even with a simple, non-optimised prototype of the
