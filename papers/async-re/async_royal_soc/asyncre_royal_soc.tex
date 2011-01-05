@@ -868,10 +868,10 @@ discuss each case in the following sections.
     \hspace{2mm}$T_{mgmt}$    &0.2\,s &0.2\,s  &0.2\,s\\
 	\hline
 	\hline
-	$\mathbf{T}$        &\textbf{1003\,s} &\textbf{811\,s}    &\textbf{633\,s}\\
+	$\mathbf{T}$        &\textbf{1003\,s} &\textbf{811\,s}    &\textbf{631\,s}\\
 	\hline
     \end{tabular}
-    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas/time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T$=total time to completion.}
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas and to be restarted; $T_s$=synchronisation time; $T_r$=time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T$=total time to completion.}
 	\label{table:repex_perf}
 \end{table}
 
@@ -1053,7 +1053,7 @@ the fact that the BigJob agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
 post-processing of a sub-job (replica) requires
 1.1\,s. \jhanote{Abhinav: Either we multiply by 2 to get pair-wise
-  value for $T_r$ or we elaborate/explain better} Therefore the
+  value for $T_r$ or we elaborate/explain better} \athotanote{explained} For 32 replicas, that would be 35.2 seconds. Therefore, each replica pair waits $35.2/16=2.2$ s at BigJob agent before being restarted. But we observed that - as the experiment progresses - the BigJob agent would be processing smaller groups of replicas and starting smaller groups of replicas. On average the replica pairs after an exchange would actually wait 2.2/2=1.1 s to be restarted by the BigJob agent. Therefore the
 value of $T_W$ is the same as $T_r$.
 
 % there is some amount of
@@ -1086,10 +1086,10 @@ average the RE-Manager must search through $N_R/2$ replicas before it
 finds a partner.  The exchanges are made by the RE-Manager and only
 one exchange takes place at a time. \jhanote{Abhinav: Does not explain
   why $T_f$ is 0.2. Please explain} \alnote{Do we want to keep this
-  explanation or just refer to the result: 0.2\,s?} An advert query for a replica
+  explanation or just refer to the result: 0.2\,s?} \athotanote{explained} An advert query for a replica
 state takes 0.01\,s. For 32 replicas, the RE-Manager requests on
 average 16 other replica states before it finds a partner; thus, $T_f$
-is in total $0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
+is in total $0.1\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
 synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
 
 
@@ -1300,7 +1300,7 @@ server, which is $0.2\,s$.  Thus, $T_{X}$ is $6.4+0.6 +0.2=
 As there are $N_R \over 2$ concurrent pairs, substituting the above
 values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 16}} = {1 \over p} \times 633~s.
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 16}} = {1 \over p} \times 631~s.
 \label{eq:decent}
 \end{eqnarray}
 
@@ -1351,13 +1351,13 @@ both scaling-up and scaling-out.
 %%%%% FIGURE %%%%%
 \begin{figure}
 \centering
-\includegraphics[width=0.9\textwidth]{../data/scale_up.pdf}
+\includegraphics[width=0.8\textwidth]{../data/scale_up.pdf}
 \caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:}
   The graph shows the runtimes for the different RE implementations.
   The asynchronous decentralised RE implementation shows the best
   scaling behaviour. Both centralised RE versions scale less well
   mainly due to the limitations of the single master, which becomes a
-  bottleneck.}
+  bottleneck.\athotanote{there is a graph with log scale in svn, if needed.} }
 \label{fig:scaleup}
 \vspace{-1em}
 \end{figure}
@@ -1426,7 +1426,7 @@ major component of the $T$.  As $N_R$ increases, the number of
 exchanges at a given exchange step increases; consequently the total
 coordination time at each exchange step increases.  For a value of
 $N_R$ of 64 and $N_X$ of 256, using Equation~\ref{eq:totaltime}, the new
-coordination time is $(0.62+2.64) \times 256 = 834.6$.  The new coordination
+coordination time is $(0.6+2.8) \times 256 = 870.4$.  The new coordination
 time is consistent with the difference in $T$ for 32 and 64 replicas
 in the Fig.~\ref{fig:scaleup}. A similar analysis was performed for
 different replica and exchange counts and the values obtained are in
@@ -1445,10 +1445,10 @@ agreement with the empirical data in Fig.~\ref{fig:scaleup}.
 
 In asynchronous (centralized) RE, since the RE Manager makes the
 exchanges serially, we see an increase in the time to
-completion. Again, we explain in Equation~4.2 the total time for 32
-replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation 4.1\ref{},
-the new coordination time is $(0.78+1.02) \times 256 = 455.7$. That is the
-change we see from 32 replicas to 64 replicas in the graph1\ref{}. We
+completion. Again, we explain in Equation~\ref{eq:cent} the total time for 32
+replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation~\ref{eq:cent},
+the new coordination time is $(0.8+1.1) \times 256 = 486.4$ s. That is the
+change we see from 32 replicas to 64 replicas in figure~\ref{fig:scaleup}. We
 have verified this for different number of replicas and found it to be
 consistent.
 
@@ -1491,7 +1491,7 @@ consistent.
 For the decentralised implementation, $T_f$ has a $N_R$ dependence. 
 For the random access case, we find $T_f$ is $2 \times N_R \times
 0.1$ (where $0.1$ is the typical time to set/get a value to/from the
-advert server).  For example, in eqn 4.3 we see that for 64 replicas, $T_f$ is
+advert server).  For example, in Equation~\ref{eq:decent} we see that for 64 replicas, $T_f$ is
  approximately $2 \times 64 \times 0.1 = 12.8$ s. 
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
@@ -1517,7 +1517,7 @@ typically increases, as does the time to start the replicas.
 %\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
 \caption{\textbf{Scale-out Performance for 8, 16 and 32 Replicas, asynchronous (centralised):} 
   TBD.}
-\label{fig:24machines}
+\label{fig:scaleout}
 
 % \alnote{16 or 32 replicas? Why is the centralised async performing
 %   better for 8 replicas and a small number of machines? We should
@@ -1576,9 +1576,9 @@ experiment is repeated 5 times.  \alnote{Is this correct? When do we
 
 
 {\it Results:} The results obtained are shown in
-figure~\ref{fig:24machines}.  As discussed, in the asynchronous
+Figure~\ref{fig:scaleout}.  As discussed, in the asynchronous
 (centralised) RE, there is no synchronization cost.  From
-figure~\ref{fig:24machines}, we see that $T$ is approximately constant
+Figure~\ref{fig:scaleout}, we see that $T$ is approximately constant
 or changes slightly even as the number of machines used changes. This
 indicates
 good scaling-out behaviour. 
@@ -1676,7 +1676,7 @@ be for 1 BigJob. % Therefore, we can say that if ${N_R \over N_{BJ}
 An important motivation for this work has been to implement a scheme for the RE class of algorithms that does not depend on a static, well defined model of resource availability. %We test and scale
 %our implementation on production level grids such as Teragrid and
 %LONI~\citep{LONI_web}.
-Results shown in figures~\ref{fig:scaleup} and figure-scaleout\ref{} indicate the good scale-up and scale-out properties on different production level infrastructure, such as, the Teragrid and LONI.
+Results shown in figures~\ref{fig:scaleup} and~\ref{fig:scaleout} indicate the good scale-up and scale-out properties on different production level infrastructure, such as, the Teragrid and LONI.
 %most important advantages of asynchronous RE and SAGA/BigJob over
 %traditional RE: %(a) allows for exchanges to occur between replicas with non-nearest temperatures, which in turn allows crosswalks to happen  %(b) the advantage of using a pilot-job mechanism, which eliminates the waiting times at the local resource manager, \alnote{have shown this in prev. papers, but  we don't really have data in this one} and 
 
