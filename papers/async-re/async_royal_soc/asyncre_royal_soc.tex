@@ -889,8 +889,6 @@ discuss each case in the following sections.
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 s.
 
-\jhanote{check that $T_r = 0$ is mentioned} 
-
 As explained in section~\ref{sec:repex-approach}
 (\ref{sec:math-model}), the relative performance of RE implementations
 is primarily determined by the waiting time $T_W$ and the time for
@@ -1007,7 +1005,6 @@ equation~\ref{eq:totaltime}, we get
 %   find a replica ($T_f$).}
 
 \subsection{Asynchronous (centralised) RE}
-\alnote{Discuss $\eta$} \athotanote{done}
 %As before, the average time the BigJob agent takes to
 %start one replica is 0.3 s. For 32 replicas, it is 9.6
 %s. Thus, the BigJob agent finishes starting the last replica before the a replica completes its run. 
@@ -1231,11 +1228,29 @@ same as $T_r$ ($0.7\,s$).
 
 
 $T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
-to lock an exchange partner.  On average the replica-agent must scan
-the list of replicas 2-4 times before it finds a potential partner for
-an exchange (due to conflicts with other attempting replicas).  As a
-consequence of the data-structure and pairing approach used, we find
-that $T_f$ is $0.1\times64=6.4\,s$.  The process of exchanging the
+to lock an exchange partner.  When searching for a replica randomly,
+on average it takes $N_R \over 2$ attempts to find a replica that is
+in the \texttt{done} state.  However, finding a replica in the
+\texttt{done} state is not enough to ensure an exchange attempt.
+Given that there are several ``active exchanges'' being attempted,
+often the reverify step leads to an aborted exchange attempt; a
+reverify step must occur to ensure there has been no change in the
+states of either of the two replicas involved.  The exact number is a
+random variable, determined by the number of replicas, the
+distribution of states and whether the attempt to find a replica is
+random or sequential. Empirical observation suggests that between 2-4
+find and reverify attempts before an exchange is attempted.  But in
+general, replicas contend with each other to lock a partner for
+exchange; this gets worse with increasing number of replicas, i.e.,
+$T_f$ increases with increasing $N_R$.  Specifically, for the random
+access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
+is the typical time to set/get a value to/from the advert server)
+% On average the replica-agent must scan
+% the list of replicas 2-4 times before it finds a potential partner for
+% an exchange (due to conflicts with other attempting replicas).  As a
+% consequence of the data-structure and pairing approach used, we find
+% that $T_f$ is $0.1\times64=6.4\,s$.
+The process of exchanging the
 states and temperatures via the advert server and writing a new
 configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
 % even in the other scenario, where the replica in question is not the
@@ -1377,11 +1392,11 @@ data to factor in the difference in performance of {\it Ranger} and
 running the scale-up experiments mentioned.  The ratio of the number
 of exchanges ($N_X$) to the number replicas ($N_R$) is kept constant,
 i.e., the number of generations is a constant for different replica
-counts.  Thus the variation in $T$, as $N_R$ increases, is due to
-the coordination component of Eqn~\ref{eq:totaltime}.  The increase,
-however, is not uniform across the three implementations.  The largest
-increase is for synchronous RE, and the least for asynchronous
-(decentralised) RE.
+counts.  Thus, as $N_R$ increases, the variation in $T$ is due to the
+coordination component -- $T_X$ and $T_W$ of Eqn~\ref{eq:totaltime}.
+The increase, however, is not uniform across the three
+implementations: the increase is largest for synchronous RE, and the
+least for asynchronous (decentralised) RE.
 
 %\alnote{need to be aligned with sec 4} 
 
@@ -1408,7 +1423,7 @@ major component of the $T$.  As $N_R$ increases, the number of
 exchanges at a given exchange step increases; consequently the total
 coordination time at each exchange step increases.  For a value of
 $N_R$ of 64 and $N_X$ of 256, using Eqn.\ref{eq:totaltime}, the new
-coordination time is $(0.62+2.64) \times 256$.  The new coordination
+coordination time is $(0.62+2.64) \times 256 = 834.6$.  The new coordination
 time is consistent with the difference in $T$ for 32 and 64 replicas
 in the Fig.~\ref{fig:scaleup}. A similar analysis was performed for
 different replica and exchange counts and the values obtained are in
@@ -1429,7 +1444,7 @@ In asynchronous (centralized) RE, since the RE Manager makes the
 exchanges serially, we see an increase in the time to
 completion. Again, we explain in eqn 4.2 the total time for 32
 replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation 4.1\ref{},
-the new coordination time is $(0.78+1.02) \times 256 = 834.6$. That is the
+the new coordination time is $(0.78+1.02) \times 256 = 455.7$. That is the
 change we see from 32 replicas to 64 replicas in the graph1\ref{}. We
 have verified this for different number of replicas and found it to be
 consistent.
@@ -1446,34 +1461,35 @@ consistent.
 % both be successful before an exchange is carried out.
 % %a successful search and reverify stage.
 
-\jhanote{Move somewhere else? When searching for a replica randomly,
-  on average it takes $N_R \over 2$ attempts to find a replica that is
-  in the \texttt{done} state.  However, finding a replica in the
-  \texttt{done} state is not enough to ensure an exchange attempt; a
-  reverify step must occur to ensure there has been no change in the
-  states of either of the two replicas involved.}
- 
+% When searching for a replica randomly, on average it takes $N_R \over
+% 2$ attempts to find a replica that is in the \texttt{done} state.
+% However, finding a replica in the \texttt{done} state is not enough to
+% ensure an exchange attempt.  Given that there are several ``active
+% exchanges'' being attempted, often the reverify step leads to an
+% aborted exchange attempt; a reverify step must occur to ensure there
+% has been no change in the states of either of the two replicas
+% involved.  The exact number is a random variable, determined by the
+% number of replicas, the distribution of states and whether the attempt
+% to find a replica is random or sequential. Empirical observation
+% suggests that between 2-5 find and reverify attempts before an
+% exchange is attempted.  But in general, replicas contend with each
+% other to lock a partner for exchange; this gets worse with increasing
+% number of replicas, i.e., $T_f$ increases with increasing $N_R$.
+% Specifically, for the random access case, we find $T_f$ is $2 \times
+% N_R \times 0.1$ (where $0.1$ is the typical time to set/get a value
+% to/from the advert server)
 
-For the decentralised implementation, $T_f$ has a $N_R$ dependence.
-Given that there are several ``active exchanges'' being attempted,
-often the reverify step leads to an aborted exchange attempt.  The
-exact number is a random variable, determined by the number of
-replicas, the distribution of states and whether the attempt to find a
-replica is random or sequential. Empirical observation suggests that
-between 2-5 find and reverify attempts before an exchange is
-attempted.  But in general, replicas contend with each other to lock a
-partner for exchange; this gets worse with increasing number of
-replicas, i.e., $T_f$ increases with increasing $N_R$.  Specifically,
-for the random access case, we find $T_f$ is $2 \times N_R \times
-0.11$ (where $0.11$ is the typical time to set/get a value to/from the
-advert server) % and for the sequential access case, we find
+% and for the sequential access case, we find
 % $T_f$ is $2.5 \times N_R \times 0.11$. 
 % We implemented a serial search
 % for upto 32 replicas, and a random search for $N_R$ value greater than
 % 32.
 % and from 64 to 256 replicas we implemented a random search. 
-For example, in eqn 4.3 we see that for 32 replicas, $T_f$ is
-approximately $2 \times 32 \times 0.11 = 7.04$ s. 
+For the decentralised implementation, $T_f$ has a $N_R$ dependence. 
+For the random access case, we find $T_f$ is $2 \times N_R \times
+0.1$ (where $0.1$ is the typical time to set/get a value to/from the
+advert server).  For example, in eqn 4.3 we see that for 64 replicas, $T_f$ is
+ approximately $2 \times 64 \times 0.1 = 12.8$ s. 
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
 In addition to the above explicable changes, as $N_R$ increases,
