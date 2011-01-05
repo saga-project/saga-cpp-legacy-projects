@@ -909,7 +909,9 @@ defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
 replicas (with 16 pairs) the delay between the first and last replica
 transitioning to \texttt{done} state adds up to $44.8\,s$. As the
 BigJob agent is ready to start replicas, there is no waiting time at
-the agent; thus $T_r$ is 0 for synchronous RE.
+the agent; \alnote{which is also not really the case since sub-jobs
+are all submitted at once and as we discuss in sec b, the bj-agent 
+processes these sequentially.} thus, $T_r$ is 0 for synchronous RE.
 
 
 % As the BigJob agent starts working only after the RE Manager completes
@@ -958,7 +960,12 @@ done sequentially).
 $T_{mgmt}$ is the time required by the RE-Manager to post job
 description to the advert server. On average $T_{mgmt}$ amounts to
 $0.1$\,s per replica, i.\,e.\ $0.2$\,s per replica pair.
-Thus $T_{X}$ is: $0+0.4+0.2=0.6$ s. Substituting the above values in
+Thus $T_{X}$ is: $0+0.4+0.2=0.6$ s. 
+
+\alnote{moved this from sec b to here (since it also applies heire)}
+Although there are $\frac{N_R}{2}$ concurrent pairs, the exchange 
+at the RE-Manager is carried out sequentially; thus the effective 
+number of concurrently exchanging pairs is 1. Substituting the above values in
 equation~\ref{eq:totaltime}, we get:
 % \alnote{TODO: validate numbers with just one decimal position!}
 \begin{eqnarray}
@@ -1053,8 +1060,19 @@ the fact that the BigJob agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
 post-processing of a sub-job (replica) requires
 1.1\,s. \jhanote{Abhinav: Either we multiply by 2 to get pair-wise
-  value for $T_r$ or we elaborate/explain better} \athotanote{explained} For 32 replicas, that would be 35.2 seconds. Therefore, each replica pair waits $35.2/16=2.2$ s at BigJob agent before being restarted. But we observed that - as the experiment progresses - the BigJob agent would be processing smaller groups of replicas and starting smaller groups of replicas. On average the replica pairs after an exchange would actually wait 2.2/2=1.1 s to be restarted by the BigJob agent. Therefore the
-value of $T_W$ is the same as $T_r$.
+  value for $T_r$ or we elaborate/explain better} \athotanote{explained} 
+For 32 replicas, that would be 35.2 seconds. Therefore, each replica pair 
+waits $35.2/16=2.2$ s at BigJob agent before being restarted. But, 
+we observed that - as the experiment progresses - the BigJob agent 
+would be processing smaller groups of replicas and starting smaller 
+groups of replicas. On average replica pairs after an exchange 
+actually wait 2.2/2=1.1 s to be restarted by the BigJob agent. 
+\alnote{Shouldn't we use the average number of sub-jobs that
+a new job has to wait for as an argument?}
+Therefore, the value of $T_W$ is the same as $T_r$.  
+\alnote{the last sentence can be
+  removed in my opinion.}
+
 
 % there is some amount of
 % waiting involved, which is mainly caused by the single-threaded BigJob
@@ -1151,9 +1169,13 @@ synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
 % \alnote{TODO Abhinav: roundup numbers to one decimal place}
 % \athotanote{done}
 
-Although there are $N_R \over 2$ concurrent pairs, the exchange at the
-RE-Manager is carried out sequentially; thus the effective number of
-concurrently exchanging pairs is 1.  Substituting the above values in
+% Although there are $N_R \over 2$ concurrent pairs, the exchange at the
+% RE-Manager is carried out sequentially; thus the effective number of
+% concurrently exchanging pairs is 1.  
+
+As in the synchronous case the effective number of concurrently exchanging pairs
+is 1 due to the fact that exchanges are sequentially carried out by the RE-Manager. 
+Substituting the above values in
 equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
 T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} = {1 \over p} \times 811~s.
@@ -1175,7 +1197,7 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} =
 
 %As in the asynchronous-centralised case the, asynchronous-decentralised implementation does not involve a replica waiting for other replicas to reach a specific state before initiating an exchange. There are other types of holding that contribute to the overall $T$, e.\,g.\ for managing simulation runs, for updating the advert service, etc. Also, queries and updates to the advert service take longer in the decentralised than in the other both case -- mainly due to the higher number of connections and requests. In total, there are three advert updates required: one for updating the state, two for posting the simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as well as processing of output file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
 
-In the asynchronous (decentralised) RE, the replica are managed
+In the asynchronous (decentralised) RE, the replicas are managed
 individually by replica-agents. There is no synchronisation
 involved. Also, the replicas do not wait at the BigJob agent. Thus,
 $T_s$ is 0 s.  The replica-agent constantly monitors all replicas. If
@@ -1232,6 +1254,7 @@ same as $T_r$ ($0.7\,s$).
 
 $T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
 to lock an exchange partner.  When searching for a replica randomly,
+\alnote{does randomly also apply to case II?}
 on average it takes $N_R \over 2$ attempts to find a replica that is
 in the \texttt{done} state.  However, finding a replica in the
 \texttt{done} state is not enough to ensure an exchange attempt.
@@ -1247,7 +1270,9 @@ general, replicas contend with each other to lock a partner for
 exchange; this gets worse with increasing number of replicas, i.e.,
 $T_f$ increases with increasing $N_R$.  Specifically, for the random
 access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
-is the typical time to set/get a value to/from the advert server)
+is the typical time to set/get a value to/from the advert server).\alnote{Should we argue 
+with $\frac{N_R}{2}$*4 (in worst case) as previously described or is
+this too complex?}
 % On average the replica-agent must scan
 % the list of replicas 2-4 times before it finds a potential partner for
 % an exchange (due to conflicts with other attempting replicas).  As a
@@ -1261,8 +1286,10 @@ configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
 % its state as complete, so that it can restart).
 $T_{mgmt}$ is the time it takes to update the state in the advert
 server, which is $0.2\,s$.  Thus, $T_{X}$ is $6.4+0.6 +0.2=
-7.2\,s$.  % \alnote{I adjusted the table and equation. Could you check,
-%   please.} \athotanote{done}
+7.2\,s$.  It should be noted that $T_{X}$ is highly dependent on
+the actual implementation. While the current implementation is kept
+simple on purpose, this value can be improved in a more sophisticated 
+implementation.
 
 % \alnote{In the other cases the state must be updated in the
 %   advert server as well. Why don't we consider this in the other cases
