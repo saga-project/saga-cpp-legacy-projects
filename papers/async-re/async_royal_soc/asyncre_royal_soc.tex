@@ -135,79 +135,80 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 Do we need to shorten it to 12? space-saving? Or is it sufficient
 to do it with the camera-ready version?}
 
-%\alnote{replaced with s}
-
-
 \section{Introduction}
-Developing applications that are able to orchestrate heterogeneous
-resources across distributed resources is a complex task.  Inevitably,
-the design and development of an application is influenced and
-constrained by the programming systems and the infrastructure it is
-developed against. Breaking this coupling between the development and
-the underlying infrastructure, to enable applications to be flexible
+
+The Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods --
+which represent a class of algorithms that involve a large number of
+loosely-coupled ensembles.  RE simulations are used to understand
+physical phenomena -- ranging from protein folding dynamics to binding
+affinity calculations.  The design and development of most RE
+implementations (Woods et al. 2005) is influenced and constrained by
+the programming systems and the infrastructure it is developed
+against.  Breaking this coupling between the development and the
+underlying infrastructure, to enable applications to be flexible
 (across infrastructure), extensible (to new methods of communication
 and coordination) and scalable is an important design objective of
 distributed applications -- both logically distributed and physically
 distributed.
 
-In this work, we focus on the Replica-Exchange
-(RE)~\citep{hansmann,Sugita:1999rm} methods -- which represent a class
-of algorithms that involve a large number of loosely-coupled
-ensembles.  RE simulations are used to understand physical phenomena
--- ranging from protein folding dynamics to binding affinity
-calculations. Most RE implementations are either infrastructure
-specific (Woods et al. 2005) or, if using multiple distributed
-resources, they require prior co-scheduling (Manos et
-al. 2008). \cite{Luckow:2008fp} take it to the next level and is an
-example of adaptive RE simulations on production-level grid resources,
-while \cite{parashar_arepex} is an example of \emph{asynchronous} RE
-simulations, which is based on
-CometG~\citep{Li:2005:CSC:1090948.1091381}, a decentralised
-computational infrastructure for Desktop Grid environments.
-
 Application formulations that are scalable while being flexible and
 extensible are better suited to using the diverse range of traditional
 and hybrid infrastructure (e.g., Grid-Cloud and heterogeneous
-resources).  Along with application formulations that facilitate the
+resources). Along with application formulations that facilitate the
 flexible utilisation of a range of infrastructure, it is imperative to
 have the correct run-time abstractions that support flexible
 deployment of these applications.  In support of flexible and scalable
 formulations of the RE class of algorithms, we develop a RE Framework
 that supports multiple formulations, is extensible to a broad range of
-infrastructure and as we shall show is scales-up and scales-out.
+infrastructure and as we shall show scales-up and scales-out.  Our RE
+Framework utilises a flexible pilot-job implementation (SAGA BigJob)
+to support the execution of the ensembles.  It supports scalable
+implementation of RE that can utilize a range of infrastructure
+concurrently that supports different coordination mechanisms different
+exchange coordination mechanisms (synchronous versus asynchronous),
+and thereby different variants of the RE algorithm.  
 
-Our RE Framework utilises a flexible pilot-job implementation (SAGA
-BigJob) to support the execution of the ensembles.  It supports
-scalable implementation of RE that can utilize a range of
-infrastructure concurrently that supports different coordination
-mechanisms (publish-subscribe, centralised notification), different
-replica pairing mechanisms (synchronous versus asynchronous) and
-thereby different variants of the RE algorithm.  We compare and
-analyze the performance of the different RE formulations (synchronous
-and asynchronous) when scaled-up to 256 replicas, and scaled-out to 4
-machines. % \jhanote{Last sentence is unclear} We present results using
-% which the reader can understand which model of RE is most suited for a
-% particular set of resources (distributed, local etc.,)
+% , if using multiple
+% distributed resources, they require prior co-scheduling (Manos et
+% al. 2008)
+
+% \cite{Luckow:2008fp} take it to the next level and is an
+% example of adaptive RE simulations on production-level grid resources,
+% while \cite{parashar_arepex} is an example of \emph{asynchronous} RE
+% simulations, which is based on
+% CometG~\citep{Li:2005:CSC:1090948.1091381}, a decentralised
+% computational infrastructure for Desktop Grid environments.
+% and for a specific implementation of the asynchronous scaled-out to
+% 4 machines.  \jhanote{Last sentence is unclear} We present results
+% using which the reader can understand which model of RE is most
+% suited for a particular set of resources (distributed, local etc.,)
 
 The paper is organised as follows. \S~\ref{sec:repex-approach}
-sketches out the three different RE algorithms that are investigated; 
-we also present an approximate mathematical model for the different algorithms.  
-\S~\ref{repexfw} outlines the architecture of the RE Framework -- the SAGA BigJob
-(how it supports the dynamic execution of multiple replicas) and other
-important elements that make the framework flexible and extensible.
-In \S~\ref{sec:re_impl}, we present our implementation of the RE algorithms and
-understand the primary determinants of performance and relate it to
-the mathematical model of \S~\ref{sec:repex-approach}.  
-In \S~\ref{sec:performance}, we describe the experiments performed 
-to assess and understand performance when scaling-up (on a single machine) 
-as the number of replicas increases. We also investigate the scaling-out
-characteristics, namely performance as the number of replicas are
-increased while the (distributed) resources employed
-increases. % while keeping the number of replicas on local and
+sketches out the three different RE algorithms that are investigated;
+we also present an approximate mathematical model for the different
+algorithms.  \S~\ref{repexfw} outlines the architecture of the RE
+Framework -- the SAGA BigJob (how it supports the dynamic execution of
+multiple replicas) and other important elements that make the
+framework flexible and extensible.  In \S~\ref{sec:re_impl}, we
+present our implementation of the RE algorithms and understand the
+primary determinants of performance and relate it to the mathematical
+model of \S~\ref{sec:repex-approach}.  In \S~\ref{sec:performance}, we
+describe the experiments performed to assess and understand
+performance when scaling-up (on a single machine) as the number of
+replicas increases.  We compare and analyze the performance of the
+different RE formulations (synchronous and asynchronous) when
+scaled-up to 256 replicas as well as when scaled-out to use more than
+one machine.  \S~\ref{sec:conclusion} concludes the paper and
+discusses future work.
+
+% We also investigate the scaling-out
+% characteristics, namely performance as the number of replicas are
+% increased while the (distributed) resources employed
+% increases. % while keeping the number of replicas on local and
 % distributed resources.  \jhanote{Currently we have only Section 6
 %   and no 7}.
 % We present the results and analysis, in Section VI and 
-\S~\ref{sec:conclusion} concludes the paper and discusses future work.
+
 
 % \alnote{Should we add a section with some scientific background: HIV,
 %   Hepatitis...?}  \jhanote{given the tightness of space, I think we
