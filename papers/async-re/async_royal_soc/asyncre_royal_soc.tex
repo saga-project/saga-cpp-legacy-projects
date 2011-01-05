@@ -903,22 +903,24 @@ determines the overall time spent waiting ($T_s$) for other replicas.
 In this case the post-processing time is the larger, and on average,
 it takes $1.4\,s$
 %for the % BigJob agent
-to process a replica that has completed running. Thus, $T_{s}$, which is
-defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
+to process a replica that has completed running. Thus, $T_{s}$, which
+is defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
 replicas (with 16 pairs) the delay between the first and last replica
-transitioning to \texttt{done} state adds up to $44.8\,s$. As the
-BigJob agent is ready to start replicas, there is no waiting time at
-the agent; \alnote{which is also not really the case since sub-jobs
-are all submitted at once and as we discuss in sec b, the bj-agent 
-processes these sequentially.} \athotanote{this is mentioned above: ``In the synchronous RE implementation replicas are started
-sequentially, i.\,e.\ there is a delay between the startup of the
-first and the last replica. Also, the post-processing of each replica
-run, i.\,e.\ updating the state, marking nodes free, the stage-out of
-the output file, is done sequentially. The longer of the two
-determines the overall time spent waiting ($T_s$) for other replicas.
-In this case the post-processing time is the larger, and on average,
-it takes $1.4\,s$"} thus, $T_r$ is 0 for synchronous RE.
+transitioning to \texttt{done} state adds up to $44.8\,s$.  The
+waiting time at the bigjob agent is subsumed by the synchronisation
+time, thus the BigJob agent is effectively always ready to start
+replicas, thus, $T_r$ is 0 for synchronous RE.
 
+% \alnote{which is also not really the case since sub-jobs
+% are all submitted at once and as we discuss in sec b, the bj-agent 
+% processes these sequentially.} \athotanote{this is mentioned above: ``In the synchronous RE implementation replicas are started
+% sequentially, i.\,e.\ there is a delay between the startup of the
+% first and the last replica. Also, the post-processing of each replica
+% run, i.\,e.\ updating the state, marking nodes free, the stage-out of
+% the output file, is done sequentially. The longer of the two
+% determines the overall time spent waiting ($T_s$) for other replicas.
+% In this case the post-processing time is the larger, and on average,
+% it takes $1.4\,s$"} 
 
 % As the BigJob agent starts working only after the RE Manager completes
 % all exchanges.  
@@ -968,7 +970,7 @@ description to the advert server. On average $T_{mgmt}$ amounts to
 $0.1$\,s per replica, i.\,e.\ $0.2$\,s per replica pair.
 Thus $T_{X}$ is: $0+0.4+0.2=0.6$ s. 
 
-\alnote{moved this from sec b to here (since it also applies heire)}
+%\alnote{moved this from sec b to here (since it also applies heire)}
 Although there are $\frac{N_R}{2}$ concurrent pairs, the exchange 
 at the RE-Manager is carried out sequentially; thus the effective 
 number of concurrently exchanging pairs is 1. Substituting the above values in
@@ -1112,9 +1114,9 @@ general, replicas contend with each other to lock a partner for
 exchange; this gets worse with increasing number of replicas, i.e.,
 $T_f$ increases with increasing $N_R$.  Specifically, for the random
 access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
-is the typical time to set/get a value to/from the advert server).\alnote{Should we argue 
-with $\frac{N_R}{2}$*4 (in worst case) as previously described or is
-this too complex?}
+is the typical time to set/get a value to/from the advert server).
+% \alnote{Should we argue with $\frac{N_R}{2}$*4 (in worst case) as
+%   previously described or is this too complex?}
 % On average the replica-agent must scan
 % the list of replicas 2-4 times before it finds a potential partner for
 % an exchange (due to conflicts with other attempting replicas).  As a
@@ -1256,13 +1258,14 @@ For 32 replicas, that would be 35.2 seconds. Therefore, each replica pair
 waits $35.2/16=2.2$ s at BigJob agent before being restarted. But, 
 we observed that - as the experiment progresses - the BigJob agent 
 would be processing smaller groups of replicas and starting smaller 
-groups of replicas. On average replica pairs after an exchange 
-actually wait 2.2/2=1.1 s to be restarted by the BigJob agent. 
-\alnote{Shouldn't we use the average number of sub-jobs that
-a new job has to wait for as an argument?}
-Therefore, the value of $T_W$ is the same as $T_r$.  
-\alnote{the last sentence can be
-  removed in my opinion.}
+groups of replicas. \jhanote{Andre and I agreed to use 2.2 and not
+  1.1. Table and values need to be updated to reflect this} 
+
+% On average replica pairs after an exchange actually wait 2.2/2=1.1 s
+% to be restarted by the BigJob agent.  \alnote{Shouldn't we use the
+%   average number of sub-jobs that a new job has to wait for as an
+%   argument?}  Therefore, the value of $T_W$ is the same as $T_r$.
+% \alnote{the last sentence can be removed in my opinion.}
 
 
 % there is some amount of
@@ -1298,9 +1301,10 @@ one exchange takes place at a time. \jhanote{Abhinav: Does not explain
   explanation or just refer to the result: 0.2\,s?} \athotanote{explained} An advert query for a replica
 state takes 0.01\,s. For 32 replicas, the RE-Manager requests on
 average 16 other replica states before it finds a partner; thus, $T_f$
-is in total $0.1\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
+is in total $0.01\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
 synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
-
+\jhanote{mention that the number of connexions is smaller to advert
+  server hence 0.01 and not 0.1}
 
 % \alnote{\textbf{Abhinav: Could you improve the description of this paragraph, please? In particular
 % I don't really get the last sentence. Is this the worst or average case? Ok,
@@ -1456,7 +1460,7 @@ least for asynchronous (decentralised) RE.
 % various reasons: as described in section~\ref{sec:impl_sync_re},
 %$T_{w}$, i.\,e.\ 
 
-\jhanote{What changes in sync RE as the $N_R$ increases} 
+
 
 We analysed $T$ and the values of its components for 32 replicas in
 \S~4.1; we use that analysis as the basis to understand the 
@@ -1532,22 +1536,27 @@ different number of replicas and found it to be consistent.
 % for upto 32 replicas, and a random search for $N_R$ value greater than
 % 32.
 % and from 64 to 256 replicas we implemented a random search. 
-For the decentralised implementation, $T_f$ has a $N_R$ dependence.
-\alnote{in the centralised as well, doesn't it?} 
-For the random access case,\alnote{I think in sec 4 we only talk about the
-random case now} we find $T_f$ is $2 \times N_R \times
-0.1$ (where $0.1$ is the typical time to set/get a value to/from the
-advert server).  For example, in Equation~\ref{eq:decent} we see that for 64 replicas, $T_f$ is
- approximately $2 \times 64 \times 0.1 = 12.8$ s. 
+%\alnote{in the centralised as well, doesn't it?} 
+% For the random access case,\alnote{I think in sec 4 we only talk about
+%   the random case now} 
+
+For the decentralised implementation, $T_f$ has a strong $N_R$
+dependence. We find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$ is
+the typical time to set/get a value to/from the advert server).  For
+example, in Equation~\ref{eq:decent} we see that for 64 replicas,
+$T_f$ is approximately $2 \times 64 \times 0.1 = 12.8$ s.
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
-\alnote{Next two sentences: How much does this really impact the decentralised case?
-Also, we defined $T_s$ as 0}
-In addition to the above explicable changes, as $N_R$ increases,
-different nodes of a machine tend to perform differently.  thus
-influencing the time to completion of different replicas.
-Consequently, as then $N_R$ increases, the synchronization time
-typically increases, as does the time to start the replicas.
+
+%  \alnote{Next two sentences: How much does this really impact the
+%    decentralised case?  Also, we defined $T_s$ as 0}
+
+In addition to the above explicable changes arising from different
+coordination costs, as $N_R$ increases, different nodes of a machine
+tend to perform differently.  thus influencing the time to completion
+of different replicas.  Consequently, as then $N_R$ increases, the
+synchronization time typically increases, as does the time to start
+the replicas.
 
 
 
@@ -1641,14 +1650,17 @@ and remote advert updates.
 
 % When $N_R$ is between 8 and 32 and number of BigJobs ($N_{BJ}$ is 4.
 
-\alnote{Not sure whether this fits in here. 1 BJ means we only used one resource?}
-Comparing with the scale-up experiments where only 1 BigJob was used; 
-it can be seen 
-% the figure~\ref{fig:scaleup}, we can see
-that $T$ for 8, 16 and 32 replicas goes up when $N_{BJ}$ is
-reduced. It should also be noted that for $N_R = 64$ and $N_{BJ} =4$,
-$T$ tends to increase, but it would still be less than what it would
-be for 1 BigJob. % Therefore, we can say that if ${N_R \over N_{BJ}
+%\alnote{Not sure whether this fits in here. 1 BJ means we only used one resource?}
+% Comparing with the scale-up experiments where only 1 BigJob was used;
+% it can be seen
+% % the figure~\ref{fig:scaleup}, we can see
+% that $T$ for 8, 16 and 32 replicas goes up when $N_{BJ}$ is
+% reduced. It should also be noted that for $N_R = 64$ and $N_{BJ} =4$,
+% $T$ tends to increase, but it would still be less than what it would
+% be for 1 BigJob.
+
+
+% Therefore, we can say that if ${N_R \over N_{BJ}
 % }\approx$ constant then $T \approx$ constant.
 
 
