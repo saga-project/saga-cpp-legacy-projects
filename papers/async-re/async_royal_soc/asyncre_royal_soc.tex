@@ -1429,7 +1429,7 @@ In asynchronous (centralized) RE, since the RE Manager makes the
 exchanges serially, we see an increase in the time to
 completion. Again, we explain in eqn 4.2 the total time for 32
 replicas.  If $N_R$ is 64 and $N_X$ is 256, from equation 4.1\ref{},
-the new coordination time is $(0.78+1.02) \times 256$. That is the
+the new coordination time is $(0.78+1.02) \times 256 = 834.6$. That is the
 change we see from 32 replicas to 64 replicas in the graph1\ref{}. We
 have verified this for different number of replicas and found it to be
 consistent.
@@ -1439,40 +1439,43 @@ consistent.
 % make up the time to make a pairwise exchange are not smaller. In fact,
 % $T_X$ is very large when compared to other cases. 
 
-In contrast to the other cases, the exchanges are performed by the
-replica-agents instead of having the RE-Manager make the exchanges
-centrally (\jhanote{or serially}).  Thus finding a partner -- and thus
-$T_f$, has two components: a search and reverify stage, which must
-both be successful before an exchange is carried out.
-%a successful search and reverify stage.
+% In contrast to the other cases, the exchanges are performed by the
+% replica-agents instead of having the RE-Manager make the exchanges
+% centrally (\jhanote{or serially}).  Thus finding a partner -- and thus
+% $T_f$, has two components: a search and reverify stage, which must
+% both be successful before an exchange is carried out.
+% %a successful search and reverify stage.
 
-When searching for a replica randomly, on average it takes $N_R \over
-2$ attempts to find a replica that is in the \texttt{done} state.
-However, finding a replica in the \texttt{done} state is not enough to
-ensure an exchange attempt; a reverify step must occur to ensure there
-has been no change in the states of either of the two replicas
-involved. Given that there are several ``active exchanges'' being
-attempted, often the reverify step leads to an aborted exchange
-attempt. Empirical observation suggests that between 2-5 find and
-reverify attempts are made before an exchange is attempted. The exact
-number is a random variable, determined by the number of replicas, the
-distribution of states and whether the attempt to find a replica is
-random or sequential. But in general, replicas contend with each other
-to lock a partner for exchange; this gets worse with increasing number
-of replicas, i.e., $T_f$ increases with increasing $N_R$.
+\jhanote{Move somewhere else? When searching for a replica randomly,
+  on average it takes $N_R \over 2$ attempts to find a replica that is
+  in the \texttt{done} state.  However, finding a replica in the
+  \texttt{done} state is not enough to ensure an exchange attempt; a
+  reverify step must occur to ensure there has been no change in the
+  states of either of the two replicas involved.}
+ 
 
-Specifically, for the random access case, we find $T_f$ is $2 \times
-N_R \times 0.11$ (where $0.11$ is the typical time to set/get a value
-to/from the advert server) and for the sequential access case, we find
-$T_f$ is $2.5 \times N_R \times 0.11$.  We implemented a serial search
-for upto 32 replicas, and a random search for $N_R$ value greater than
-32.
+For the decentralised implementation, $T_f$ has a $N_R$ dependence.
+Given that there are several ``active exchanges'' being attempted,
+often the reverify step leads to an aborted exchange attempt.  The
+exact number is a random variable, determined by the number of
+replicas, the distribution of states and whether the attempt to find a
+replica is random or sequential. Empirical observation suggests that
+between 2-5 find and reverify attempts before an exchange is
+attempted.  But in general, replicas contend with each other to lock a
+partner for exchange; this gets worse with increasing number of
+replicas, i.e., $T_f$ increases with increasing $N_R$.  Specifically,
+for the random access case, we find $T_f$ is $2 \times N_R \times
+0.11$ (where $0.11$ is the typical time to set/get a value to/from the
+advert server) % and for the sequential access case, we find
+% $T_f$ is $2.5 \times N_R \times 0.11$. 
+% We implemented a serial search
+% for upto 32 replicas, and a random search for $N_R$ value greater than
+% 32.
 % and from 64 to 256 replicas we implemented a random search. 
 For example, in eqn 4.3 we see that for 32 replicas, $T_f$ is
-approximately $2 \times 32 \times 0.11 = 7.04$ s. For 64
-replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 = 10.56$
-s. % Only $T_f$ changes with the number of replicas.
-
+approximately $2 \times 32 \times 0.11 = 7.04$ s. 
+% For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
+% 10.56$ s.  Only $T_f$ changes with the number of replicas.
 In addition to the above explicable changes, as $N_R$ increases,
 different nodes of a machine tend to perform differently.  thus
 influencing the time to completion of different replicas.
@@ -1510,26 +1513,76 @@ typically increases, as does the time to start the replicas.
 
 \subsection{Scale out - Asynchronous (centralised)}
 
-{\it Experiments:} To evaluate the performance of asynchronous (centralised) implementation when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 s of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
- \alnote{Is this correct? When do we start to assign the replicas? If the 
-queue time is included, we had at least an explanation for the high stddev-}
-\alnote{How many repeats?} 
+{\it Experiments:} To evaluate the performance of asynchronous
+(centralised) implementation when scaling out across many machines, we
+used the following LONI resources: \emph{QueenBee, Eric, Louie} and
+\emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas
+making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2
+and 4 machines while distributing the number of replicas equally on
+each machine. It is important to note that all experiments are
+conducted using four BigJobs, irrespective of the number of machines
+used; varying the number of BigJobs as well as the ratio of replicas
+per BigJob effects overall performance.  Another important point to
+note is that only the experimental runs where all the four BigJobs
+become active within 30 s of each other on submission to the resource
+manager are considered and included in the results. This is to remove
+the queue wait time from the equation and focus on the runtime. Each
+experiment is repeated 5 times.  \alnote{Is this correct? When do we
+  start to assign the replicas? If the queue time is included, we had
+  at least an explanation for the high stddev-} \alnote{How many
+  repeats?}
 
-{\it Results:} The results obtained are shown in figure~\ref{fig:24machines}. 
+% This is necessitated by the fact that the number of BigJob
+% agents effects the overall performance.
+% If there are more BigJob
+% agents per number of replicas, the number of replicas under each
+% BigJob agent would be smaller. And each replica would face smaller
+% waiting times at the BigJob agent.
+
+
+
 %In the synchronous RE, the total time to completion consistently increases with increasing number of machines. But we do not see a consistent increase of decrease in the other two implementations. The changes that we do see are within error bars. 
 % In the synchronous RE, with increasing number of machines, the synchronization cost only increases. Which is even more true in a heterogeneous environment. Also, with more machines, the RE-Manager has to stage-in more remote files to retrieve the energy and temperature of a replica and  stage-out more configuration files to remote machines. A remote file transfer is much more expensive than a local file copy. These two factors make the total time to completion consistently increase with increasing number of machines. 
-In the asynchronous (centralised) RE, there is no synchronization cost. That helps improve the performance. Also, in this case the BigJob agent retrieves the temperature and energy of a replica and posts the value in the advert server, which is much more efficient than staging-in the output files to the local machine to retrieve the values. But the RE Manager still has to stage-out the modified configuration files after each exchange. From 1 machines to 2 machines, we see a change in $T$ within error bars and with 4 machines we notice an increase outside the error bars. That shows the cost of staging-out files to 3 remote machines.
 
-From the figure~\ref{fig:24machines}, we see that total time to completion is approximately constant for different number of machines, when $N_R$ is between 8 and 32 and number of BigJobs ($N_{BJ}$ is 4. Comparing with data from the figure~\ref{fig:scaleup}, we can see that $T$ for 8, 16 and 32 replicas goes up when $N_{BJ}$ is reduced. It should also be noted that if $N_R$ is 64 and $N_{BJ}$ is still 4, $T$ might start to go up, but it would still be less than what it would be for 1 BigJob. Therefore, we can say that if ${N_R \over N_{BJ} }\approx$ constant then $T \approx$ constant.
+% Also, in this case the
+% BigJob agent retrieves the temperature and energy of a replica and
+% posts the value in the advert server, which is much more efficient
+% than staging-in the output files to the local machine to retrieve the
+% values.
+% But the RE Manager still has to stage-out the modified
+% configuration files after each exchange. From 1 machines to 2
+% machines, we see a change in $T$ within error bars and with 4 machines
+% we notice an increase outside the error bars. That shows the cost of
+% staging-out files to 3 remote machines.
+
+
+{\it Results:} The results obtained are shown in
+figure~\ref{fig:24machines}.  As discussed, in the asynchronous
+(centralised) RE, there is no synchronization cost.  From
+figure~\ref{fig:24machines}, we see that $T$ is approximately constant
+or changes slightly even as the number of machines used changes. This
+indicates
+good scaling-out behaviour. 
+% When $N_R$ is between 8 and 32 and number of BigJobs ($N_{BJ}$ is 4.
+Comparing with the scale-up experiments where only 1 BigJob was used; it can be seen 
+% the figure~\ref{fig:scaleup}, we can see
+that $T$ for 8, 16 and 32 replicas goes up when $N_{BJ}$ is
+reduced. It should also be noted that for $N_R = 64$ and $N_{BJ} =4$,
+$T$ tends to increase, but it would still be less than what it would
+be for 1 BigJob. % Therefore, we can say that if ${N_R \over N_{BJ}
+% }\approx$ constant then $T \approx$ constant.
 
 
 
 %In the asynchronous (decentralised) RE, compared to the centralised implementation, there is no need to stage-in or stage-out the configuration files at any time. The energy and temperature values are exchanged via the advert server and the configurations files are modified locally by the replica-agent. Thus, even with increasing number of machines, we don't actually see a difference in $T$ outside the error bars. 
 %\alnote{To-be-answered: Why is case II faster than III in the 8rep/[1,2] machine scenario?}
 %We see in figure4(a)\ref{} that the asynchronous (centralised) is faster than the decentralised implementation. This is because with a small number of replicas (8 in this case), it more efficient to conduct the exchanges in a centralised manner.  This way we avoid the contention for exchange partner that is seen in the decentralised implementation. 
-\alnote{Why is that? fewer replicas should also mean less load on the advert service? How is this reflected in 
-our math. model?}
-\alnote{TODO: Local vs. distributed coordination, BigJob startup times}
+
+
+% \alnote{Why is that? fewer replicas should also mean less load on the
+%   advert service? How is this reflected in our math. model?}
+% \alnote{TODO: Local vs. distributed coordination, BigJob startup
+%   times}
 
 
 % Overall, there is not much difference between the local and distributed 
