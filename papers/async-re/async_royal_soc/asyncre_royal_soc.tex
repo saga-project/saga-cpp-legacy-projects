@@ -272,8 +272,8 @@ time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
 book-keeping associated with replica pairing/exchanging ($T_{coord}$)
 (thus $T_{X} = T_{f} + T_{ex}+T_{coord}$); 
 %\alnote{Do we need to split up$T_{W}$? I don't see a (ii).}
-$T_W$ is comprised of the time spent by a replica waiting for other
-replicas to become available ($T_w$), the time spent waiting to be restarted
+$T_W$ is comprised of the synchronisation time spent by a replica waiting for other
+replicas to complete running ($T_s$), the time spent waiting to be restarted
 after each exchange ($T_r$) and any other associated costs, and $\eta$
 is the number of independent exchange events occurring concurrently,
 As we will establish, the coordination and waiting costs differ for
@@ -845,19 +845,19 @@ discuss each case in the following sections.
 	$T_{MD}$       &71\,s &71\,s &71\,s\\
 	\hline
 	\hline
-	$T_{W}$        &2.6\,s &1.1\,s &1.0\,s\\
+	$T_{W}$        &2.8\,s &1.1\,s &0.7\,s\\
     \hline
-    \hspace{2mm}$T_{w}$ &1.8\,s &1.1\,s &0.0\,s\\ 
+    \hspace{2mm}$T_{s}$ &2.8\,s &0\,s &0\,s\\ 
     \hline
-    \hspace{2mm}$T_{r}$ &0.8 s&0.0\,s &1.0\,s\\
+    \hspace{2mm}$T_{r}$ &0 s&1.1\,s &0.7\,s\\
 	\hline\hline
-	$T_{X}$        &0.6\,s &0.8\,s &7.1\,s\\
+	$T_{X}$        &0.6\,s &0.8\,s &7.2\,s\\
 	\hline
 	\hspace{2mm}$T_{f}$        &0\,s   &0.2\,s &6.4\,s\\
 	\hline
 	\hspace{2mm}$T_{ex}$       &0.4\,s &0.4\,s &0.6\,s\\
 	\hline
-    \hspace{2mm}$T_{coord}$    &0.2\,s &0.2\,s  &0.1\,s\\
+    \hspace{2mm}$T_{coord}$    &0.2\,s &0.2\,s  &0.2\,s\\
 	\hline
 	\hline
 	$\mathbf{T_{C}}$        &\textbf{1003\,s} &\textbf{811\,s}    &\textbf{633\,s}\\
@@ -891,12 +891,12 @@ i.\,e.\ there is a delay between the startup of the first and the last
 replica. Also, the post-processing of each replica run, i.\,e.\
 updating the state, marking nodes free, the stage-out of the output
 file, is done sequentially.  The longer of both times -- in this case
-the post-processing time -- determines the overall time spent waiting
-for other replicas.  On average, it takes $1.4\,s$ to process a
+the post-processing time -- determines the overall time spent waiting ($T_s$)
+for other replicas.  On average, it takes $1.4\,s$ for the BigJob agent to process a
 replica that has completed running. In an ensemble of 32 replicas the
 delay between the termination of the first and last replica adds up to
 $44.8\,s$, i.\,e.\ for one replica pair (there are in total 16 pairs
-in a 32 replica ensemble): $T_{W} = 2.8\,s$.
+in a 32 replica ensemble): $T_{s} = 2.8\,s$. $T_r$ is 0 for synchronous RE, as the BigJob agent starts working only after the RE Manager completes all exchanges. There is now waiting time at the agent. Thus, $T_W$ is 2.8 s per replica pair.
 
 % That is the time it takes to update the state and
 % mark the nodes as free.  Since the whole ensemble of replicas needs to
@@ -1046,8 +1046,8 @@ case. \alnote{Abhinav please check: in my opinion this is the worst
   case not the average case. The second replica eg has to wait less.}
 \athotanote{well...}  In the worst case, the first replica pair that
 is restarted has to wait for the processing of the other remaining 30
-replicas: $1.1\,s \times 30 = 33\,s$. This corresponds to $T_{W}$ of
-$1.1\,s$ per replica.\alnote{I still have some issues with that
+replicas: $1.1\,s \times 30 = 33\,s$. This corresponds to $T_{r}$ of
+$1.1\,s$ per replica. $T_s$ is 0 in asynchronous RE. Thus, $T_W$ is 1.1 s.\alnote{I still have some issues with that
   formula i) we don't model anything related to the central master ii)
   I am not sure whether the per replica view is correct. What is a
   reasonable $\eta$ (resp. $\eta_{MD}$ and $\eta_{coord}$) for async
@@ -1129,19 +1129,9 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} =
 % be lower than in the async-cent. case since we don't have a central coordinator?}
 
 
-As in the asynchronous-centralised case the,
-asynchronous-decentralised implementation does not involve a replica
-waiting for other replicas to reach a specific state before initiating
-an exchange. There are other types of holding that contribute to the
-overall $T_C$, e.\,g.\ for managing simulation runs, for updating the
-advert service, etc. Also, queries and updates to the advert service
-take longer in the decentralised than in the other both case -- mainly
-due to the higher number of connections and requests. In total, there
-are three advert updates required: one for updating the state, two for
-posting the simulation results. Each update requires about $0.1\,s$,
-i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required
-for monitoring, restarting replicas as well as processing of output
-file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
+%As in the asynchronous-centralised case the, asynchronous-decentralised implementation does not involve a replica waiting for other replicas to reach a specific state before initiating an exchange. There are other types of holding that contribute to the overall $T_C$, e.\,g.\ for managing simulation runs, for updating the advert service, etc. Also, queries and updates to the advert service take longer in the decentralised than in the other both case -- mainly due to the higher number of connections and requests. In total, there are three advert updates required: one for updating the state, two for posting the simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as well as processing of output file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
+
+In the asynchronous (decentralised) RE, the replica are managed individually by  replica-agents. There is no synchronisation involved. Also, the replicas do not wait at the BigJob agent. Thus, $T_s$ is 0 s.
 
 \alnote{\textbf{Old Paragraph - please check whether I put the important points into
 the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
@@ -1162,12 +1152,14 @@ a replica that completed its run, it updates its state in the advert
 server, which takes $0.1\,s$. 
 % \alnote{A advert modification took in the previous
 % cases 0.01\,sec? What is different here?}.\athotanote{yes, the number of 
-connections to the advert server effects the performance} Also, it
+connections to the advert server effects the performance}
+
+The replica-agent
 retrieves the energy and temperature from the output files, each of
 which actions take $0.2\,s$. It then posts both these values to the
 advert server.  These are the associated costs:
 $0.1+0.2\times2+0.1\times2=0.7\,s$.  In sum, the waiting time can be
-computed as follows: $T_W = 0.3 + 0.7=1\,s$.  }
+computed as follows: $T_r = 0.7\,s$.  It should be noted that $T_r$ here is not waiting at the BigJob agent, but at the replica-agent. Thus, $T_W$ = 0.7 s.
 
 $T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary to lock
 an exchange partner. On average the replica-agent must scan the list of 
@@ -1187,8 +1179,8 @@ a new configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$
 (And even in the other scenario, where the replica in question is 
 not the initiator of the exchange, it has to wait for the other replica to set its state as
 complete, so that it can restart). $T_{coord}$ is the time it takes to
-update the state in the advert server, which is $0.1\,s$. 
-Thus, $T_{X}$ is $6.4+0.6 +0.1= 7.1\,s$. 
+update the state in the advert server, which is $0.2\,s$. 
+Thus, $T_{X}$ is $6.4+0.6 +0.2= 7.2\,s$. 
 \alnote{I adjusted the table and equation. Could you check, please.} \athotanote{done}
 
 % \alnote{In the other cases the state must be updated in the
@@ -1223,7 +1215,7 @@ data structure used?}\athotanote{it might be possible..}
 
 Substituting the above values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.1+1.0)\times 128\over 16}} = {1 \over p} \times 633~s
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 16}} = {1 \over p} \times 633~s
 \label{eq:decent}
 \end{eqnarray}
 
@@ -1451,7 +1443,7 @@ typically increases, as does the time to start the replicas.
 
 \subsection{Scale out - Asynchronous (centralised)}
 
-{\it Experiments:} To evaluate the performance of asynchronous (centralised) implementation when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 seconds of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
+{\it Experiments:} To evaluate the performance of asynchronous (centralised) implementation when scaling out across many machines, we used the following LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are repeated on 1, 2 and 4 machines while distributing the number of replicas equally on each machine. It is important to note that all experiments are conducted using four BigJobs, irrespective of the number of machines used. This is necessitated by the fact that the number of BigJob agents effects the overall performance. If there are more BigJob agents per number of replicas, the number of replicas under each BigJob agent would be smaller. And each replica would face smaller waiting times at the BigJob agent. Another important point to note is that only the experimental runs where all the four BigJobs become active within 30 s of each other on submission to the resource manager are considered and included in the results. This is to remove the queue wait time from the equation and focus on the runtime. Each experiment is repeated 5 times. 
  \alnote{Is this correct? When do we start to assign the replicas? If the 
 queue time is included, we had at least an explanation for the high stddev-}
 \alnote{How many repeats?} 
