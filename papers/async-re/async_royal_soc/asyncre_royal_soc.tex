@@ -246,19 +246,19 @@ replicas and there would be no overhead associated with the
 coordination of the replicas.  If the ensemble contains $N_R$
 replicas, the total number of pairwise exchanges is $N_X$ and the
 runtime of a replica to complete a defined number of time steps is
-$T_{MD}$, then the total time to complete the RE experiment, $T$ would
+$T_{MD}$, total time to complete the RE experiment, $T$ would
 be:
 \begin{eqnarray}
 T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}}) 
 \label{eq:totaltime}
 \end{eqnarray}
-where, p is defined as the probability of a successful exchange be $p$
-(the probability of a successful exchange is not 1, the
-decision to accept an exchange or not is made using the
-Metropolis scheme~\citep{metropolis:1087}). However, any RE experiment will entail an overhead
-of coordination, job-submission \& termination etc. Thus, the time $T$
-to complete the RE experiment where N$_X$ is the total number of
-exchanges is:
+where $p$ is defined as the probability of a successful exchange (the
+probability of a successful exchange is not 1, the decision to accept
+an exchange or not is made using the Metropolis
+scheme~\citep{metropolis:1087}). However, any RE experiment will
+entail an overhead of coordination, job-submission \& termination
+etc. Thus, the time $T$ to complete the RE experiment where N$_X$ is
+the total number of exchanges is:
 %\alnote{I would propose to write $\frac{N_X}{\eta}$ to have both terms consistent}
 \begin{eqnarray}
   T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
@@ -376,14 +376,15 @@ other miscellaneous costs.
 An important motivation for this work is to design and implement a
 framework that provides the capability to implement and compare the
 performance of the different RE algorithms formulations at
-large-scales.  In addition, it is important that framework be
+large-scales.  In addition, it is important that the framework be
 independent of the underlying infrastructure.  It is useful to
 highlight that we differ from other RE implementations (e.g.
-\cite{parashar_arepex}) in that we use {\it production grade}
-national and regional cyberinfrastructure, such as the US TeraGrid and
-LONI~\citep{LONI_web}, using general purpose and standard
-capabilities.  Additionally, our framework {\it natively} supports
-individual replicas that are MPI jobs. In this section we outline the
+\cite{parashar_arepex}) in that we use {\it production grade} national
+and regional cyberinfrastructure, such as the US TeraGrid and
+LONI~\citep{LONI_web}, using general purpose tooling and standard
+capabilities available on these production infrastructure.
+Additionally, our framework {\it natively} supports individual
+replicas that are MPI jobs. In this section we outline the
 architecture, implementation and the basic performance of the RE
 framework when used to implement the different formulations.
 
@@ -463,10 +464,9 @@ The RE-Manager is the master process controlling the different
 components of the framework and aspects of the exchanges.  The RE
 Manager % is an abstraction that
 uses the SAGA BigJob Manager; the actual tasks that the RE-Manager
-performs out depend on which RE algorithm is being investigated.  A
-replica-agent is a wrapper script that manages an individual
-replica  -- starts, facilitates the exchange of that replica,
-and restarts it.
+performs depend on which RE algorithm is being investigated.  A
+replica-agent is a wrapper script that manages an individual replica
+-- starts, facilitates the exchange of that replica, and restarts it.
 
 % And at the least, it is the SAGA BigJob Manager.  At the most,
 % launched in place of the replica. The replica-agent implementation
@@ -588,7 +588,7 @@ exchange attempts.  The replica-agents upon launch, run the replicas;
 %  general description of what is happening here} 
 % \alnote{refined} \jhanote{Thanks Andre. Should have been clear, it was
 %   for Abhinav to understand. Sorry you had to do it}
-A list of nodes that is used to carry out the MD run is passed to the
+a list of nodes that is used to carry out the MD run is passed to the
 replica-agent as an argument at startup.  The replica-agent constantly
 monitors the replica, and when the replica finishes, it updates the
 advert server with the current state of that replica.  It also reads
@@ -826,9 +826,16 @@ times, during different load factors; therefore specific queue wait
 times can be approximated to be similar.  Additionally, as we will
 %eventually be primarily 
 be interested in understanding the scale-up and scale-out properties
-of synchronous and asynchronous RE, we do not consider queueing 
-times.  Table~\ref{table:repex_perf} summarizes the results. We will
-discuss each case in the following sections.
+of synchronous and asynchronous RE, we do not consider queueing times.
+As explained in \S~\ref{sec:repex-approach} (\ref{sec:math-model}),
+the relative performance of RE implementations is primarily determined
+by the waiting time $T_W$ and the time for conducting the exchange
+$T_X$. In the following we analyse the average values for $T_{W}$ and
+$T_X$ for each replica pair.  Table~\ref{table:repex_perf} summarizes
+the results. We will discuss each case in the following sections.
+
+
+
 % Therefore, we start measuring time lapsed only when
 % the BigJob agent starts running the replicas/replica-agents because, almost every
 % time, the RE-Manager completes submitting them before the
@@ -887,12 +894,6 @@ discuss each case in the following sections.
 %   resubmission time as $T_{mgmt}$. Also, I don't see this component
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 s.
-
-As explained in \S~\ref{sec:repex-approach}
-(\ref{sec:math-model}), the relative performance of RE implementations
-is primarily determined by the waiting time $T_W$ and the time for
-conducting the exchange $T_X$. In the following we analyse the average
-values for $T_{W}$ and $T_X$ for each replica pair.  
 
 In the synchronous RE implementation replicas are started
 sequentially, i.\,e.\ there is a delay between the startup of the
@@ -1035,25 +1036,22 @@ equation~\ref{eq:totaltime}, we get:
 
 A fundamental difference between synchronous and asynchronous
 formulations of RE is in synchronisation barrier for the replicas
-before exchanges, i.e., the former has one, the latter don't. However,
-the lack of a synchronisation barrier leads to a more involved
-implementation to dynamically pair replicas. So although, $T_s = 0$
-for asynchronous formulations, this comes at the cost of a higher
-$T_f$.
+before exchanges, i.e., the former has a barrier, the latter does not.
+So although, $T_s = 0$ for asynchronous formulations, this comes at
+the cost of a higher $T_f$, the lack of a synchronisation barrier
+leads to a more involved implementation to dynamically pair replicas.
 
 In the asynchronous (decentralised) RE, the replicas are managed
-individually by replica-agents. There is no synchronisation
-involved. Also, the replicas do not wait at the BigJob agent. Thus,
-$T_s$ is 0 s.  The replica-agent constantly monitors all replicas. If
-it finds a replica that completed its run, it updates its state in the
-advert server, which takes $0.1\,s$.  The replica-agent retrieves the
-energy and temperature from the output files, each of which takes
-$0.2\,s$. It then posts both these values to the advert server.  The
-waiting times to retrieve these values is thus
-$0.1+0.2\times2+0.1\times2=0.7\,s$, and $T_r = 0.7\,s$.  Note that
+individually by replica-agents. The replica-agent constantly monitors
+all replicas. If it finds a replica that completed its run, it updates
+its state in the advert server, which takes $0.1\,s$.  The
+replica-agent retrieves the energy and temperature from the output
+files, each of which takes $0.2\,s$. It then posts both these values
+to the advert server.  The waiting times to retrieve these values is
+thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_r = 0.7\,s$.  Note that
 here $T_r$ involves waiting at the replica-agent and not the BigJob
-agent (like the centralised case). Therefore the value of $T_W$ is the
-same as $T_r$ ($0.7\,s$).
+agent (like the centralised case).  Therefore the value of $T_W$ 
+$0.7\,s$.
 
 % \alnote{\textbf{Old Paragraph - please check whether I put the important points into
 % the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
@@ -1098,7 +1096,7 @@ same as $T_r$ ($0.7\,s$).
 
 $T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
 to lock an exchange partner.  When searching for a replica randomly,
-\alnote{does randomly also apply to case II?}
+%\alnote{does randomly also apply to case II?}
 on average it takes $N_R \over 2$ attempts to find a replica that is
 in the \texttt{done} state.  However, finding a replica in the
 \texttt{done} state is not enough to ensure an exchange attempt.
@@ -1242,18 +1240,19 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 1
 % $0.11\times 2 = 0.22$ s. Therefore, $T_{X}$ is
 % $0.16+0.4+0.22=0.78$ s. 
 
-As in the decentralised case, the centralised, asynchronous RE algorithm 
-does not require synchronization between {\it all} replicas in order to 
-transition a replica-pair from \texttt{running} to \texttt{done} state 
-and $T_s = 0$ by definition. Using a centralised implementation the time
-to find an exchange partner ($T_f$) can be reduced; however, this comes
-at a tradeoff that there is some contention at the master. Also, we observed
-some delays at the BigJob agents during the startup of the replicas sub-jobs mainly
-due to the fact that the BigJob agent is single-threaded and thus, is busy
+As in the decentralised case, the asynchronous centralised RE
+algorithm does not require synchronization between {\it all} replicas
+in order to transition a replica-pair from \texttt{running} to
+\texttt{done} state and $T_s = 0$ by definition. Using a centralised
+implementation the time to find an exchange partner ($T_f$) can be
+reduced; however, this comes at a tradeoff that there is some
+contention at the master. Also, we observed some delays at the BigJob
+agents during the startup of the replicas sub-jobs mainly due to the
+fact that the BigJob agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
 post-processing of a sub-job (replica) requires
-1.1\,s. \jhanote{Abhinav: Either we multiply by 2 to get pair-wise
-  value for $T_r$ or we elaborate/explain better} \athotanote{explained} 
+1.1\,s.% \jhanote{Abhinav: Either we multiply by 2 to get pair-wise
+%   value for $T_r$ or we elaborate/explain better} \athotanote{explained} 
 For 32 replicas, that would be 35.2 seconds. Therefore, each replica pair 
 waits $35.2/16=2.2$ s at BigJob agent before being restarted. But, 
 we observed that - as the experiment progresses - the BigJob agent 
@@ -1295,16 +1294,18 @@ dynamically determined and not fixed. $T_f$ depends on the overall
 number of replicas ($N_R$), which determines the number of records the
 RE-Manager has to scan in order to find an available replica. On
 average the RE-Manager must search through $N_R/2$ replicas before it
-finds a partner.  The exchanges are made by the RE-Manager and only
-one exchange takes place at a time. \jhanote{Abhinav: Does not explain
-  why $T_f$ is 0.2. Please explain} \alnote{Do we want to keep this
-  explanation or just refer to the result: 0.2\,s?} \athotanote{explained} An advert query for a replica
-state takes 0.01\,s. For 32 replicas, the RE-Manager requests on
-average 16 other replica states before it finds a partner; thus, $T_f$
-is in total $0.01\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
+finds a partner. Although the search for a replica is random like the
+decentralised implementation, there is no need for reverifying, as due
+to centralised control there is no contention in replica pairing,
+i.e., exchanges are made by the RE-Manager and only one exchange takes
+place at a time.  An advert query for a replica state takes
+0.01\,s. Note this is a factor of 10 less than the decentralised
+implementation where there was a connection to the advert server for
+every replica-agent; here there is a single connection. For 32
+replicas, the RE-Manager requests on average 16 other replica states
+before it finds a partner; thus, $T_f$ is in total
+$0.01\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
 synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
-\jhanote{mention that the number of connexions is smaller to advert
-  server hence 0.01 and not 0.1}
 
 % \alnote{\textbf{Abhinav: Could you improve the description of this paragraph, please? In particular
 % I don't really get the last sentence. Is this the worst or average case? Ok,
