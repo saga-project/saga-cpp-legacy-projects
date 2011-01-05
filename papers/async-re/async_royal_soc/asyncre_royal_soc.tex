@@ -344,7 +344,7 @@ In asynchronous formulations of the RE
 algorithms~\citep{parashar_arepex,DBLP:journals/jcc/GallicchioLP08}, a
 replica does not have to wait for {\it all} other replicas to reach a
 pre-determined state. An exchange occurs whenever a replica reaches a
-pre-determined state and perform an exchange with another suitable
+pre-determined state. It then performs an exchange with another suitable
 replica in the ensemble.  The reduction in {\it synchronisation}
 (wait) times comes at the cost of increased {\it coordination} costs.
 The specific values of the terms $T_{X}$ and $T_W$, in
@@ -441,19 +441,19 @@ supports a scheme that does not depend on a static set of resources
 that are pre-defined at the time of workload submission.
 
 Figure ~\ref{fig:bigjob} shows the architecture of SAGA BigJob.  It
-consists of three components: (i) the SAGA-BigJob Manager, (ii) the
-BigJob Agent and (iii) the advert service which is a central key/value
-store which is used for communication between the SAGA-BigJob Manager
-and the BigJob agent.  The SAGA-BigJob manager submits the BigJobs to
+consists of three components: (i) the BigJob-Manager, (ii) the
+BigJob-Agent and (iii) the advert service which is a central key/value
+store which is used for communication between the BigJob-Manager
+and the BigJob-Agent.  The BigJob-Manager submits the big-jobs to
 the resource manager and sub-job descriptions to the advert server.
-There is a separate BigJob agent for each BigJob, even if there are
-multiple BigJobs on a given machine.  Once a BigJob becomes active,
-the BigJob agent retrieves the job descriptions from the advert
+There is a separate BigJob-Agent for each big-job, even if there are
+multiple big-job on a given machine.  Once a big-job becomes active,
+the BigJob-Agent retrieves the job descriptions from the advert
 server, allocates the required number of nodes and launches the
-sub-jobs on each resource. The BigJob agent continuously monitors the
+sub-jobs on each resource. The BigJob-Agent continuously monitors the
 running sub-jobs and updates the sub-job states in the advert
 server. Once a sub-job finishes running, the nodes are freed and
-marked as available. The BigJob agent periodically polls the advert
+marked as available. The BigJob-Agent periodically polls the advert
 server for new jobs.
 
 \subsection{Replica-Exchange Manager}\label{repexmanager} 
@@ -468,7 +468,7 @@ server for new jobs.
   
 The RE-Manager is the master process controlling the different
 components of the framework and aspects of the exchanges. The 
-RE-Manager uses the SAGA BigJob Manager; the actual tasks that the RE-Manager
+RE-Manager uses the SAGA BigJob-Manager; the actual tasks that the RE-Manager
 performs depend on which RE algorithm is being investigated.  A
 replica-agent is a wrapper script that manages an individual replica
 -- starts, facilitates the exchange of that replica, and restarts it.
@@ -489,7 +489,7 @@ decentralised coordination implementation, multiple replica-agents
 take on that responsibility.  It is worth noting that the synchronous
 RE algorithm has centralised coordination scheme.  Interestingly, for
 decentralised coordination implementation, the RE-Manager is
-functionally similar to the SAGA BigJob Manager.
+functionally similar to the SAGA BigJob-Manager.
 
 % Synchronous RE is implemented in a centralised fashion. Centralized
 % implementation suits synchronous RE because there is a
@@ -539,14 +539,14 @@ Figure~\ref{fig:coordination}(a), which can be used to understand both
 the asynchronous (centralised) RE and synchronous RE implementations.
 A replica can be in one of these three states: (i) \texttt{new} (submitted but not started), (ii) \texttt{running} and (iii) \texttt{done}.
 Once the BigJob(s) is active and replicas are \texttt{running}, the RE-Manager constantly
-queries the SAGA BigJob Manager for the latest replica states.  When
+queries the SAGA BigJob-Manager for the latest replica states.  When
 the RE-Manager finds a replica that has finished running, it collects
 the energy and temperature of that replica by reading the output
 file. Once \emph{all} the replicas have finished running, the
 RE-Manager performs the exchanges by swapping temperatures and writing
 new configuration files. The new configuration files are staged to the
 appropriate location. The RE-Manager then submits the replicas for
-restarting, and the SAGA BigJob Manager restarts them. The RE-Manager
+restarting, and the SAGA BigJob-Manager restarts them. The RE-Manager
 keeps count of the successful exchanges, until the required number of
 exchanges are done.
 
@@ -558,7 +558,7 @@ replica that has finished running, it tries to find a partner to make
 an exchange. In order to find a partner, the RE-Manager goes over the
 list of all the replicas in the ensemble. If it finds a replica
 available it attempts the exchange. If a replica is not found
-available, the RE-Manager queries the SAGA BigJob Manager for the
+available, the RE-Manager queries the SAGA BigJob-Manager for the
 latest replica states and updates its local list. It then loops over
 the list to find a replica that has finished running and a partner to
 exchange with that replica.  If successful, the replicas are submitted
@@ -911,8 +911,8 @@ to process a replica that has completed running. Thus, $T_{s}$, which
 is defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
 replicas (with 16 pairs) the delay between the first and last replica
 transitioning to \texttt{done} state adds up to $44.8\,s$.  The
-waiting time at the bigjob agent is subsumed by the synchronisation
-time, thus the BigJob agent is effectively always ready to start
+waiting time at the BigJob-Agent is subsumed by the synchronisation
+time, thus the BigJob-Agent is effectively always ready to start
 replicas, thus, $T_r$ is 0 for synchronous RE.
 
 % \alnote{which is also not really the case since sub-jobs
@@ -1052,8 +1052,8 @@ replica-agent retrieves the energy and temperature from the output
 files, each of which takes $0.2\,s$. It then posts both these values
 to the advert server.  The waiting times to retrieve these values is
 thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_r = 0.7\,s$.  Note that
-here $T_r$ involves waiting at the replica-agent and not the BigJob
-agent (like the centralised case).  Therefore the value of $T_W$ 
+here $T_r$ involves waiting at the replica-agent and not the 
+BigJob-Agent (like the centralised case).  Therefore the value of $T_W$ 
 $0.7\,s$.
 
 % \alnote{\textbf{Old Paragraph - please check whether I put the important points into
@@ -1251,15 +1251,15 @@ implementation the time to find an exchange partner ($T_f$) can be
 reduced; however, this comes at a tradeoff that there is some
 contention at the master. Also, we observed some delays at the BigJob
 agents during the startup of the replicas sub-jobs mainly due to the
-fact that the BigJob agent is single-threaded and thus, is busy
+fact that the BigJob-Agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
 post-processing of a sub-job (replica) requires
 1.1\,s. % \jhanote{Abhinav: Either we multiply by 2 to get pair-wise
 %   value for $T_r$ or we elaborate/explain better} \athotanote{explained} 
 For 32 replicas, that would be 35.2 seconds. Therefore, each replica
-pair waits $35.2/16=2.2$ s at BigJob agent before being
+pair waits $35.2/16=2.2$ s at BigJob-Agent before being
 restarted. But, we observed that - as the experiment progresses - the
-BigJob agent would be processing smaller groups of replicas and
+BigJob-Agent would be processing smaller groups of replicas and
 starting smaller groups of replicas. \jhanote{Abhinav: Andre and I
   agreed to use 2.2 and not 1.1. Table and values in the Equation need
   to be updated to reflect this} \athotanote{but this is the worst
