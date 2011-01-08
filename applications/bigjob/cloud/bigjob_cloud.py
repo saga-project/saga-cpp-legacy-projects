@@ -21,6 +21,10 @@ import Queue
 import threading
 import copy
 
+# CMD Tool
+EC2_HOME="/opt/ec2/"
+JAVA_HOME="/Library/Java/Home/"
+
 #Nimbus
 NIMBUS_CLIENT="/home/luckow/sw/nimbus/bin/cloud-client.sh"
 NIMBUS_URL="nimbus://tp-vm1.ci.uchicago.edu"
@@ -36,10 +40,10 @@ EC2_PLACEMENT_GROUP="namd-cluster"
 
 
 # EUCA
-EUCA_ENV_FILE="/home/luckow/.euca/eucarc"
-EUCA_KEYNAME="euca-key"
-EUCA_SSH_PRIVATE_KEY_FILE="/home/luckow/.euca/euca-key.private"
-EUCA_INSTANCE_TYPE="m1.small"
+EUCA_ENV_FILE="/Users/luckow/.ec2/fg-india/eucarc"
+EUCA_KEYNAME="fg-india"
+EUCA_SSH_PRIVATE_KEY_FILE="/Users/luckow/.ec2/fg-india/fg-india.pem"
+EUCA_INSTANCE_TYPE="m1.xlarge"
 
 class bigjob_cloud():
     
@@ -98,7 +102,7 @@ class bigjob_cloud():
             self.ssh_context.set_attribute("UserKey", EC2_SSH_PRIVATE_KEY_FILE)
             self.session = saga.session()
             self.session.add_context(self.ssh_context)  
-            
+            self.instance_type = EC2_INSTANCE_TYPE
             self.key_name = EC2_KEYNAME
             
             #setup environment
@@ -112,7 +116,7 @@ class bigjob_cloud():
             self.ssh_context.set_attribute("UserKey", EUCA_SSH_PRIVATE_KEY_FILE)
             self.session = saga.session()
             self.session.add_context(self.ssh_context)   
-            
+            self.instance_type = EUCA_INSTANCE_TYPE
             self.key_name = EUCA_KEYNAME
             
              #setup environment
@@ -268,15 +272,16 @@ class bigjob_cloud():
  
         if EC2_INSTANCE_TYPE == "cc1.4xlarge":
             # cluster compute instances require a placement group
-            command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
-                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE \
+            command = EC2_HOME + "/bin/ec2-run-instances " +  self.image_name \
+                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + self.instance_type \
                 + "--placement-group " + EC2_PLACEMENT_GROUP
         else:
-            command = self.env_dict["EC2_HOME"] + "/bin/ec2-run-instances " +  self.image_name \
-                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + EC2_INSTANCE_TYPE 
+            command = EC2_HOME + "/bin/ec2-run-instances " +  self.image_name \
+                + " -k " + self.key_name + " -n " + str(number_nodes) + " -t " + self.instance_type 
                 
         print "execute: " + command + " in " + self.working_directory
-        
+        self.env_dict["EC2_HOME"]=EC2_HOME
+        self.env_dict["JAVA_HOME"]=JAVA_HOME
         stdout = self.execute_command(command, self.working_directory, self.env_dict)
         vmid_regex = re.compile("i-\w*")
         for i in stdout.splitlines():
@@ -296,7 +301,9 @@ class bigjob_cloud():
     def wait_for_ec2_instance_startup(self):
         """ polls EC2 for updated instance states """
         print "* WAIT FOR EC2 nodes to come up "
-        command = self.env_dict["EC2_HOME"]  + "bin/ec2-describe-instances"
+        self.env_dict["EC2_HOME"]=EC2_HOME
+        self.env_dict["JAVA_HOME"]=JAVA_HOME
+        command = EC2_HOME  + "bin/ec2-describe-instances"
         for i in self.nodes:
             command = command + " "+ i["vmid"]
         while self.check_all_ec2_nodes()==False:
@@ -380,7 +387,7 @@ class bigjob_cloud():
         for i in self.nodes:
             instances = instances + i["vmid"] + " "
             
-        command = self.env_dict["EC2_HOME"]  + "/bin/ec2-terminate-instances " + instances
+        command = EC2_HOME  + "/bin/ec2-terminate-instances " + instances
         self.execute_command(command, self.working_directory, self.env_dict)
          
     

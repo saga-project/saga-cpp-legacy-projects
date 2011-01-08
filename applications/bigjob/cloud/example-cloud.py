@@ -26,7 +26,8 @@ if __name__ == "__main__":
     bj = bigjob_cloud.bigjob_cloud()
     bj.start_pilot_job(number_nodes=nodes, 
                        working_directory=current_directory,
-                       cloud_type="EC2")
+                       cloud_type="EUCA",
+                       image_name="emi-DB55105B")
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################

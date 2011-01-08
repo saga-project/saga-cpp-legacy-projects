@@ -101,16 +101,16 @@ class many_job_service(object):
         job = subjob.job 
         if job == None:
             #create new subjob
-            bigjob = bigjob_info["bigjob"]
+            #bj = bigjob_info["bigjob"]
             job = bigjob.subjob(self.advert_host)
 
         if bigjob_info == None:
             return job
 
         # create subjob on bigjob
-        bigjob = bigjob_info["bigjob"]
+        bj = bigjob_info["bigjob"]
         st = time.time()
-        job.submit_job(bigjob.pilot_url, subjob.job_description)
+        job.submit_job(bj.pilot_url, subjob.job_description)
         self.submisssion_times.append(time.time()-st)
 
         # store reference of subjob for further bookkeeping    
