@@ -3,6 +3,8 @@
 # count lines, sentences, and words of a text file
 # set all the counters to zero
 import sys
+import saga
+import uuid
 sys.path.append("../../../BigJob/")
 sys.path.append("../store/")
 
@@ -14,11 +16,14 @@ logging.basicConfig(level=logging.DEBUG)
 
 lines, blanklines, sentences, words = 0, 0, 0, 0
 
-if len(sys.argv) !=3:
-    print "Usage: " + sys.argv[0] + " <pilot data> <pilot store>"
+if len(sys.argv) !=4:
+    print "Usage: " + sys.argv[0] + " <pilot data> <pilot store> <application advert url>"
     sys.exit(-1)
 
-logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: " + sys.argv[2])
+logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: " + sys.argv[2] + " App URL: " + sys.argv[3])
+
+app_url = saga.url(sys.argv[3] + "/map-" + str(uuid.uuid1()))
+
 pd = pilot_data.from_advert(saga.url(sys.argv[1]))
 
 print '-' * 50
@@ -61,7 +66,7 @@ for ps in pd.list_pilot_store():
           
 logging.debug("Finished counting words")
           
-filename = "result.txt"
+filename = "data/result-map.txt"
 result_file = open(filename, 'w')
 result_file.write("Lines      : " + str(lines)+ '\n')
 result_file.write("Blank lines: " + str(blanklines)+ '\n')
@@ -70,10 +75,17 @@ result_file.write("Words      : " + str(words)+ '\n')
 result_file.close()
 
 print "Creating pilot store for result file"
-
+ps_name = "map-result"
 base_dir = saga.url("file://localhost" + os.getcwd()+"/data")
-ps_results = pilot_store("affinity2", base_dir, pd)
+ps_results = pilot_store(ps_name, base_dir, pd)
+ps_results.add_file(saga.url("file://localhost" + os.getcwd()+"/data/result-map.txt"))
 pd.add_pilot_store(ps_results)
 
+print "Writing to advert directory: " + app_url.get_string()
+app_dir = saga.advert.directory(app_url, saga.advert.Create | 
+                                         saga.advert.CreateParents | 
+                                         saga.advert.ReadWrite)
+app_dir.set_attribute("ps", ps_name)
+        
 for p in pd.list_pilot_store():
     print p
