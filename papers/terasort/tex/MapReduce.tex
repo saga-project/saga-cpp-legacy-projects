@@ -1,176 +1,60 @@
-% Don't like 10pt? Try 11pt or 12pt
-\documentclass[11pt]{article}
+\title{SAGA MapReduce}
+%\author{
+%        Vitaly Surazhsky \\
+   %             Department of Computer Science\\
+   %     Technion---Israel Institute of Technology\\
+   %     Technion City, Haifa 32000, \underline{Israel}
+%}
+\date{\today}
 
-% This is a helpful package that puts math inside length specifications
-\usepackage{calc}
-
-
-% Simpler bibsection 
-
-\makeatletter
-\newlength{\bibhang}
-\setlength{\bibhang}{1em}
-\newlength{\bibsep}
- {\@listi \global\bibsep\itemsep \global\advance\bibsep by\parsep}
-\newenvironment{bibsection}%
-        {\vspace{-\baselineskip}\begin{list}{}{%
-       \setlength{\leftmargin}{\bibhang}%
-       \setlength{\itemindent}{-\leftmargin}%
-       \setlength{\itemsep}{\bibsep}%
-       \setlength{\parsep}{\z@}%
-        \setlength{\partopsep}{0pt}%
-        \setlength{\topsep}{0pt}}}
-        {\end{list}\vspace{-.6\baselineskip}}
-\makeatother
-
-% Layout: Puts the section titles on left side of page
-\reversemarginpar
-%% Use these lines for letter-sized paper
-\usepackage[paper=letterpaper,
-            %includefoot, % Uncomment to put page number above margin
-            marginparwidth=1.2in,     % Length of section titles
-            marginparsep=.05in,       % Space between titles and text
-            margin=1in,               % 1 inch margins
-            includemp]{geometry}
-
-%% Use these lines for A4-sized paper
-%\usepackage[paper=a4paper,
-%            %includefoot, % Uncomment to put page number above margin
-%            marginparwidth=30.5mm,    % Length of section titles
-%            marginparsep=1.5mm,       % Space between titles and text
-%            margin=25mm,              % 25mm margins
-%            includemp]{geometry}
-
-%% More layout: Get rid of indenting throughout entire document
-\setlength{\parindent}{0in}
-
-%% This gives us fun enumeration environments.
-\usepackage{paralist}
-
-
-\usepackage{fancyhdr,lastpage}
-\pagestyle{fancy}
-%\pagestyle{empty}      % Uncomment this to get rid of page numbers
-\fancyhf{}\renewcommand{\headrulewidth}{0pt}
-\fancyfootoffset{\marginparsep+\marginparwidth}
-\newlength{\footpageshift}
-\setlength{\footpageshift}
-          {0.5\textwidth+0.5\marginparsep+0.5\marginparwidth-2in}
-\lfoot{\hspace{\footpageshift}%
-       \parbox{4in}{\, \hfill %
-    %                 \arabic{page} of \protect\pageref*{LastPage} % +LP
-                   \arabic{page}                              % -LP
-                    \hfill \,}}
-
-% Finally, give us PDF bookmarks
-\usepackage{color,hyperref}
-\definecolor{darkblue}{rgb}{0.0,0.0,0.3}
-\hypersetup{colorlinks,breaklinks,
-            linkcolor=darkblue,urlcolor=darkblue,
-            anchorcolor=darkblue,citecolor=darkblue}
-
-%%%%%%%%%%%%%%%%%%%%%%%% End Document Setup %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%% Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-% The title (name) with a horizontal rule under it
-%
-% Usage: \makeheading{name}
-%
-% Place at top of document. It should be the first thing.
-\newcommand{\makeheading}[1]%
-        {\hspace*{-\marginparsep minus \marginparwidth}%
-         \begin{minipage}[t]{\textwidth+\marginparwidth+\marginparsep}%
-                {\large \bfseries #1}\\[-0.15\baselineskip]%
-                 \rule{\columnwidth}{1pt}%
-         \end{minipage}}
-
-% The section headings
-%
-% Usage: \section{section name}
-%
-% Follow this section IMMEDIATELY with the first line of the section
-% text. Do not put whitespace in between. That is, do this:
-%
-%       \section{My Information}
-%       Here is my information.
-%
-% and NOT this:
-%
-%       \section{My Information}
-%
-%       Here is my information.
-%
-% Otherwise the top of the section header will not line up with the top
-% of the section. Of course, using a single comment character (%) on
-% empty lines allows for the function of the first example with the
-% readability of the second example.
-\renewcommand{\section}[2]%
-        {\pagebreak[2]\vspace{1.3\baselineskip}%
-         \phantomsection\addcontentsline{toc}{section}{#1}%
-         \hspace{0in}%
-         \marginpar{
-         \raggedright \scshape #1}#2}
-
-% An itemize-style list with lots of space between items
-\newenvironment{outerlist}[1][\enskip\textbullet]%
-        {\begin{itemize}[#1]}{\end{itemize}%
-         \vspace{-.6\baselineskip}}
-
-% An environment IDENTICAL to outerlist that has better pre-list spacing
-% when used as the first thing in a \section
-\newenvironment{lonelist}[1][\enskip\textbullet]%
-        {\vspace{-\baselineskip}\begin{list}{#1}{%
-        \setlength{\partopsep}{0pt}%
-        \setlength{\topsep}{0pt}}}
-        {\end{list}\vspace{-.0\baselineskip}}
-
-% An itemize-style list with little space between items
-\newenvironment{innerlist}[1][\enskip\textbullet]%
-        {\begin{compactitem}[#1]}{\end{compactitem}}
-
-% An environment IDENTICAL to innerlist that has better pre-list spacing
-% when used as the first thing in a \section
-\newenvironment{loneinnerlist}[1][\enskip\textbullet]%
-        {\vspace{-\baselineskip}\begin{compactitem}[#1]}
-        {\end{compactitem}\vspace{-.0\baselineskip}}
-
-% To add some paragraph space between lines.
-% This also tells LaTeX to preferably break a page on one of these gaps
-% if there is a needed pagebreak nearby.
-\newcommand{\blankline}{\quad\pagebreak[2]}
-
-% Uses hyperref to link DOI
-\newcommand\doilink[1]{\href{http://dx.doi.org/#1}{#1}}
-\newcommand\doi[1]{doi:\doilink{#1}}
-
-
-%%%%%%%%%%%%%%%%%%%%%%%% End Helper Commands %%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-%%%%%%%%%%%%%%%%%%%%%%%%% Begin CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\documentclass[12pt]{article}
 
 \begin{document}
-{{\center { SAGA MapReduce \\ \ }}
-{
+\maketitle
+
+%\begin{abstract}
+%This is the paper's abstract \ldots
+%\end{abstract}
+
+\section{Introduction}
+
+%\paragraph{Outline}
 
 
-The SAGA MapReduce framework concentrates on processing large-scale dataset tasks implementable in heterogeneous environments supported by SAGA, so the application is not tied to any infrastructure [1]. Therefore, SAGA-MapReduce can work with different job scheduling systems like Globus, Condor and distributed file systems like HDFS, KFS and can be utilized in combination for performing MapReduce tasks.
+\section{SAGA MapReduce}\label{previous work}
+
+\indent The SAGA MapReduce framework concentrates on processing large-scale dataset tasks implementable in heterogeneous environments supported by SAGA, so the application is not tied to any infrastructure [1]. Therefore, SAGA-MapReduce can work with different types of job submissions like Globus, Cloud, SSH and different distributed file systems like HDFS and can be utilized in combination for performing MapReduce tasks.
 
 Mappers: In order to use the Mapper, the declared Mapper class must be registered in the framework and declared in the job description of MapReduce. A user-specified mapper function is defined to emit intermediate key value pairs. To use this Map Function it has to be declared as a Mapper in the Job Description for MapReduce and must be registered with the framework. 
 
 Reducers: Similar to the Mapper, the declared Reducer class must be registered in the framework and declared in the job description of MapReduce. The intermediate key and value pairs generated in the Map Phase serve as the input Key In and Value In for the Reduce Phase, so these must match with the type of the intermediate keys and values of the respective Mapper class used for generating the input for this reducer. Key and Value pairs generated by Reducer after this phase denote the output type of the final keys and values. 
 
-Partitioners: The declared Partitioner class must also be registered in the framework and declared in the job description of MapReduce. When processing the input data by Mapper, the generated intermediate keys will get partitioned across reduce tasks using function. By default, this framework applies a partitioning function that returns the hash value of the input key modulo to the number of partitions. However, in some cases a different partitioning scheme might be required. 
+Partitioners: The declared Partitioner class must also be registered in the framework and declared in the job description of MapReduce. When processing the input data by Mapper, the generated intermediate keys will get partitioned across reduce tasks using function. By default, this framework applies a partitioning function that returns the hash value of the input key modulo to the number of partitions. However, in some cases a different partitioning scheme might be required. Partitioner class is used by each worker in the map phase to decide the partiton file number and by default partition function is hash function of key emitted and number of reduce phase workers defined by the user in the MapReduce job description.The pre generated split list is used in the "Partitioner class" to guide particular range of keys to particular partition by each worker. Thus workers in the reduce phase combine and sort  different partitions and finally get the total sorted output in different partitions. Users may need different Partitioning class for different applications using MR which may not require the pre-generated split list.
+
+For input to the Map Phase user can define the size of chunk and MR master takes care splitting and assigning the chunks to idle workers. Splitting is just storing the information of filename, start point and offset in the advert of the chunk 
 
 
-\section{Differences between Hadoop and SAGA MapReduce}
+In the current implementation of SAGA MapReduce there are two ways of communications between master and workers SAGA-Streams and SAGA-Advert server. Streams are basically used by master to monitor the status of workers (Idle, Mapping, Reducing, Done, Fail) and master also issue's commands to the workers if they were idle (to Map and Reduce). Master is the server end point of all workers. Master opens the SAGA stream server on a port and the workers as SAGA stream clients tries to connect to Master's SAGA stream server. While advert service in MapReduce has many functions like storing the job description MapReduce which includes parameters like Map functions's name,  Reduce functions's name, Partition functions's name,  number of Reduce's , Master Address etc. Master also uses advert service to store the chunk names and chunk details in the advert service which will be used by workers in Map Phase. Worker's also have their own directory in advert service. Master puts the information in workers directory like which chunk to process, what files to reduce. etc.,
 
-The first difference in Hadoop's MapReduce implementation and SAGA MapReduce implementation in declaration on workers. Hadoop requires to specify the available nodes and hadoop takes of starting workers as required. Where as in SAGA MapReduce we just need to specify the different type of workers required in a configuration xml file. On  a single node like cyder we start any number of workers as required using SAGA MapReduce. But changing the number of workers in Hadoop is not simple.
+Google Protocol buffers are mostly used for serialization and deserialization for many cases which include serializing the chunk information(parameters like file name, chunk file offset etc., ) before storing the advert service. It is also used by Mapper to serialize the keys before sending it to the partition function and to deserialize in partition function.
+
+User should deploy the code and compile the MR code on different machines used for SAGA MapReduce. Workers assume to have access to all the files that are produced in the Map phase and use them as input to Reduce phase. Thus the data is not moved at all.
 
 
+\section{Difference between Hadoop and SAGA MapReduce}
 
+The first difference in Hadoop's MapReduce implementation and SAGA MapReduce implementation in declaration on workers. Hadoop requires to specify the available nodes and hadoop takes of starting workers as required. Where as in SAGA MapReduce we just need to specify the different type of workers required in a configuration xml file. On  a single node like cyder we can start any number of workers as required just by using the conf file. But changing the number of workers in Hadoop is needs recompilaton of entire Hadoop. Further, to change chunk size in Hadoop which is referred as block size also needs recompilation. These recompilation is avoided in MapReduce. 
+
+When we un terasort on cyder in Hadoop MapReduce which is just downloaded by default all the partitions from the Map phase combined to form a single Reducer and the sorted. Of course this can be changed in code but requires rebuild.
+
+The other main difference is usage of advert server which is used in SAGA MapReduce. Hadoop does not use any advert server mechanism.
+\section{Results}\label{results}
+
+
+\section{Conclusions}\label{conclusions}
+
+
+\bibliographystyle{abbrv}
+\bibliography{main}
 
 \end{document}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%% End CV Document %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
