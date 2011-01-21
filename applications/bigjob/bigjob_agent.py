@@ -57,6 +57,8 @@ class bigjob_agent:
             self.new_job_dir = saga.advert.directory(saga.url(self.base_url+"/new/"), saga.advert.Create| saga.advert.ReadWrite)
         except:
             print "No advert entry found at specified url: " + self.base_url
+            traceback.print_exc(file=sys.stderr)
+            
 
         # update state of glidin job to running
         self.update_glidin_state()
@@ -229,7 +231,7 @@ class bigjob_agent:
                 self.processes[job_dir] = p
                 job_dir.set_attribute("state", str(saga.job.Running))
             except:
-                traceback.print_exc(file=sys.stdout)
+                traceback.print_exc(file=sys.stderr)
             
     def allocate_nodes(self, job_dir):
         """ allocate nodes
