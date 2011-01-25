@@ -1,8 +1,8 @@
 
 \newcommand{\sagadocument}{ExTENCI: SAGA Condor Integration}
-\newcommand{\sagaversion}{1.0}
+\newcommand{\sagaversion}{1.0-\textbf{DRAFT}}
 \newcommand{\sagabasename}{saga-programming-guide}
-\newcommand{\sagaemail}{saga-users@cct.lsu.edu}
+\newcommand{\sagaemail}{\{oweidner|sjha\} @ cct.lsu.edu}
 
 \input{saga_include}
 
@@ -13,32 +13,29 @@
 
  \thispagestyle{empty}
 
- \sagadocument\hfill  Ole Weidner, CCT/LSU\\
-  Version: \sagaversion \hfill {\sagadate}
-
+  \textbf{\sagadocument}\hfill  Version: \sagaversion\\
+  Ole Weidner, Shantenu Jha (CCT/LSU) \hfill {\sagadate} 
 
   \hrulefill\\[2em]
 
   \B{\large ExTENCI: SAGA Condor Integration}\\[4em]
 
+   The aim of this document is to describe the use-cases and
+   requirements for an integration of SAGA and Condor. Based on these
+   requirements, an implementation concept for a Condor plug-in for SAGA
+   (a so-called \textit{Adatpor}) is  derived and described here in
+   detail. With this proposed \textit{Condor Adaptor}, it will be
+   possible to use Condor, Condor-G as well as Condor glide-in
+   programmatically through the standardized SAGA C++ and Python
+   interfaces. This will allow distributed applications - including
+   those based on the Cactus Computational Framework - to utilize
+   distributed infrastructure based on the Globus Toolkit, Condor and
+   others through a unified interface.
 
-
-  %\U{Abstract}
-
-   The aim of this document is to describe the use-cases and requirements 
-   for a possible integration of SAGA and Condor. Based on these requirements, 
-   an implementation concept for a Condor plug-in for SAGA (\textit{Adatpor}) is 
-   derived and described in detail. 
-   With this proposed \textit{Condor Adaptor}, it will be possible to use Condor,
-   Condor-G as
-   well as Condor glide-in programmatically through the standardized SAGA C++ and 
-   Python interfaces.
-   
-   This project is part of the the Extending Science Through Enhanced National 
-   Cyberinfrastructure (ExTENCI) project, which is a joint Open Science Grid (OSG)
-   and TeraGrid project, funded by the National Science Foundation Office of 
-   Cyberinfrastructure (NSF OCI).
-   \\[2em]
+   This project is part of the the Extending Science Through Enhanced
+   National Cyberinfrastructure (ExTENCI) project, which is a joint Open
+   Science Grid (OSG) and TeraGrid project, funded by the National
+   Science Foundation Office of Cyberinfrastructure (NSF OCI). \\[2em]
 
 
   \U{Status of This Document}
@@ -63,79 +60,160 @@
 \section {SAGA}
 
 \begin{figure}
-  \includegraphics[width=1.0\textwidth]{./figures/figure_02}
-  \caption{\footnotesize Layered schematic of the different
-    components of SAGA.  Middleware specific adaptors make
-    applications developed using SAGA portable.  Schematic showing the
-    different ways in which SAGA can be used to develop distributed
-    applications. (i) Using native SAGA calls to implement distributed
-    functionality; (ii) Through the use of frameworks which provide
-    either application-level usage modes, patterns and thus shielding
-    the application from directly interfacing with the
-    infrastructure.}
-%\vspace{-1em}
- \label{sagalayer}
+    \includegraphics[width=1.0\textwidth]{./figures/figure_02}
+    \caption{\footnotesize Layered schematic of the different components
+    of SAGA.  Middleware specific adaptors make applications developed
+    using SAGA portable.  Schematic showing the different ways in which
+    SAGA can be used to develop distributed applications. (i) Using
+    native SAGA calls to implement distributed functionality; (ii)
+    Through the use of frameworks which provide either application-level
+    usage modes, patterns and thus shielding the application from
+    directly interfacing with the infrastructure.} \label{sagalayer}
 \end{figure}
 	
 	
 \subsection{API Specification}	
-A set of application groups expressed the desire for a 
-simple programmatic interface that would be widely-adopted and widely-available,
-which led to the need and role for the SAGA API. 
-The goal of such an interface is to provide a ``distributed computing 
-counterpart to MPI'' (in impact if not in details), 
-and to supply developers with
-a simple, uniform, and standard programmatic interface with which to
-develop applications.  Thanks to the efforts of many contributors, an initial 
-specification of such an interface was released in 2008: the Simple API for Grid
-Applications (OGF-GFD-90). The scope and requirements of
-the SAGA API have been formally defined by OGF's SAGA Research Group
-(SAGA-RG). The SAGA-RG collected use cases from a broad user
-community and published them as OGF-GFD.70. The
-requirements and design for the SAGA API were directly derived from
-these use cases; this process has been documented and published in
-OGF-GFD.71. The end result of this process is the 1.0
-version of the SAGA core specification (OGF-GFD.90),
-which defines language-independent syntax and semantics for the SAGA
-core API (error handling, session and context management, permissions,
-monitoring, attribute and task model) and functional packages (jobs,
-name-spaces, files, replicas, streams, RPC). Several API extension,
-such as CPR (OGF-GWD-R.96), Adverts
-(GFD-R-P.XX~), and Messaging (GWD-R.94) are currently under development and
-follow a similar, well-defined community-driven standardization and
-approval process. SAGA is now an Open Grid Forum (OGF)
-proposed recommendation on the path to becoming a standard.  The
-standardization is important because
-it makes it more likely that infrastructures will support
-SAGA, which may make it widely available for users of
-most national CI projects.
+
+    A set of application groups expressed the desire for a simple
+    programmatic interface that would be widely-adopted and
+    widely-available, which led to the need and role for the SAGA API.
+    The goal of such an interface is to provide a ``distributed
+    computing counterpart to MPI'' (in impact if not in details), and to
+    supply developers with a simple, uniform, and standard programmatic
+    interface with which to develop applications.  Thanks to the efforts
+    of many contributors, an initial specification of such an interface
+    was released in 2008: the Simple API for Grid Applications
+    (OGF-GFD-90). The scope and requirements of the SAGA API have been
+    formally defined by OGF's SAGA Research Group (SAGA-RG). The SAGA-RG
+    collected use cases from a broad user community and published them
+    as OGF-GFD.70. The requirements and design for the SAGA API were
+    directly derived from these use cases; this process has been
+    documented and published in OGF-GFD.71. The end result of this
+    process is the 1.0 version of the SAGA core specification
+    (OGF-GFD.90), which defines language-independent syntax and
+    semantics for the SAGA core API (error handling, session and context
+    management, permissions, monitoring, attribute and task model) and
+    functional packages (jobs, name-spaces, files, replicas, streams,
+    RPC). Several API extension, such as CPR (OGF-GWD-R.96), Adverts
+    (GFD-R-P.XX~), and Messaging (GWD-R.94) are currently under
+    development and follow a similar, well-defined community-driven
+    standardization and approval process. SAGA is now an Open Grid Forum
+    (OGF) proposed recommendation on the path to becoming a standard. 
+    The standardization is important because it makes it more likely
+    that infrastructures will support SAGA, which may make it widely
+    available for users of most national CI projects.
 	
 \subsection{C++/Python Implementation}
-The SAGA implementation referred to in this 
-document is an implementation of the SAGA API Specification written in C++ 
-and Python. SAGA is open source software, released under the Boost Software
-License. It can be divided into three major components (as depicted in Fig. \ref{sagalayer}): the \I{Core
-Components} which provide the API functionality, the \I{Adaptors}
-which translate API calls into native middleware calls, the Python API
-\I{Language Bindings} and a set of \I{Command Line Tools}. The SAGA
-\I{Core Components} are a collection of dynamic libraries and header
-files that represent the functional API packages (see section 2.1)
-along with a lightweight, highly-configurable \I{Engine Component}
-that manages call dispatching and the dynamic runtime loading of the
-\I{Middleware Adaptors}.
 
-SAGA is being actively developed by our group at Louisiana State University
-with many contributions from external groups and collaborators. More information
-about SAGA can be found on the website: http://saga.cct.lsu.edu.
+    The SAGA implementation referred to in this document is a reference
+    implementation of the SAGA API specification written in C++. It is
+    under active development by our group at the Center for Computation
+    and Technology at Louisiana State University with many contributions
+    from external groups and collaborators and strives to implement the
+    complete set of functional API packages as defined in OGF-GFD-90
+    while focusing on maximum practical relevance by providing
+    middleware-bindings (Adaptors) for as many distributed middleware
+    services as possible.
 
+    SAGA is open source software, released under the Boost Software
+    License. As shown in Figure \ref{sagalayer}, SAGA can be divided
+    into three major components : (1) the \I{Core Components} which
+    provide the API functionality, (2) the \I{Adaptors} which translate
+    API calls into native middleware calls, and the (3) the Python API
+    \I{Language Bindings} - a thin Python layer on top of the native C++
+    API. The SAGA \I{Core Components} are a collection of dynamic
+    libraries and header files that represent the functional API
+    packages (see section 2.1) along with a lightweight,
+    highly-configurable \I{Runtime} that manages call dispatching and
+    the dynamic runtime loading of the \I{Middleware Adaptors}.
 
+    \textbf{More information about SAGA can be found on the
+    website: \\ \textit{http://saga.cct.lsu.edu}}
+
+\subsection{SAGA Middleware Adaptors}
+
+    The following list gives an overview of the currently available SAGA
+    middleware adaptors, their development status and the functional API
+    package they're interfacing.
+    
+    \textbf{TODO OLE: Copy list from website}
+    
+    
+\subsection{SAGA-based Applications, Tools and Frameworks}
+    
+    \textbf{TODO SHANTENU: Add some stuff here. Esp. BigJob since it is important
+    in the context of this work.} 
 	
-	
+
+\pagebreak	
 \section {Condor}
+
+    Condor is an open source high-throughput computing software
+    framework for coarse-grained distributed parallelization of
+    computationally intensive tasks. Condor can be used to manage
+    workload on a dedicated cluster of computers, and/or to farm out
+    work to idle desktop computers. Condor is developed by the Condor
+    team at the University of Wisconsin–Madison and is licensed under
+    the Apache License 2.0.
+    
+    Condor provides a SOAP web-service API called \textit{BirdBath}
+    \footnote{\texttt{http://www.cs.wisc.edu/condor/birdbath/}}, which
+    can be used to submit, control and monitor jobs. BirdBath is part of
+    the standard Condor distribution, but it has to be enabled
+    explicitly on the server side. The far more common usage mode of
+    Condor is through the condor command line tools. Since they are
+    available on all Condor systems, they seem to be the better
+    candidate for a generic interface to SAGA.
+	
+    \textbf{More information about Condor can be found on the
+    website: \\ \textit{http://www.cs.wisc.edu/condor/}}
+	
 	
 \subsection{Condor-G}
+
+    \begin{wrapfigure}{l}{0.5\textwidth}
+    \vspace{-30pt}
+        \begin{center}
+        \includegraphics[width=0.5\textwidth]{./figures/condor_g}
+        \end{center}
+        \vspace{-20pt}
+        \caption{\footnotesize Remote Execution by Condor-G on Globus managed resources. (Image taken from the Condor manual)} 
+        \vspace{-22pt}
+    \end{wrapfigure}
+    
+    Condor-G allows Condor jobs to use resources not under its direct
+    control. It is mostly used to talk to Grid and Cloud resources, like
+    pre-WS and WS Globus, Nordugrid ARC, UNICORE and Amazon EC2. But it
+    can also be used to talk to other batch systems, like Torque/PBS and
+    LSF. Condor-G is a "plugin" for Condor that allows the user to use
+    the familiar Condor command line utilities  (e.g. condor\_submit,
+    condor\_q) to submit jobs to a Globus resource.\\[1em]
+   
+  
+   
+    \textbf{More information about Condor-G can be found on the
+    website: \\ \textit{http://www.cs.wisc.edu/condor/condorg/}}
+   
+   \vfill % footnote
+    
+
+
+    
 	
 \subsection{Condor Glide-in}
+
+    Glide-in allows a user to temporarily extend a condor pool with
+    additional resources that are not managed by condor but by globus.
+    This is being achieved by submitting and executing a condor\_startd
+    executable (which is also running on every 'regular' condor
+    resource) along with the right parameters through the Globus
+    resource manager (GRAM). The submission is done via Condor-G, but
+    could in principle also be done via another method.
+
+    \textbf{More information about Condor-G can be found on the
+    website: \\ \textit{http://www.cs.wisc.edu/condor/condorg/}}
+
+\pagebreak
 
 \section {Integration}
 
@@ -176,7 +254,7 @@ implementation has to fulfill:
   line tools. }
   
 %\vspace{-1em}
- \label{sagalayer}
+ \label{adaptor_arch}
 \end{figure}
 
 \end{document}
