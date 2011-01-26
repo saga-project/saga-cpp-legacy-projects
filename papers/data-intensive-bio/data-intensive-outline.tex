@@ -39,12 +39,10 @@
  \newcommand{\amnote}[1]{  {\textcolor{magenta} {***AM: #1}}}
  \newcommand{\jhanote}[1]{ {\textcolor{red}     {***SJ: #1}}}
  \newcommand{\olenote}[1]{ {\textcolor{blue}    {***OW: #1}}}
-  \newcommand{\smnote}[1]{ {\textcolor{blue}    {***SM: #1}}}
 \else
  \newcommand{\amnote}[1]{}
  \newcommand{\jhanote}[1]{}
  \newcommand{\olenote}[1]{}
-  \newcommand{\smnote}[1]{}
 \fi
 
 \newcommand{\dn}{\vspace*{0.33em}}
@@ -138,9 +136,18 @@ environment for genome-wide analysis.
 The development of an efficient runtime environment, which is the key part of our development, requires an understanding of biological information that the target scientific application aims to produce as well as of execution patterns and scalability of the computing resources of interest to be deployed.  First, we note that in general, genome-wide mapping procedure is an good example of data-intensive scientific applications and can be efficiently carried out with parallel or concurrent executions if there exist ways of data fragmentation with intact biological information.  For example, a reference genome is likely to be composed of many chromosomes or plasmids, and thus mapping on each chromosomes and plasmids can be executed separately.  The challenge, however, is that the way of data fragmentation, and thus system configuration for required parallel/concurrent runs should be considered the characteristics of system environment. Those characteristics differ distinctively between a HPC grid and a Cloud and also vary with a specific target system in each class.  
 
 \section{Applications: An Overview}
-First, for genome-wide mapping procedure with a mapping application, BFast, we need to carry out two different stages in general, genome indexing with a reference genome, mapping of short reads sequencing data against a indexed reference genome.  The simple workflow for this is illustrated in Fig.~\ref{} and the target step for parallel/concurrent execution is indicated. 
+First, for genome-wide mapping procedure with a mapping application, BFast, we need to carry out several stages that include a step for genome indexing with a reference genome and for match of short reads sequencing data against a indexed reference genome.  In this work, we focus on match.   The overall workflow that explains the target calculation, match, and other pre-processing steps is illustrated in Fig.~\ref{fig:workflow-bfast}. 
 
-In Table~\ref{}, we summarize the data sizes for two genome mapping.  
+
+\begin{figure}
+ \centering
+\includegraphics[scale=0.35]{bfast-mapping.jpg} 
+
+\caption{\small Overall workflow for mapping procedure using BFast for ABI SOLiD sequencing data is illustrated with Bfast commands and the associated module, solid2fastq.  In this work, we focus on the step for match (red arrow).  Note that initially a reference genome stored with a fasta file format (.fa) and NGS sequencing data, whose file format varies depending upon NGS platform), are converted into index files (xxx.bif) and fastq files, respectively.  }
+  \label{fig:workflow-bfast} \end{figure}
+
+
+In Table~\ref{table:two-genomes}, we summarize the raw data sizes for two genomes and the information.  Note that the number of required concurrent tasks, $N$, for match is decided by the number of indexed files (xxx.bif), $N_i$, and the number of files for the sequencing data (xxx.fastq), $N_s$ such that $N = N_i x N_s$.   The decision could result in the optimized time-to-solution, and to this end, importantly needs the information about the specification of available computing environments such as the available number of cpus, accessible memory size, and the size of data storage for each task as well as biological information such as the number of chromosomes.    
 
 
 \jhanote{Joohyun: Please organize each description addressing each of
@@ -153,10 +160,11 @@ In Table~\ref{}, we summarize the data sizes for two genome mapping.
 \begin{tabular}{|c|cc|} 
 \hline 
 Genome Species & Human  & Burkerholderia Glumae  \\ \hline
- Size of Reference Genome (in base pair (bp)) &  3 G & 7.3 M \\
  Type of Genome Analysis &  Exome  & Whole Genome Resequencing \\
- Size of Sequencing Data (in Byte) & 8.7G & 5.4 G \\
- Sequencing Platform & ABI SOLiD  &  Illumina GA2 \\
+  Sequencing Platform & ABI SOLiD  &  Illumina GA2 \\
+  Num. of nucleotides in a Reference Genome (in bp) &  3 G & 7.3 M \\
+ Size of Sequencing Data (.fastq) (in Byte) & 8.7G & 5.4 G \\
+
 \hline
 \end{tabular} \caption{Specification of target genomes and sequencing data from Next Generation Sequencing (NGS) platforms.}
  \label{table:two-genomes} 
@@ -189,8 +197,6 @@ which the runtime environment built upon SAGA and BigJob abstraction
 manages efficiently distributed computing-driven execution patterns of
 target scientific applications.
 
-\section{Methodology}
-
 There are two steps for the BFAST implementation. First step is to prepare read files in the 
 fastq format and in the second step we run matching using BFAST with the prepared read files.
  We can generate as many number of read files as we want in the first step in the first step
@@ -219,6 +225,9 @@ executables path for job description of subjobs was given accordingly.
 In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the
 running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
 while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
+
+
+
 
 
 \end{document}
