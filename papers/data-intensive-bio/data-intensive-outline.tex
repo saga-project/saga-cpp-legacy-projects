@@ -39,10 +39,12 @@
  \newcommand{\amnote}[1]{  {\textcolor{magenta} {***AM: #1}}}
  \newcommand{\jhanote}[1]{ {\textcolor{red}     {***SJ: #1}}}
  \newcommand{\olenote}[1]{ {\textcolor{blue}    {***OW: #1}}}
+  \newcommand{\smnote}[1]{ {\textcolor{blue}    {***SM: #1}}}
 \else
  \newcommand{\amnote}[1]{}
  \newcommand{\jhanote}[1]{}
  \newcommand{\olenote}[1]{}
+  \newcommand{\smnote}[1]{}
 \fi
 
 \newcommand{\dn}{\vspace*{0.33em}}
@@ -186,6 +188,38 @@ lightweight, extensible, full-fledged science gateway effectively in
 which the runtime environment built upon SAGA and BigJob abstraction
 manages efficiently distributed computing-driven execution patterns of
 target scientific applications.
+
+\section{Methodology}
+
+There are two steps for the BFAST implementation. First step is to prepare read files in the 
+fastq format and in the second step we run matching using BFAST with the prepared read files.
+ We can generate as many number of read files as we want in the first step in the first step
+ but the second step could be scaled with more number of tasks. Because the number tasks 
+ in the second step is determined by the number read files we prepare in the first step. We 
+ can generate as many number of read files as we want in the first step. We can use as many resources/machines 
+ in this step as the tasks are not coupled to each other but the problem is we need the transfer the appropriate read file
+in to the respective resource.
+
+37 tasks for the second step was chosen arbitrarily to show the scaling  and to find the performance 
+difference with concurrent tasks in the second step. So 37 read files should be prepared in the
+ first step by setting the parameters accordingly.
+
+We use SAGA-BigJob to implement the above two steps on grids and clouds and 
+the architecture remains BigJob remains same for both grids and clouds. All the first 
+step jobs and second step jobs are defined as subjobs in the BigJob. At first only 
+one job is submitted ie  preparing the read files and the jobs in the second step are not submitted
+until the first job is done. Once the Read files are prepared the 37 subjobs are submitted in to 
+job queue of the Bigjob. Number of concurrent subjobs that can be processed depending 
+on the available cores that are requested in the BigJob.
+  
+In the Grid implementation first all the data required in the steps was transferred to machine's  work 
+directory where we want to start the BigJob. The Bfast was installed in the home directory and the
+executables path for job description of subjobs was given accordingly.
+
+In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the
+running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
+while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
+
 
 \end{document}
 
