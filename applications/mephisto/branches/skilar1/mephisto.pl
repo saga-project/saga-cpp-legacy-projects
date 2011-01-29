@@ -402,33 +402,45 @@ sub print_usage () {
 	print "        mephisto.pl install ";
 	print color 'reset';
 	print "--target-dir=<dir> <options>\n";
-    print "        Installs all packages with default version from the repository or selected packages with specified versions at the command prompt.\n\n";
+    print "        Installs all packages with default version from the repository \n";
+    print "        or selected packages with specified versions at the command prompt.\n\n";
 
     print color 'bold red';
-        print "        mephisto.pl check ";
-        print color 'reset';
-        print "--target-dir=<dir> <options>\n";
-    print "        Used for testing SAGA with different packages.\n\n";
+    print "        mephisto.pl check ";
+    print color 'reset';
+    print "--target-dir=<dir> <options>\n";
+    print "        Same as install, but additionally runs unit and adaptor tests.\n\n";
 
     print " Options and Arguments:\n\n";
-	print "      --repository=     		The repository version to use. By default,\n";
-	print "                        		mephisto uses the latest version.\n\n";
+	print "      --repository=          The repository version to use. By default,\n";
+	print "                             mephisto uses the latest version.\n\n";
 
-	print "      --target-dir=     		The base directory for the installation.\n";
-	print "                        		All selected packages will end up in here.\n\n";
+	print "      --target-dir=          The base directory for the installation.\n"; 
+	print "                             All selected packages will end up in here.\n\n";
 
-	print "      --tmp-dir=        		The directory mephisto should use for downloading\n";
-	print "                        		and building. If omitted, it defaults to /tmp/meph_tmp.\n\n";
+	print "      --tmp-dir=             The directory mephisto should use for downloading\n";
+	print "                             and building. If omitted, it defaults to \n";
+	print "                             /tmp/meph_tmp.\n\n";
 	
-	print "      --with-packages=  		Comma-separated list of optional packages to\n";
-	print "                        		install. By default, mephisto installs all\n";
-	print "                        		available packages.\n\n";
-	print "      --with-boost-version=      any boost library used should be specified with version number 'x.yy.z'.\n\n";
-	print "      --with-globus-version=     any globus installation should be specified with version number 'x.y.z'.(globus 2 & 3 versions are not supported)\n\n";		
-	print "      --with-saga-version=       saga version should be specified with version number\n\n";
-	print "      --exclude=                 packages to be excluded from the downloads, choose from the list with commas separated(capitals only):PYTHON, BOOST, POSTGRESQL,SQLITE,SAGA,SAGA-PYTHON,SAGA-ADAPTORS-X509,\n";
-        print "	                                SAGA-ADAPTORS-SSH\n\n";
-	print "      Recommended: complete install      \n\n"; 
+	print "      --with-packages=       Comma-separated list of optional packages to\n";
+	print "                             install. By default, mephisto installs all\n";
+	print "                             available packages.\n\n";
+	
+	print "      --with-boost-version=  Overrides the Boost version defined in the\n";
+	print "                             repository. The version number should be \n";
+	print "                             specified as 'x.yy.z' (must be >= 1.33.1).\n\n";
+	
+	print "      --with-globus-version= Overrides the Globus version defined in the\n";
+	print "                             repository. The version number should be \n";
+	print "                             specified as 'x.y.z' (must be >= 4.0).\n\n";   
+	
+	print "      --with-saga-version=   Overrides the Saga version defined in the\n";
+	print "                             repository. The version number should be \n";
+	print "                             specified as 'x.y.z' (must be >= 1.4).\n\n";   
+	
+	#print "      --exclude=                 packages to be excluded from the downloads, choose from the list with commas separated(capitals only):PYTHON, BOOST, POSTGRESQL,SQLITE,SAGA,SAGA-PYTHON,SAGA-ADAPTORS-X509,\n";
+    #print "	                                SAGA-ADAPTORS-SSH\n\n";
+	#print "      Recommended: complete install      \n\n"; 
 }
 
 ##############################################################################
