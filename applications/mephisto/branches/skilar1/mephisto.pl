@@ -47,6 +47,12 @@ $saga_v		  = 0;
 $enab		  = 0;
 $dellist 	  = 0;
 $delitems         = 0;
+$py_v    	  = 0;
+$post_gre	  = 0;
+$enab_py	  = 0;
+$enab_post	  = 0;
+$enab_saga 	  = 0;
+$test_enab        = 0;
 ######added########
 ##############################################################################
 ##
@@ -130,7 +136,7 @@ sub print_green_ok {
 ##
 sub print_red_failed_and_die {
     print color 'bold red';
-    print " [FAILED]\nf";
+    print " [FAILED]\n";
     print color 'reset';
     die;
 }
@@ -139,9 +145,11 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-	my @no = split(/\./, $boost_check);	  ##boost split up into individual numbers				                  ###added##
+	my @no = split(/\./,  $boost_check);	  ##boost split up into individual numbers				                  ###added##
 	my @no1 = split(/\./, $globus);  ##globus split up into individual numbers
-
+	my @no2 = split(/\./, $py_v);
+	my @no3 = split(/\./, $post_gre);
+	my @no4 = split(/\./, $saga_v);
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
@@ -165,7 +173,23 @@ sub pull_package {
 	$package_store_path .= "/$package[1]";
         $package_bin_path ="http://www.globus.org/ftppub/gt" . $no1[0] . "/" . $no1[0] . "." . $no1[1] . "/" . $globus . "/installers/src/gt" . $globus . "-all-source-installer.tar.bz2";
     }
-  
+    elsif (($enab_py eq 1) && ($package[1] eq "PYTHON") && ($no2[0] eq 3) && ($no2[1] eq 2)) {
+	$package_store_path .= "/$package[1]";
+	$package_bin_path ="http://www.python.org/ftp/python/" . $no2[0] . "." . $no2[1] . "/Python-" . $no2[0] . "." . $no2[1] . "b2.tgz";
+    }
+    elsif (($enab_py eq 1) && ($package[1] eq "PYTHON")) {
+    	$package_store_path .= "/$package[1]";
+        $package_bin_path ="http://www.python.org/ftp/python/" . $no2[0] . "." . $no2[1] . "." . $no2[2] . "/Python-" . $no2[0] . "." . $no2[1] . "." . $no2[2] . ".tgz";    
+    }
+    elsif (($enab_post eq 1) && ($package[1] eq "POSTGRESQL")) { 
+	$package_store_path .= "/$package[1]";
+	$package_bin_path ="http://wwwmaster.postgresql.org/redir/198/h/source/v" . $no3[0] . "." . $no3[1] . "." . $no3[2] . "/postgresql-" . $no3[0] . "." . $no3[1] . "." . $no3[2] . ".tar.gz";		
+    }
+    elsif (($enab_saga eq 1) && ($package[1] eq "SAGA")) {
+        $package_store_path .= "/$package[1]";
+        $package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
+	print "\n\n $package_bin_path\n\n";       
+    }
     else {
        $package_store_path .= "/$package[2]";
     }
@@ -402,9 +426,9 @@ sub print_usage () {
 	print "        mephisto.pl install ";
 	print color 'reset';
 	print "--target-dir=<dir> <options>\n";
-    print "        Installs all packages with default version from the repository \n";
-    print "        or selected packages with specified versions at the command prompt.\n\n";
-
+    print "        Installs all packages with default version from the repository or\n";
+    print "        selected packages with specified versions at the command prompt.\n\n";
+    
     print color 'bold red';
     print "        mephisto.pl check ";
     print color 'reset';
@@ -441,7 +465,30 @@ sub print_usage () {
 	#print "      --exclude=                 packages to be excluded from the downloads, choose from the list with commas separated(capitals only):PYTHON, BOOST, POSTGRESQL,SQLITE,SAGA,SAGA-PYTHON,SAGA-ADAPTORS-X509,\n";
     #print "	                                SAGA-ADAPTORS-SSH\n\n";
 	#print "      Recommended: complete install      \n\n"; 
+
 }
+##############################################################################
+
+##############################################################################
+sub test_perform()
+{
+    my @test_cmd = ("make check");
+    my $test_dir = $meph_tmp_dir; 
+    print "\n\n $meph_tmp_dir \n\n";
+	$test_dir .= "/SVN_SAGA";
+print "\n\n $test_dir \n\n";
+    	chdir "$test_dir";
+    my $test_logfile = "$test_dir/SVN_TEST.log";
+    
+    redirect_console($test_logfile);
+    $retval = system(@test_cmd);
+    restore_console();
+
+    print_red_failed_and_die() unless $retval == 0;
+    print_green_ok(); print "\n";
+
+}
+
 
 ##############################################################################
 ## 
@@ -485,28 +532,39 @@ sub check_options () {
 							  'help|?' 		=> \$help,
 				         	   'tmp-dir=s'     		=> \$tmp_dir,
 				         	   'repository=s'  		=> \$repository,
+						   'with-python-version=s'      => \$py_v,
 						   'with-boost-version=s'  	=> \$boost_check,
 						   'with-globus-version=s' 	=> \$globus,
+						   'with-postgresql-version=s'  => \$post_gre,
 						   'with-saga-version=s'   	=> \$saga_v,
 						   'exclude=s'	   		=> \$dellist) ; 
                                                                          
 		@delitems = split(",",$dellist);	
-
+	
 		if(!$retval)
 		{
 			print_usage();
 			exit();	
 		}
-
+		if ($saga_v ne 0)
+                {
+                        $enab_saga= 1;
+                }
 		if ($globus ne 0)
 		{
 			$enab= 1;
 		}
-
-		if ($saga_v eq "1.5.3")
-		{
-			$meph_version = "svn_trunk";
+		if ($post_gre ne 0)
+		{	$enab_post =1;
 		}
+		if ($py_v ne 0)
+                {       $enab_py =1;
+                }
+
+	#	if ($saga_v eq "1.5.3")
+	#	{
+	#		$meph_version = "svn_trunk";
+	#	}
 
 		if($install_dir eq 0)
 		{
@@ -535,6 +593,72 @@ sub check_options () {
         	}
 	}
 
+	elsif( $ARGV[0] eq "test")
+        {
+                $mode = "test";
+                my $retval= GetOptions(            'target-dir=s'               => \$install_dir,
+                                                          'help|?'              => \$help,
+                                                   'tmp-dir=s'                  => \$tmp_dir,
+                                                   'repository=s'               => \$repository,
+                                                   'with-python-version=s'      => \$py_v,
+                                                   'with-boost-version=s'       => \$boost_check,
+                                                   'with-globus-version=s'      => \$globus,
+                                                   'with-postgresql-version=s'  => \$post_gre,
+                                                   'with-saga-version=s'        => \$saga_v,
+                                                   'exclude=s'                  => \$dellist) ;
+
+                @delitems = split(",",$dellist);
+		$test_enab=1;
+        	print "\n $test_enab \n";
+	        if(!$retval)
+                {
+                        print_usage();
+                        exit();
+                }
+
+                if ($globus ne 0)
+                {
+                        $enab= 1;
+                }
+                if ($post_gre ne 0)
+                {       $enab_post =1;
+                }
+                if ($py_v ne 0)
+                {       $enab_py =1;
+                }
+
+                if ($saga_v eq "1.5.3")
+                {
+                        $meph_version = "svn_trunk";
+                }
+
+                if($install_dir eq 0)
+                {
+                        print "\n You have to set the '--target-dir' argument.\n";
+                        print_usage();
+                        exit();
+                }
+		else
+                {
+                        $meph_install_dir = $install_dir;
+                        #if(!(-w $meph_install_dir))
+                        #{
+                        #  print "\n You don't have write permission for $install_dir.\n\n";
+                        #  exit();
+                        #}
+                }
+
+                if( !($tmp_dir eq 0))
+                {
+                    $meph_tmp_dir = $tmp_dir;
+                }
+
+                if( !($repository eq 0))
+                {
+                    $meph_version = $repository;
+                }
+
+	}
 	else
 	{
 		print_usage();
@@ -628,17 +752,26 @@ foreach my $line (@index2) {
 	}
      $count = $count + 1;
      pull_package(@packages);
+##		if ($packages[1] eq "SAGA" && $test_enab eq 1) {
+##		test_perform();
+##		}
 	}
 	else {
+	if ($count eq 1 && $enab eq 1) {
+        pull_package(@midpack);
+	}
+	$count = $count + 1;
 	$flag = 0;
 	}
 }
-
 #after the for loop, here packages  will store all the values as an array as was the case above
-
-
-
 write_setenv();
+
+if ($test_enab eq 1)
+{ test_perform();
+}
+
+print "\n\n \t Done \n\n";
 
 #
 ##############################################################################
