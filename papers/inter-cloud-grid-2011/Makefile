@@ -1,24 +1,38 @@
 
-again: pdf
+TEX=pdflatex
+BIBTEX=bibtex
+VIEW=evince
 
-pdf:
-#	@cd figures && ./make_figures.sh
-	@pdflatex inter-cloud-grid-2011
+SOURCE:=$(shell egrep -l '^[^%]*\\begin\{document\}' *.tex)
+PDFS=$(SOURCE:.tex=.pdf)
 
-bib: pdf
-	@bibtex   inter-cloud-grid-2011
-	@pdflatex inter-cloud-grid-2011 | grep undef || true
+all:
+	for item in $(PDFS) ; do \
+	echo $$item ; \
+	make $$item ; \
+	done
+
+%.pdf: %.tex
+	echo $*
+	$(TEX) $*
+	
+	@if(grep "There were undefined references" $*.log > /dev/null);\
+	then \
+		$(BIBTEX) $*; \
+		$(TEX) $*; \
+	fi
+	
+	@if(grep "Rerun" $*.log > /dev/null);\
+	then \
+		$(TEX) $*;\
+	fi
+
+show: 
+	$(VIEW) $(PDFS)
+
+show-mac: all
+	open $(PDFS)
 
 clean:
-	@rm -f makelog
-	@rm -f inter-cloud-grid-2011.aux
-	@rm -f inter-cloud-grid-2011.bbl
-	@rm -f inter-cloud-grid-2011.blg
-	@rm -f inter-cloud-grid-2011.dvi
-	@rm -f inter-cloud-grid-2011.log
-	@rm -f inter-cloud-grid-2011.out
-	@rm -f inter-cloud-grid-2011.pdfsync
-
-distclean: clean
-	@rm -f inter-cloud-grid-2011.pdf
-
+	@rm -f *.pdf *.aux *.bbl *.blg *.log *.dvi *.png \
+		*.idx *.ilg *.ind *.toc *.lot *.lof *.out
