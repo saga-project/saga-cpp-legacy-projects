@@ -150,6 +150,13 @@ sub pull_package {
 	my @no2 = split(/\./, $py_v);
 	my @no3 = split(/\./, $post_gre);
 	my @no4 = split(/\./, $saga_v);
+
+                if (@no eq 2)
+                   { 
+                   	$no[2] = 0;
+			$boost_check .= ".$no[2]"; 
+		   }
+
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
@@ -714,7 +721,10 @@ my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
 
 my @midpack = ("LF","GLOBUS","$globus","'./configure'","'make'","'make install'");
-
+my @temp = split (/\./, $boost_check);
+if (@temp eq 2) {
+$boost_check .= ".0";
+}
 my $countp=0;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
