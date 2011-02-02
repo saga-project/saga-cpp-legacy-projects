@@ -413,62 +413,148 @@ RENKEI  & I\\
 \tmnote{We can do that - this is good point - do we wanna bring SAGA into that picture too?}
 
 \section{Open Cloud Computing Interface}
+The Open Cloud Computing Interface comprises a set of open
+community-lead specifications delivered through the Open Grid
+Forum. OCCI is a RESTful \tmnote{REF} Protocol and API for all kinds
+of Management tasks based on a Resource Orientated Architecture (ROA)
+\tmnote{REF}. OCCI was originally initiated to create a remote
+management API for IaaS model based Services, allowing for the
+development of interoperable tools for common tasks including
+deployment, autonomic scaling and monitoring. It has since evolved
+into a flexible API with a strong focus on integration, portability,
+interoperability and innovation while still offering a high degree of
+extensibility. The current release of the Open Cloud Computing
+Interface is suitable to serve many other models in addition to IaaS,
+including e.g. PaaS and SaaS. \tmnote{REF occi-wg.org here}
 
-\tmnote{TODO} Basic OCCI intro etc. Describe IaaS/PaaS/SaaS
-and how OCCI relates to those \ldots
+The documents are divided into three categories consisting of the OCCI
+Core, the OCCI Renderings and the OCCI Extensions.
+ 
+\begin{itemize}
+  \item The OCCI Core specification consist of a single document
+    defining the OCCI Core Model. The OCCI Core Model can be
+    interacted with {\em renderings} (including associated behaviours)
+    and expanded through {\em extensions}.
+  \item The OCCI Rendering specifications consist of multiple
+    documents each describing a particular rendering of the OCCI Core
+    Model. Multiple renderings can interact with the same instance of
+    the OCCI Core Model and will automatically support any additions
+    to the model which follow the extension rules defined in OCCI
+    Core.
+  \item The OCCI Extension specifications consist of multiple
+    documents each describing a particular extension of the OCCI Core
+    Model. The extension documents describe additions to the OCCI Core
+    Model defined within the OCCI specification suite.
+\end{itemize}
+
+The current specification consist of three documents.  Future releases
+of OCCI may include additional rendering and extension
+specifications. The documents of the current OCCI specification suite
+are:
+
+\begin{description}
+  \item[OCCI Core] describes the formal definition of the the OCCI
+    Core Model \cite{occi:core}.
+  \item[OCCI HTTP Rendering] defines how to interact with the OCCI
+    Core Model using the RESTful OCCI API
+    \cite{occi:http_rendering}.
+  \item[OCCI Infrastructure] contains the definition of the OCCI
+    Infrastructure extension for the IaaS domain
+    \cite{occi:infrastructure}.
+\end{description}
+
+Since OCCI is an RESTful Protocol or API is can enhances from all the
+features the HTTP defines. This includes mechanisms for authentication
+and authorization, Cache-mechnisms, Content-Type definitions and
+dicovery capabilities. 
+
+\tmnote{Following paragraphs need rewording/formatting and addionatl stuff}
+
+Another guiding principle in OCCI is to make use of existing standards
+and specifications where appropriate.
+
+OCCI and the Storage Networking Industry Association's
+(SNIA)\footnote{\url{http://www.snia.org/}.} Cloud Data Management
+Interface (CDMI) working groups have collaborated together so that
+both specifications are interoperable with each other. It states that
+
+\begin{quote}
+"The SNIA Cloud Data Management Interface (CDMI) is the functional
+  interface that applications will use to create, retrieve, update and
+  delete data elements from the cloud. As part of this interface the
+  client will be able to discover the capabilities of the cloud
+  storage offering and use this interface to manage containers and the
+  data that is placed in them. In addition, meta-data can be set on
+  containers and their contained data elements through this interface"
+  \citep{SSH+2010}.
+\end{quote}
+
+OCCI and the Distributed Management Task Force's
+(DMTF)\footnote{\url{http://www.dmtf.org}.} Open Virtualization Format
+(OVF), see \cite{CDG+2009}, can be easily integrated through the use
+of the resource type Link. Where a provider wishes to supply an OVF
+representation of a client's resource instance(s), they can do so by
+associating the instance(s) with a mirror representation, only the
+serialisation format is OVF.
+
+Other than this the OCCI working group is closely working together
+with other groups inside of the Open Grid Forum. The Distributed
+Computing Infrastucture Federation (DCI-fed) working group focuses on
+the creation of models and APIs for setting up distributed federated
+computing environments. Other than this the OCCI working group uses
+Standards like those developed by the Distributed Resource Management
+Application API (DRMAA) working group for common Job operations on
+Clusters via the OCCI protocol.
+
+\section{Grid-Cloud interoperatbilty}
+The next paragraphs describe how a Cloud and Grid interoperability
+could look like. To demo these interoperability use-cases OCCI and
+SAGA interoperability use cases are described.
 
 \subsection{Using OCCI for IaaS based resource provisioning}
+Since SAGA features a rich set of adapters to talk to Grid Middlewares
+the first use-case describes a way to autmatically provision such grid
+middlewares on demand. SAGA could use OCCI to request initial or
+addtional Grid Resources.
 
-\begin{itemize}
-  \item SAGA based Apps needs resources
-  \item Can be requested through OCCI
-  \item OCCI can do interop -> InterClouds
-  \item To show: requesting preisously deployed OGSA-BES enabled LSF
-    installations (in VMs) to which SAGA can talk.
-  \item Keywords: dynamic scalling (Hybrid/Cloud Bursting), dynamic
-    provisioning.
-\end{itemize}
+This would be a request on a IaaS based level where SAGA could request
+Compute Resource with a Grid Middlware installed to be started. While
+Using formats like OVF or by providing addiotional Attributes in the
+request towards OCCI, SAGA could customize the request and for example
+state that it needs a Virtual Machine with certain attributes,
+Platform LSF installed with version >= 7.0.5 and a OGSA-BES interface
+deployed. The SAGA adapters can then be used to provision Jobs using
+OGSA-BES.
+
+This first use case demoes a dynamic scalling or dynamic provisioning
+scenario. But it can also be used for Cloud-Bursting/Hybrid-Cloud
+approaches.
 
 \subsection{Using SAGA and OCCI to create a PaaS Offering}
+SAGA offers a rich set of calls in it's API. Since OCCI ist mostly a
+Protocol which can be used to create an API (by using Extensions) SAGA
+can be used to enrich the OCCI functionalities and create a PaaS
+offering.
 
-\begin{itemize}
-  \item SAGA is an API -> can be used to program cool apps
-  \item Cool apps should be deployed in Cloudy style -> OCCI can do
-    that
-  \item OCCI therefore moves up the Stack (IaaS to PaaS) with help of
-    richer API (in this case SAGA)
-  \item In the end we get a SAGA Cloud/Grid interop offering (HPC in
-    the Cloud??)
-\end{itemize}
+Programmers would develop their applications using the SAGA API. When
+finished they would provision their applications in an OCCI defined
+manner. All the resource provisioning as well as concrete
+implementations are then transparently hidden from the end-user.
 
-\subsection{SAGA access PaaS/SaaS OCCI based offering}
+This could be an HPC in the Cloud offering.
 
-\begin{itemize}
-  \item SAGA wants to start jobs
-  \item SAGA submits jobs using OCCI
-  \item Question is this PaaS or SaaS in your model? (Mine: PaaS)
-\end{itemize}
+\subsection{SAGA access PaaS OCCI based offering}
+Finally since SAGA's adapters can submit jobs there is a third way to
+demo interoperability. A SAGA adapter could be implemented which
+submits Jobs to Cluster using the OCCI Protocol. It might be that a
+Service Provider offers such a Job Submission service over OCCI which
+can be easily intergated with OCCI. The SAGA-OCCI Adapter could make
+extensive usage of the automatic discovery and billig mechanisms while
+using OCCI.
 
-The 3 previous sections should demo that Grid/Cloud can work
-together in certain previsously defined areas. Question is what makes
-more sence...
+\section{Lessons learned}
 
-Next figure gives a rough overview (But still compares eggs and
-bananas).
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=13cm,height=7cm]{figures/prop_position_paper.png}
-\caption{Overview of what this paper should demo}
-\label{fig:idea}
-\end{figure}
-
-\begin{figure}[h]
-\centering
-\includegraphics[width=13cm,height=7cm]{figures/changes_on_occi_and_saga.png}
-\caption{Changes needed for different models - this picture needs to be refined}
-\label{fig:aaS_changes}
-\end{figure}
+\ldots
 
 \section{Architecture}
 
