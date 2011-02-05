@@ -34,7 +34,10 @@ if __name__ == "__main__":
 
         # submit via mj abstraction
         resource_list = []
-        resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
+        #resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
+        resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+                               "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
+
 
 #                           {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "8", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"}  )
 

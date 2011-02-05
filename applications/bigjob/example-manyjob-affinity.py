@@ -34,8 +34,12 @@ if __name__ == "__main__":
 
         # submit via mj abstraction
         resource_list = []
-        resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
+        #resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
+        #                       "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
+
+        resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "<your allocation>", 
+                               "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+                               "working_directory": (os.getcwd() + "/agent"), "walltime":10, "affinity" : "affinity1"})
 
         print "Create manyjob service "
         mjs = many_job_affinity.many_job_affinity_service(resource_list, "localhost")

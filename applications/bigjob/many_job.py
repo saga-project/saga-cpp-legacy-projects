@@ -77,9 +77,9 @@ class many_job_service(object):
                                     i["number_cores"],
                                     i["queue"],
                                     i["allocation"],
-                                    "agent", 
+                                    i["working_directory"], 
                                     None,
-                                    None)
+                                    i["walltime"])
             i["bigjob"]=bj # store bigjob for later reference in dict
             i["free_cores"]=int(i["number_cores"])
             # lock for modifying the number of free nodes
