@@ -19,8 +19,8 @@ import uuid
 APPLICATION_NAME="wordcount"
 DATABASE_HOST="localhost"
 
-#DATA_FILE_DIR=os.getcwd()+"/data"
-DATA_FILE_DIR="/work/luckow/data-flat"
+DATA_FILE_DIR=os.getcwd()+"/data"
+#DATA_FILE_DIR="/work/luckow/data-flat"
 
 NUMBER_JOBS=1
 
@@ -49,6 +49,10 @@ if __name__ == "__main__":
     ps1 = pilot_store("affinity1", base_dir, pd)
     data_files=os.listdir(DATA_FILE_DIR);
     ps1.register_files(data_files)
+    
+    c1 = ps1.list_files_for_chunk(0, 2)
+
+    
     #for i in data_files:
     #    #print "add file %s" % i
     #    ps1.register_file(saga.url(i))

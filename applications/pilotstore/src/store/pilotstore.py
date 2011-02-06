@@ -104,10 +104,13 @@ class pilot_store:
         return self.file_registry 
 
     def list_files_for_chunk(self, chunk_id, total_number_of_chunks):
-        """ returns files for a certain chunk """
-        total_num_files = len(self.file_registry)
-        return self.file_registry 
-
+        """ returns files for a certain chunk """        
+        c = self.chunks(self.file_registry, total_number_of_chunks)
+        return c[chunk_id] 
+    
+    def chunks(self, l, n):
+        return [ l[i::n] for i in xrange(n) ]
+        
     def join(self, pilot_data):
         """ joins pilot_data object with self
             i.e. self will be expanded with the files 
