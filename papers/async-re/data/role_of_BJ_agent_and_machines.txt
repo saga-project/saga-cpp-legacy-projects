@@ -1,0 +1,84 @@
+The role of a BJ agent: 
+=======================
+i. to look in the advert server for new jobs.
+ii. to start the new jobs, if any. if not keep looking for new jobs.
+iii. if any jobs were started:
+	a. monitor those jobs, report any changes in state to the advert server; manage nodes.
+	b. look for new jobs in the advert server.
+iv. repeat cycle
+
+
+Effect of the number of  BJ agents on performance:
+==================================================
+1. when the job in the queue becomes active, the BJ agent is started. it then begins to start the subjobs. It takes 0.3 seconds to start a subjob. therefore, it is better to have more agents managing smaller number of subjobs to speedup the startup of subjobs. 
+2. the BJ agent monitors the subjobs and when a subjob has completed running, it marks the job as done in the advert server and clears the nodes. this takes 1.1 seconds. again, it is better to have more agents managing smaller number of subjobs.
+
+
+
+BJ role quantitatively, in synchronous RE, 32 replicas:
+======================================================
+It takes BJ agent 0.3 seconds to start a subjob and 1.1 seconds to process it when it completes running. 
+
+In the synchronous RE implementation replicas are started
+sequentially, i.\,e.\ there is a delay between the startup of the
+first and the last replica. Also, the post-processing of each replica
+run, i.\,e.\ updating the state, marking nodes free, the stage-out of
+the output file, is done sequentially. The longer of the two
+determines the overall time spent waiting ($T_s$) for other replicas.
+In this case the post-processing time is the larger, and on average,
+it takes $1.4\,s$
+%for the % BigJob agent
+to process a replica that has completed running. Thus, $T_{s}$, which
+is defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
+replicas (with 16 pairs) the delay between the first and last replica
+transitioning to \texttt{done} state adds up to $44.8\,s$.  The
+waiting time at the BigJob-Agent is subsumed by the synchronisation
+time, thus the BigJob-Agent is effectively always ready to start
+replicas, thus, $T_r$ is 0 for synchronous RE.
+
+If we have 4 BJ agents instead of 1, each BJ agent would be responsible for 8 replicas instead of 32. Then, the delay between the first and last replica transitioning to the DONE state would be 11.2 seconds instead of 44.8 seconds. This occurs at the end of every generation. 
+
+In async-cent, 32 replicas:
+===========================
+
+At the BJ agent, each pair of replicas, instead of waiting in contention and waiting to be restarted in a single thread, they will now be restarted by 4 BJ agents. Therefore, the wait time is cut by a fourth. Also, if the replicas belong to different bigjobs, they are restarted parallelly by different bigjob agents. 
+
+It should also be noted that the master takes a shorter amount of time to complete an exchange than it takes a bigjob agent to process and mark a replica as done. Therefore, the replicas become available to master more faster.
+
+Quantitatively:
+=======================
+This is much more difficult to explain than in the sync case. But following the explanation from the paper, instead of each pair waiting 1.1 seconds to be restarted at the BJ agent, the wait time now is only 0.3 seconds.
+the 1.1 seconds is made up of 0.3 seconds/replica to start/run the replica and 0.5 seconds spent waiting due to contention. We can remove 0.3 seconds as now the replicas might be under different BJs. And the wait time is cut by a fourth.
+
+In async-decent, 32 replicas:
+=================
+The number of BJ agent does not effect the performance except at the start. The BJ agents are only used to start the replica agents. Once all the replica agents are started the BJ agents do not participate. 
+Therefore, if there are more BJ agents, they will help in starting the replica agents sooner. 
+
+Quantitatively:
+=======================
+If there are 4 BJ agents instead of 1, all the replica agents would be started 4 times faster. That is, instead of 32*0.3=9.6 seconds, all the replica agents would be started by 2.4 seconds. this might bring down the overall run time by 6-7 seconds.
+
+
+1 machine to 4 machines - effect on performance:
+==============================================
+sync:
+the two things effecting sync RE are:
+1. remote file staging of config files
+2. some additional synchronization overhead due to more machines involved. (?)
+
+cent:
+only the remote file staging effects the simulation. 
+
+decent:
+there should not be any effect.
+
+Local copy time of NPT.conf is 0.009 seconds
+remote copy time is 0.379 seconds. 
+the data: the difference in run times of 1, 2, and 4 machine experiments seem to be supporting our hypothesis. 
+
+Large error bars - 4 machines/4 bigjobs, decent case:
+
+I repeated the experiments and could not find anything wrong. this group of experiments had an error of only 3.5, where as earlier it was 23.
+Either way, the decentralised experiments' error bars overlap across 1, 2 and 4 machines for 8, 16 and 32 replicas.
+
