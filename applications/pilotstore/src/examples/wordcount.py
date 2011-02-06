@@ -3,6 +3,7 @@
 """
 import sys
 sys.path.append("../../../BigJob/")
+sys.path.append("../../../bigjob//")
 sys.path.append("../store/")
 
 from pilotstore import *
@@ -17,6 +18,9 @@ import uuid
 
 APPLICATION_NAME="wordcount"
 DATABASE_HOST="localhost"
+
+#DATA_FILE_DIR=os.getcwd()+"/data"
+DATA_FILE_DIR="/work/luckow/data-flat"
 
 NUMBER_JOBS=1
 
@@ -40,11 +44,17 @@ if __name__ == "__main__":
     pd = pilot_data()
     ##########################################################################################
     # Variant 1
-    base_dir = saga.url("file://localhost" + os.getcwd()+"/data")
+    #base_dir = saga.url("file://localhost" + os.getcwd()+"/data")
+    base_dir = saga.url("file://localhost" + DATA_FILE_DIR)
     ps1 = pilot_store("affinity1", base_dir, pd)
+    data_files=os.listdir(DATA_FILE_DIR);
+    ps1.register_files(data_files)
+    #for i in data_files:
+    #    #print "add file %s" % i
+    #    ps1.register_file(saga.url(i))
     # files can be added either relative to base_dir
-    ps1.register_file(saga.url("pg20417.txt")) 
-    ps1.register_file(saga.url("pg5000.txt")) 
+    #ps1.register_file(saga.url("pg20417.txt")) 
+    #ps1.register_file(saga.url("pg5000.txt")) 
     
     pd.add_pilot_store(ps1)
     #pilot_data.to_advert(pd)
@@ -52,9 +62,13 @@ if __name__ == "__main__":
     ##########################################################################################
     print "Start some BigJob w/ affinity"
     resource_list = []
-    resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
-                           "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), 
-                           "affinity" : "affinity1"})
+    #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "loni_jhabig10", 
+    #                       "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), 
+    #                       "affinity" : "affinity1"})
+    #resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
+    resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "loni_jhabig10",
+                           "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"),
+                           "working_directory": (os.getcwd() + "/agent"), "walltime":120, "affinity" : "affinity1"})
 
     print "Create manyjob service "
     mjs = many_job_affinity.many_job_affinity_service(resource_list, "localhost")

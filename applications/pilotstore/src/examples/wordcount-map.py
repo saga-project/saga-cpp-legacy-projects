@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # count lines, sentences, and words of a text file
 # set all the counters to zero

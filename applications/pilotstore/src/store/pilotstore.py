@@ -55,6 +55,29 @@ class pilot_store:
             self.file_registry.append(file_url)
         pilot_store.to_advert(self, self.pd_url)
 
+
+    def register_files(self, file_urls):
+        """ adds file_url references to pilot_data container """
+        for i in file_urls:
+            #try to parse URL
+            file_url = saga.url(i)
+            logging.debug("URL: " + str(file_url) + " Host: " + file_url.host)
+            
+            # not an URL tree as local path relative to basedir
+            if file_url.host == "":
+                if os.path.exists(self.base_dir.path + "/" + str(file_url)):
+                    self.file_registry.append(saga.url(str(self.base_dir) + "/" + str(file_url)))
+                else:
+                    raise IOError("File not found")
+            elif file_url.host=="localhost":
+                if os.path.exists(file_url.path):
+                    self.file_registry.append(file_url)
+                else:
+                    raise IOError("File not found")
+            else:
+                self.file_registry.append(file_url)
+        pilot_store.to_advert(self, self.pd_url)
+
     def deregister_file(self, file_url):
         """ removes file_url reference to pilot_data container """
         self.file_registry.remove(file_url)
@@ -78,6 +101,11 @@ class pilot_store:
     
     ##############################################################################
     def list_files(self):
+        return self.file_registry 
+
+    def list_files_for_chunk(self, chunk_id, total_number_of_chunks):
+        """ returns files for a certain chunk """
+        total_num_files = len(self.file_registry)
         return self.file_registry 
 
     def join(self, pilot_data):
