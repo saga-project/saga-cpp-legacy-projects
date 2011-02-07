@@ -47,7 +47,8 @@ class bigjob():
                  project,
                  working_directory,
                  userproxy,
-                 walltime):
+                 walltime,
+                 processes_per_node=1):
         """ start advert_launcher on specified host """
         if userproxy != None and userproxy != '':
             os.environ["X509_USER_PROXY"]=userproxy
@@ -68,6 +69,7 @@ class bigjob():
         # create job description
         jd = saga.job.description()
         jd.number_of_processes = str(number_nodes)
+        jd.processes_per_host=str(processes_per_node)
         jd.spmd_variation = "single"
         jd.arguments = [bigjob_agent_executable, self.database_host, self.pilot_url]
         jd.executable = "/bin/bash"
