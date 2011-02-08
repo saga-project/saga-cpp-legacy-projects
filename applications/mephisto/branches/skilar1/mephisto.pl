@@ -53,7 +53,7 @@ $enab_py	  = 0;
 $enab_post	  = 0;
 $enab_saga 	  = 0;
 $test_enab        = 0;
-######added########
+
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -156,6 +156,8 @@ sub pull_package {
                    	$no[2] = 0;
 			$boost_check .= ".$no[2]"; 
 		   }
+
+    
 
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
@@ -437,7 +439,7 @@ sub print_usage () {
     print "        selected packages with specified versions at the command prompt.\n\n";
     
     print color 'bold red';
-    print "        mephisto.pl check ";
+    print "        mephisto.pl test ";
     print color 'reset';
     print "--target-dir=<dir> <options>\n";
     print "        Same as install, but additionally runs unit and adaptor tests.\n\n";
@@ -453,9 +455,9 @@ sub print_usage () {
 	print "                             and building. If omitted, it defaults to \n";
 	print "                             /tmp/meph_tmp.\n\n";
 	
-	print "      --with-packages=       Comma-separated list of optional packages to\n";
-	print "                             install. By default, mephisto installs all\n";
-	print "                             available packages.\n\n";
+#	print "      --with-packages=       Comma-separated list of optional packages to\n";
+#	print "                             install. By default, mephisto installs all\n";
+#	print "                             available packages.\n\n";
 	
 	print "      --with-boost-version=  Overrides the Boost version defined in the\n";
 	print "                             repository. The version number should be \n";
@@ -616,7 +618,7 @@ sub check_options () {
 
                 @delitems = split(",",$dellist);
 		$test_enab=1;
-        	print "\n $test_enab \n";
+##        	print "\n $test_enab \n";
 	        if(!$retval)
                 {
                         print_usage();
@@ -729,18 +731,19 @@ my $countp=0;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
-    if ($packages[1] eq "BOOST") {
-    print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
-	}
-######change $countp = 4 if you want  globus to be displayed after sqlite and before saga 
-    elsif($countp eq 0  && $enab eq 1) {
+    if($countp eq 4 && $enab eq 1) {
     print " o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
     print " o $packages[1]: $packages[2]\n";
     }
-    else{
-    print " o $packages[1]: $packages[2]\n";
-    } 
-	$countp = $countp + 1; 
+        if ($packages[1] eq "BOOST") {
+   	print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
+	}
+    	else{
+    	print " o $packages[1]: $packages[2]\n";
+    	}
+      
+	$countp = $countp + 1;
+#	print"\n $countp\n"; 
   }
 
 ######change $count = 4 if you want  globus to be installed after sqlite and before saga
@@ -757,7 +760,7 @@ foreach my $line (@index2) {
 	
 	}  
 	if ($flag eq 0) {	
-	if ($count eq 1 && $enab eq 1) {
+	if ($count eq 4 && $enab eq 1) {
 	pull_package(@midpack);
 	}
      $count = $count + 1;
@@ -767,7 +770,7 @@ foreach my $line (@index2) {
 ##		}
 	}
 	else {
-	if ($count eq 1 && $enab eq 1) {
+	if ($count eq 4 && $enab eq 1) {
         pull_package(@midpack);
 	}
 	$count = $count + 1;
