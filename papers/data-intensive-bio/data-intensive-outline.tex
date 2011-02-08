@@ -137,62 +137,41 @@ Our strategy is, first to understand characteristics of biological information i
 %First, we note that in general, genome-wide mapping procedure is an good example of data-intensive scientific applications and can be efficiently carried out with parallel or concurrent executions if there exist ways of data fragmentation with intact biological information.  For example, a reference genome is likely to be composed of many chromosomes or plasmids, and thus mapping on each chromosomes and plasmids can be executed separately.  The challenge, however, is that the way of data fragmentation, and thus system configuration for required parallel/concurrent runs should be considered the characteristics of system environment. Those characteristics differ distinctively between a HPC grid and a Cloud and also vary with a specific target system in each class.  
 
 
-\section{Applications: An Overview}
-First, for genome-wide mapping procedure with a mapping application, BFAST, we need to carry out several stages that include a step for genome indexing with a reference genome and for match of short reads sequencing data against a indexed reference genome.  In this work, we focus on match.   The overall workflow that explains the target calculation, match, and other pre-processing steps is illustrated in Fig.~\ref{fig:workflow-bfast}. 
+\section{Mapping with BFAST Tool and Two Genome Datasets}
+\subsection{Background}
+Our target genome analysis tool is a mapping tool, BFAST, which represents a class of tools that comprises diverse genome-wide analysis applications but shares similar characteristic computational features for their execution\cite{bfast2009,bfast2009b}.  Such features include i) a requirement of input files containing sequences of a reference genome or short reads from NGS platforms ii) a production of output files that is generally written with a format that another successive tool can take as an input.  These aspects that are accompanied with a huge variation in the data volume of input, output, or temporary files often require that a tool should support parallel or multi-threading executions, which is also true with BFAST\cite{bfast2009}.  In Fig.~\ref{fig:workflow-bfast} and Table~\ref{table:bfast-summary}, the summary of BFAST is presented.
 
+In brief, BFAST takes a reference genome sequence with a fasta format and NGS platform generated short reads files with a fastq format, and processes indexing of the reference genome, finding Candidate Alignment Locations (CALs), local alignment of CALs, and post-processing of alignment results, which taken together produces the mapping of billions of short reads onto the target reference genome.  Among the steps, three steps (index, match, loalalign) demands most of computing times that also vary depending upon the size of a reference genome as well as volumes of short reads.  As stated, BFAST can be executed by carrying out parallel or concurrent tasks by splitting the input data, short reads and a reference genome.  Short reads files can be prepared with multiple files and short reads in each file are mapped independently against a reference genome.  Meanwhile, a reference genome is also split into many files by considering the existence of multiple contigs in an entire genome, for example, multiple chromosomes and plasmids.  
+
+Once a reference genome is decided, the following step is to create index of the reference genome with multiple index files and resulting number of the index files are decided by the number of masks times by $4^d$ where d is the option for the low memory consumption such that as $d$ increases each index files is split into $4^d$ files and processed one by one.  On the other hand, NGS short reads can be split into as many as separate files with which parallel or concurrent tasks are executed for each file.  Note that while each reads file can be processed independently, an entire reference genome sequence should be used altogether for the next step, "bfast match". 
 
 \begin{figure}
  \centering
-\includegraphics[scale=0.35]{bfast-mapping.jpg} 
+\includegraphics[scale=0.45]{figures/workflow.png} 
 
-\caption{\small Overall workflow for mapping procedure using BFAST for ABI SOLiD sequencing data is illustrated with Bfast commands and the associated module, solid2fastq.  In this work, we focus on the step for match (red arrow).  Note that initially a reference genome stored with a fasta file format (.fa) and NGS sequencing data, whose file format varies depending upon NGS platform), are converted into index files (xxx.bif) and fastq files, respectively.  }
-  \label{fig:workflow-bfast} \end{figure}
-
-
-In Table~\ref{table:two-genomes}, we summarize the raw data sizes for
-two genomes and the information.  
-
-%Note that the number of required
-%concurrent tasks, $N$, 
-
-The number of matching tasks is decided by the number of indexed files
-(xxx.bif), $N_i$, and the number of files for the sequencing data
-(xxx.fastq), $N_s$, such that $N = N_i \times N_s$.
-
-% The decision
-% could result in the optimized time-to-solution, and to this end,
-% importantly needs the information about the specification of available
-% computing environments such as the available number of cpus,
-% accessible memory size, and the size of data storage for each task as
-% well as biological information such as the number of chromosomes.
+\caption{\small Overall workflow for a mapping procedure using BFAST.  In this work, we focus on the step for finding Candidate Alignment Locations (CALs).  }
+  \label{fig:workflow-bfast} 
+ \end{figure}
 
 
-
-The main challenge to find an optimal condition for carrying out
-mapping with BFAST, in particular, the step for match arises from the
-complicated inter-dependency of capability of an infrastructure as
-well as biological complexity.  The biological complexity lies in the
-fact that the numbers of input files $N_i$ and $N_s$ should be
-considered with biological contexts such as the number of chromosomes
-and plasmids (eukaryotes vs. procaryotes), the size of fragmented
-short reads data, and the fact whether a reference genome could be
-broken into many pieces.  In this work, the latest is not considered
-for simplicity.  
-
-% Furthermore, infrastructure capability to run concurrent tasks should
-% be understood while these parameters from biological contexts are
-% taken into account together.  We present our analyses with two genome
-% systems representing a eukaryote and a prokaryote, respectively, using
-% a HPC grid and a Cloud environment for an understanding of conditions
-% of a scalable cyberinfrastructure for an effective execution of
-% mapping, and consequently genome-wide analyses.
+\begin{table}
+\begin{tabular}{|c|c|c|c|} 
+  \hline 
+ BFAST command & Description & Computing  Requirement  \\ 
+  &  &     for Parallel Strategy \\\hline
+bfast fasta2brg & creation of a ref. genome  &    multiple independent contigs \\
+&  preparation of short reads files &     multiple sequence reads files \\
+  bfast index & creation of reference genome indexes& multi-threading, split index file creation\\
+ bfast match & finding candidate alignment locations  &  multi-threading, parallel execution \\
+ bfast localalign & alignment of each CAL  &   parallel execution \\
+bfast postprocess & prioritization of alignments  &  parallel execution \\ \hline
 
 
-\jhanote{Joohyun: Please organize each description addressing each of
-  the following points: (i) Brief outline of the scientific problem,
-  (ii) What are the challenges, (iii) estimates of volumes of data
-  involved, distributed or not?, number of tasks, are they coupled or
-  uncoupled -- what is the level of coupling between tasks?}
+\hline
+\end{tabular} \caption{Description of BFAST commands and computational requirements}
+ \label{table:bfast-summary} 
+\end{table}
+
 
 \begin{table}
 \begin{tabular}{|c|cc|} 
@@ -207,6 +186,38 @@ for simplicity.
 \end{tabular} \caption{Specification of target genomes and sequencing data from Next Generation Sequencing (NGS) platforms.}
  \label{table:two-genomes} 
 \end{table}
+
+
+In Table~\ref{table:two-genomes}, we summarize the two genome datasets investigated in this study. Two genomes represents two extremes, an eucaryote system, human, and a microbe, Burkerholderia Glumae\cite{kim2011} that differ in the size and the genome structure of reference genomes, types of sequencing protocols for generating short reads and consequently different mapping rates.
+
+%Note that the number of required
+%concurrent tasks, $N$, 
+
+
+\subsection{Parallel/Concurrent Execution of BFAST: bfast match}
+
+\begin{figure}
+ \centering
+\includegraphics[scale=0.43]{figures/readvstime.png}
+\includegraphics[scale=0.44]{figures/threadsvstime.png} 
+
+\caption{\small Parallel execution support in BFAST.  "match" step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome}
+  \label{fig:parallel-execution} 
+ \end{figure}
+
+
+The time-to-solution for "match" step depends upon several parameters that determine how to carry out parallel tasks given computational resource configurations such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores.   According to the results shown in Fig.~\ref{fig:parallel-execution}, we found that when such computational configurations do not operate as limitations for overall performance, among three options, i.e., the low memory option, multiple reads files, and multi-threading support, of BFAST for concurrent execution patterns, multi-threading support offered the marginal gain.  While multiple reads file option suggests the best strategy for scaling out, i.e. the short execution time with more cores and smaller file size, the low memory option that creates more index files require longer calculation time.   
+
+At last, the volume of datasets as input, output, and temporary files is also affected by parallel/concunrrent implementation.
+
+
+
+\jhanote{Joohyun: Please organize each description addressing each of
+  the following points: (i) Brief outline of the scientific problem,
+  (ii) What are the challenges, (iii) estimates of volumes of data
+  involved, distributed or not?, number of tasks, are they coupled or
+  uncoupled -- what is the level of coupling between tasks?}
+
 
  \begin{table}
  \begin{tabular}{|c|cc|} 
@@ -263,6 +274,14 @@ executables path for job description of subjobs was given accordingly.
 In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the
 running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
 while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
+
+
+
+\section{Concluding Remarks}
+We present our analyses with two genome systems representing a eukaryote and a prokaryote, respectively, using
+ a HPC grid and a Cloud environment for an understanding of conditions of a scalable cyberinfrastructure for an effective execution of
+ mapping, and consequently genome-wide analyses.   Based on our results, we conclude that an infrastructure to run with a proper configuration for concurrent tasks benefits genome-wide analysis and such a configuration is optimized only when parameters from biological contexts as well as limitations and potentials of distributed computational resources are taken into account together.  For that purpose, our DARE framework provides an efficient solution.  
+
 
 
 \bibliographystyle{abbrv}
