@@ -483,9 +483,9 @@ sub test_perform()
 {
     my @test_cmd = ("make check");
     my $test_dir = $meph_tmp_dir; 
-    print "\n\n $meph_tmp_dir \n\n";
+    print "\n\n Testing SAGA installaions...";
 	$test_dir .= "/SVN_SAGA";
-print "\n\n $test_dir \n\n";
+#print "\n\n $test_dir \n\n";
     	chdir "$test_dir";
     my $test_logfile = "$test_dir/SVN_TEST.log";
     
@@ -722,7 +722,7 @@ print "\n Source repository: $meph_rep_full\n\n";
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
 
-my @midpack = ("LF","GLOBUS","$globus","'./configure'","'make'","'make install'");
+my @midpack = ("LF","GLOBUS","$globus","'./configure'","'make prewsgram gridftp postinstall'","'make install'");
 my @temp = split (/\./, $boost_check);
 if (@temp eq 2) {
 $boost_check .= ".0";
