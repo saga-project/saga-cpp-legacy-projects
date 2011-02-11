@@ -63,8 +63,8 @@
 \begin{document}
 
 \title{Characterizing Deep Sequencing Analytics Using BFAST: Towards a
-  Scalable Distributed Architecture for Next Generation Gene
-  Sequencing}
+  Scalable Distributed Architecture for Next Generation
+  Sequencing Data Analysis}
 
 \author{Joohyun Kim$^{1}$, Sharath Maddineni$^{1}$, Shantenu Jha$^{*1,2}$, \\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
@@ -146,19 +146,21 @@ BFAST also supports multi-threading and the low memory option for "match" step. 
 \begin{table}
 \begin{tabular}{|c|c|c|c|} 
   \hline 
- BFAST command & Description & Supported \\ 
-  &  &     Parallelism \\\hline
-\texttt{bfast fasta2brg} & creation of a ref. genome  &    multiple independent contigs \\
-&  preparation of short reads files &     multiple sequence reads files \\
+ BFAST command & Description & Features for \\ 
+  &  &     Parallelism \\ \hline \hline
+\texttt{bfast fasta2brg} & creation of a ref. genome  &    multiple independent contigs \\ \hline 
+\texttt{solid2fastq}  &  preparation of short reads files &     multiple sequence reads files \\ \hline
 
-\texttt{bfast index} & creation of reference genome indexes& multi-threading, split index file creation\\
-\texttt{bfast match} & finding candidate alignment locations  &  multi-threading, parallel execution \\
-\texttt{bfast localalign} & alignment of each CAL  &   parallel execution \\
+\texttt{bfast index} & creation of reference genome indexes& multi-threading and  \\
+ &   & low memory option  \\  \hline
+\texttt{bfast match} & finding candidate alignment locations  &  multi-threading and  \\
+& &  parallel execution \\ \hline
+\texttt{bfast localalign} & alignment of each CAL  &   parallel execution \\  \hline
 \texttt{bfast postprocess} & prioritization of alignments  &  parallel execution \\ \hline
 
 
 \hline
-\end{tabular} \caption{Description of BFAST commands and features that can be used for parallel/concurrent and multi-threading execution}
+\end{tabular} \caption{Description of BFAST commands and features for parallel and multi-threading execution}
  \label{table:bfast-summary} 
 \end{table}
 
@@ -173,12 +175,12 @@ BFAST also supports multi-threading and the low memory option for "match" step. 
 \includegraphics[scale=0.66]{figures/readsvstime.pdf}
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
-\caption{\small Parallel execution support in BFAST.  'bfast match' step is measured by changing the size of short reads file and using the low memory option (upper).  The computing time is also measured by varying the number of cores with the multi-threading support option (lower).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
+\caption{\small The time-to-completion of the 'bfast match' step is measured by varying the size of short reads file.  Two lines represent two cases differing in the low memory option, which results in the different number of index files.  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
  \end{figure}
 
 
-The time-to-solution for "match" step depends upon several parameters that determine the configuration for parallel tasks and multi-threading support.  Computational resource specification such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores available are the important information for optimal condition for such parameters.  An understanding of such aspects was attempted by characterizing computing characteristics of the "bfast match" step.  The results from our investigation are presented  in Fig.~\ref{fig:parallel-execution}. First, performance gains with multi-threading are marginal showing only 30 \% speed up when reaches the limit with all of the number of free cores being used.  
+The time-to-completion for "match" step depends upon several parameters that determine the configuration for parallel tasks and multi-threading support.  Computational resource specification such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores available are the important information for optimal condition for such parameters.  An understanding of such aspects was attempted by characterizing computing characteristics of the "bfast match" step.  The results from our investigation are presented  in Fig.~\ref{fig:parallel-execution}. First, performance gains with multi-threading are marginal showing only 30 \% speed up when reaches the limit with all of the number of free cores being used.  
 Secondly, the multiple reads file option is useful as a strategy for scaling out, i.e. with more cores operating correspondingly a smaller reads file.  Thirdly, the low memory option that creates more index files require longer calculation time as the comparison between 40 index files $(d = 1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.   
 
 
@@ -211,7 +213,7 @@ Computational requirements for carrying out BFAST steps, in particular the "bfas
 
 The difference of computational requirements arising from different genomes could be hinted with two genome datasets that are representative of biological diversity, an eucaryote system, human, and a microbe, Burkerholderia Glumae\cite{kim2011}.  Two genomes differ in the size and the genome structure of reference genomes, types of sequencing protocols for generating short reads and consequently different mapping rates, which is summarized in Table~\ref{table:two-genomes}.  Importantly, the two different genomes display widely different data sizes in terms of the reference genome sequence, short reads data, and required disk space for carrying out the mapping with BFAST as presented in Table~\ref{table:two-genomes}. 
 
-Computational requirements vary also with how to configure parallel/multi-threading execution patterns.  Since BFAST provides its intrinsic support for multi-threading and parallel execution, we examined computational requirements while varying configurations for such parallel strategies.  For example, according to the results shown in Fig.~\ref{fig:parallel-execution}, it is obvious that dividing a large volume of short reads data into many independent runs is a good strategy while multi-threading support is limited by available cores in a same node.  Also the results in Fig.~\ref{fig:parallel-execution} find that the low memory option that allows to split one index file into many do not benefit in the computing time. Our results suggest that the size of an index file affects on the total time to solution marginally while the size of a short read file is the determinant factor, indicating that the low memory option needs an increase of the computing time as the number of calculations with a short read file becomes as multiple as the number of divided index files.   
+Computational requirements vary also with how to configure parallel/multi-threading execution patterns.  Since BFAST provides its intrinsic support for multi-threading and parallel execution, we examined computational requirements while varying configurations for such parallel strategies.  For example, according to the results shown in Fig.~\ref{fig:parallel-execution}, it is obvious that dividing a large volume of short reads data into many independent runs is a good strategy while multi-threading support is limited by available cores in a same node.  Also the results in Fig.~\ref{fig:parallel-execution} find that the low memory option that allows to split one index file into many do not benefit in the computing time. Our results suggest that the size of an index file affects on the total time-to-completion marginally while the size of a short read file is the determinant factor, indicating that the low memory option needs an increase of the computing time as the number of calculations with a short read file becomes as multiple as the number of divided index files.   
 
 Most importantly, while the implementation of multiple parallel tasks indicates advantages of distributed multiple resource utilization, the large volume and variation of data sizes associated with genome sequence data as well as minimally required disk space needs to pay attention since in some cases, data size itself prohibits to carry out the analysis in a computing resource that lacks the demanded requirements, indicating the significance of agile runtime environment that drives a dynamical configuration and utilization of distributed resources. 
 
@@ -246,12 +248,9 @@ Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the r
 \begin{figure}
  \centering
 \includegraphics[scale=0.66]{figures/diskspace.pdf}
-\caption{\small Disk space requirement in the case that all reads
-  files are processed concurrently in a single storage is compared to
-  the case when each single reads file is processed with a distributed
-  storage.  Also, the comparison of the required disk space for the
-  low memory option that produce 40 index files with the normal
-  configuration that produce 10 index files is presented. \jhanote{We
+\caption{\small Disk space requirement for the cases that all reads
+  files are processed concurrently in a single storage (A and B) is compared to
+  one for the cases when each single reads file is processed alone (C and D).  Also, the cases with the low memory option producing 40 index files (A and C) are compared to the cases without the low memory option that produce 10 index files (B and D). \jhanote{We
     need to increase the font of the labels in the figure. Almost
     impossible to read. Should be easy in gnuplot..} \jhanote{Remove C and D ot later possibly}}
   \label{fig:diskspace} 
@@ -308,7 +307,7 @@ while booting the Virtual Machine. Thus all the VM can have access to data and c
 %\includegraphics[scale=0.66]{figures/readsvstime.pdf}
 \includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
-\caption{\small Parallel execution support in BFAST.  ``Match''step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
+\caption{\small The multi-threading capability measurement.  The 'bfast match' 'step is measured by varying the number of cores for multi-threading execution.  The node tested has 12 cores.  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -330,7 +329,7 @@ Reads file size &  Number of threads  & Number of  & Time to completion \\
  \hline
  \end{tabular}
  \label{table:understand I/o} 
- \caption{Computing time for BFAST match.  The node tested has 4 cores.}
+ \caption{Computing time for the 'bfast match' step with a single node.  Under the restriction such that the tested node has 4 cores, the time-to-completions are compared with varying conditions regarding the size of reads files, the number of thread for each 'bfast match', and number of the 'bfast match' executed concurrently.}
 \end{table}
 
 These experiments show that use of 2 threads per bfast matches simultaneously on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
@@ -346,7 +345,7 @@ These experiments show that use of 2 threads per bfast matches simultaneously on
 
 Following is the implementation described above, the execution of mapping calculations using BFAST was tested with our runtime environment built with the DARE framework.   Results were obtained with a HPC grid and a Cloud environment, which demonstrate the capability of our runtime environment for the mapping tool on distributed heterogeneous computing resources. \jhanote{Before we say what we are presenting, please present a ``why and how'', i.e., outline the experiments} 
 
-First of all, in Table~\ref{table:bigjob-loni}, we presented the measured time-to-solution for the step 'bfast match' with different configurations that include the variation of the number of threading used for each task and the number of cores (and also the number of nodes).   These results clearly show i) effective job submission and sub task management trough BigJob in spite of a large number of subtasks up to 40 ii) requirement of sufficient number of cores through available distributed computing resources (see I and II compared to III and IV that requires many rounds of parallel executions due to limited number of cores) that completes parallelism with multiple reads files.  In particularly, the observation with (ii), along with the observation already shown in Fig.~\ref{fig:parallel-execution} that observed a marginal performance gain with the option for increasing number of threading, is clearly supported by the results shown in Fig.~\ref{} once again that shows the result in that without sufficient cores available from distributed resources and dynamically adapted task distribution, achieving the efficient execution of a target calculation is challenging.
+First of all, in Table~\ref{table:bigjob-loni}, we presented the measured time-to-completion for the step 'bfast match' with different configurations that include the variation of the number of threading used for each task and the number of cores (and also the number of nodes).   These results clearly show i) effective job submission and sub task management trough BigJob in spite of a large number of subtasks up to 40 ii) requirement of sufficient number of cores through available distributed computing resources (see I and II compared to III and IV that requires many rounds of parallel executions due to limited number of cores) that completes parallelism with multiple reads files.  In particularly, the observation with (ii), along with the observation already shown in Fig.~\ref{fig:parallel-execution} that observed a marginal performance gain with the option for increasing number of threading, is clearly supported by the results shown in Fig.~\ref{} once again that shows the result in that without sufficient cores available from distributed resources and dynamically adapted task distribution, achieving the efficient execution of a target calculation is challenging.
 
 
  \begin{table}
@@ -364,10 +363,6 @@ IV & 12 (4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
   \label{table:bigjob-loni} 
 \end{table}
  
-<<<<<<< .mine
-Another interesting observation is, as shown in Fig.~\ref{fig:diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple reads files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.    
-=======
->>>>>>> .r3757
 
 
 \subsubsection{Using BFAST on Clouds and Grids}
@@ -383,7 +378,7 @@ Number of VM's & VM type and Number of cores & Time to completion in seconds \\ 
  \hline 
  \end{tabular}
  \label{table:cloud VM's} 
- \caption{Multiple VM's vs Single VM}
+ \caption{The time-to-completion is compared between the case of multiple VMs and the case of single VM}
 \end{table}
 
 Thus when same workload is distributed across multiple VM's has a marginal gain over the one single large VM.
