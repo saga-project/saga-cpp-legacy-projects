@@ -62,7 +62,7 @@
 
 \begin{document}
 
-\title{Characterizing Deep Sequencing Analytics using BFAST: Towards a
+\title{Characterizing Deep Sequencing Analytics Using BFAST: Towards a
   Scalable Distributed Architecture for Next Generation Gene
   Sequencing}
 
@@ -173,7 +173,7 @@ BFAST also supports multi-threading and the low memory option for "match" step. 
 \includegraphics[scale=0.66]{figures/readsvstime.pdf}
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
-\caption{\small Parallel execution support in BFAST.  ``Match''step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
+\caption{\small Parallel execution support in BFAST.  'bfast match' step is measured by changing the size of short reads file and using the low memory option (upper).  The computing time is also measured by varying the number of cores with the multi-threading support option (lower).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -198,7 +198,7 @@ Secondly, the multiple reads file option is useful as a strategy for scaling out
   Sequencing Platform & ABI SOLiD  &  Illumina GA2 \\
   Sequencing Data Volume  & 8.7 GB & 5.4 GB \\
   \underline{ \textbf{BFAST mapping} }  \\
-  Minimal disk space required  &  approx. 130 GB   &    approx. 10 GB   \\
+  Minimal disk space required (Total) &  approx. 130 GB   &    approx. 10 GB   \\
 
 \hline
 \end{tabular} \caption{The information about the size of reference genomes, volumes of datasets from Next Generation Sequencing (NGS) platforms and disk space required during the mapping calculation with BFAST is summarized assuming all calculations are carried out with a single machine.}
@@ -318,18 +318,19 @@ while booting the Virtual Machine. Thus all the VM can have access to data and c
 To understand the how I/O of the system influences the performance of bfast matching four different experiments were conducted keeping the amount of data processed constant and number of threads used also as constant but for the first three. In the first experiment we just perform one bfast match for a large reads file of size with four threads and four cores. In the second experiment two bfast matches concurrently with almost half the size of reads file but half of the threads used in the first one.Similarly, in the third experiment we run four bfast matches concurrently with almost quarter the size reads file used but the in the first experiment and one thread each. Fourth one is similar to third except in the number of threads 4 threads per bfast job is used but using just 4 cores.
 
  \begin{table}
- \begin{tabular}{|c|c|c|} 
+ \begin{tabular}{|c|c|c|c|} 
  \hline 
-Reads file size in GB &  Number of threads per Reads file & Time to completion in seconds \\ \hline
-2.3 &  4 & 36942  \\
-1.2 & 2 & 19618 \\
-0.732 & 1 & 28299\\ 
-0.732 & 1 & 25215\\
+Reads file size &  Number of threads  & Number of  & Time to completion \\
+& per Reads file&  BFAST tasks & \\  \hline
+2.3 GB &  4 & 1 & 36942 s \\
+1.2 GB & 2 & 2 & 19618 s \\
+0.732 GB & 1 & 4 & 28299 s\\ 
+0.732  GB & 4 & 4 & 25215 s\\
 
  \hline
  \end{tabular}
  \label{table:understand I/o} 
- \caption{This table shows the characteristics of Bfast when multiple Bfast's were running on the same node/machine }
+ \caption{Computing time for BFAST match.  The node tested has 4 cores.}
 \end{table}
 
 These experiments show that use of 2 threads per bfast matches simultaneously on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
@@ -363,6 +364,10 @@ IV & 12 (4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
   \label{table:bigjob-loni} 
 \end{table}
  
+<<<<<<< .mine
+Another interesting observation is, as shown in Fig.~\ref{fig:diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple reads files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.    
+=======
+>>>>>>> .r3757
 
 
 \subsubsection{Using BFAST on Clouds and Grids}
