@@ -171,7 +171,7 @@ BFAST also supports multi-threading and the low memory option for "match" step. 
 \begin{figure}
  \centering
 \includegraphics[scale=0.66]{figures/readsvstime.pdf}
-\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
+%\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small Parallel execution support in BFAST.  ``Match''step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
@@ -205,7 +205,7 @@ Secondly, the multiple reads file option is useful as a strategy for scaling out
  \label{table:two-genomes} 
 \end{table}
 
-\subsection{Computational Requirements}
+\subsubsection{Computational Requirements}
 
 Computational requirements for carrying out BFAST steps, in particular the "bfast match" step are associated with biological contexts such as a type of a target reference genome and high-throughput sequencing techniques generating short reads sequences, parallel/multi-threading execution pattern, and available computing architectures.  
 
@@ -237,9 +237,25 @@ Name &  QB/Eric   &  INDIA/SIERRA \\
 \label{table:two-systems} 
 \end{table}
  
+\subsubsection{BFAST: Characterising Data Requirements}
 
+\jhanote{Lines 86-87, In a nutshell: the operating data-set does not depend on the size/number of read files but does depend on the size/number of index files}
 
+Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple reads files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.
 
+\begin{figure}
+ \centering
+\includegraphics[scale=0.66]{figures/diskspace.pdf}
+\caption{\small Disk space requirement in the case that all reads
+  files are processed concurrently in a single storage is compared to
+  the case when each single reads file is processed with a distributed
+  storage.  Also, the comparison of the required disk space for the
+  low memory option that produce 40 index files with the normal
+  configuration that produce 10 index files is presented. \jhanote{We
+    need to increase the font of the labels in the figure. Almost
+    impossible to read. Should be easy in gnuplot..} \jhanote{Remove C and D ot later possibly}}
+  \label{fig:diskspace} 
+ \end{figure}
 
 \section{Mapping with BFAST Using Distributed, Scalable Architectures}
 
@@ -282,7 +298,28 @@ In the cloud implementation all the data required was transferred into the walru
 running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
 while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
 
+
+\subsection{Understanding BFAST Dependence on a Local Resource}
+
+\subsubsection{$T_{C}$ on $N_t$ and $N_c$}
+
+ \begin{figure}
+ \centering
+%\includegraphics[scale=0.66]{figures/readsvstime.pdf}
+\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
+
+\caption{\small Parallel execution support in BFAST.  ``Match''step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
+  \label{fig:parallel-execution} 
+ \end{figure}
+
+
+\subsubsection{Understanding I/O}
+
+\jhanote{Lines 44-47 of the Excel Sheet here}
+
 \subsection{Experiments with HPC and Cloud}
+
+\subsubsection{Using BFAST On Distributed Grids}
 
 Following the implementation described above, the execution of mapping calculations using BFAST was tested with our runtime environment built with the DARE framework.   Results were obtained with a HPC grid and a Cloud environment, which demonstrate the capability of our runtime environment for the mapping tool on distributed heterogeneous computing resources. \jhanote{Before we say what we are presenting, please present a ``why and how'', i.e., outline the experiments} 
 
@@ -304,22 +341,9 @@ IV & 12 (4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
   \label{table:bigjob-loni} 
 \end{table}
  
-Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple reads files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.    
 
-\begin{figure}
- \centering
-\includegraphics[scale=0.66]{figures/diskspace.pdf}
 
-\caption{\small Disk space requirement in the case that all reads
-  files are processed concurrently in a single storage is compared to
-  the case when each single reads file is processed with a distributed
-  storage.  Also, the comparison of the required disk space for the
-  low memory option that produce 40 index files with the normal
-  configuration that produce 10 index files is presented. \jhanote{We
-    need to increase the font of the labels in the figure. Almost
-    impossible to read. Should be easy in gnuplot..}}
-  \label{fig:diskspace} 
- \end{figure}
+\subsubsection{Using BFAST on Clouds and Grids}
 
 
 \section{Concluding Remarks}
