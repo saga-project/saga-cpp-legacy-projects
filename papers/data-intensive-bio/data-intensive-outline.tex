@@ -122,7 +122,7 @@ Our strategy is, first to understand characteristics of biological information i
 %First, we note that in general, genome-wide mapping procedure is an good example of data-intensive scientific applications and can be efficiently carried out with parallel or concurrent executions if there exist ways of data fragmentation with intact biological information.  For example, a reference genome is likely to be composed of many chromosomes or plasmids, and thus mapping on each chromosomes and plasmids can be executed separately.  The challenge, however, is that the way of data fragmentation, and thus system configuration for required parallel/concurrent runs should be considered the characteristics of system environment. Those characteristics differ distinctively between a HPC grid and a Cloud and also vary with a specific target system in each class.  
 
 
-\section{BFAST Tool Mapping Using with Two Genome Datasets: Scientific and Computing Challenges}
+\section{Mapping with BFAST with Two Genome Datasets: Scientific and Computing Challenges}
 
 \subsection{BFAST : Application}
 
@@ -167,8 +167,8 @@ bfast postprocess & prioritization of alignments  &  parallel execution \\ \hlin
 
 \begin{figure}
  \centering
-\includegraphics[scale=0.5]{figures/readsvstime.pdf}
-\includegraphics[scale=0.5]{figures/threadsvstime.pdf} 
+\includegraphics[scale=0.66]{figures/readsvstime.pdf}
+\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small Parallel execution support in BFAST.  ``Match''step is measured by changing the size of short reads file and low memory option (left) and multi-threading support (right).  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
@@ -234,8 +234,13 @@ Name &  QB/Eric   &  INDIA/SIERRA \\
 \label{table:two-systems} 
 \end{table}
  
- 
-\section{Existing Solutions: Limitations and Challenges}
+
+
+
+
+\section{Mapping with BFAST Using Distributed, Scalable Architectures}
+
+\subsection{Existing Solutions: Limitations and Challenges}
 
 \jhanote{Here we need to define what solutions are currently employed, what works well
   what doesn't}
@@ -257,12 +262,7 @@ In spite of successful progresses from such efforts, the primary challenges that
 \item Scalability with a non-intrusive execution of a target tool  
 \end{enumerate}
 
-
-
-
-
-
-\section{Distributed, Scalable Architectures}
+\subsection{Distributed Adaptive Runtime Environment}
 
 To execute a scientific application using heterogeneous distributed computing resources, we develop the Distributed Adaptive Runtime Environment (DARE) framework\cite{dareurl}.  The framework is compose of an open source Web application framework, Pylons
 and middleware of the application management system built upon SAGA an BigJob abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.  This combination of the open source technology and the application management system enables us to develop a lightweight, extensible, full-fledged distributed computing science gateway quickly and effectively\cite{pylonsurl}. 
@@ -279,9 +279,11 @@ In the cloud implementation all the data required was transferred into the walru
 running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
 while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
 
-\section{Experiments}
+\subsection{Experiments with HPC and Cloud}
 
-Here, our experiments with the DARE framework for BFAST using a HPC grid and a Cloud environment are presented. \jhanote{Before we say what we are presenting, please present a ``why and how'', i.e., outline the experiments} First of all, Table~\ref{table:bigjob-loni} shows the results of the time to solution for the step 'bfast match' with different configurations on the number of threading and the number of cores (and also the number of nodes).  According to our results, it is apparent that i) a job submission and sub task management in a BigJob are efficiently handled in spite of a large number of subtasks up to 40 ii) the importance of sufficient amount of cores through available distributed computing resources (see I and II compared to III and IV that requires many rounds of parallel executions due to limited number of cores) that completes parallelism with multiple reads files.  Also, with the results that show the marginal performance gain when the multi-threading support using many cores is turned on, it is important that having sufficient cores with distributed resources is critical to achieve the efficient calculation.
+Following the implementation described above, the execution of mapping calculations using BFAST was tested with our runtime environment built with the DARE framework.   Results were obtained with a HPC grid and a Cloud environment, which demonstrate the capability of our runtime environment for the mapping tool on distributed heterogeneous computing resources. \jhanote{Before we say what we are presenting, please present a ``why and how'', i.e., outline the experiments} 
+
+First of all, in Table~\ref{table:bigjob-loni}, we presented the measured time-to-solution for the step 'bfast match' with different configurations that include the variation of the number of threading used for each task and the number of cores (and also the number of nodes).   These results clearly show i) effective job submission and sub task management trough BigJob in spite of a large number of subtasks up to 40 ii) requirement of sufficient number of cores through available distributed computing resources (see I and II compared to III and IV that requires many rounds of parallel executions due to limited number of cores) that completes parallelism with multiple reads files.  In particularly, the observation with (ii), along with the observation already shown in Fig.~\ref{fig:parallel-execution} that observed a marginal performance gain with the option for increasing number of threading, is clearly supported by the results shown in Fig.~\ref{} once again that shows the result in that without sufficient cores available from distributed resources and dynamically adapted task distribution, achieving the efficient execution of a target calculation is challenging.
 
 
  \begin{table}
@@ -299,10 +301,15 @@ IV & 12 (4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
   \label{table:bigjob-loni} 
 \end{table}
  
+Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple reads files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.    
 
+\begin{figure}
+ \centering
+\includegraphics[scale=0.66]{figures/diskspace.pdf}
 
-
-
+\caption{\small Disk space requirement in the case that all reads files are processed concurrently in a single storage is compared to the case when each single reads file is processed with a distributed storage.  Also, the comparison of the required disk space for the low memory option that produce 40 index files with the normal configuration that produce 10 index files is presented}
+  \label{fig:diskspace} 
+ \end{figure}
 
 
 \section{Concluding Remarks}
