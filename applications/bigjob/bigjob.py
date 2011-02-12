@@ -82,9 +82,9 @@ class bigjob():
             jd.wall_time_limit=str(walltime)
 
         if working_directory != None:
+            if not os.path.isdir(working_directory):
+                os.mkdir(working_directory)
             jd.working_directory = working_directory
-            if not os.path.isdir(jd.working_directory):
-                os.mkdir(jd.working_directory)
         else:
             jd.working_directory = "$(HOME)"
             

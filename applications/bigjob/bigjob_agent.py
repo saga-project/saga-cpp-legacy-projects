@@ -320,6 +320,7 @@ class bigjob_agent:
          except:
              pass
          for i in allocated_nodes:
+             print "free node: " + str(i)
              self.busynodes.remove(i)
              self.freenodes.append(i)
          print "Delete " + machine_file_name
