@@ -16,12 +16,20 @@ APPLICATION_NAME="wordcount"
 
 lines, blanklines, sentences, words = 0, 0, 0, 0
 
-if len(sys.argv) !=4:
-    print "Usage: " + sys.argv[0] + " <pilot data> <pilot store> <application advert url>"
+if len(sys.argv) !=5:
+    print "Usage: " + sys.argv[0] + " <pilot data> <pilot store> <chunk id> <application advert url>"
     sys.exit(-1)
 
-logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: " + sys.argv[2] + " App URL: " + sys.argv[3])
+
+logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: " 
+              + sys.argv[2] + " Chunk id: " + sys.argv[3] 
+              + " App URL: " + sys.argv[4])
+
 pd = pilot_data.from_advert(saga.url(sys.argv[1]))
+ps_name = sys.argv[2]
+chunk_id=sys.argv[3]
+uuid = str(uuid.uuid1())
+app_url = saga.url(sys.argv[4] + "/reduce-" + uuid)
 
 print '-' * 50
 total_lines = 0
@@ -31,7 +39,7 @@ total_words = 0
 for ps in pd.list_pilot_store():
     if ps.name == sys.argv[2]:
         logging.debug("open pilot store: " + ps.name)
-        for file in ps.list_files():
+        for file in ps.list_files_for_chunk(int(chunk_id)):
             try:
                 # use a text file you have, or google for this one ...
                 saga_url = saga.url(file.get_string())
@@ -53,7 +61,7 @@ for ps in pd.list_pilot_store():
           
 logging.debug("Finished counting words")
           
-filename = "data/result-reduce.txt"
+filename = "data/result-reduce-"+uuid+".txt"
 result_file = open(filename, 'w')
 result_file.write("Lines      : " + str(total_lines)+ '\n')
 result_file.write("Blank lines: " + str(total_blanklines)+ '\n')

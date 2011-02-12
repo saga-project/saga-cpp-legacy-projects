@@ -30,6 +30,7 @@ class pilot_store:
         self.base_dir=saga.url(str(base_dir)) # make sure base_dir is a SAGA URL!!
         self.weight=weight
         self.file_registry=[]
+        self.number_of_chunks=1
         if pd!=None: 
             self.pd_url=pd.app_url
         self.uuid = uuid.uuid1()
@@ -58,10 +59,11 @@ class pilot_store:
 
     def register_files(self, file_urls):
         """ adds file_url references to pilot_data container """
+        #pdb.set_trace()
         for i in file_urls:
             #try to parse URL
             file_url = saga.url(i)
-            logging.debug("URL: " + str(file_url) + " Host: " + file_url.host)
+            logging.debug("URL: " + file_url.get_string() + " Host: " + file_url.host)
             
             # not an URL tree as local path relative to basedir
             if file_url.host == "":
@@ -71,11 +73,11 @@ class pilot_store:
                     raise IOError("File not found")
             elif file_url.host=="localhost":
                 if os.path.exists(file_url.path):
-                    self.file_registry.append(file_url)
+                    self.file_registry.append(saga.url(file_url))
                 else:
                     raise IOError("File not found")
             else:
-                self.file_registry.append(file_url)
+                self.file_registry.append(saga.url(file_url))
         pilot_store.to_advert(self, self.pd_url)
 
     def deregister_file(self, file_url):
@@ -103,22 +105,23 @@ class pilot_store:
     def list_files(self):
         return self.file_registry 
 
-    def list_files_for_chunk(self, chunk_id, total_number_of_chunks):
+    def list_files_for_chunk(self, chunk_id):
         """ returns files for a certain chunk """        
-        c = self.chunks(self.file_registry, total_number_of_chunks)
+        c = self.chunks(self.file_registry, self.number_of_chunks)
+        logging.debug(str(c))
         return c[chunk_id] 
     
     def chunks(self, l, n):
         return [ l[i::n] for i in xrange(n) ]
         
-    def join(self, pilot_data):
+    def join(self, ps):
         """ joins pilot_data object with self
             i.e. self will be expanded with the files 
             in pilot_data
             TODO: specify whether files should be 
             relocated to self base dir
         """
-        for i in pilot_data.list_files():
+        for i in ps.list_files():
             self.add_file(i)
         pilot_store.to_advert(self, self.pd_url)
     
@@ -194,6 +197,7 @@ class pilot_store:
         ps_dir.set_attribute("base_dir", ps.base_dir.get_string())
         ps_dir.set_attribute("weight", str(ps.weight))
         ps_dir.set_attribute("pd_url", str(ps.pd_url))
+        ps_dir.set_attribute("number_of_chunks", str(ps.number_of_chunks))
         #pdb.set_trace()
         if (len(ps.file_registry)>0):
             ps_dir.set_vector_attribute("file_registry", [x.get_string() for x in ps.file_registry])
@@ -209,7 +213,8 @@ class pilot_store:
         ps.name=ps_dir.get_attribute("name")
         ps.uuid=ps_dir.get_attribute("uuid")
         ps.weight=ps_dir.get_attribute("weight")
-        ps.pd_url=ps_dir.get_attribute("pd_url")
+        ps.pd_url=saga.url(ps_dir.get_attribute("pd_url"))
+        ps.number_of_chunks=int(ps_dir.get_attribute("number_of_chunks"))
         if (ps_dir.attribute_exists("file_registry") == True):
             ps.file_registry = [saga.url(x) for x in ps_dir.get_vector_attribute("file_registry")]
         else:
@@ -255,10 +260,15 @@ class pilot_data:
 
     # helper methods for convinient access to pilot_data elements of the pilot store  
     def __getitem__(self, name):
-        return pilot_store[name]
+        return self.pilot_store[name]
     
     def __iter__(self):
         return self.pilot_store.itervalues()
+    
+    def refresh(self):
+        """udpate pilot data state from advert service"""
+        new_pd = pilot_data.from_advert(self.app_url)
+        self.pilot_store=new_pd.pilot_store
 
     @staticmethod
     def to_advert(pilot_data):
@@ -285,9 +295,9 @@ class pilot_data:
         pilot_stores = pd_dir.list()
         for i in pilot_stores:
             ps_url = pd_url.get_string()+"/" + i.get_string()
-            logging.debug("Open Pilot Store: " + ps_url)
-            #job_entry = self.new_job_dir.open_dir(i)
-            #ps_dir = pd_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
+            # logging.debug("Open Pilot Store: " + ps_url)
+            # job_entry = self.new_job_dir.open_dir(i)
+            # ps_dir = pd_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
             ps = pilot_store.from_advert(saga.url(ps_url))
             pd.add_pilot_store(ps)
         return pd
