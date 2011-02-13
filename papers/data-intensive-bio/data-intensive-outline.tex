@@ -104,7 +104,7 @@ sciences and biomedical research dramatically with their comprehensive genome-wi
 information as well as a considerably affordable cost compared to previous sequencing techniques based on Sanger sequencing\cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.  
 Owing to the advances in deep sequencing protocols such as ChIP-seq and RNA-seq, high-throughput sequencing techniques becomes essential methodologies in studies of cell development and differentiation\cite{wang2009-natrevgen,pepke2009,gilad2009,mortazavi2008,sorek2010}.   Resulting influx of biological information about the genome-wide organization and the interaction map of target genes or pathways that reveal underlying mechanisms of gene expression and regulation in a living cell would lead to discoveries of remedies for various diseases such as cancer, infectious diseases, and dysfunctional diseases caused genetically or by aging\cite{amaral2008,encode2007,baek2008,costa2009,}.    
 
-While high-throughput techniques enjoy extremely high coverage of target genome regions, as referred often with the term, "deep sequencing", the current technologies adopted by NGS platforms such as Illumina GA II and Applied Biosystems SOLiD are limited to generate only short sequence reads generally less than 100 hundred nucleotides in a real setting at the time of this writing\cite{metzker2010}.  Consequently, these high volume short reads challenge immediately mapping process on to a reference genome or de novo assembly that are  needed as the first step for any genome-wide studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.      
+While high-throughput techniques enjoy extremely high coverage of target genome regions, as referred often with the term, "deep sequencing", the current technologies adopted by NGS platforms such as Illumina GA II and Applied Biosystems SOLiD are limited to generate only short sequence reads generally less than 100 hundred nucleotides in a real setting at the time of this writing\cite{metzker2010}.  Consequently, these high volume short reads challenge immediately mapping process on to a reference genome or de novo assembly that are needed as the first step for any genome-wide studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
 The need of computational methods as well as computing architectures for compute-intensive and data-intensive calculations for resolving new challenges arising from requirements of processing and analyzing genome sequencing data, therefore, is regarded indispensable for accurate and reliable analysis against high-throughput sequencing data and following genome-wide analyses.  As a result, remarkable advances have been witnessed in recent years and a number of bioinformatics tools aiming to solve emerging challenges are currently available to the scientific community\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.  One important caveat is that as advances of genome sequencing technologies evolve further in the future with innovations, for example, such as a single molecule sequencing technology and ever-growing genome data, any computational algorithms or implementations with a bioinformatic tool are subject to change to respond such progresses or will become less useful if the tool do not meet new conditions. 
 
@@ -130,7 +130,8 @@ Our strategy is, first to understand characteristics of biological information i
 
 Our target genome analysis tool is a mapping tool, BFAST\cite{bfast2009,bfast2009b}, which represents a class of tools that comprises diverse genome-wide analysis applications but shares similar computational features.  Such features include i) a requirement of input files containing sequence information of a reference genome or short reads from NGS platforms ii) a production of output files that is generally written with a format that is successively injected to another tool as input.  These aspects, along with a huge variation in the data volume in input, output, or temporary files, often require that the tool should support parallel or multi-threading executions, which is also true with BFAST\cite{bfast2009}.
 
-As summarized in Fig.~\ref{fig:workflow-bfast} and Table~\ref{table:bfast-summary}, BFAST carries out a pipeline that comprises six different steps (using a different command), and compute extensive steps could be executed in parallel or multi-threading support options.  In brief, BFAST requires a reference genome sequence and NGS platform generated short reads initially and prepare input files with pre-defined formats.  Then, the program carries out indexing of the reference genome, finding Candidate Alignment Locations (CALs), local alignment of CALs, and post-processing of alignment results, which taken together produces the mapping of billions of short reads onto the target reference genome.  Among the steps, three steps (index, match, loalalign) demands most of computing times and computing requirements with the size of a reference genome as well as volumes of short reads.  If computing requirement is high, as stated, BFAST can be executed using parallel or concurrent options by splitting the input data, short reads and a reference genome and run many independent tasks with a part of datasets.  For example, short reads files can be prepared with multiple files and short reads in each file are mapped independently against a reference genome.  Meanwhile, where as a reference genome is also split into many files by considering the existence of multiple contigs in an entire genome, for example, multiple chromosomes and plasmids, in the case of one large sequence, all information about indexing should be treated as a whole for "match" step. 
+As summarized in Fig.~\ref{fig:workflow-bfast} and Table~\ref{table:bfast-summary}, BFAST carries out a pipeline that comprises six different steps (using a different command), and compute extensive steps could be executed in parallel or multi-threading support options.  In brief, BFAST requires a reference genome sequence and NGS platform generated short reads initially and prepare input files with pre-defined formats.  Then, the program carries out indexing of the reference genome, finding Candidate Alignment Locations (CALs), local alignment of CALs, and post-processing of alignment results, which taken together produces the mapping of billions of short reads onto the target reference genome.  Among the steps, three steps (index, match, loalalign) demands most of computing times and computing requirements with the size of a reference genome as well as volumes of short reads.  If computing requirement is high, as stated, BFAST can be executed using parallel or concurrent options by splitting the input data, short reads and a reference genome and run many independent tasks with a part of datasets.  For example, short reads files can be prepared with multiple files and short reads in each file are mapped independently against a reference genome.  Meanwhile, where as a reference genome is also split into many files by considering the existence of multiple contigs in an entire genome, for example, multiple chromosomes and plasmids, in the case of one large sequence, all information about indexing should be treated as a whole for "match" step.  \jhanote{Need to clarify: Is ``map'' the whole workflow and ``match'' just one step/phase in that workflow?}
+
 
 BFAST also supports multi-threading and the low memory option for "match" step. Once a reference genome sequence is given and not able to be split into further, creating indexes of the reference genome with multiple index files are possible resulting the number of the index files, $N_i$ equal to $n_m \times 4^d$ where d is the parameter for the low memory consumption and $4^d$ files are generated by splitting an index file.  $n_m$ is the number of masks for indexing and usually fixed as 10 for our work.  Whereas this low memory option allows to consume less memory by splitting the information about index into many files and processing sequentially, the number of index files increases.  Another important option provided by BFAST is multi-threading.  If there is multi-core in a node, the option can specify the number of cores for multi-threading.    
 
@@ -180,12 +181,7 @@ BFAST also supports multi-threading and the low memory option for "match" step. 
  \end{figure}
 
 
-The time-to-completion for "match" step depends upon several parameters that determine the configuration for parallel tasks and multi-threading support.  Computational resource specification such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores available are the important information for optimal condition for such parameters.  An understanding of such aspects was attempted by characterizing computing characteristics of the "bfast match" step.  The results from our investigation are presented  in Fig.~\ref{fig:parallel-execution}. First, performance gains with multi-threading are marginal showing only 30 \% speed up when reaches the limit with all of the number of free cores being used.  
-Secondly, the multiple reads file option is useful as a strategy for scaling out, i.e. with more cores operating correspondingly a smaller reads file.  Thirdly, the low memory option that creates more index files require longer calculation time as the comparison between 40 index files $(d = 1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.   
-
-
-
-
+The time-to-completion ($T_C$) for "match" step depends upon several parameters that determine the configuration for parallel tasks and multi-threading support.  Computational resource specification such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores available are the important information for optimal condition for such parameters.  An understanding of such aspects was attempted by characterizing computing characteristics of the "bfast match" step.  
 
 \begin{table}
 \begin{tabular}{|ccc|} 
@@ -198,7 +194,7 @@ Secondly, the multiple reads file option is useful as a strategy for scaling out
     \underline{ \textbf{Short Reads Sequence Data}}   \\
   Type of Genome Analysis &  Exome  & Whole Genome Resequencing \\
   Sequencing Platform & ABI SOLiD  &  Illumina GA2 \\
-  Sequencing Data Volume  & 8.7 GB & 5.4 GB \\
+  Sequencing Data olume  & 8.7 GB & 5.4 GB \\
   \underline{ \textbf{BFAST mapping} }  \\
   Minimal disk space required (Total) &  approx. 130 GB   &    approx. 10 GB   \\
 
@@ -224,28 +220,23 @@ Number of Reads file &  Number of Index files & Appx. size of disk space  requir
  \caption{this table shows required disk space in different cases when all the read files are processed concurrently }
 \end{table}
 
-
 The disk space required per each read file is constant given all the other size and read file size is the same. Because bfast matching creates several temperory files while its running. It include one temporary file for reads file, ten temperory files for each index mask, some temporary files depending on the d option (d=0, 1 temp file, d=1 4 temprory files). ofcourse all these temp files are deleted after each bfast match run. The disk space required in concurrent run of several reads files in Matching phase is important because if the amount of disk space required exceeds the available limit bfast fails. This plays a major role in distribution of computation depending upon the allowed disk space on each machine. 
 
 \subsubsection{Computational Requirements}
+
+\jhanote{Need consistent usage of 'bfast', either BFAST or bfast.. It is ok
+to use both if in different contexts, but need to be careful}
 
 Computational requirements for carrying out BFAST steps, in particular the "bfast match" step are associated with biological contexts such as a type of a target reference genome and high-throughput sequencing techniques generating short reads sequences, parallel/multi-threading execution pattern, and available computing architectures.  
 
 The difference of computational requirements arising from different genomes could be hinted with two genome datasets that are representative of biological diversity, an eucaryote system, human, and a microbe, Burkerholderia Glumae\cite{kim2011}.  Two genomes differ in the size and the genome structure of reference genomes, types of sequencing protocols for generating short reads and consequently different mapping rates, which is summarized in Table~\ref{table:two-genomes}.  Importantly, the two different genomes display widely different data sizes in terms of the reference genome sequence, short reads data, and required disk space for carrying out the mapping with BFAST as presented in Table~\ref{table:two-genomes}. 
 
-Computational requirements vary also with how to configure parallel/multi-threading execution patterns.  Since BFAST provides its intrinsic support for multi-threading and parallel execution, we examined computational requirements while varying configurations for such parallel strategies.  For example, according to the results shown in Fig.~\ref{fig:parallel-execution}, it is obvious that dividing a large volume of short reads data into many independent runs is a good strategy while multi-threading support is limited by available cores in a same node.  Also the results in Fig.~\ref{fig:parallel-execution} find that the low memory option that allows to split one index file into many do not benefit in the computing time. Our results suggest that the size of an index file affects on the total time-to-completion marginally while the size of a short read file is the determinant factor, indicating that the low memory option needs an increase of the computing time as the number of calculations with a short read file becomes as multiple as the number of divided index files.   
+.... allows to split one index file into many do not benefit in the computing time. Our results suggest that the size of an index file affects on the total time-to-completion marginally while the size of a short read file is the determinant factor, indicating that the low memory option needs an increase of the computing time as the number of calculations with a short read file becomes as multiple as the number of divided index files.   
 
-Most importantly, while the implementation of multiple parallel tasks indicates advantages of distributed multiple resource utilization, the large volume and variation of data sizes associated with genome sequence data as well as minimally required disk space needs to pay attention since in some cases, data size itself prohibits to carry out the analysis in a computing resource that lacks the demanded requirements, indicating the significance of agile runtime environment that drives a dynamical configuration and utilization of distributed resources. 
-
-
-
-
-\jhanote{Joohyun: Please organize each description addressing each of
-  the following points: (i) Brief outline of the scientific problem,
+\jhanote{Joohyun: (i) Brief outline of the scientific problem,
   (ii) What are the challenges, (iii) estimates of volumes of data
   involved, distributed or not?, number of tasks, are they coupled or
   uncoupled -- what is the level of coupling between tasks?}
-
 
  \begin{table}
  \begin{tabular}{|c|cc|} 
@@ -309,20 +300,13 @@ Considering a daunting size of data, in particular large genomes such as human a
 
 We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using SAGA/BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
   
-In the Grid implementation first all the data required in the steps was transferred to machine's  work 
-directory where we want to start the BigJob. The BFAST was installed in the home directory and the
-executables path for job description of subjobs was given accordingly.
+..... \jhanote{Needs merging. Moving this out of Section 2. Can't have ideas scattered around!} Most importantly, while the implementation of multiple parallel tasks indicates advantages of distributed multiple resource utilization, the large volume and variation of data sizes associated with genome sequence data as well as minimally required disk space needs to pay attention since in some cases, data size itself prohibits to carry out the analysis in a computing resource that lacks the demanded requirements, indicating the significance of agile runtime environment that drives a dynamical configuration and utilization of distributed resources.
 
-In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the
-running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
-while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
-
-
-\subsection{Understanding BFAST Dependence on a Local Resource}
+\subsection{Understanding BFAST on a Local (single) Resource}
 
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
 
- \begin{figure}
+\begin{figure}
  \centering
 %\includegraphics[scale=0.66]{figures/readsvstime.pdf}
 \includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
@@ -330,6 +314,10 @@ while booting the Virtual Machine. Thus all the VM can have access to data and c
 \caption{\small The multi-threading capability measurement.  The 'bfast match' 'step is measured by varying the number of cores for multi-threading execution.  The node tested has 12 cores.  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
  \end{figure}
+
+The results from our investigation are presented in Fig.~\ref{fig:parallel-execution}. \jhanote{needs attention. I moved this from Section 2.. as it should not be in that section} First, performance gains with multi-threading are marginal showing only 30 \% speed up when reaches the limit with all of the number of free cores being used.  Secondly, the multiple reads file option is useful as a strategy for scaling out \jhanote{no reference to scale-out needed here}, i.e. with more cores operating correspondingly a smaller reads file.  Thirdly, the low memory option that creates more index files require longer calculation time as the comparison between 40 index files $(d = 1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.
+
+.... \jhanote{needs attention..} Computational requirements vary also with how to configure parallel/multi-threading execution patterns.  Since BFAST provides its intrinsic support for multi-threading and parallel execution, we examined computational requirements while varying configurations for such parallel strategies.  For example, according to the results shown in Fig.~\ref{fig:parallel-execution}, it is obvious that dividing a large volume of short reads data into many independent runs is a good strategy while multi-threading support is limited by available cores in a same node.  Also the results in Fig.~\ref{fig:parallel-execution} find that the low memory option that
 
 
 \subsubsection{Understanding I/O}
@@ -386,6 +374,12 @@ IV & 12 (4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
 
 
 \subsubsection{Using BFAST on Clouds and Grids}
+
+.... \jhanote{Moving. Needs merging} In the Grid implementation first all the data required in the steps was transferred to machine's work directory where we want to start the BigJob. The BFAST was installed in the home directory and the executables path for job description of subjobs was given accordingly.
+
+In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
+
+
 
 To determine whether to use large number of small VM's or to use few big VM's. with help of bigjob cloud implementation we designed two experiments. In the first experiment four VM's with 2 cores each were started and four bfast matches with one bfast on each one using SAGA bigjob . In the second experiment a large VM with 8 cores is started and 4 bfast jobs were launched on the same VM simultaneously using SAGA bigjob.
 
