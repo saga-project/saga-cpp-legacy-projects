@@ -208,7 +208,21 @@ The need of computational methods as well as computing architectures for compute
 
 Whereas such algorithmic advances and introduction of new tools have been consistently led by the computational biology community. the development of infrastructure and required software is relatively less recognized for its significance.  This is partly because, in addition to requirement of an understanding of applications of interest in terms of the capability of parallel execution in heterogeneous computing environment, the complexity of biological contexts associated with characteristics of a target genome(s), the volume of relevant genomics data, and importantly, difficulties of utilization of heterogeneous distributed computing resources constitute challenges for introducing an appropriate scalable architecture for the infrastructure.
 
-Nonetheless, some interesting progresses are recently reported, for example, with the utilization of emerging computing architecture such as Cloud\cite{taylor2010}  In this work, we report our development on the distributed adaptive runtime environment (DARE) framework with which heterogeneous distributed computing resources are keenly utilized for a scalable computation of a target genome-wide analysis tool.  As a use case, we primarily focus on the mapping process of short reads from NGS platforms against a reference genome.  The mapping is carried out with the tool, BFAST\cite{bfast2009, bfast2009b} which was chosen specifically considering its capability to support parallel and multi-threading execution.  Our investigation with this bioinformatic program would represent a general situation for a bioinformatics tool employed for genome-wide analysis infrastructure.
+% Nonetheless, some interesting progresses are recently reported, for
+% example, with the utilization of emerging computing architecture such
+% as Cloud\cite{taylor2010}
+
+In this work, we report our development on the distributed adaptive
+runtime environment (DARE) framework with which heterogeneous
+distributed computing resources are keenly utilized for a scalable
+computation of a target genome-wide analysis tool.  As a use case, we
+primarily focus on the mapping process of short reads from NGS
+platforms against a reference genome.  The mapping is carried out with
+the tool, BFAST\cite{bfast2009, bfast2009b} which was chosen
+specifically considering its capability to support parallel and
+multi-threading execution.  Our investigation with this bioinformatic
+program would represent a general situation for a bioinformatics tool
+employed for genome-wide analysis infrastructure.
 
 \jhanote{we want to present a strawman of an architecture based upon
   requirements and a reference implementation of the architecture} In
@@ -241,31 +255,33 @@ or multi-threading executions, which is also true with
 BFAST\cite{bfast2009}.
 
 As summarized in Fig.~\ref{fig:workflow-bfast} and
-Table~\ref{table:bfast-summary}, BFAST carries out a pipeline that
-comprises six different steps (using a different command), and compute
-extensive steps could be executed in parallel or multi-threading
-support options.  In brief, BFAST requires a reference genome sequence
-and NGS platform generated short reads initially and prepare input
-files with pre-defined formats.  Then, the program carries out
-indexing of the reference genome, finding Candidate Alignment
-Locations (CALs), local alignment of CALs, and post-processing of
-alignment results, which taken together produces the mapping of
-billions of short reads onto the target reference genome.  Among the
-steps, three steps (index, match, loalalign) demands most of computing
-times and computing requirements with the size of a reference genome
-as well as volumes of short reads.  If computing requirement is high,
-as stated, BFAST can be executed using parallel or concurrent options
-by splitting the input data, short reads and a reference genome and
-run many independent tasks with a part of datasets.  For example,
-short read files can be prepared with multiple files and short reads
-in each file are mapped independently against a reference genome.
-Meanwhile, where as a reference genome is also split into many files
-by considering the existence of multiple contigs in an entire genome,
-for example, multiple chromosomes and plasmids, in the case of one
-large sequence, all information about indexing should be treated as a
-whole for "match" step.  \jhanote{Need to clarify: Is ``map'' the
-  whole workflow and ``match'' just one step/phase in that workflow?}
+Table~\ref{table:bfast-summary}, BFAST comprises a pipeline that
+comprises six different compute and data-intensive steps could be
+executed in parallel or multi-threading support options.  In brief,
+BFAST requires a reference genome sequence and NGS platform generated
+short reads initially and prepare input files with pre-defined
+formats.  Then, the program carries out indexing of the reference
+genome, finding Candidate Alignment Locations (CALs), local alignment
+of CALs, and post-processing of alignment results, which taken
+together produces the mapping of billions of short reads onto the
+target reference genome.  Among the steps, three steps (index, match,
+loalalign) demands most of computing times and computing requirements
+with the size of a reference genome as well as volumes of short reads.
+% If computing requirement is high, as stated,
+BFAST can be executed using parallel or concurrent options by
+splitting the input data, short reads and a reference genome and run
+many independent tasks with a part of datasets.  For example, short
+read files can be prepared with multiple files and short reads in each
+file are mapped independently against a reference genome.  Meanwhile,
+where as a reference genome is also split into many files by
+considering the existence of multiple contigs in an entire genome, for
+example, multiple chromosomes and plasmids, in the case of one large
+sequence, all information about indexing should be treated as a whole
+for "match" step.  \jhanote{Need to clarify: Is ``map'' the whole
+  workflow and ``match'' just one step/phase in that workflow?}
 
+\jhanote{Explain ``Low Memory'' case. It is unclear. What is mask? In
+  general the next paragraph needs better explaination. }
 
 BFAST also supports multi-threading and the low memory option for
 "match" step. Once a reference genome sequence is given and not able
@@ -274,11 +290,11 @@ with multiple index files are possible resulting the number of the
 index files, $N_i$ equal to $n_m \times 4^d$ where d is the parameter
 for the low memory consumption and $4^d$ files are generated by
 splitting an index file.  $n_m$ is the number of masks for indexing
-and usually fixed as 10 for our work.  Whereas this low memory option
-allows to consume less memory by splitting the information about index
-into many files and processing sequentially, the number of index files
+and usually fixed as 10 for our work.  This low memory option allows
+to consume less memory by splitting the information about index into
+many files and processing sequentially, the number of index files
 increases.  Another important option provided by BFAST is
-multi-threading.  If there is multi-core in a node, the option can
+multi-threading.  If there is multi-cores in a node, the option can
 specify the number of cores for multi-threading.
 
 \begin{figure}
