@@ -19,11 +19,13 @@ import uuid
 APPLICATION_NAME="wordcount"
 DATABASE_HOST="localhost"
 
-DATA_FILE_DIR=os.getcwd()+"/data"
-#DATA_FILE_DIR="/work/luckow/data-flat"
+#DATA_FILE_DIR=os.getcwd()+"/data-small"
+DATA_FILE_DIR="/work/luckow/data"
 
-NUMBER_MAP_JOBS=2
+NUMBER_MAP_JOBS=16
 NUMBER_REDUCE_JOBS=1
+
+starttime=0
 
 def has_finished(state):
     state = state.lower()
@@ -46,7 +48,7 @@ def wait_for_all_jobs(jobs, job_start_times, poll_intervall=5):
             result_map[state] = result_map[state]+1
             #print "counter: " + str(i) + " job: " + str(jobs[i]) + " state: " + state
             if old_state != state:
-                print "Job " + str(jobs[i]) + " changed from: " + old_state + " to " + state
+                print "Job " + str(jobs[i]) + " changed from: " + old_state + " to " + state + " Time since start: " + str(time.time()-starttime)
             if old_state != state and has_finished(state)==True:
                 print "Job: " + str(jobs[i]) + " Runtime: " + str(time.time()-job_start_times[jobs[i]]) + " s."
             if has_finished(state)==True:
@@ -82,7 +84,7 @@ if __name__ == "__main__":
     ##########################################################################################
     print "Start some BigJob w/ affinity"
     resource_list = []
-    resource_list.append( {"gram_url" : "fork://localhost", "number_cores" : "1", "allocation" : "loni_jhabig10",
+    resource_list.append( {"gram_url" : "gram://poseidon1.loni.org/jobmanager-pbs", "number_cores" : str(NUMBER_MAP_JOBS), "allocation" : "loni_jhabig10",
                            "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"),
                            "working_directory": (os.getcwd() + "/agent"), "walltime":120, "affinity" : "affinity1"})
 
