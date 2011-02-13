@@ -354,7 +354,7 @@ specify the number of cores for multi-threading.
   results in the different number of index files.  Human genome (hg18)
   chromosome 21 is used as the reference genome. \jhanote{Need to say
     what the two lines in the left graph are, and what is the message
-    we want to convey from showing the difference}}
+    we want to convey from showing the difference} }
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -367,7 +367,6 @@ cores in a node, and the total number of cores available are the
 important information for optimal condition for such parameters.  An
 understanding of such aspects was attempted by characterizing
 computing characteristics of the "bfast match" step.  
-
 
 \begin{table}
 \begin{tabular}{|c|c|c|c|} 
@@ -398,29 +397,15 @@ Genome Analysis  &  &  Genome \\
   Minimal disk &  approx. 130 GB   &    approx. 10 GB   \\
 total space required & &\\
 \hline
-\end{tabular} \caption{The information about the size of reference genomes, volumes of datasets from Next Generation Sequencing (NGS) platforms and disk space required during the mapping calculation with BFAST is summarized assuming all calculations are carried out with a single machine.}
+\end{tabular} \caption{The information about the size of reference
+  genomes, volumes of datasets from Next Generation Sequencing (NGS)
+  platforms and disk space required during the mapping calculation
+  with BFAST is summarized assuming all calculations are carried out
+  with a single machine. \jhanote{First column, last row, need
+    explaination that this is the size of all the index files put together}}
  \label{table:two-genomes} 
 \end{table}
 
-
-
-\begin{table}
- \begin{tabular}{|c|c|c|c|} 
- \hline 
-Read file & Index files & Appx. required disk space \\
- \hline
-40 &  40 & 67 GB \\
-20 & 40 & 70 GB \\
-40 & 10 & 54 Gb \\ 
-
- \hline
- \end{tabular}
- \label{table:diskspace} 
- \caption{this table shows required disk space in different cases when all the read files are processed concurrently }
-\end{table}
-
-
-The disk space required per each read file is constant given all the other size and read file size is the same. Because bfast matching creates several temperory files while its running. It include one temporary file for read file, ten temperory files for each index mask, some temporary files depending on the d option (d=0, 1 temp file, d=1 4 temprory files). ofcourse all these temp files are deleted after each bfast match run. The disk space required in concurrent run of several read files in Matching phase is important because if the amount of disk space required exceeds the available limit bfast fails. This plays a major role in distribution of computation depending upon the allowed disk space on each machine. 
 
 \subsubsection{Computational Requirements}
 
@@ -459,23 +444,39 @@ of divided index files.
   involved, distributed or not?, number of tasks, are they coupled or
   uncoupled -- what is the level of coupling between tasks?}
 
+\subsubsection{BFAST: Characterising Data Requirements}
 
- \begin{table}
- \begin{tabular}{|c|cc|} 
+
+\begin{table}
+ \begin{tabular}{|c|c|c|c|} 
  \hline 
-Distributed &  HPC Grid &  Cloud \\ 
-Environment && (Eucalyptus)\\
-\hline
- &  Louisiana Optical & FutureGrid \\
-& Network Initiative  & \\
-System  Name &  QB/Eric   &  INDIA/SIERRA \\
+Read file & Index files & Appx. required disk space \\
+ \hline
+40 &  40 & 67 GB \\
+20 & 40 & 70 GB \\
+40 & 10 & 54 Gb \\ 
+
  \hline
  \end{tabular}
-\caption{Specification of two distributed environments}
-\label{table:two-systems} 
+ \label{table:diskspace} 
+ \caption{this table shows required disk space in different cases when all the read files are processed concurrently }
 \end{table}
- 
-\subsubsection{BFAST: Characterising Data Requirements}
+
+
+... \jhanote{Needs merging} The disk space required per each read file
+is constant given all the other size and read file size is the
+same. Because bfast matching creates several temperory files while its
+running. It includes one temporary file for read file, ten temperory
+files for each index mask, some temporary files depending on the d
+option (d=0, 1 temp file; d=1,  4 temporary files). Of course all these
+temp files are deleted after each BFAST match run. The disk space
+required in concurrent run of several read files in Matching phase is
+important because if the amount of disk space required exceeds the
+available limit bfast fails. This plays a major role in distribution
+of computation depending upon the allowed disk space on each machine.
+
+\jhanote{Sharath, please explain how the third column can be derived
+  from the first two columns of the table}
 
 \jhanote{Lines 86-87, In a nutshell: the operating data-set does not
   depend on the size/number of read files but does depend on the
@@ -500,7 +501,9 @@ machines are hard to support an individual account more that 100 GB.
   processed alone (C and D).  Also, the cases with the low memory
   option producing 40 index files (A and C) are compared to the cases
   without the low memory option that produce 10 index files (B and
-  D). \jhanote{Remove C and D ot later possibly}}
+  D). \jhanote{Remove C and D ot later possibly} \jhanote{The problem
+    is that now Case A and B are not defined at this stage. Please fix
+    this} }
   \label{fig:diskspace} 
  \end{figure}
 
@@ -532,33 +535,6 @@ challenges that we want to resolve, and improve are as follow.
 \item Scalability with a non-intrusive execution of a target tool  
 %\end{enumerate}
 \end{itemize*}
-
-\subsection{Distributed Adaptive Runtime Environment}
-
-To execute a scientific application using heterogeneous distributed
-computing resources, we develop the Distributed Adaptive Runtime
-Environment (DARE) framework\cite{dareurl}.  The framework is compose
-of an open source Web application framework, Pylons and middleware of
-the application management system built upon SAGA an BigJob
-abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
-This combination of the open source technology and the application
-management system enables us to develop a lightweight, extensible,
-full-fledged distributed computing science gateway quickly and
-effectively\cite{pylonsurl}.
-
-Considering a daunting size of data, in particular large genomes such as human as summarized in Table~\ref{table:two-genomes} and corresponding long computing times when carried out with a single or moderate size of clusters, parallel/concurrent execution of the target analysis with BFAST are desirable.  First, biological information could be utilized for such parallel execution. For example, the short read sequences in fastq format could be split into many files that are needed separately for parallel mapping.  At the last stage, all mapped results could be combined with available tools such as SAMTools\cite{samtools}.   Additionally, a reference genome could be divided into many if each dataset contains independent contigs.  For example, each chromosomes or plasmids in microbes could be a separated sub-genome sequence contig.  However, note that indexes of an entire contig should be used together, regardless of the low memory option that allows to store indexes in many files, which is in fact the major obstacle to require a large disk space.
-
-We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using SAGA/BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
-  
-...\jhanote{needs merging} Most importantly, while the implementation
-of multiple parallel tasks indicates advantages of distributed
-multiple resource utilization, the large volume and variation of data
-sizes associated with genome sequence data as well as minimally
-required disk space needs to pay attention since in some cases, data
-size itself prohibits to carry out the analysis in a computing
-resource that lacks the demanded requirements, indicating the
-significance of agile runtime environment that drives a dynamical
-configuration and utilization of distributed resources.
 
 
 \subsection{Understanding BFAST on a Local (Single) Resource}
@@ -633,9 +609,36 @@ These experiments show that use of 2 threads per bfast matches simultaneously on
 
 \jhanote{Lines 44-47 of the Excel Sheet here}
 
-\subsection{Experiments with HPC and Cloud}
+\subsection{Distributed Adaptive Runtime Environment}
 
-\subsubsection{Using BFAST On Distributed Grids}
+To execute a scientific application using heterogeneous distributed
+computing resources, we develop the Distributed Adaptive Runtime
+Environment (DARE) framework\cite{dareurl}.  The framework is compose
+of an open source Web application framework, Pylons and middleware of
+the application management system built upon SAGA an BigJob
+abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+This combination of the open source technology and the application
+management system enables us to develop a lightweight, extensible,
+full-fledged distributed computing science gateway quickly and
+effectively\cite{pylonsurl}.
+
+Considering a daunting size of data, in particular large genomes such as human as summarized in Table~\ref{table:two-genomes} and corresponding long computing times when carried out with a single or moderate size of clusters, parallel/concurrent execution of the target analysis with BFAST are desirable.  First, biological information could be utilized for such parallel execution. For example, the short read sequences in fastq format could be split into many files that are needed separately for parallel mapping.  At the last stage, all mapped results could be combined with available tools such as SAMTools\cite{samtools}.   Additionally, a reference genome could be divided into many if each dataset contains independent contigs.  For example, each chromosomes or plasmids in microbes could be a separated sub-genome sequence contig.  However, note that indexes of an entire contig should be used together, regardless of the low memory option that allows to store indexes in many files, which is in fact the major obstacle to require a large disk space.
+
+We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using SAGA/BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
+  
+...\jhanote{needs merging} Most importantly, while the implementation
+of multiple parallel tasks indicates advantages of distributed
+multiple resource utilization, the large volume and variation of data
+sizes associated with genome sequence data as well as minimally
+required disk space needs to pay attention since in some cases, data
+size itself prohibits to carry out the analysis in a computing
+resource that lacks the demanded requirements, indicating the
+significance of agile runtime environment that drives a dynamical
+configuration and utilization of distributed resources.
+
+\subsection{Execution on Grids and Clouds}
+
+\subsubsection{Using BFAST On Distributed HPC Resources}
 
 Following is the implementation described above, the execution of
 mapping calculations using BFAST was tested with our runtime
@@ -665,6 +668,21 @@ the result in that without sufficient cores available from distributed
 resources and dynamically adapted task distribution, achieving the
 efficient execution of a target calculation is challenging.
 
+\begin{table}
+ \begin{tabular}{|c|cc|} 
+ \hline 
+Distributed &  HPC Grid &  Cloud \\ 
+Environment && (Eucalyptus)\\
+\hline
+ &  Louisiana Optical & FutureGrid \\
+& Network Initiative  & \\
+System  Name &  QB/Eric   &  INDIA/SIERRA \\
+ \hline
+ \end{tabular}
+\caption{Specification of two distributed environments}
+\label{table:two-systems} 
+\end{table}
+
 
  \begin{table}
  \begin{tabular}{|ccccc|c |} 
@@ -677,10 +695,14 @@ III & 12(4)  & 40  & 0.209 GB & 2 & 7 h 10 m 7 s \\
 IV & 12(4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
 \hline
 \end{tabular}
-\caption{Performance comparison among parallel implementation using SAGA/BigJob with a HPC grid, LONI. One BigJob is submitted with the number of SubJobs indicated in the column for the number of tasks which is equivalent to the number of read files.\jhanote{The result -- IIUC, is the second column. This should come last and separated from the other columns 3- 6 are used to understand the configuration, and so should be with the first column}}
+\caption{Performance comparison among parallel implementation using
+  SAGA/BigJob with a HPC grid, LONI. One BigJob is submitted with the
+  number of SubJobs indicated in the column for the number of tasks
+  which is equivalent to the number of read files. \jhanote{This table
+    needs to be fixed -- crosses the page. Are Case I/II/III/IV the
+    same as A/B/C/D? } }
   \label{table:bigjob-loni} 
 \end{table}
- 
 
 
 \subsubsection{Using BFAST on Clouds and Grids}
@@ -717,12 +739,14 @@ VM's & VM type and Cores  & Time to  \\
 1 & 8 & 1020 s \\
  \hline 
  \end{tabular}
- \label{table:cloud VM's} 
+ \label{table:cloud-VM} 
  \caption{The time-to-completion is compared between the case of multiple VMs and the case of single VM}
 \end{table}
 
 Thus when same workload is distributed across multiple VM's has a
 marginal gain over the one single large VM.
+
+\jhanote{Need to refer to Table\ref{table:cloud-VM}}
 
 
 \section{Concluding Remarks}
