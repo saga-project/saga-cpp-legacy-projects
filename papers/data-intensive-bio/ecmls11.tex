@@ -263,7 +263,9 @@ Meanwhile, where as a reference genome is also split into many files
 by considering the existence of multiple contigs in an entire genome,
 for example, multiple chromosomes and plasmids, in the case of one
 large sequence, all information about indexing should be treated as a
-whole for "match" step.
+whole for "match" step.  \jhanote{Need to clarify: Is ``map'' the
+  whole workflow and ``match'' just one step/phase in that workflow?}
+
 
 BFAST also supports multi-threading and the low memory option for
 "match" step. Once a reference genome sequence is given and not able
@@ -341,8 +343,15 @@ specify the number of cores for multi-threading.
  \end{figure}
 
 
-The time-to-completion for "match" step depends upon several parameters that determine the configuration for parallel tasks and multi-threading support.  Computational resource specification such as the size of memory, accessible volume of disk space, the number of cores in a node, and the total number of cores available are the important information for optimal condition for such parameters.  An understanding of such aspects was attempted by characterizing computing characteristics of the "bfast match" step.  The results from our investigation are presented  in Fig.~\ref{fig:parallel-execution}. First, performance gains with multi-threading are marginal showing only 30 \% speed up when reaches the limit with all of the number of free cores being used.  
-Secondly, the multiple read file option is useful as a strategy for scaling out, i.e. with more cores operating correspondingly a smaller read file.  Thirdly, the low memory option that creates more index files require longer calculation time as the comparison between 40 index files $(d = 1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.   
+The time-to-completion ($T_C$) for "match" step depends upon several
+parameters that determine the configuration for parallel tasks and
+multi-threading support.  Computational resource specification such as
+the size of memory, accessible volume of disk space, the number of
+cores in a node, and the total number of cores available are the
+important information for optimal condition for such parameters.  An
+understanding of such aspects was attempted by characterizing
+computing characteristics of the "bfast match" step.  
+
 
 \begin{table}
 \begin{tabular}{|c|c|c|c|} 
@@ -399,20 +408,38 @@ The disk space required per each read file is constant given all the other size 
 
 \subsubsection{Computational Requirements}
 
-Computational requirements for carrying out BFAST steps, in particular the "bfast match" step are associated with biological contexts such as a type of a target reference genome and high-throughput sequencing techniques generating short read sequences, parallel/multi-threading execution pattern, and available computing architectures.  
+\jhanote{Need consistent usage of 'bfast', either BFAST or bfast.. It is ok
+to use both if in different contexts, but need to be careful}
 
-The difference of computational requirements arising from different genomes could be hinted with two genome datasets that are representative of biological diversity, an eucaryote system, human, and a microbe, Burkerholderia Glumae\cite{kim2011}.  Two genomes differ in the size and the genome structure of reference genomes, types of sequencing protocols for generating short reads and consequently different mapping rates, which is summarized in Table~\ref{table:two-genomes}.  Importantly, the two different genomes display widely different data sizes in terms of the reference genome sequence, short reads data, and required disk space for carrying out the mapping with BFAST as presented in Table~\ref{table:two-genomes}. 
+Computational requirements for carrying out BFAST steps, in particular
+the "bfast match" step are associated with biological contexts such as
+a type of a target reference genome and high-throughput sequencing
+techniques generating short read sequences, parallel/multi-threading
+execution pattern, and available computing architectures.
 
-Computational requirements vary also with how to configure parallel/multi-threading execution patterns.  Since BFAST provides its intrinsic support for multi-threading and parallel execution, we examined computational requirements while varying configurations for such parallel strategies.  For example, according to the results shown in Fig.~\ref{fig:parallel-execution}, it is obvious that dividing a large volume of short reads data into many independent runs is a good strategy while multi-threading support is limited by available cores in a same node.  Also the results in Fig.~\ref{fig:parallel-execution} find that the low memory option that allows to split one index file into many do not benefit in the computing time. Our results suggest that the size of an index file affects on the total time-to-completion marginally while the size of a short read file is the determinant factor, indicating that the low memory option needs an increase of the computing time as the number of calculations with a short read file becomes as multiple as the number of divided index files.   
+The difference of computational requirements arising from different
+genomes could be hinted with two genome datasets that are
+representative of biological diversity, an eucaryote system, human,
+and a microbe, Burkerholderia Glumae\cite{kim2011}.  Two genomes
+differ in the size and the genome structure of reference genomes,
+types of sequencing protocols for generating short reads and
+consequently different mapping rates, which is summarized in
+Table~\ref{table:two-genomes}.  Importantly, the two different genomes
+display widely different data sizes in terms of the reference genome
+sequence, short reads data, and required disk space for carrying out
+the mapping with BFAST as presented in Table~\ref{table:two-genomes}.
 
-Most importantly, while the implementation of multiple parallel tasks indicates advantages of distributed multiple resource utilization, the large volume and variation of data sizes associated with genome sequence data as well as minimally required disk space needs to pay attention since in some cases, data size itself prohibits to carry out the analysis in a computing resource that lacks the demanded requirements, indicating the significance of agile runtime environment that drives a dynamical configuration and utilization of distributed resources. 
+... allows to split one index file into many do not benefit in the
+computing time. Our results suggest that the size of an index file
+affects on the total time-to-completion marginally while the size of a
+short read file is the determinant factor, indicating that the low
+memory option needs an increase of the computing time as the number of
+calculations with a short read file becomes as multiple as the number
+of divided index files.
 
 
-
-
-\jhanote{Joohyun: Please organize each description addressing each of
-  the following points: (i) Brief outline of the scientific problem,
-  (ii) What are the challenges, (iii) estimates of volumes of data
+\jhanote{Joohyun: (i) Brief outline of the scientific problem, (ii)
+  What are the challenges, (iii) estimates of volumes of data
   involved, distributed or not?, number of tasks, are they coupled or
   uncoupled -- what is the level of coupling between tasks?}
 
@@ -434,9 +461,19 @@ System  Name &  QB/Eric   &  INDIA/SIERRA \\
  
 \subsubsection{BFAST: Characterising Data Requirements}
 
-\jhanote{Lines 86-87, In a nutshell: the operating data-set does not depend on the size/number of read files but does depend on the size/number of index files}
+\jhanote{Lines 86-87, In a nutshell: the operating data-set does not
+  depend on the size/number of read files but does depend on the
+  size/number of index files}
 
-Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the requirement for disk space is lessened as more distributing resources are utilized. The reason is that multiple concurrent tasks corresponding to multiple read files require more disk space due to temporary files for each task, and distributed data storage is beneficial, in particular, for an architecture that does not provide a large disk space.  For example, the Cloud system we examine here do not provide a large volume, and even in the LONI grid, small cluster machines are hard to support an individual account more that 100 GB.
+Another interesting observation is, as shown in Fig.~\ref{diskspace},
+that the requirement for disk space is lessened as more distributing
+resources are utilized. The reason is that multiple concurrent tasks
+corresponding to multiple read files require more disk space due to
+temporary files for each task, and distributed data storage is
+beneficial, in particular, for an architecture that does not provide a
+large disk space.  For example, the Cloud system we examine here do
+not provide a large volume, and even in the LONI grid, small cluster
+machines are hard to support an individual account more that 100 GB.
 
 \begin{figure}
  \centering
@@ -458,7 +495,10 @@ Another interesting observation is, as shown in Fig.~\ref{diskspace}, that the r
 \jhanote{Here we need to define what solutions are currently employed,
   what works well what doesn't}
 
-Recently, cloud computing and environments for genome-wide analysis and infrastructure development have drawn significant attention and interesting outcomes were reported\cite{taylor2010,cloudburst, cloudblast, langmead2009, langmead2010,gatk, halligan2009}
+Recently, cloud computing and environments for genome-wide analysis
+and infrastructure development have drawn significant attention and
+interesting outcomes were reported\cite{taylor2010,cloudburst,
+  cloudblast, langmead2009, langmead2010,gatk, halligan2009}
 
 \begin{itemize*}
 \item GATK\cite{gatk}
@@ -479,23 +519,33 @@ challenges that we want to resolve, and improve are as follow.
 
 \subsection{Distributed Adaptive Runtime Environment}
 
-To execute a scientific application using heterogeneous distributed computing resources, we develop the Distributed Adaptive Runtime Environment (DARE) framework\cite{dareurl}.  The framework is compose of an open source Web application framework, Pylons
-and middleware of the application management system built upon SAGA an BigJob abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.  This combination of the open source technology and the application management system enables us to develop a lightweight, extensible, full-fledged distributed computing science gateway quickly and effectively\cite{pylonsurl}. 
+To execute a scientific application using heterogeneous distributed
+computing resources, we develop the Distributed Adaptive Runtime
+Environment (DARE) framework\cite{dareurl}.  The framework is compose
+of an open source Web application framework, Pylons and middleware of
+the application management system built upon SAGA an BigJob
+abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+This combination of the open source technology and the application
+management system enables us to develop a lightweight, extensible,
+full-fledged distributed computing science gateway quickly and
+effectively\cite{pylonsurl}.
 
 Considering a daunting size of data, in particular large genomes such as human as summarized in Table~\ref{table:two-genomes} and corresponding long computing times when carried out with a single or moderate size of clusters, parallel/concurrent execution of the target analysis with BFAST are desirable.  First, biological information could be utilized for such parallel execution. For example, the short read sequences in fastq format could be split into many files that are needed separately for parallel mapping.  At the last stage, all mapped results could be combined with available tools such as SAMTools\cite{samtools}.   Additionally, a reference genome could be divided into many if each dataset contains independent contigs.  For example, each chromosomes or plasmids in microbes could be a separated sub-genome sequence contig.  However, note that indexes of an entire contig should be used together, regardless of the low memory option that allows to store indexes in many files, which is in fact the major obstacle to require a large disk space.
 
 We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using SAGA/BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
   
-In the Grid implementation first all the data required in the steps was transferred to machine's  work 
-directory where we want to start the BigJob. The BFAST was installed in the home directory and the
-executables path for job description of subjobs was given accordingly.
+...\jhanote{needs merging} Most importantly, while the implementation
+of multiple parallel tasks indicates advantages of distributed
+multiple resource utilization, the large volume and variation of data
+sizes associated with genome sequence data as well as minimally
+required disk space needs to pay attention since in some cases, data
+size itself prohibits to carry out the analysis in a computing
+resource that lacks the demanded requirements, indicating the
+significance of agile runtime environment that drives a dynamical
+configuration and utilization of distributed resources.
 
-In the cloud implementation all the data required was transferred into the walrus because of the data size limitation of the storage space in the
-running VM. Multiple VM's can be started at once and the data in the walrus is mounted onto all the running VM
-while booting the Virtual Machine. Thus all the VM can have access to data and can process concurrently
 
-
-\subsection{Understanding BFAST Dependence on a Local Resource}
+\subsection{Understanding BFAST on a Local (Single) Resource}
 
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
 
@@ -510,7 +560,34 @@ while booting the Virtual Machine. Thus all the VM can have access to data and c
 To determine how the bfast match performance changes with the different number of threads and processor we vary the number of threads for bfast job on a single machine with multiple cores. The results show that the performance was better when the number of cores is equal to number of threads which was also recommended setting in the Bfast manual. Further, when we increase number of threads more than available performance does not change much. When less number of threads are used than the available cores the performance decreases but marginal around half of the cores and significant with just single thread.
 
 
-So even with multi-threading option provided by  bfast, the performance could be improved by using multiple cores/threads on the same node but it gives us only marginal overall performance gain when processing all the read files sequentially.
+So even with multi-threading option provided by bfast, the performance
+could be improved by using multiple cores/threads on the same node but
+it gives us only marginal overall performance gain when processing all
+the read files sequentially.
+
+... \jhanote{needs merging} The results from our investigation are presented in
+Fig.~\ref{fig:parallel-execution}. First, performance gains with
+multi-threading are marginal showing only 30 \% speed up when reaches
+the limit with all of the number of free cores being used.  Secondly,
+the multiple read file option is useful as a strategy for scaling out,
+i.e. with more cores operating correspondingly a smaller read file.
+Thirdly, the low memory option that creates more index files require
+longer calculation time as the comparison between 40 index files $(d =
+1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.
+
+
+... \jhanote{needs merging} Computational requirements vary also with
+how to configure parallel/multi-threading execution patterns.  Since
+BFAST provides its intrinsic support for multi-threading and parallel
+execution, we examined computational requirements while varying
+configurations for such parallel strategies.  For example, according
+to the results shown in Fig.~\ref{fig:parallel-execution}, it is
+obvious that dividing a large volume of short reads data into many
+independent runs is a good strategy while multi-threading support is
+limited by available cores in a same node.  Also the results in
+Fig.~\ref{fig:parallel-execution} find that the low memory option that
+
+
 
 
 \subsubsection{Understanding I/O}
@@ -544,9 +621,33 @@ These experiments show that use of 2 threads per bfast matches simultaneously on
 
 \subsubsection{Using BFAST On Distributed Grids}
 
-Following is the implementation described above, the execution of mapping calculations using BFAST was tested with our runtime environment built with the DARE framework.   Results were obtained with a HPC grid and a Cloud environment, which demonstrate the capability of our runtime environment for the mapping tool on distributed heterogeneous computing resources. \jhanote{Before we say what we are presenting, please present a ``why and how'', i.e., outline the experiments} 
+Following is the implementation described above, the execution of
+mapping calculations using BFAST was tested with our runtime
+environment built with the DARE framework.  Results were obtained with
+a HPC grid and a Cloud environment, which demonstrate the capability
+of our runtime environment for the mapping tool on distributed
+heterogeneous computing resources. \jhanote{Before we say what we are
+  presenting, please present a ``why and how'', i.e., outline the
+  experiments}
 
-First of all, in Table~\ref{table:bigjob-loni}, we presented the measured time-to-completion for the step 'bfast match' with different configurations that include the variation of the number of threading used for each task and the number of cores (and also the number of nodes).   These results clearly show i) effective job submission and sub task management trough BigJob in spite of a large number of subtasks up to 40 ii) requirement of sufficient number of cores through available distributed computing resources (see I and II compared to III and IV that requires many rounds of parallel executions due to limited number of cores) that completes parallelism with multiple read files.  In particularly, the observation with (ii), along with the observation already shown in Fig.~\ref{fig:parallel-execution} that observed a marginal performance gain with the option for increasing number of threading, is clearly supported by the results shown in Fig.~\ref{} once again that shows the result in that without sufficient cores available from distributed resources and dynamically adapted task distribution, achieving the efficient execution of a target calculation is challenging.
+First of all, in Table~\ref{table:bigjob-loni}, we presented the
+measured time-to-completion for the step 'bfast match' with different
+configurations that include the variation of the number of threading
+used for each task and the number of cores (and also the number of
+nodes).  These results clearly show i) effective job submission and
+sub task management trough BigJob in spite of a large number of
+subtasks up to 40 ii) requirement of sufficient number of cores
+through available distributed computing resources (see I and II
+compared to III and IV that requires many rounds of parallel
+executions due to limited number of cores) that completes parallelism
+with multiple read files.  In particularly, the observation with (ii),
+along with the observation already shown in
+Fig.~\ref{fig:parallel-execution} that observed a marginal performance
+gain with the option for increasing number of threading, is clearly
+supported by the results shown in Fig.~\ref{} once again that shows
+the result in that without sufficient cores available from distributed
+resources and dynamically adapted task distribution, achieving the
+efficient execution of a target calculation is challenging.
 
 
  \begin{table}
@@ -568,7 +669,27 @@ IV & 12(4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
 
 \subsubsection{Using BFAST on Clouds and Grids}
 
-To determine whether to use large number of small VM's or to use few big VM's. with help of bigjob cloud implementation we designed two experiments. In the first experiment four VM's with 2 cores each were started and four bfast matches with one bfast on each one using SAGA bigjob . In the second experiment a large VM with 8 cores is started and 4 bfast jobs were launched on the same VM simultaneously using SAGA bigjob.
+... \jhanote{needs merging} In the Grid implementation first all the
+data required in the steps was transferred to machine's work directory
+where we want to start the BigJob. The BFAST was installed in the home
+directory and the executables path for job description of subjobs was
+given accordingly.
+
+... \jhanote{needs merging} In the cloud implementation all the data
+required was transferred into the walrus because of the data size
+limitation of the storage space in the running VM. Multiple VM's can
+be started at once and the data in the walrus is mounted onto all the
+running VM while booting the Virtual Machine. Thus all the VM can have
+access to data and can process concurrently
+
+
+To determine whether to use large number of small VM's or to use few
+big VM's. with help of bigjob cloud implementation we designed two
+experiments. In the first experiment four VM's with 2 cores each were
+started and four bfast matches with one bfast on each one using SAGA
+bigjob . In the second experiment a large VM with 8 cores is started
+and 4 bfast jobs were launched on the same VM simultaneously using
+SAGA bigjob.
 
  \begin{table}
  \begin{tabular}{|c|c|c|} 
@@ -584,13 +705,22 @@ VM's & VM type and Cores  & Time to  \\
  \caption{The time-to-completion is compared between the case of multiple VMs and the case of single VM}
 \end{table}
 
-Thus when same workload is distributed across multiple VM's has a marginal gain over the one single large VM.
+Thus when same workload is distributed across multiple VM's has a
+marginal gain over the one single large VM.
 
 
 \section{Concluding Remarks}
-We present our analyses with two genome systems representing a eukaryote and a prokaryote, respectively, using
- a HPC grid and a Cloud environment for an understanding of conditions of a scalable cyberinfrastructure for an effective execution of
- mapping, and consequently genome-wide analyses.   Based on our results, we conclude that an infrastructure to run with a proper configuration for concurrent tasks benefits genome-wide analysis and such a configuration is optimized only when parameters from biological contexts as well as limitations and potentials of distributed computational resources are taken into account together.  For that purpose, our DARE framework provides an efficient solution.  
+We present our analyses with two genome systems representing a
+eukaryote and a prokaryote, respectively, using a HPC grid and a Cloud
+environment for an understanding of conditions of a scalable
+cyberinfrastructure for an effective execution of mapping, and
+consequently genome-wide analyses.  Based on our results, we conclude
+that an infrastructure to run with a proper configuration for
+concurrent tasks benefits genome-wide analysis and such a
+configuration is optimized only when parameters from biological
+contexts as well as limitations and potentials of distributed
+computational resources are taken into account together.  For that
+purpose, our DARE framework provides an efficient solution.
 
 
 
