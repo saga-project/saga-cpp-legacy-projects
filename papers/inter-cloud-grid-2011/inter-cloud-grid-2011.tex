@@ -122,23 +122,79 @@
 \section{Interoperability}
 \label{sec:interop}
 
- \amnote{TODO SHANTENU: select appropriate use case / project for
- interop motivation}
+ \subsection*{Applications Requiring Grid-Cloud Interoperabilty}
+
+ To motivate the discussion in this paper, we shortly describe two
+ real-world use cases which have been driving grid and cloud
+ interoperability efforts in the recent past.  One is a data-intensive
+ application -- a genome analysis tool BFAST; the other is more
+ compute intensive -- ensemble based MD simulations.
+ 
+ \BI{BFAST}: Next-Generation gene Sequencing (NGS) machines produce
+ significantly larger amounts of data compared to early sequencers.
+ In addition to the challenge of data-management that arise from
+ unprecedented volumes of data, there exist the important requirement
+ of effectively analyzing the data.  In this paper, we use
+ BFAST~\cite{bfast2009,bfast2009b} -- genome-wide mapping application,
+ as a representative example of the typical analysis that is required
+ on data from NGS machines.  BFAST is representative of a diverse set
+ of applications aimed at genome-wide analysis.
+ 
+ Such features include i) a requirement of input files containing
+ sequence information of a reference genome or short reads from NGS
+ platforms ii) a production of output files that is generally written
+ with a format that is successively injected to another tool as input.
+ These aspects, along with a huge variation in the data volume in
+ input, output, or temporary files, often require that the execution
+ environment should scale-up (range of parallel, multi-threading
+ executions on a single resource), as well as scale-out (range of
+ distinct resources and distribution).
+ 
+ BFAST requires a reference genome sequence and NGS platform generated
+ short reads initially and prepare input files with pre-defined
+ formats.  Then, the program carries out indexing of the reference
+ genome, finding Candidate Alignment Locations (CALs), local alignment
+ of CALs, and post-processing of alignment results, which taken
+ together produces the mapping of billions of short reads onto the
+ target reference genome.  Among the steps, three steps (index, match,
+ loalalign) demand most of computing times and computing requirements
+ with the size of a reference genome as well as volumes of short
+ reads.
+ 
+ \BI{Ensemble-based MD simulations} are commonly used bio-molecular
+ simulation approaches to enhance the sampling and convergence for
+ biomolecular simulations.  Ensemble based approaches represent an
+ important and promising attempt to overcome the general limitations
+ of insufficient time-scales, as well as specific limitations of
+ inadequate conformational sampling arising from kinetic trappings.
+ The fact that one single long-running simulation can be substituted
+ for an ensemble of simulations, make these ideal candidates for
+ distributed environments.  This thus provides an important general
+ motivation for researching ways to support scale-out and thus enhance
+ sampling and to thereby increase ``effective'' time-scales studied.
+ 
+ In Ref.~\cite{ccgrid10, cloudcom10}, we have implemented the
+ computational and coordination pattern represented by RE on different
+ Clouds -- IaaS (Eucalyptus and Nimbus-based) and PaaS (Azure), by
+ extending the BigJob framework to utilize the native abstractions
+ provided by these Clouds, e.g., such as worker roles on Azure --
+ storage and affinity groups.
+ 
+ \amnote{What is 'RE' in the previous paragraph?}
+
 
  \subsection*{Ways to Interoperability}
  
- \jhanote{SJ to write about Biology application (BFast (data-intensive)
-  and Ensemble simulations (azure) ) + ExTENCI applications}
-
- There are two major approaches to allow applications to interoperably
- use DCIs: system level interoperability (SLI) and application level
- interoperability (ALI).  SLI is the (often standards based) approach
- to federate multiple DCIs on middleware and operational level, and to
- allow applications to use the combined set of resources as if it were
- a single DCI.  That implies the exchange of accounting,
- authorization, authentication, logging, brokering and resource
- management information, and others, on system level.  Very often, SLI
- is implemented as delegation from on DCI to the other.
+ There are two major approaches to allow applications, such as the
+ ones described above, to interoperably use DCIs: system level
+ interoperability (SLI) and application level interoperability (ALI).
+ SLI is the (often standards based) approach to federate multiple DCIs
+ on middleware and operational level, and to allow applications to use
+ the combined set of resources as if it were a single DCI.  That
+ implies the exchange of accounting, authorization, authentication,
+ logging, brokering and resource management information, and others,
+ on system level.  Very often, SLI is implemented as delegation from
+ on DCI to the other.
 
  ALI on the other hand does not require any activity on infrastructure
  level at all, but instead relies on the ability of the application to
@@ -150,15 +206,42 @@
  boundaries will need to be routed via the application layer,
  accounting can't be managed on application layer at all, etc.
 
- \amnote{text needed to motivate our work}
- % - why do we discuss interop
- % - difference to interoperation
- % - relation to SAGA and OCCI (complementary focus)
 
  \subsection*{Grid Interoperability}
 
- \amnote{describe GIN, HPCBP, PGI, SAGA as standards based approaches
- to SLI and ALI.  List evolution, successes, limitations.}
+ The very idea of grid computing has been founded on the idea of
+ interoperability -- otherwise the original grid vision of pervasive
+ compute power from a wall plug would be impossible from the
+ beginning~\cite{blueprint}.  We have all been learning the hard way
+ though that 'the grid', as a *single* pervasive entity, does not
+ exist, and likely is not achievable, nor desirable -- too different
+ are the application requirements to computing (and data management,
+ and communication) so that an all-sufficient grid infrastructure
+ would be too complex to design, implement, and operate~\cite{ogsa-use-cases}.
+ Instead, a wide variety of grid middleware systems and grid
+ infrastructure deployments emerged, more or less specifically
+ taylored to the needs of certain application and user requirements.
+ However, at least in academia, standards have always been playing an
+ important role for grid computing, as it was soon understood that
+ interoperability between different grids was difficult to achieve
+ without standardization, if at all~\cite{...}.
+
+ There are however more boundary conditions to interoperable grid
+ infrastructures than standardized interface definitions and
+ protocols: operational concerns, and in particular security and
+ accounting issues, have shown to be a major impediment to realy
+ usable grid SLI~\cite{gin-usecases}.  The efforts of OGF groups like
+ HPC-BP, GIN and PGI are, to a large extent, revolving around those
+ issues, trying to separate interoperability from
+ interoperation~\cite{gin papers}.
+
+ While not being able to solve any system level interoperational
+ issues, ALI approaches have shown to provide similar levels of rid
+ interoperability with significantly less effort, and improved end
+ user experience.  We have been showing that SAGA based ALI is one
+ possible incarnation of application level grid interoperability, with
+ the additional benefit of being standards based~\cite{saga-gin,
+ mandelbrot-www}.
 
 
 
@@ -667,62 +750,6 @@ using OCCI.
 
 \subsection{3-Level Architecture Diagram}
 
-\section{Applications Requiring Grid-Cloud Interoperabilty}
-
-We investigate two kinds of applications that will benefit
-from Grid-Cloud interoperability. One is a data-intensive 
-application -- a genome analysis (mapping) tool
-BFAST\cite{bfast2009,bfast2009b}. 
-
-{\it Data-Intensive Applications:} Next-Generation (gene) Sequencing
-(NGS) machines produce significantly larger amounts of data compared
-to early sequencers.  In addition to the challenge of data-management
-that arise from unprecedented volumes of data, there exist the
-important requirement of effectively analyzing the data.  In this
-paper, we use BFAST -- genome-wide mapping application, as a
-representative example of the typical analysis that is required on
-data from NGS machines.  BFAST is representative of a diverse set of
-applications aimed at genome-wide analysis.
-
-Such features include i) a requirement of input files containing
-sequence information of a reference genome or short reads from NGS
-platforms ii) a production of output files that is generally written
-with a format that is successively injected to another tool as input.
-These aspects, along with a huge variation in the data volume in
-input, output, or temporary files, often require that the execution
-environment should scale-up (range of parallel, multi-threading
-executions on a single resource), as well as scale-out (range of
-distinct resources and distribution).
-
-BFAST requires a reference genome sequence and NGS platform generated
-short reads initially and prepare input files with pre-defined
-formats.  Then, the program carries out indexing of the reference
-genome, finding Candidate Alignment Locations (CALs), local alignment
-of CALs, and post-processing of alignment results, which taken
-together produces the mapping of billions of short reads onto the
-target reference genome.  Among the steps, three steps (index, match,
-loalalign) demand most of computing times and computing requirements
-with the size of a reference genome as well as volumes of short reads.
-
-{\it Compute Intensive Applications:} Ensemble-based MD simulations
-are commonly used bio-molecular simulation approaches to enhance the
-sampling and convergence for biomolecular simulations.  Ensemble based
-approaches represent an important and promising attempt to overcome
-the general limitations of insufficient time-scales, as well as
-specific limitations of inadequate conformational sampling arising
-from kinetic trappings.  The fact that one single long-running
-simulation can be substituted for an ensemble of simulations, make
-these ideal candidates for distributed environments.  This thus
-provides an important general motivation for researching ways to
-support scale-out and thus enhance sampling and to thereby increase
-``effective'' time-scales studied.
-
-In Ref.~\cite{ccgrid10, cloudcom10}, we have implemented the
-computational and coordination pattern represented by RE on different
-Clouds -- IaaS (Eucalyptus and Nimbus-based) and PaaS (Azure), by
-extending the BigJob framework to utilize the native abstractions
-provided by these Clouds, e.g., such as worker roles on Azure --
-storage and affinity groups.
 
 
 
