@@ -74,17 +74,19 @@
 \label{sec:intro}
  
 
-Outline:
-\begin{itemize}
-\item Why Interoperability? [Cloud-Grid, Cloud-Cloud] discuss using
-  Application exemplars
-\item How? discuss ALI vs SLI, fast-track vs deep-track
-\item What? We propose - using SAGA on OCCI -- which is ALI using SLI
-  (protocols)
-\item This document discusses how we will implement and architect our
-  approach, the advantages inherent in our approach from an
-  applicaiton point-of-view
-\end{itemize}
+ % Outline:
+ % 
+ % - Why Interoperability? [Cloud-Grid, Cloud-Cloud] discuss using
+ %   Application exemplars
+ %
+ % - How? discuss ALI vs SLI, fast-track vs deep-track
+ %
+ % - What? We propose - using SAGA on OCCI -- which is ALI using SLI
+ %   (protocols)
+ %
+ % - This document discusses how we will implement and architect our
+ %   approach, the advantages inherent in our approach from an
+ %   applicaiton point-of-view
 
 
  Distributed infrastructures have been used by many applications to
@@ -98,13 +100,13 @@ Outline:
  distributed applications have a much broader range of usage
  modes~\cite{dpa-paper}.
 
- In particular for grids as one posisble DCI infrastructure for
+ In particular for grids as one possible DCI infrastructure for
  distributed applications, standards have been playing an important,
  and in fact leading, role by ensuring application and system level
  interoperability~\cite{gin,saga-gin}, so that the required usage
  modes are (a) supported by the range of production grids available,
  and (b) that distributed application are able to scale beyond the
- boundaries of any single production grid.
+ boundaries of any single production grid~\cite{grid_scale_out}.
 
  Clouds are increasingly used to complement and expand the set of
  infrastructures for distributes applications.  In parallel, efforts
@@ -113,92 +115,113 @@ Outline:
  interoperability, and discusses one (of many) possible approaches,
  with the significant distinction of focusing on standards.
 
- The remainder of the paper is structured as follows: 
+ The remainder of the paper is structured as follows: \F{needs
+ completion}
+
 
 \section{Interoperability}
 \label{sec:interop}
 
-\amnote{TODO SHANTENU: select appropriate use case / project for
+ \amnote{TODO SHANTENU: select appropriate use case / project for
  interop motivation}
 
-\jhanote{SJ to write about Biology application (BFast (data-intensive)
+ \subsection*{Ways to Interoperability}
+ 
+ \jhanote{SJ to write about Biology application (BFast (data-intensive)
   and Ensemble simulations (azure) ) + ExTENCI applications}
 
-\amnote{TODO ANDRE: define ALI/SLI}
-
- % - why do we discuss interop
- % - difference to interoperation
- % - relation to SAGA and OCCI (complementary focus)
-
- There are two major approaches to allow for interoperability: system
- level interoperability (SLI) and applicaiton level interoperability
- (ALI).  SLI is the (often standards based) approach to federate
- multiple DCIs, and to allow applications to use the combined set of
- resources as if it were a single DCI.  That implies the exchange of
- accounting, authorization, authentication, logging, brokering and
- resource management information, and others, on system level.  Very
- often, SLI is implemented as delegation from on DCI to the other.
+ There are two major approaches to allow applications to interoperably
+ use DCIs: system level interoperability (SLI) and application level
+ interoperability (ALI).  SLI is the (often standards based) approach
+ to federate multiple DCIs on middleware and operational level, and to
+ allow applications to use the combined set of resources as if it were
+ a single DCI.  That implies the exchange of accounting,
+ authorization, authentication, logging, brokering and resource
+ management information, and others, on system level.  Very often, SLI
+ is implemented as delegation from on DCI to the other.
 
  ALI on the other hand does not require any activity on infrastructure
  level at all, but instead relies on the ability of the application to
  utlilize multiple independent DCIs at the same time.  While ALI is
- obviously usually to achieve, it is burdening the application layer
+ usually easier to achieve, it is burdening the application layer
  with the task to abstract the differences between DCIs.  Further, ALI
  based systems are inherently less sophisticated and less complete
  than SLI based systems -- for example, data transfer across DCI
- boundaries will need to be routed via the application layer.
+ boundaries will need to be routed via the application layer,
+ accounting can't be managed on application layer at all, etc.
+
+ \amnote{text needed to motivate our work}
+ % - why do we discuss interop
+ % - difference to interoperation
+ % - relation to SAGA and OCCI (complementary focus)
+
+ \subsection*{Grid Interoperability}
+
+ \amnote{describe GIN, HPCBP, PGI, SAGA as standards based approaches
+ to SLI and ALI.  List evolution, successes, limitations.}
+
 
 
  \subsubsection*{Cloud Interoperability and Standardization}
 
- The need for cloud
-standards and interoperabilty can be appreciated from a technology as
-well as an application perspective. One example of a technology pull
-for standardization is provided by need for interoperability across
-{\it Specialized Clouds}, i.e., emerging customized clouds that
-support specific capabilities or services, analagous to HPC grids
-(TeraGrid) versus HTC grid (Open Science Grid) or Data Grids (EGEE).
-The application push can be understood by the imperative to operate on
-massive amounts of data {\it in situ}, which in turn involves
-computation across heterogeneous distributed platforms as part of the
-same application.  For example, the Earth System Grid involves peta to
-exa-bytes of data, and one cannot move all data (given current
-transfer capabilities), nor compute at a centralized location.  In
-addition, there exist a wide range of applications that have
-decomposable but heterogeneous computational tasks. It is conceivable,
-that some of these tasks are better suited for traditional grids, or
-on a specific cloud over another, e.g., applications in the LEAD
-project, some workloads might be better placed on a data cloud whilst
-some may optimally be located on regular clouds or even grids, due to
-different data-compute affinity requirements amongst the tasks.
+ The need for cloud standards and interoperabilty can be appreciated
+ from a technology as well as an application perspective. One example
+ of a technology pull for standardization is provided by need for
+ interoperability across {\it Specialized Clouds}, i.e., emerging
+ customized clouds that support specific capabilities or services,
+ analagous to HPC grids (TeraGrid) versus HTC grid (Open Science Grid)
+ or Data Grids (EGEE).  The application push can be understood by the
+ imperative to operate on massive amounts of data {\it in situ}, which
+ in turn involves computation across heterogeneous distributed
+ platforms as part of the same application.  For example, the Earth
+ System Grid involves peta to exa-bytes of data, and one cannot move
+ all data (given current transfer capabilities), nor compute at a
+ centralized location.  In addition, there exist a wide range of
+ applications that have decomposable but heterogeneous computational
+ tasks. It is conceivable, that some of these tasks are better suited
+ for traditional grids, or on a specific cloud over another, e.g.,
+ applications in the LEAD project, some workloads might be better
+ placed on a data cloud whilst some may optimally be located on
+ regular clouds or even grids, due to different data-compute affinity
+ requirements amongst the tasks. \amnote{the previous sentence need
+ stringer wording, and support from real use cases / references.}
 
-It is worth mentioning that {\it all existing} efforts at
-interoperability are at the service managment, cloud network or
-federation level, i.e., there does not exist any effort at providing
-application-level interoperability. We aim to provide the first such
-application-level interoperability, built on the back on existing
-community efforts.  OCCI aims to provide remote management API for
-IaaS clouds. It complements related standards of SNIA and DMTF, while
-competing with more proprietary approaches such as those from VMware
-or Amazon.  
-
-\amnote{Thijs, please re-check the next paragraph - not sure if that
-is still valid}
-
-OCCI has been able to gather significant community and industry
-support and uptake, e.g., early uptake in community driven cloud
-stacks (OpenNebula, OpenStack, Eucalyptus etc).  OCCI is however, a
-REST-ful protocal rather than an interface definition, and will thus,
-at least initially, experience different, likely non-interoperable
-implementations.  OCCI will thus make cloud interoperability easier,
-but not simple {\it for the application developer or user}.  But by
-integrating SAGA with OCCI we can provide broad coverage for
-applications, i.e., SAGA as the application/client API to OCCI should
-be able to shield an application from the specific OCCI
-implementations as well as provide grid-cloud interoperability.
+ It is worth mentioning that most \I{existing} efforts at cloud
+ interoperability are at the service managment, cloud network or
+ federation level, and thus SLI.  Only few standard based efforts
+ exist on that level.  Notably, OCCI aims to provide remote management
+ protocol and API specification for IaaS clouds.  It complements
+ related standards of SNIA and DMTF, while competing with more
+ proprietary approaches such as those from VMware or Amazon.  Even
+ fewer efforts target grid-cloud interoperability on system level: the
+ inherent technology devide is considered a significant impediment for
+ grid-cloud SLI.  A notable exception is the DCIFed working group at
+ OGF~\cite{dcifed-www}.
+ 
+ % Even fewer interoperability efforts exist on cloud-ALI, and are based
+ % on non-standardized APIs (such as Amazon's EC2-API).  We aim to
+ % provide the first such application-level interoperability built on
+ % the back on existing community standards and efforts.  
+ 
 
 
-\section{SAGA}
+ \amnote{Thijs, please re-check the next paragraph - not sure if that
+ is still valid}
+
+ OCCI has been able to gather significant community and industry
+ support and uptake, e.g., early uptake in community driven cloud
+ stacks (OpenNebula, OpenStack, Eucalyptus etc).  OCCI is however, a
+ REST-ful protocal rather than an interface definition, and will thus,
+ at least initially, experience different, likely non-interoperable
+ implementations.  OCCI will thus make cloud interoperability easier,
+ but not simple {\it for the application developer or user}.  But by
+ integrating SAGA with OCCI we can provide broad coverage for
+ applications, i.e., SAGA as the application/client API to OCCI should
+ be able to shield an application from the specific OCCI
+ implementations as well as provide grid-cloud interoperability.
+
+
+\section{SAGA: the Simple API for Grid Applications}
 \label{sec:saga}
 
  SAGA has been presented and discussed in detail
@@ -238,11 +261,11 @@ implementations as well as provide grid-cloud interoperability.
  particular, OGF groups ensure that SAGA semantics map well to lover
  level specifications, such as JSDL, BES, GridFTP, etc.   But also,
  and possibly more importantly, it is now widely and independenly
- acknowledged~\cite{refs?} that a uniform, simple and stable access
- layer is neccessary (but not sufficient) to improve end user
- experience on distributed computing infrastructures, and that SAGA
- can indeed play that role for a specific set of use cases.  As such,
- SAGA is now integral part of the GIN (Grid Interoperation Now)
+ acknowledged~\cite{XD,EGI,UMD,Naregi} that a uniform, simple and
+ stable access layer is neccessary (but not sufficient) to improve end
+ user experience on distributed computing infrastructures, and that
+ SAGA can indeed play that role for a specific set of use cases.  As
+ such, SAGA is now integral part of the GIN (Grid Interoperation Now)
  community effort, and also plays an active role in current efforts
  like OGF's PGI group and US's XD proposals.
   
@@ -255,7 +278,7 @@ implementations as well as provide grid-cloud interoperability.
 
  \subsubsection*{The Price of Simplicty\cite{sagaprice}}
 
-  There are three main costs associated with an approach like SAGA,
+  There are three main costs associated with an ALI approach like SAGA,
   which tries to provide a simple, stable, concise and consistent
   layer on top of a very dynamic and exceedingly complex set of
   infrastructures.  First, there are performance penalties.  We show
@@ -271,16 +294,16 @@ implementations as well as provide grid-cloud interoperability.
   needs dealing with on several levels.  Amongst others, it is
   becoming increasingly clear that SAGA deployment needs to be dealt
   with at levels distinct from the SAGA end user, namely at the DCI
-  (...) provider level.
+  provider level~\cite{UMD,XD,TG}.
 
 
  \subsubsection*{SAGA in the Clouds}
 
-  Also the SAGA acronym contains the G-word, it is, first of all, an
+  Although the SAGA acronym contains the G-word, it is, first of all, an
   API for programming distributed applications.  As such, it is
   suitable for classical grid and non-grid DCIs, but just as well
   usable for cloud infrastructures~\cite{sagacloud...}.  In particular
-  in repsect to the 'leaky abstractions' mentioned above, one has to
+  in respect to the 'leaky abstractions' mentioned above, one has to
   acknowledge that the dynamic resource provisioning aspects of clouds
   have certain implications for the semantic interpretation of the
   higher level SAGA API.  For example, resource life time assumptions
@@ -289,8 +312,8 @@ implementations as well as provide grid-cloud interoperability.
   simple scale-out scenarios onto clouds rather well, it will require
   some additional API semantics to more efficiently, and
   transparently, use cloud resources.  Interestingly, those cloud
-  requirements match really closele additional requirements we have
-  been receiving from the grid application community.  For example,
+  requirements are \I{very} similar to requirements SAGA has recently
+  received from the grid application community.  For example,
   the SAGA based pilot-job implementation 'BigJob'~\cite{bigjob} is,
   at the moment, one of the dominant usage modes for TeraGrid and
   DEISA resources, for the SAGA community.  Application level resource
@@ -301,13 +324,13 @@ implementations as well as provide grid-cloud interoperability.
   multiple SAGA extensions have already been defined, and are
   undergoing the same standardization process as SAGA itself.} by a
   relatively generic resource management API.  It must be noted that
-  SAGA's notion of resource management has almost \I{nothing} to do
+  SAGA's notion of resource management has \I{almost nothing} to do
   with resource management on infrastructure level, but rather is an
   expression on how an application is discovering and allocating
   required resources.
   
 
- % the extenci and use case parts should move to earlier
+ % AM: the extenci and use case parts should move to earlier
 
 % \subsection{Standards promote Interoperability}
 % 
@@ -497,91 +520,107 @@ implementations as well as provide grid-cloud interoperability.
 %  (beyond files) and have bindings to OCCI -- which would extend the
 %  functionality and capabilties provided to OCCI implmentations.
 
-\section{Open Cloud Computing Interface}
+\section{OCCI: the Open Cloud Computing Interface}
 \label{sec:occi}
-The Open Cloud Computing Interface consist of a set of open
-community-driven specifications provided under Umbrella of the Open
-Grid Forum. OCCI is a RESTful \tmnote{REF} Protocol and API for all
-kinds of Management tasks based on a Resource Orientated Architecture
-(ROA) \tmnote{REF}. OCCI was originally initiated to create a remote
-management API for IaaS model based Services, allowing for the
-development of interoperable tools for common tasks including
-deployment, autonomic scaling and monitoring of Virtual Machines
-(IaaS). It has since evolved into a flexible Protocol and API with a
-strong focus on integration, portability, interoperability and
-innovation while still offering a high degree of extensibility. The
-current release of the Open Cloud Computing Interface is suitable to
-serve many other models in addition to IaaS, including e.g. PaaS and
-SaaS. \tmnote{REF occi-wg.org here}
 
-The documents are divided into three categories consisting of the OCCI
-Core, the OCCI Renderings and the OCCI Extensions.
+ The Open Cloud Computing Interface consist of a set of open
+ community-driven specifications provided under Umbrella of the Open
+ Grid Forum. OCCI is a RESTful \tmnote{REF} Protocol and API for all
+ kinds of Management tasks based on a Resource Orientated Architecture
+ (ROA) \tmnote{REF}. OCCI was originally initiated to create a remote
+ management API for IaaS model based Services, allowing for the
+ development of interoperable tools for common tasks including
+ deployment, autonomic scaling and monitoring of Virtual Machines
+ (IaaS). It has since evolved into a flexible Protocol and API with a
+ strong focus on integration, portability, interoperability and
+ innovation while still offering a high degree of extensibility. The
+ current release of the Open Cloud Computing Interface is intented to
+ also cater to many other models in addition to IaaS, including e.g. 
+ PaaS and SaaS. \tmnote{REF occi-wg.org here}
+
+ The OCCI specifications fall into three categories, which are the
+ OCCI Core specification, OCCI Renderings and OCCI Extensions.  Three
+ OCCI documents exist and are being implemented by various
+ implementations:
  
-\begin{itemize}
-  \item The OCCI Core specification consist of a single document
-    defining the OCCI Core Model. The OCCI Core Model can be
-    interacted with {\em renderings} and expanded through {\em
-      extensions}.
-  \item The OCCI HTTP Restful Rendering specification describs a
-    particular rendering of the OCCI Core Model. Other renderings
-    could interact with the same instance of the OCCI Core Model and
-    be added easily. The HTTP Restful Rendering desribes a Web based
-    RESTful API to interface with OCCI based Service Offerings.
-  \item The OCCI Infrastructure is a extension specification which
-    contains the definition of the extensions needed for the IaaS
-    domain. Other documents could describe other ways and means of
-    extending the Core Model.
-\end{itemize}
+ \begin{itemize}
 
-Future releases of OCCI may include additional rendering and extension
-specifications. Since OCCI is an RESTful Protocol or API is can
-enhances from all the features the HTTP defines. This includes
-mechanisms for authentication and authorization, Cache-mechnisms,
-Content-Type definitions and dicovery capabilities.
+  \item The \I{OCCI Core} specification consists of a single document
+  defining the OCCI Core \I{Model}. That model can be interacted with
+  via \I{renderings}, and expanded via \I{extensions}.
 
-Another guiding principle in OCCI is to make use of existing standards
-and specifications where appropriate.
+  \item The \I{OCCI HTTP Restful Rendering} specification describes
+  one particular rendering of the OCCI Core Model. Other renderings
+  are feasable and could interact with the same instance of the OCCI
+  Core Model.  The HTTP Restful Rendering describes an HTTP based
+  RESTful API to interface with services which implement the OCCI Core
+  Model.
+ 
+  \item The \I{OCCI Infrastructure} specification is an extension of
+  the OCCI Core Model which contains the definition required to apply
+  the OCCI model to the IaaS domain. Other documents could describe
+  other ways and means of extending the Core Model, for other elements
+  of the IaaS domain, or for the PaaS and SaaS domains.
 
-OCCI and the Storage Networking Industry Association's
-(SNIA)\footnote{\url{http://www.snia.org/}.} Cloud Data Management
-Interface (CDMI) working groups have collaborated together so that
-both specifications are interoperable with each other. Whereas CMDI
-can be used to create, retrieve, update and delete data elements in a
-Cloud offering. CDMI, just like OCCI can be used to discover the
-capabilites of the Service Offering. Meta-Data can be assigned to the
-data elements using CDMI. Following the interaction of an CDMI
-compatibel interface the same references to data elements can be used
-when interacting with an OCCI compatible offering.
+ \end{itemize}
 
-OCCI and the Distributed Management Task Force's
-(DMTF)\footnote{\url{http://www.dmtf.org}.} Open Virtualization Format
-(OVF), see \cite{CDG+2009}, can be easily integrated through the use
-of the resource type Link. Where a provider wishes to supply an OVF
-representation of a client's resource instance(s), they can do so by
-associating the instance(s) with a mirror representation, only the
-serialisation/rendering format is OVF.
+ Future releases of OCCI may include additional rendering and
+ extension specifications. Since OCCI is an RESTful Protocol or
+ API\amnote{now, which is it?? ;-)}, it can build upon all the
+ features defined by HTTP. This includes mechanisms for authentication
+ and authorization, cache-mechanisms, content-type definitions and
+ discovery capabilities.
 
-Other than this the OCCI working group is closely working together
-with other groups inside of the Open Grid Forum. The Distributed
-Computing Infrastucture Federation (DCI-fed) working group focuses on
-the creation of models and APIs for setting up distributed federated
-computing environments. Other than this the OCCI working group uses
-Standards like those developed by the Distributed Resource Management
-Application API (DRMAA) working group for common Job operations on
-Clusters via the OCCI protocol.
+ Another guiding principle in OCCI is to make use of existing
+ standards and specifications where appropriate.  For example, OGF's
+ OCCI working group and the Storage Networking Industry Association's
+ (SNIA)\footnote{\url{http://www.snia.org/}} Cloud Data Management
+ Interface (CDMI) \footnote{CMDI can be used to create, retrieve,
+ update and delete data elements in a Cloud offering.} working groups
+ have collaboratively ensured that both specifications are
+ interoperable with each other. 
+ % CDMI, just like OCCI, can be used to discover service capabilites.  
+ % Meta-Data can be assigned to the data elements using CDMI.
+ References to data elements, which result from CDMI service
+ interactions, can directly be used when interacting with an OCCI
+ compatible service.
+
+ Similarly, OGF's OCCI working group and the Distributed Management
+ Task Force's (DMTF)\footnote{\url{http://www.dmtf.org/}} Open
+ Virtualization Format (OVF), see \cite{CDG+2009}, can be easily
+ integrated through the use of the OCCI resource type Link. Where a
+ provider wishes to supply an OVF representation of a client's
+ resource instance(s), they can do so by associating the instance(s)
+ with a mirror representation, with the serialisation/rendering format
+ being OVF.
+
+ The OCCI working group is also closely working together with other
+ groups inside of the Open Grid Forum. The Distributed Computing
+ Infrastucture Federation (DCI-fed) working group focuses on the
+ creation of models and APIs for setting up distributed federated
+ computing environments. The OCCI working group further plans to use
+ Standards like the Distributed Resource Management Application API
+ (DRMAA) for common Job operations on Clusters, via the OCCI protocol.
+
+ All those efforts will, upon adoption, simplify service-level cloud
+ interoperability efforts.  The landscape of cloud based DCIs is,
+ however, evolving very fast and dynamically, and it remains to be
+ seen what OCCI extensiont will be required to cater to emerging
+ federation use cases.
+
 
 \section{Grid-Cloud interoperatbilty}
 \label{sec:gcinterop}
 
-The next paragraphs describe how a Cloud and Grid interoperability
-could look like. To demo these interoperability use-cases OCCI and
-SAGA interoperability use cases are described.
+ The next paragraphs describe how a Cloud and Grid interoperability
+ could look like. To demo these interoperability use-cases OCCI and
+ SAGA interoperability use cases are described.
 
-\subsection{Using OCCI for IaaS based resource provisioning}
-Since SAGA features a rich set of adapters to talk to Grid Middlewares
-the first use-case describes a way to autmatically provision such grid
-middlewares on demand. SAGA could use OCCI to request initial or
-addtional Grid Resources.
+ \subsection{Using OCCI for IaaS based resource provisioning} Since
+ SAGA features a rich set of adapters to talk to Grid Middlewares the
+ first use-case describes a way to autmatically provision such grid
+ middlewares on demand. SAGA could use OCCI to request initial or
+ addtional Grid Resources.
 
 This would be a request on a IaaS based level where SAGA could request
 Compute Resource with a Grid Middlware installed to be started. While
