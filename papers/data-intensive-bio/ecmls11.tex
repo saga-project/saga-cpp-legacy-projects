@@ -150,23 +150,23 @@
   Next-Generation (gene) Sequencing (NGS) machines produce
   significantly larger amounts of data compared to early sequencers.
   In addition to the challenges of data-management that arise from
-  unprecedented volumes of data, there exist the important requirement
-  of effectively analyzing the data.  In this paper, we use BFAST --
-  genome-wide mapping application, as a representative example of the
-  typical analysis that is required on data from NGS machines.  We
-  investigate two model genomes -- human genome and a microbe,
-  Burkerholderia Glumae, that represent an eukaryotic and a
-  prokaryotic system.  The computational complexity of genome-wide
-  mapping using BFAST, depends upon the size of a reference genome,
-  the data size of short reads amongst, amongst other factors.  We
-  analyze the performance characteristics of BFAST, understand its
-  dependency on different input parameters. Characterizing the
-  performance suggests that genome-wide mapping benefits from both
-  scaling-up and scaling-out; in fact, for certain problem instances,
-  scaling-out is a critical requirement for performance.  We then
-  design, develop and demonstrate a runtime-environment that supports
-  both the scale-up and scale-out of BFAST over production grid and
-  cloud environments.
+  unprecedented volumes of data, there exists the important
+  requirement of effectively analyzing the data.  In this paper, we
+  use BFAST -- genome-wide mapping application, as a representative
+  example of the typical analysis that is required on data from NGS
+  machines.  We investigate two model genomes -- human genome and a
+  microbes -- {\it Burkerholderia Glumae}, that represent an
+  eukaryotic and a prokaryotic system.  The computational complexity
+  of genome-wide mapping using BFAST, depends upon the size of a
+  reference genome, the data size of short reads, amongst other
+  factors.  We analyze the performance characteristics of BFAST and
+  understand its dependency on different input
+  parameters. Characterizing the performance suggests that genome-wide
+  mapping benefits from both scaling-up and scaling-out; in fact, for
+  certain problem instances, scaling-out is a critical requirement for
+  performance.  We then design, develop and demonstrate a
+  runtime-environment that supports both the scale-up and scale-out of
+  BFAST over production grid and cloud environments.
   
   % from high-throughput technologies of the Next Generation
   % Sequencing platforms and their biological genome contexts such as
@@ -196,82 +196,130 @@
 %\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings \keywords{RNA conformation energy landscape, Runtime Environment, SAM-I riboswitch, S gene of Bovine Corona Viral Genome} % NOT required for Proceedings
 
 \section{INTRODUCTION} 
-% \bibliographystyle{plain}
-% \bibliography{egi-white-paper}
-High-throughput sequencing techniques provided by Next Generation
-Sequencing (NGS) platforms have changed biological sciences and
-biomedical research dramatically with their comprehensive genome-wide
-information as well as a considerably affordable cost compared to
-previous sequencing techniques based on Sanger
-sequencing\cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.
-Owing to the advances in deep sequencing protocols such as ChIP-seq
-and RNA-seq, high-throughput sequencing techniques becomes essential
+
+High-throughput genome sequencing techniques provided by Next
+Generation Sequencing (NGS) platforms are changing biological sciences
+and biomedical research dramatically.  These techniques have led to a
+broadening of sequencing capabilties and access to comprehensive
+genome-wide information at increasingly lower costs compared to
+previous sequencing techniques (such as those based on Sanger
+sequencing)
+\cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.
+Thanks to advances in deep sequencing protocols such as ChIP-seq and
+RNA-seq, high-throughput sequencing techniques have become essential
 methodologies in studies of cell development and
 differentiation\cite{wang2009-natrevgen,pepke2009,gilad2009,mortazavi2008,sorek2010}.
-Resulting influx of biological information about the genome-wide
-organization and the interaction map of target genes or pathways that
+The resulting influx of biological information about the genome-wide
+organization and the interaction map of target genes and pathways that
 reveal underlying mechanisms of gene expression and regulation in a
-living cell would lead to discoveries of remedies for various diseases
-such as cancer, infectious diseases, and dysfunctional diseases caused
-genetically or by
+living cell. This has the potential to lead to discoveries of remedies
+for various diseases such as cancer, infectious diseases, and
+dysfunctional diseases caused genetically or by
 aging\cite{amaral2008,encode2007,baek2008,costa2009}.
 
+
 While high-throughput techniques enjoy extremely high coverage of
-target genome regions, as referred often with the term, "deep
-sequencing", the current technologies adopted by NGS platforms such as
-Illumina GA II and Applied Biosystems SOLiD are limited to generate
-only short sequence reads generally less than 100 hundred nucleotides
-in a real setting at the time of this writing\cite{metzker2010}.
-Consequently, these high volume short reads challenge immediately
-mapping process on to a reference genome or de novo assembly that are
-needed as the first step for any genome-wide
+target genome regions, as referred to by the term, "deep sequencing",
+the current technologies adopted by NGS platforms such as Illumina GA
+II and Applied Biosystems SOLiD are limited to generating only short
+sequence reads, generally less than 100 hundred
+nucleotides\cite{metzker2010}.  
+
+Consequently, it has become a computational challenge to map these
+high volume short reads onto a reference genome or de novo assembly
+that are needed as the first step for any genome-wide
 studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
+It is expected that data-sets of interest will increase by several
+orders of magnitude as the number of genomes that need to be sequenced
+together increases exponentially.  This is a result of comparative
+genomics as well as genome-wide variation studies that require a
+statistical number of genomes for one single species as shown in the
+recent 1000 genome project and human genome
+studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}.
 
-The need of computational methods as well as computing architectures
-for compute-intensive and data-intensive calculations for resolving
-new challenges arising from requirements of processing and analyzing
-genome sequencing data, therefore, is regarded indispensable for
-accurate and reliable analysis against high-throughput sequencing data
-and following genome-wide analyses.  As a result, remarkable advances
-have been witnessed in recent years and a number of bioinformatics
-tools aiming to solve emerging challenges are currently available to
-the scientific
-community\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
-One important caveat is that as advances of genome sequencing
-technologies evolve further in the future with innovations, for
-example, such as a single molecule sequencing technology and
-ever-growing genome data, any computational algorithms or
-implementations with a bioinformatic tool are subject to change to
-respond such progresses or will become less useful if the tool do not
-meet new conditions.
+%challenge immediately mapping process on to a reference genome or 
+% Consequently, these high volume short reads challenge immediately
+% mapping process on to a reference genome or de novo assembly that are
+% needed as the first step for any genome-wide
+% studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
-Whereas such algorithmic advances and introduction of new tools have been consistently led by the computational biology community. the development of infrastructure and required software is relatively less recognized for its significance.  This is partly because, in addition to requirement of an understanding of applications of interest in terms of the capability of parallel execution in heterogeneous computing environment, the complexity of biological contexts associated with characteristics of a target genome(s), the volume of relevant genomics data, and importantly, difficulties of utilization of heterogeneous distributed computing resources constitute challenges for introducing an appropriate scalable architecture for the infrastructure.
+To address these challenges, there have been algorithmic advances and
+several tools implementing these advances are becoming available
+\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
+Whereas such algorithmic advances and introduction of new tools have
+been consistently led by the computational biology community, the
+development of a well-architected integrated infrastructure -- the
+software \& services, data management capabilities and user interfaces
+has received less attention.  As we will demonstrate, NGS analysis is
+not a simple compute or data-intensive application, but an interesting
+mix of high-end and high-throughput computing with data-intensive
+requirements.  We ask the fundamental question: what is the
+appropriate architecture of the infrastructure to address the existing
+computational requirements of NGS analysis, data-set volumes -- now
+and extrapolating into the future?  The need for an appropriate
+scalable and flexible architecture for the infrastructure, becomes
+prelevant because the computational complexity of the specific problem
+instance is often influenced by the biological characteristics of the
+target genome(s), the volume of relevant genomics data.
 
-The need of such infrastructures is also understood with catastrophically growing datastes for genomics and their applications for public heath issues.  We expect the several orders of magnitude increase in the number of genomes that is needed to be sequenced together, which is cased by comparative genomics as well as genome-wide variation studies that require a statistical number of genomes for one single species as shown in the recent 1000 genome project and human genome studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}. 
+\jhanote{not sure what to do with the following paragraph} One
+important caveat is that as advances of genome sequencing technologies
+evolve further in the future with innovations, for example, such as a
+single molecule sequencing technology and ever-growing genome data,
+any computational algorithms or implementations with a bioinformatic
+tool are subject to change to respond such progresses or will become
+less useful if the tool do not meet new conditions.
 
-% Nonetheless, some interesting progresses are recently reported, for
-% example, with the utilization of emerging computing architecture such
-% as Cloud\cite{taylor2010}
-
-In this work, we report our development on the distributed adaptive
-runtime environment (DARE) framework with which heterogeneous
-distributed computing resources are keenly utilized for a scalable
-computation of a target genome-wide analysis tool.  As a use case, we
-primarily focus on the mapping process of short reads from NGS
-platforms against a reference genome.  The mapping is carried out with
-the tool, BFAST\cite{bfast2009, bfast2009b} which was chosen
-specifically considering its capability to support parallel and
+Our approach is to primarily focus on the mapping process of short
+reads from NGS platforms against a reference genome.  The mapping is
+carried out with the tool, BFAST\cite{bfast2009, bfast2009b} which was
+chosen specifically considering its capability to support parallel and
 multi-threading execution.  Our investigation with this bioinformatic
 program would represent a general situation for a bioinformatics tool
-employed for genome-wide analysis infrastructure.
+employed for genome-wide analysis infrastructure.  As a use case, we
+understand the computational complexity of BFAST\cite{bfast2009,
+  bfast2009b} and the determinants of its performance for two
+exemplary genomes, human genome and a microbial genome {\it
+  Bukerholderia Glumae}.
+ 
+Having understood the computational requirements, and the importance
+of both scaling-up and scaling-out, we present our initial design
+objectives and a prototype infrastructure that seamlessly uses
+High-Performance Computing (HPC) grids and Cloud environment for
+genome-wide analysis.  Our infrastructure builds upon existing
+capabilities of the Distributed Adaptive Runtime Environment (DARE)
+framework -- with enables the seamless utilization of heterogeneous
+distributed computing resources.  DARE provides an existing efficient
+framework upon which to build a scalable infrastructure to support a
+wide range of abstractions and execution requirements for the
+analytics required for NGS data.
 
-\jhanote{we want to present a strawman of an architecture based upon
-  requirements and a reference implementation of the architecture} In
-this work, we present our work on the infrastructure development for
-the use of High Performance Computing (HPC) grids and Cloud
-environment for genome-wide analysis.
+This paper is organized as follows....
 
-Our strategy is, first to understand characteristics of biological information in conjunction with the capability of the target scientific application, and then, to analyze computational complexity for carrying out mapping process with two exemplary genomes, human genome and a microbial genome, Bukerholderia Glumae.  Base on the results with this analysis, we present the use of the runtime environment developed with the Distributed Adaptive Runtime Environment (DARE) framework, which is built upon SAGA/BigJob abstraction and provides an efficient framework for building biological information infrastructure supporting a wide range of execution patterns while recognizing the potential scalability of deployable computing resources.  Our development with a federated HPC grid, Louisiana Optical Network Initiative (LONI) and a Cloud environment in the FutureGrid is desribed largely focusing on the comparative analysis on execution of mapping process in each environment. 
+% are keenly utilized for a scalable computation of a target genome-wide
+% analysis tool.
+
+
+% patterns while recognizing the potential scalability of
+% deployable computing resources.
+% abstraction and 
+
+% characteristics of biological information in conjunction with the
+% capability of the target scientific application, and then, to analyze
+% computational complexity for carrying out mapping process with two
+% exemplary genomes, human genome and a microbial genome, Bukerholderia
+% Glumae.  Base on the results with this analysis, we present the use of
+% the runtime environment developed with the Distributed Adaptive
+% Runtime Environment (DARE) framework, which is built upon SAGA/BigJob
+% abstraction and provides an efficient framework for building
+% biological information infrastructure supporting a wide range of
+% execution patterns while recognizing the potential scalability of
+% deployable computing resources.
+% Our development with a federated HPC
+% grid, Louisiana Optical Network Initiative (LONI) and a Cloud
+% environment in the FutureGrid is desribed largely focusing on the
+% comparative analysis on execution of mapping process in each
+% environment.
 
 \section{Mapping Genomes: Characterizing BFAST and Understanding
   the Challenges}
@@ -743,3 +791,44 @@ purpose, our DARE framework provides an efficient solution.
 \end{document}
 
 
+% in addition to the requirement of an uderstanding of applications of
+% interest in terms of the capability of parallel execution in
+% heterogeneous computing environment,
+
+% and importantly, difficulties of utilization of heterogeneous
+% distributed computing resources
+
+% This is partly because, in addition to requirement of an understanding
+% of applications of interest in terms of the capability of parallel
+% execution in heterogeneous computing environment, the complexity of
+% biological contexts associated with characteristics of a target
+% genome(s), the volume of relevant genomics data, and importantly,
+% difficulties of utilization of heterogeneous distributed computing
+% resources constitute challenges for introducing an appropriate
+% scalable architecture for the infrastructure.
+
+% required software is relatively less
+% recognized for its significance.  
+
+% The need of computational methods as well as computing architectures
+% for compute-intensive and data-intensive calculations for resolving
+% new challenges arising from requirements of processing and analyzing
+% genome sequencing data, therefore, is regarded indispensable for
+% accurate and reliable analysis against high-throughput sequencing data
+% and following genome-wide analyses.
+
+%% As a result, remarkable advances have been witnessed in recent years
+%% and a number of bioinformatics tools aiming to solve emerging
+%% challenges are currently available to the scientific
+%% community\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
+
+% The need of such infrastructures is also understood with
+% catastrophically growing datasets for genomics and their applications
+% for public heath issues.
+
+% Nonetheless, some interesting progresses are recently reported, for
+% example, with the utilization of emerging computing architecture such
+% as Cloud\cite{taylor2010}
+
+% \jhanote{we want to present a strawman of an architecture based upon
+%   requirements and a reference implementation of the architecture}
