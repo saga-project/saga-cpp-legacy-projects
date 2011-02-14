@@ -481,14 +481,14 @@ distributed architectures?
 & & Glumae (BGR1)\\   
    
    \hline
- \underline{Reference Genome}   \\
+ \underline{Reference Genome} & &  \\
     \# of base pairs (bp) &  3 Gbp & 7.3 Mbp \\
    Genome Structure &   23 chromosome  & 2 chromosomes  \\  
    &   pairs & \& 4 plasmids \\
     Volume of indexes  & approx. 12 GB  & approx. 447 MB  \\
       \hline
-    \underline{ Short Reads}   \\
-        \underline{ Sequence Data}   \\
+    \underline{Short Reads} & &   \\
+        \underline{Sequence Data}& &    \\
   Type of  &  Exome  & Whole \\
   
 Genome Analysis  &  &  Genome \\
@@ -499,10 +499,13 @@ Genome Analysis  &  &  Genome \\
   
   
   \hline
-  \underline{ BFAST mapping}  \\
-  Minimal disk &  approx. 130 GB   &    approx. 10 GB   \\
-total space required & &\\
+  \underline{BFAST indexing} & &  \\
+  Minimal disk &  approx. 130 GB   &    approx. 0.435 GB   \\
+space required & &\\
 \hline
+
+
+
 \end{tabular} \caption{The information about the size of reference genomes, volumes of datasets from Next Generation Sequencing (NGS) platforms and disk space required during the mapping calculation with BFAST is summarized assuming all calculations are carried out with a single machine.}
  \label{table:two-genomes} 
 \end{table}
@@ -512,7 +515,7 @@ total space required & &\\
 \begin{table}
  \begin{tabular}{|c|c|c|c|} 
  \hline 
-Read file & Index files & Appx. required disk space \\
+Read file & Index files & Approx. required disk space \\
  \hline
 40 &  40 & 67 GB \\
 20 & 40 & 70 GB \\
@@ -547,22 +550,23 @@ As an investigation for computational requirements, first, we measure the time-t
   uncoupled -- what is the level of coupling between tasks?}
 
 
- \begin{table}
- \begin{tabular}{|c|cc|} 
- \hline 
-Distributed &  HPC Grid &  Cloud \\ 
-Environment && (Eucalyptus)\\
-\hline
- &  Louisiana Optical & FutureGrid \\
-& Network Initiative  & \\
-System  Name &  QB/Small Linux Clusters   &  INDIA/SIERRA \\
-Disk Space  Limit  &  QB : unlimited  &    \\
-                         &  Small Linux Clusters : 100 GB  &  \\
- \hline
- \end{tabular}
-\caption{Specification of two distributed environments.  \jkimnote{need to fill Cloud systems}}
-\label{table:two-systems} 
-\end{table}
+
+% \begin{table}
+ %\begin{tabular}{|c|cc|} 
+ %\hline 
+%Distributed &  HPC Grid &  Cloud \\ 
+%Environment && (Eucalyptus)\\
+%\hline
+% &  Louisiana Optical & FutureGrid \\
+%& Network Initiative  & \\
+%System  Name &  QB/Small Linux Clusters   &  INDIA/SIERRA \\
+%Disk Space  Limit  &  QB : unlimited  &    \\
+%                         &  Small Linux Clusters : 100 GB  &  \\
+ %\hline
+ %\end{tabular}
+%\caption{Specification of two distributed environments.  \jkimnote{need to fill Cloud systems}}
+%\label{table:two-systems} 
+%\end{table}
  
 \subsubsection{Characterising Data Requirements}
 
@@ -571,6 +575,27 @@ Disk Space  Limit  &  QB : unlimited  &    \\
 Mapping with BFAST should deal with the data for a reference genome, short reads, and processed data generated in each step.  Particularly, the temporary data generated during 'bfast match' step needs a careful attention due to their significant size and more importantly a characteristic aspect such that the size depends on how the step is executed, for example, concurrently vs. serially, or centralized storage vs. distributed storage, or the low memory option (i.e. the number of index files).
    
 The overall information for data requirement is found with Table~\ref{table:two-genomes}, Table~\ref{table:diskspace} and Fig.~\ref{fig:diskspace}.   Generally, fragmentation of data sets is a primary idea to mitigate a storage requirement as well as computing time.  For example, as we mentioned above, separating short reads into multiple files is a good option with distributed computing resources.  While a reference genome index should be treated as a whole, there is a possible idea to break a reference genome.  For example, breaking a reference genome into many independent sets is possible, considering the fact that many organisms are composed of independent parts, for example, chromosomes and plasmids or that possible multiple contigs that represents discontinued genome sequences would exist as a reference genome.  Indeed, the human genome in Table~\ref{table:two-systems} with huge data volume as a whole is the case that combining ideas to split the target genome with all possible options ranging from biology to computing technologies is needed to overcome challenges arising from the data volume and computation.   
+
+\begin{table}
+\begin{tabular}{|c|cc|} 
+\hline 
+Distributed &  HPC Grid &  Eucalyptus(Cloud) \\ 
+Environment & Work directory & Walrus\\
+\hline
+ &  Louisiana Optical & FutureGrid \\
+& Network Initiative  & \\
+System  Name &  QB/Painter   &  INDIA/SIERRA \\
+ \hline
+ Disk Space  &  QB : 40 TB &   INDIA : 256TB \\
+  Limit & Painter:80 GB    &  \\
+
+ \hline
+ 
+\end{tabular}
+\caption{Specification of two distributed environments}
+\label{table:two-systems} 
+\end{table}
+
 
 
 \begin{figure}
@@ -633,7 +658,8 @@ challenges that we want to resolve, and improve are as follow.
 \caption{\small The multi-threading capability measurement.  The 'bfast match' 'step is measured by varying the number of cores for multi-threading execution.  The node tested has 12 cores.  Human genome (hg18) chromosome 21 is used as the reference genome. \jhanote{Need to say what the two lines in the left graph are, and what is the message we want to convey from showing the difference} \jhanote{I think we should use gnuplot for production quality graphs. Sorry -- but the quality makes a significant difference and Excel just does not cut it.}}
   \label{fig:parallel-execution} 
  \end{figure}
-To determine how the bfast match performance changes with the different number of threads and processor we vary the number of threads for bfast job on a single machine with multiple cores. The results show that the performance was better when the number of cores is equal to number of threads which was also recommended setting in the Bfast manual. Further, when we increase number of threads more than available performance does not change much. When less number of threads are used than the available cores the performance decreases but marginal around half of the cores and significant with just single thread.
+ 
+To determine how the bfast match performance changes with the different number of threads and processor we vary the number of threads for bfast job on a single machine with multiple cores. The results in Fig.~\ref{fig:parallel-execution} show that the performance was better when the number of cores is equal to number of threads which was also recommended setting in the Bfast manual. Further, when we increase number of threads more than available performance does not change much. When less number of threads are used than the available cores the performance decreases but marginal around half of the cores and significant with just single thread.
 
 
 So even with multi-threading option provided by bfast, the performance
@@ -673,8 +699,8 @@ To understand the how I/O of the system influences the performance of bfast matc
  \begin{table}
  \begin{tabular}{|c|c|c|c|} 
  \hline 
-Read File Size & Threads  & BFAST Tasks & Time to \\
-& per Read File&  &  Completion \\  \hline
+Read File  & Threads  & BFAST  & Time to \\
+Size & per Read File& Tasks &  Completion \\  \hline
 2.3 GB &  4 & 1 & 36942 s \\
 1.2 GB & 2 & 2 & 19618 s \\
 0.732 GB & 1 & 4 & 28299 s\\ 
@@ -682,11 +708,11 @@ Read File Size & Threads  & BFAST Tasks & Time to \\
 
  \hline
  \end{tabular}
- \label{table:understand I/o} 
+ \label{table:understandio} 
  \caption{Computing time for the 'bfast match' step with a single node.  Under the restriction such that the tested node has 4 cores, the time-to-completions are compared with varying conditions regarding the size of read files, the number of thread for each 'bfast match', and number of the 'bfast match' executed concurrently.}
 \end{table}
 
-These experiments show that use of 2 threads per bfast matches simultaneously on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
+The experiment results in Table~\ref{table:understandio} show that use of 2 threads per bfast matches simultaneously on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
 
 
 }
@@ -708,7 +734,8 @@ effectively\cite{pylonsurl}.
 
 Considering a daunting size of data, in particular large genomes such as human as summarized in Table~\ref{table:two-genomes} and corresponding long computing times when carried out with a single or moderate size of clusters, parallel/concurrent execution of the target analysis with BFAST are desirable.  First, biological information could be utilized for such parallel execution. For example, the short read sequences in fastq format could be split into many files that are needed separately for parallel mapping.  At the last stage, all mapped results could be combined with available tools such as SAMTools\cite{samtools}.   Additionally, a reference genome could be divided into many if each dataset contains independent contigs.  For example, each chromosomes or plasmids in microbes could be a separated sub-genome sequence contig.  However, note that indexes of an entire contig should be used together, regardless of the low memory option that allows to store indexes in many files, which is in fact the major obstacle to require a large disk space.
 
-We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using SAGA/BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
+We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using 
+SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob with the configuration of BigJob before submitting BigJobs. 
   
 ...\jhanote{needs merging} Most importantly, while the implementation
 of multiple parallel tasks indicates advantages of distributed
@@ -752,35 +779,21 @@ the result in that without sufficient cores available from distributed
 resources and dynamically adapted task distribution, achieving the
 efficient execution of a target calculation is challenging.
 
-\begin{table}
- \begin{tabular}{|c|cc|} 
- \hline 
-Distributed &  HPC Grid &  Cloud \\ 
-Environment && (Eucalyptus)\\
-\hline
- &  Louisiana Optical & FutureGrid \\
-& Network Initiative  & \\
-System  Name &  QB/Eric   &  INDIA/SIERRA \\
- \hline
- \end{tabular}
-\caption{Specification of two distributed environments}
-\label{table:two-systems} 
-\end{table}
 
 
  \begin{table}
  \begin{tabular}{|ccccc|c |} 
  \hline 
-ID & BigJob Size  &  Tasks & Size of  & Threads per  &  Computing  \\
-   & Cores(Nodes) &  & Read File & each Task &  Time\\\hline
-I   & 80(8) &  40 & 0.209 GB & 2 & 1h 6 m 6 s \\
-II  & 40(8)  &  20 & 0.435 GB & 2 & 2 h 13 m 51 s\\
-III & 12(4)  & 40  & 0.209 GB & 2 & 7 h 10 m 7 s \\
-IV & 12(4)  & 20 & 0.435 GB & 2 &  6 h 37 m 52  \\
+ID & BigJob Size  &  Tasks & Size of  & Threads/  &  Computing  \\
+   & Cores(Nodes) &  & Read file & Task &  Time\\\hline
+I   & 80(8) &  40 & 0.209 GB & 2 & 1h 6m 6s \\
+II  & 40(8)  &  20 & 0.435 GB & 2 & 2h 13m 51s\\
+III & 12(4)  & 40  & 0.209 GB & 2 & 7h 10m 7s \\
+IV & 12(4)  & 20 & 0.435 GB & 2 &  6h 37m 52s  \\
 \hline
 \end{tabular}
 \caption{Performance comparison among parallel implementation using
-  SAGA/BigJob with a HPC grid, LONI. One BigJob is submitted with the
+  SAGA-BigJob with a HPC grid, LONI. One BigJob is submitted with the
   number of SubJobs indicated in the column for the number of tasks
   which is equivalent to the number of read files. \jhanote{This table
     needs to be fixed -- crosses the page. Are Case I/II/III/IV the
