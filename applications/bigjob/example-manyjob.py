@@ -17,7 +17,7 @@ import bigjob
 import logging
 import many_job
 
-NUMBER_JOBS=4096
+NUMBER_JOBS=128
 
 def has_finished(state):
         state = state.lower()
@@ -35,9 +35,11 @@ if __name__ == "__main__":
         # submit via mj abstraction
         resource_list = []
         #resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
-        resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
-                               "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
+        #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "32", "processes_per_node":"4", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+        #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
+        resource_list.append( {"gram_url" : "pbspro://localhost/", "number_cores" : "32", "processes_per_node":"4", "allocation" : None, "queue" : None, "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+                               "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
 #                           {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "8", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"}  )
 
@@ -53,7 +55,7 @@ if __name__ == "__main__":
         #resource_list = []
         #resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "16", "allocation" : "loni_jha_big", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
         print "Create manyjob service "
-        mjs = many_job.many_job_service(resource_list, None)
+        mjs = many_job.many_job_service(resource_list, "localhost")
         
         jobs = []
         job_start_times = {}

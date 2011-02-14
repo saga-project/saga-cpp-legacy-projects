@@ -72,6 +72,11 @@ class many_job_service(object):
             gram_url = i["gram_url"]
             logging.debug("start bigjob at: " + gram_url)
             bj = bigjob.bigjob(self.advert_host)
+            ppn=0
+            if ("processes_per_node" in i):
+                ppn=i["processes_per_node"]
+            else:
+                ppn=1
             bj.start_pilot_job(gram_url,
                                     i["re_agent"],
                                     i["number_cores"],
@@ -79,7 +84,8 @@ class many_job_service(object):
                                     i["allocation"],
                                     i["working_directory"], 
                                     None,
-                                    i["walltime"])
+                                    i["walltime"],
+                                    ppn)
             i["bigjob"]=bj # store bigjob for later reference in dict
             i["free_cores"]=int(i["number_cores"])
             # lock for modifying the number of free nodes
