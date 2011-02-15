@@ -685,29 +685,62 @@ Cloud & FutureGrid & INDIA & Walrus & 256 TB \\
 Recently, cloud computing and environments for genome-wide analysis
 and infrastructure development have drawn significant attention and
 interesting outcomes were reported\cite{taylor2010,cloudburst,
-  cloudblast, langmead2009, langmead2010,gatk, halligan2009}
+  cloudblast, langmead2009, langmead2010,gatk, halligan2009}. 
 
-\begin{itemize*}
-\item GATK\cite{gatk}
-\item CloudBurst\cite{cloudburst}
-\item CouldBlast\cite{cloudblast}
-\item SNP finding and RNA-seq with Cloud\cite{langmead2009, langmead2010}
-\end{itemize*}
+%\begin{itemize*}
+%\item GATK\cite{gatk}
+%\item CloudBurst\cite{cloudburst}
+%\item CouldBlast\cite{cloudblast}
+%\item SNP finding and RNA-seq with Cloud\cite{langmead2009, langmead2010}
+%\end{itemize*}
+Most of those solutions generated meaningful progresses in particular focusing on the utilization emerging technologies such as Cloud computing and algorithms such as MapReduce.  Notably, a general purpose infrastructure or services were also announced providing a variety of tools for genome-wide analysis\cite{galaxy}. 
 
-In spite of successful progress from such efforts, the primary
-challenges that we want to resolve, and improve are as follow.
-%\begin{enumerate}
-\begin{itemize*}
-\item Agility for heterogeneous computing architecture
-\item Extensibility and quick development cycles for a new bioinformatics tool
-\item Scalability with a non-intrusive execution of a target tool  
-%\end{enumerate}
-\end{itemize*}
+In spite of interesting progress made by such efforts, some important questions remains to be answered. For example,
+how to utilize heterogeneous computing resources efficiently and effectively is not simple due to major efforts for building, maintaining, and extending an infrastructure.  In that sense, it is important to make the infrastructure with a framework that is agile for dealing with heterogeneous computing and data management resources that are distributed geographically.  The agility should address a quick development cycle for an incorporation of a new bioinformatics application, an efficient maintenance of existing applications, and an easiness of capability addition for applications or the infrastructure itself.  One notable aspect, which is largely not considered in many existing solutions, is that a target application is enhanced with the utilization of heterogeneous scalable resources, which is greatly facilitated if the infrastructure supports a non (or minimal) -intrusive modification of a target application and existing data management structure.
+
+
+% 
+%%\begin{enumerate}
+%\begin{itemize*}
+%\item Agility for heterogeneous computing architecture
+%\item Extensibility and quick development cycles for a new bioinformatics tool
+%\item Scalability with a non-intrusive execution of a target tool  
+%%\end{enumerate}
+%\end{itemize*}
 
 
 \subsection{Understanding BFAST on a Local (Single) Resource}
 
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
+
+To determine how the performance of the bfast match step with the different number of threads, $N_t$, and 
+cores, $N_c$, we vary the number of threads for a task of the step on a single machine having multiple cores. 
+The results in Fig.~\ref{fig:parallel-execution} show that the time-to-completion, $T_{C}$, decreases until the number 
+of threads becomes equal to the maximum number of cores.  Interestingly, the overall performance gain is about 30 \% which is somewhat marginal, and the scaling tendency does not show any significant pattern.\jkimnote{more discussions if possible?}
+
+
+%... \jhanote{needs merging} The results from our investigation are presented in
+%Fig.~\ref{fig:parallel-execution}. First, performance gains with
+%multi-threading are marginal showing only 30 \% speed up when reaches
+%the limit with all of the number of free cores being used.  Secondly,
+%the multiple read file option is useful as a strategy for scaling out,
+%i.e. with more cores operating correspondingly a smaller read file.
+%Thirdly, the low memory option that creates more index files require
+%longer calculation time as the comparison between 40 index files $(d =
+%1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.
+%
+%
+%... \jhanote{needs merging} Computational requirements vary also with
+%how to configure parallel/multi-threading execution patterns.  Since
+%BFAST provides its intrinsic support for multi-threading and parallel
+%execution, we examined computational requirements while varying
+%configurations for such parallel strategies.  For example, according
+%to the results shown in Fig.~\ref{fig:parallel-execution}, it is
+%obvious that dividing a large volume of short reads data into many
+%independent runs is a good strategy while multi-threading support is
+%limited by available cores in a same node.  Also the results in
+%Fig.~\ref{fig:parallel-execution} find that the low memory option that
+
 
  \begin{figure}
  \centering
@@ -718,64 +751,16 @@ challenges that we want to resolve, and improve are as follow.
   'bfast match' 'step is measured by varying the number of cores for
   multi-threading execution.  The node tested has 12 cores.  Human
   genome (hg18) chromosome 21 is used as the reference
-  genome. The low memory option used for this measurement generates 40 index files. \jhanote{Increase y-axis resolution} }
+  genome. The low memory option with 40 index files is used for this measurement. \jhanote{Increase y-axis resolution} }
   \label{fig:parallel-execution} 
  \end{figure}
- 
-To determine how the bfast match performance changes with the different number of threads and 
-processors. We vary the number of threads for each bfast job on a single machine with multiple cores. 
-The results in Fig.~\ref{fig:parallel-execution} show that the performance was better when the number 
-of cores is equal to number of threads which was also recommended setting in the Bfast manual. 
-Further, when we increase number of threads more than available performance does not change much. 
-When less number of threads are used than the available cores the performance 
-decreases but marginal around half of the cores and significant with just single thread.
-
-
-So even with multi-threading option provided by bfast, the performance
-could be improved by using multiple cores/threads on the same node but
-it gives us only marginal overall performance gain when processing all
-the read files sequentially.
-
-... \jhanote{needs merging} The results from our investigation are presented in
-Fig.~\ref{fig:parallel-execution}. First, performance gains with
-multi-threading are marginal showing only 30 \% speed up when reaches
-the limit with all of the number of free cores being used.  Secondly,
-the multiple read file option is useful as a strategy for scaling out,
-i.e. with more cores operating correspondingly a smaller read file.
-Thirdly, the low memory option that creates more index files require
-longer calculation time as the comparison between 40 index files $(d =
-1)$ vs. 10 index files ($ d = 0 $) and $n_m = 10$.
-
-
-... \jhanote{needs merging} Computational requirements vary also with
-how to configure parallel/multi-threading execution patterns.  Since
-BFAST provides its intrinsic support for multi-threading and parallel
-execution, we examined computational requirements while varying
-configurations for such parallel strategies.  For example, according
-to the results shown in Fig.~\ref{fig:parallel-execution}, it is
-obvious that dividing a large volume of short reads data into many
-independent runs is a good strategy while multi-threading support is
-limited by available cores in a same node.  Also the results in
-Fig.~\ref{fig:parallel-execution} find that the low memory option that
-
-
-
 
 \subsubsection{Understanding I/O}
 {
-To understand the how I/O of the system influences the performance 
-of bfast matching four different experiments were conducted keeping 
-the amount of data processed almost same and number of threads  used also 
-as constant but for the first three. In the first experiment s1 we just perform one 
-bfast match for  a large read file of size with four threads and four cores.
- In the second experiment (s2) two bfast matches concurrently with almost half the size 
- of read file but half of the threads  used in the first one. Similarly, in the third 
- experiment (s3) we run four bfast matches concurrently with almost quarter the 
- size read file used but the in the first experiment and one thread each. Fourth
- one(s4) is similar to third except in the number of  threads 4 threads per bfast job is used but using just 4 cores.
+To understand the how I/O of the system influences the performance of bfast matching four different experiments were conducted keeping the amount of data processed constant and number of threads  used also as constant but for the first three. In the first experiment we just perform one bfast match for  a large read file of size with four threads and four cores. In the second experiment two   bfast matches concurrently with almost half the size of read file but half of the threads   used in the first one. Similarly, in the third experiment we run four bfast matches   concurrently with almost quarter the size read file used but the in the first experiment and one thread each. Fourth one is similar to third except in the number of  threads 4 threads per bfast job is used but using just 4 cores.
+
 
  \begin{table}
-
  \begin{tabular}{|c|c|c|c|c|} 
  \hline 
 Case & Read File  & Threads per & Num. of   & Time to \\
@@ -784,26 +769,23 @@ s1 & 2.3 GB &  4 & 1 & 36942 s \\
 s2 & 1.2 GB & 2 & 2 & 19618 s \\
 s3 & 0.732 GB & 1 & 4 & 28299 s\\ 
 s4& 0.732  GB & 4 & 4 & 25215 s\\
+
  \hline
  \end{tabular}
- \label{table:understandio} 
+  \label{table:understandio}
  \caption{Computing time for the 'bfast match' step with a single node
    (painter). Under the restriction such that the tested node has 4
    cores, the time-to-completion is compared with varying conditions
    regarding the size of read files, the number of thread for each
    'bfast match', and number of the 'bfast match' executed
    concurrently.}
+   
 \end{table}
 
-The experiment results in Table~\ref{table:understandio} show that
- use of 2 threads per bfast matches simultaneously 
-on a four core node is the optimal configuration for time to completion.
- Because it balances each thread per core but  
-running the two bfast jobs per node at the same time. Therefore shows
- advantage of running multiple bfast matches simultaneously. 
-So for this machine there exists a sweet spot. ie the x amount of data processed by single 
-bfast match job with 4 threads can be processed faster by dividing the data into two equal 
-chunks but with two bfast tasks. This sweet spot might change with different machine with different number of cores.
+The experiment results in Table~\ref{table:understandio} show that use of 2 threads per bfast matches simultaneously 
+on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  
+running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
+
 
 }
 
@@ -811,7 +793,7 @@ chunks but with two bfast tasks. This sweet spot might change with different mac
 
 \subsection{Distributed Adaptive Runtime Environment}
 
-To execute a scientific application using heterogeneous distributed
+To execute a scientific application with heterogeneous distributed
 computing resources, we develop the Distributed Adaptive Runtime
 Environment (DARE) framework\cite{dareurl}.  The framework is compose
 of an open source Web application framework, Pylons and middleware of
@@ -839,31 +821,27 @@ SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, 
 steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob 
 with the configuration of BigJob before submitting BigJobs. 
   
-...\jhanote{needs merging} Most importantly, while the implementation
-of multiple parallel tasks indicates advantages of distributed
-multiple resource utilization, the large volume and variation of data
-sizes associated with genome sequence data as well as minimally
-required disk space needs to pay attention since in some cases, data
-size itself prohibits to carry out the analysis in a computing
-resource that lacks the demanded requirements, indicating the
-significance of agile runtime environment that drives a dynamical
-configuration and utilization of distributed resources.
+%...\jhanote{needs merging} Most importantly, while the implementation
+%of multiple parallel tasks indicates advantages of distributed
+%multiple resource utilization, the large volume and variation of data
+%sizes associated with genome sequence data as well as minimally
+%required disk space needs to pay attention since in some cases, data
+%size itself prohibits to carry out the analysis in a computing
+%resource that lacks the demanded requirements, indicating the
+%significance of agile runtime environment that drives a dynamical
+%configuration and utilization of distributed resources.
 
 \subsection{Execution on Grids and Clouds}
 
 \subsubsection{Using BFAST On Distributed HPC Resources}
-
-Following is the implementation described above, the execution of
-mapping calculations using BFAST was tested with our runtime
-environment built with the DARE framework.  Results were obtained with
-a HPC grid and a Cloud environment, which demonstrate the capability
-of our runtime environment for the mapping tool on distributed
-heterogeneous computing resources. \jhanote{Before we say what we are
+For demonstrating use cases for the mapping tool on distributed
+heterogeneous computing resources, we carried out the mapping with BFAST on a HPC grid and a Cloud environment (see Table~\ref{table:two-systems}  \jhanote{Before we say what we are
   presenting, please present a ``why and how'', i.e., outline the
   experiments}
+ Our experiments with two different distributed computing environments aim to understand the differences and the commonality that are critically need for a design of an infrastructure targeting genome-wide analysis.
 
 First of all, in Table~\ref{table:bigjob-loni}, we presented the
-measured time-to-completion for the step 'bfast match' with different
+measured the time-to-completion, $T_C$ for the step 'bfast match' with different
 configurations that include the variation of the number of threading
 used for each task and the number of cores (and also the number of
 nodes).  These results clearly show i) effective job submission and
@@ -873,13 +851,9 @@ through available distributed computing resources (see I and II
 compared to III and IV that requires many rounds of parallel
 executions due to limited number of cores) that completes parallelism
 with multiple read files.  In particularly, the observation with (ii),
-along with the observation already shown in
-Fig.~\ref{fig:parallel-execution} that observed a marginal performance
-gain with the option for increasing number of threading, is clearly
-supported by the results shown in Fig.~\ref{} once again that shows
-the result in that without sufficient cores available from distributed
-resources and dynamically adapted task distribution, achieving the
-efficient execution of a target calculation is challenging.
+along with the observation of a marginal performance
+gain with the option for increasing number of threading (see Fig.~\ref{fig:parallel-execution}), suggests that using sufficient cores available from distributed resources and implementing a dynamically adapted task distribution would lead to achieve an
+efficient execution of a target calculation is a given time.
 
 
 
