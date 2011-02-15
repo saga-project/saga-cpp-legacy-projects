@@ -459,7 +459,7 @@ ask whether appropriate runtime environments can be developed in order
 to overcome these limitations, and to enable BFAST's effective use of
 distributed architectures?
 
-\subsection{BFAST: Characteristics}
+\subsection{Characterising BFAST: Computational and Data Requirements}
 
 
 \begin{figure}
@@ -521,35 +521,48 @@ space required & &\\
 %the total available cores in a given system, 12 cores in the case of
 %results in Fig.~\ref{fig:parallel-execution}.
 
+
+Before we can propose a scalable, extensible infrastructure to support
+data-analytics on a range of problem-instances, it it critical to
+characterize the computational and data dependencies of the BFAST
+application.  The overall execution of BFAST, or any other short
+mapping applications aligning short reads onto a reference genome is
+affected by the specific biological problem at hand -- such as types
+of target reference genomes and high-throughput sequencing techniques
+and protocols, as well as computational attributes such as data
+structure and formats and the abilty to exploit the underlying
+architecture.  Here, we present our investigation to characterize the
+target application and more importantly the utilization of such
+aspects with available computing architectures with respect to
+parallel execution capabilities and data management.
+
 \subsubsection{Computational Requirements}
 
-\jhanote{This paragraph is ONE single sentence!!! Break up into simple
-sentences. I do not understand what is trying to be said here. }
-
-An understanding of computational requirements for carrying out BFAST
-steps is critically important for an infrastructure development that provides a way to execute the target genome-wide
-analysis tool with scalable distributed architectures. As a matter of fact, the overall execution of BFAST, or any other short mapping applications aligning short reads onto a reference genome is affected by biology such as types of target reference genomes and high-throughput sequencing techniques and protocols, as well as computational characteristics such as data structure and formats and parallelism support like multi-threading.   Here, we present our investigation to characterize the target application and more importantly the utilization of such aspects with available computing architectures with respect to parallel execution capabilities and data management.
+% It is important An understanding of computational requirements for
+% carrying out BFAST steps is critically important for an infrastructure
+% development that provides a way to execute the target genome-wide
+% analysis tool with scalable distributed architectures.
 
 In Table~\ref{table:two-genomes}, we summarize the typical values of
-the parameters upon which the time-to-completion, $T_C$, typically depends.
-Values for two genome datasets that are representative of biological
-diversity, an eucaryote system, human, and a microbe, Burkerholderia
-Glumae\cite{kim2011}. The two genomes differ in the size and the
-genome structure of reference genomes, and types of sequencing
-protocols.  Importantly, the two different genomes display widely
-different data sizes in terms of the reference genome sequence, short
-reads data, and required disk space for carrying out the mapping with
-BFAST.
+the parameters upon which the time-to-completion ($T_C$) typically
+depends; values for two genome datasets that are representative of
+biological diversity, an eucaryote system, human, and a microbe,
+Burkerholderia Glumae\cite{kim2011} are listed. The two genomes differ
+in the size and the genome structure of reference genomes, and types
+of sequencing protocols.  Importantly, the two different genomes
+display widely different data sizes in terms of the reference genome
+sequence, short reads data, and required disk space for carrying out
+the mapping with BFAST.
 
 To investigate the computational requirements, we first measure the
 time-to-completion for "bfast match" step while varying the size of a
 read file.  The results are shown in
-Fig.~\ref{fig:parallel-execution}; there exists a linear scaling in
-time-to-completion as the size of read file is increased.  This
-suggests that if the read files can be broken up into smaller
-fragments and which can be processed concurrently, there is the
-possibilty of a speed-up. This points to the potential of task-level
-concurrency.
+Fig.~\ref{fig:parallel-execution}. When the number of index files is
+equal to 10, there exists a linear scaling in time-to-completion as
+the size of read file is increased.  This suggests that if the read
+files can be broken up into smaller fragments and which can be
+processed concurrently, there is the possibilty of a speed-up. This
+points to the potential of task-level concurrency.
 
 % indicating the parallel option with multiple read files is a useful
 % strategy of scaling out, i.e.  using more cores with a smaller size
@@ -596,26 +609,29 @@ different.
 \jhanote{diskspace should be either disk space or disk-space. Not one
   word}
 
-The Table~\ref{table:dynamic-diskspace} dynamic diskspace required
-during the runtime of bfast match step.  The disk space required for
-each read file is constant with given sizes. The bfast match creates
-several temporary files during runtime. A rough estimate of these
-temporary files include a temporary file for read file, a temporary
-file for each index mask and there are 10 index masks used in this
-case so ten temporary, some more temporary files depending on the
-\texttt{-d} option while preparing indexes (for example, with $d=0$, 1
-temporary file is created, and with $d=1$, 4 temporary files).
-However, all these temp files are emptied once "bfast matching step"
-completes.  It can be estimated that there will be around 16 temporary
-files in case A for to process each each read files. The size of each
-temporary file observed was 105MB. Thus for each read to process it
-requires around 1.68 GB. If all the bfast matches processed
-concurrently the we require 40 times the diskspace required for each
-matching(40$\times$1.68).  The diskspace for other cases can also
-calculated similarly. The disk space was calculated with respect to
-this particular configuration and may vary unpredictably with other
-configurations.
+The Table~\ref{table:dynamic-diskspace} dynamic disk space required
+during the runtime of bfast match step.  As can be seen from the
+Table, the disk space required for each read file is constant for a
+given size of read file.
 
+It is important to understand the total disk space required at
+runtime, as a number of temporary files are produced.  The bfast match
+creates several temporary files during runtime. A rough estimate of
+these temporary files include a temporary file for read file, a
+temporary file for each index mask; there are 10 index masks used in
+this case, so ten temporary files for the masks are created.  More
+temporary files are possibly generating depending on the \texttt{-d}
+option, e.g., for example, with $d=0$, 1 temporary file is created,
+and with $d=1$, 4 temporary files.  However, all these temporary files
+are emptied once "bfast matching step" completes.  It can be estimated
+that there will be around 16 temporary files in case A for to process
+each each read files. The size of each temporary file observed was
+105MB. Thus for each read to process it requires around 1.68 GB. If
+all the bfast matches processed concurrently the we require 40 times
+the diskspace required for each matching(40 $\times$ 1.68).  The
+diskspace for other cases can also calculated similarly. The disk
+space was calculated with respect to this particular configuration and
+may vary unpredictably with other configurations.
 
 \begin{table}
  \begin{tabular}{|c|c|c|c|c|c|} 
@@ -631,39 +647,59 @@ III&40 & 10 & 105MB & 13 &52 Gb \\
  \label{table:dynamic-diskspace} 
  \caption{This table shows the required disk space when all the read files
    are processed concurrently with different number of read files and
-   index files. Number of concurrent tasks are equal to number of read files. The Reference genome used is Human Genome 18
-   Chromosome 21 with total index file size 1.9 GB of and total size of read files was 8.9 GB .}
+   index files. Number of concurrent tasks are equal to number of read
+   files. The reference genome used is Human Genome 18
+   Chromosome 21 with total index file size 1.9 GB of and total size
+   of read files was 8.9 GB. \jhanote{The 4th column needs attention} }
 \end{table}
 
-The disk space required in concurrent run of several read files in
-matching phase is important because if the amount of disk space
-required exceeds the available limit bfast fails. This plays a major
-role in determining the distribution of computation data depending
-upon the allowed disk space on each machine.
+% The disk space required concurrent run of several read files in
+% matching phase is important because if the amount of disk space
+% required exceeds the available limit bfast fails. This plays a major
+% role in determining the distribution of computation data depending
+% upon the allowed disk space on each machine.
 
-\jhanote{Lines 86-87, In a nutshell: the operating data-set does not
-  depend on the size/number of read files but does depend on the
-  size/number of index files. Needs to be explained.}
+% The disk space required in concurrent run of several read files in
+% matching phase is important because if the amount of disk space
+% required exceeds the available limit bfast fails. This plays a major
+% role in determining the distribution of computation data depending
+% upon the allowed disk space on each machine.
 
-Mapping with BFAST should deal with the data for a reference genome, short reads, and processed 
-data generated in each step.  Particularly, the temporary data generated during 'bfast match' step 
-needs a careful attention due to their significant size and more importantly a characteristic aspect
- such that the size depends on how the step is executed, for example, concurrently vs. serially, 
- or centralized storage vs. distributed storage, or the low memory option (i.e. the number of index files).
+% \jhanote{Lines 86-87, In a nutshell: the operating data-set does not
+%   depend on the size/number of read files but does depend on the
+%   size/number of index files. Needs to be explained.}
+
+Mapping with BFAST should deal with the data for a reference genome,
+short reads, and processed data generated in each step.  Particularly,
+the temporary data generated during 'bfast match' step needs  careful
+attention due to their significant size and more importantly a
+characteristic aspect such that the size depends on how the step is
+executed, for example, concurrently vs. serially, or centralized
+storage vs. distributed storage, or the low memory option (i.e. the
+number of index files).
    
-The overall information for data requirement is found with Table~\ref{table:two-genomes}, 
-Table~\ref{table:dynamic-diskspace} and Fig.~\ref{fig:diskspace}. Generally, fragmentation 
-of data sets is a primary idea to mitigate a storage requirement as well as computing time.  
-For example, as we mentioned above, separating short reads into multiple files is a good 
-option with distributed computing resources.  While a reference genome index should be 
-treated as a whole, there is a possible idea to break a reference genome.  For example, 
-breaking a reference genome into many independent sets is possible, considering the fact 
-that many organisms are composed of independent parts, for example, chromosomes and 
-plasmids or that possible multiple contigs that represents discontinued genome sequences
- would exist as a reference genome.  Indeed, the human genome in Table~\ref{table:two-systems} 
- with huge data volume as a whole is the case that combining ideas to split the target genome 
- with all possible options ranging from biology to computing technologies is needed to
- overcome challenges arising from the data volume and computation.   
+The overall information for data requirement is found with
+Table~\ref{table:two-genomes}, Table~\ref{table:dynamic-diskspace} and
+Fig.~\ref{fig:diskspace}. Generally, fragmentation of data sets is a
+primary idea to mitigate  storage requirement as well as computing
+time.  % For example, as we mentioned above, separating short reads into
+% multiple files is a good option with distributed computing
+% resources.
+
+As mentioned, separating short read data into multiple files supports
+concurrent task execution.  While a reference genome index should be
+treated as a whole, there exists the possibly to break a reference
+genome.  For example, breaking a reference genome into many
+independent sets is possible, considering the fact that many organisms
+are composed of independent parts, for example, chromosomes and
+plasmids or that possible multiple contigs that represents
+discontinued genome sequences would exist as a reference genome; the
+Human genome is a fine example of this.
+ %  Indeed, the human genome in
+% Table~\ref{table:two-systems} with huge data volume as a whole is the
+% case that combining ideas to split the target genome with all possible
+% options ranging from biology to computing technologies is needed to
+% overcome challenges arising from the data volume and computation.
 
 \begin{table}
 \small
@@ -741,10 +777,15 @@ how to utilize heterogeneous computing resources efficiently and effectively nee
 
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
 
-To determine how the performance of the bfast match step varies with the different number of threads, $N_t$, and 
-cores, $N_c$, we measure the time-to-completion, $T_C$ of a task of the bfast match step on a single machine having multiple cores. 
-As shown in Fig.~\ref{fig:parallel-execution}, $T_{C}$ indicates a speed-up until the number 
-of threads becomes equal to the maximum number of cores.  Interestingly, the overall performance gains about 30 \%, and the scaling tendency does not reveal any strong pattern but a weak log-linear behavior.\jkimnote{more discussions if possible?}
+To determine how the performance of the bfast match step varies with
+the different number of threads, $N_t$, and cores, $N_c$, we measure
+the time-to-completion, $T_C$ of a task of the bfast match step on a
+single machine having multiple cores.  As shown in
+Fig.~\ref{fig:parallel-execution}, $T_{C}$ indicates a speed-up until
+the number of threads becomes equal to the maximum number of cores.
+Interestingly, the overall performance gains about 30 \%, and the
+scaling tendency does not reveal any strong pattern but a weak
+log-linear behavior.\jkimnote{more discussions if possible?}
 
 
 %... \jhanote{needs merging} The results from our investigation are presented in
@@ -845,10 +886,12 @@ single or moderate size of clusters, parallel/concurrent execution of the target
  indexes of an entire contig should be used together, regardless of the low memory option that allows 
  to store indexes in many files, which is in fact the major obstacle to require a large disk space.
 
-We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using 
-SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST 
-steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob 
-with the configuration of BigJob before submitting BigJobs. 
+ We implement the above data fragmentation scheme on grids and clouds
+ with the same runtime environment using
+ SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our
+ implementation, all the parallel tasks of BFAST steps are defined as
+ SubJobs in BigJobs.  It is possible to assign many cores for each
+ SubJob with the configuration of BigJob before submitting BigJobs.
   
 %...\jhanote{needs merging} Most importantly, while the implementation
 %of multiple parallel tasks indicates advantages of distributed
