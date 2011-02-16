@@ -844,13 +844,13 @@ s4& 0.732  GB & 4 & 4 & 25215 s & 8.6 \\
 
  \hline
  \end{tabular}
-  \label{table:understandio}
+ 
  \caption{Computing time for the 'bfast match' step with a single node
    (painter). Under the restriction such that the tested node has 4
    cores, the time-to-completion is compared with varying conditions
    regarding the size of read files, the number of thread for each
    'bfast match', and number of the 'bfast match' executed concurrently.  $V_r$ represents the total volume of short read files (equals to the number in the second column multiplied by the number in the fourth column), and thus $T_C/V_{r}$ is the ratio for a computing time per a data volume}
-   
+    \label{table:understandio}
 \end{table}
 
 %The experiment results in Table~\ref{table:understandio} show that use of 2 threads per bfast matches simultaneously 
@@ -903,7 +903,7 @@ with the configuration of BigJob before submitting BigJobs.
 
 \subsection{Execution on Grids and Clouds}
 
-\subsubsection{Using BFAST On HPC Grid}
+\subsubsection{Using BFAST on HPC Grid}
 For demonstrating use cases for the mapping tool on distributed
 heterogeneous computing resources through our DARE tool, two distributed architectures, a HPC grid and a Cloud environment (see
 Table~\ref{table:two-systems}) were tested.
@@ -912,27 +912,17 @@ Table~\ref{table:two-systems}) were tested.
 % \jhanote{Before we say what we are
 %   presenting, please present a ``why and how'', i.e., outline the
 %   experiments}
-
-First of all, Table~\ref{table:bigjob-loni} presents the results for the time-to-completion, $T_C$ of the step 'bfast match' while varying different
-configurations that include the variation of the number of threads
-used for each task and the number of cores (and also the number of
-nodes) through a BigJob set up\cite{ecmls10,saga-ccgrid10}.  These results clearly show i) effective job submission and
-SubJob management trough BigJob in spite of a large number of
-subtasks up to 40 ii) requirement of sufficient number of cores
-through available distributed computing resources for a shorter $T_C$.  For ii), the compelling observation is that comparing cases of g1 and g2, g3 and g4, which has a limited number of cores for carrying out entire tasks concurrently, require many generations of parallel executions, which results in a longer $T_C$.  The comparison between g1 and g2 also provides an interesting insight such that using more cores with more fragmented read files is a better strategy due to the decreased file size.  Interestingly, if the number of generations managed by BigJob is more than one, i.e. the case of g3 and g4, there is no significant change between two different configurations varying the total number of tasks and read file size.\jkimnote{I need more revision here}  
-
-
-
  \begin{table}
+ \small
  \begin{tabular}{|c|c|c|c|c|c |} 
  \hline 
 Case & Read File  &  Num. of & BigJob Size   &  Computing  \\
    & Size & Tasks  & Cores(Nodes)  & Time \\
    \hline
 g1 & 0.209 GB  &   40 &  80(10) & 3966 s \\
-g2 & 0.435 GB    &  20 & 40(5) & 8031 s\\
+g2 & 0.435 GB    &  20 & 40(5) & 8031 s\\ \hline
 g3  & 0.209 GB & 40  & 12(3) & 25807 s \\
-g4 & 0.435 GB & 20  & 12(3) & 23872 s  \\
+g4 & 0.435 GB & 20  & 12(3) & 23872 s  \\ \hline
 g5 & 0.209 GB & 40 & 80(20) & 1111 s \\
 
 \hline
@@ -941,55 +931,69 @@ g5 & 0.209 GB & 40 & 80(20) & 1111 s \\
   SAGA-BigJob with a HPC grid, LONI. One BigJob is submitted with the
   number of SubJobs indicated in the column for the number of tasks
   which is equivalent to the number of read files. We use two threads
-  per each 'bfast   match' job. Cases g1, g2, g3 , g4 are with 40 index files and g5 is with 40 index fileso of
-  Human Genome chromosome 21.}
+  per each 'bfast   match' job. The cases g1, g2, g3 , g4 are conducted against 40 index files of a Human Chromosome 21.  Note that g5 is the results with 20 index files, which is specifically conducted for direct comparison to c3 obtained with Cloud as in the following Table~\ref{table:cloud-VM} }
+  
   \label{table:bigjob-loni} 
 \end{table}
 
-\subsubsection{Using BFAST on Clouds and Grids}
+First of all, Table~\ref{table:bigjob-loni} presents the results of the time-to-completion, $T_C$ of the step 'bfast match' while varying different
+configurations that include the variation of the number of threads
+used for each task and the number of cores (and also the number of
+nodes) through a BigJob set up\cite{ecmls10,saga-ccgrid10}.  These results clearly show robust execution of job submission and
+SubJob management trough BigJob in spite of a large number of sub tasks up to 40 and multiple generations of concurrent tasks when the total number of concurrent tasks is limited.  The main finding of these experiments is, perhaps, that the best result with respect to $T_C$ can be achieved when sufficient numbers of cores for the total set of tasks are promptly available from distributed computing resources as indicated with the best performance with g1.  The comparison between g1 and g2 clarifies further this finding such that when all required tasks can be run concurrently using available cores, $T_C$ is roughly proportional to the size of each read file.  On the other hand, when the number of cores managed by BigJob is limited to execute the total number of tasks concurrently, like the cases of g3 and g4, BigJob needs to manage all tasks using multiple generations of concurrent tasks and therefore a longer $T_C$, roughly scaling with the number of generations required, results.       
 
-... \jhanote{needs merging} In the Grid implementation first all the
-data required in the steps was transferred to machine's work directory
-where we want to start the BigJob. The BFAST was installed in the home
-directory and the executables path for job description of SubJobs was
-given accordingly.
 
-... \jhanote{needs merging} In the cloud implementation all the data
-required was transferred into the walrus (Eucalyptus storage on Futuregrid) because of the data size
-limitation of the storage space in the running VM. Multiple VM's can
-be started at once and the data in the walrus was mounted onto all the
-running VM during its booting. Thus all the VM can have
-access to data and can process concurrently. VM should also include the installation of
-SAGA and SAGA-BigJob. Thanks to SAGA-BigJob for providing the flexibility of 
-handling grids and clouds together with the same implementation of BigJob.
+\subsubsection{Using BFAST on Cloud}
 
-In Table~\ref{table:cloud-VM}with help of bigjob cloud implementation we designed two
-experiments. In the first experiment (c1) four  VM's of type $m1.large$ with 2 cores each were
-started and four bfast matches with one bfast on each one using SAGA
-bigjob . In the second experiment (c2) a large VM of type $c1.xlarge$ with 8 cores is started
-and 4 bfast jobs were launched on the same VM simultaneously using
-SAGA bigjob.
+The results obtained with a Cloud environment, FutureGrid\cite{futuregrid} are summarized in Table~\ref{table:cloud-VM}.  Case c1 and c2 can be compared directly since the same workload is imposed with different configurations in terms of the number of VMs as well as the different type of VMs for each case.  There exists a slight edge with a larger VM but the difference is insignificant in a practical setting, indicating the overall $T_C$ could be independent on how to utilize available VMs once the same work load is distributed.
+
+Here, we want to note that some difference in executing an application such as BFAST with a HPC grid and with a Cloud environment.  Generally, a HPC system has a large size of disk space that can be accessed from all computing nodes but sometimes there exists a restriction to utilize them.  For example, among LONI systems, the largest cluster, QB has a significantly large disk space while small cluster systems such as Painter allows only 100 GB imposed by the administration policy(see Table!~\ref{table:two-systems}).  On the other hand, the Cloud environment we tested supports additional storage via the walrus and this storage can be accessed by all VMs utilized together. 
+We do not compare how the data access mechanisms to these different types of storages affect on the choice of execution patterns, in particular, with a Cloud in this work, since we consider an understanding of such factors is beyond the scope of this work. Nonetheless, the results presented in Table~\ref{table:bigjob-loni} and Table~\ref{table:cloud-VM} demonstrate the capability of our DARE tool for the utilization of heterogeneous distributed computing resources.
+
+Finally, we compare the result with g5 of Table~\ref{table:bigjob-loni} and the result with c3 of Table~\ref{table:cloud-VM} that share the common configuration with the same number of total tasks and cores utilized.\jkimnote{I will complete this with the upcoming data}
+
+
+
+%... \jhanote{needs merging} In the Grid implementation first all the
+%data required in the steps was transferred to machine's work directory
+%where we want to start the BigJob. The BFAST was installed in the home
+%directory and the executables path for job description of SubJobs was
+%given accordingly.
+
+%... \jhanote{needs merging} In the cloud implementation all the data
+%required was transferred into the walrus (Eucalyptus storage on Futuregrid) because of the data size
+%limitation of the storage space in the running VM. Multiple VM's can
+%be started at once and the data in the walrus was mounted onto all the
+%running VM during its booting. Thus all the VM can have
+%access to data and can process concurrently. VM should also include the installation of
+%SAGA and SAGA-BigJob. Thanks to SAGA-BigJob for providing the flexibility of 
+%handling grids and clouds together with the same implementation of BigJob.
+
+%In Table~\ref{table:cloud-VM}with help of bigjob cloud implementation we designed two
+%experiments. In the first experiment (c1) four  VM's of type $m1.large$ with 2 cores each were
+%started and four bfast matches with one bfast on each one using SAGA
+%bigjob . In the second experiment (c2) a large VM of type $c1.xlarge$ with 8 cores is started
+%and 4 bfast jobs were launched on the same VM simultaneously using
+%SAGA bigjob.
 
  \begin{table}
  \small
  \begin{tabular}{|c|c|c|c|c|c|} 
  \hline 
- Case& Num. of Tasks &  VM type &  Num. of  &  Time to  \\ 
-      & (total cores) & (Cores/VM)  &VM's & completion\\ 
+ Case& Num. &  Cores  & VM type  &  $T_C$  \\ 
+      & of Tasks & (\# of VMs) & (Cores/VM)  & \\ 
 \hline
-c1 &  4(8) & m1.large(2) & 4 & 1080 s \\
-c2 & 4(8) & c1.xlarge(8) & 4 &1020 s \\
-c3 & 10(80) & c1.xlarge(8) & 10 & **todo \\
+c1 &  4 &  8 (4) & m1.large(2) & 1080 s \\
+c2 & 4 & 8 (1)  & c1.xlarge(8)  &1020 s \\ \hline
+c3 & 40 & 80(10) &  c1.xlarge(8) &  **todo \\
  \hline 
  \end{tabular}
- \label{table:cloud-VM} 
- 
- 
- \caption{ The Read File size is  0.209 GB, Number of Index 
- files of the Reference Genome Human Genome 18 Chromosome 21 are 10. 
- In all cases we use 2 threads per task. From c1 and c2 we can infer that when the same workload is distributed 
-across multiple VM's has a marginal advantage over the one single large VM. c3 can be compared with g5 case in Table~\ref{table:bigjob-loni}}
 
+ 
+ 
+ \caption{ The size of a read file is  0.209 GB, The number of index 
+ files used for this measurement is 10. In all cases, 2 threads per task is set. Note that c3 is configured to be compared to g5 in Table~\ref{table:bigjob-loni}}
+ \label{table:cloud-VM} 
 
 \end{table}
 
