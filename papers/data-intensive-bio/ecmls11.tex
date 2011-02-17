@@ -517,7 +517,6 @@ space required & &\\
 %the total available cores in a given system, 12 cores in the case of
 %results in Fig.~\ref{fig:parallel-execution}.
 
-
 Before we can propose a scalable, extensible infrastructure to support
 data-analytics on a range of problem-instances, it it critical to
 characterize the computational and data dependencies of the BFAST
@@ -553,12 +552,13 @@ the mapping with BFAST.
 To investigate the computational requirements, we first measure the
 time-to-completion for "bfast match" step while varying the size of a
 read file.  The results are shown in
-Fig.~\ref{fig:parallel-execution}. When the number of index files is
-equal to 10, there exists a linear scaling in time-to-completion as
-the size of read file is increased.  This suggests that if the read
-files can be broken up into smaller fragments and which can be
-processed concurrently, there is the possibilty of a speed-up. This
-points to the potential of task-level concurrency.
+Fig.~\ref{fig:parallel-execution}. \jhanote{This is pointing to the
+  wrong figure?!} When the number of index files is equal to 10, there
+exists a linear scaling in time-to-completion as the size of read file
+is increased.  This suggests that if the read files can be broken up
+into smaller fragments and which can be processed concurrently, there
+is the possibilty of a speed-up. This points to the potential of
+task-level concurrency.
 
 % indicating the parallel option with multiple read files is a useful
 % strategy of scaling out, i.e.  using more cores with a smaller size
@@ -602,8 +602,7 @@ different.
  
 \subsubsection{Characterising Data Requirements}
 
-\jhanote{diskspace should be either disk space or disk-space. Not one
-  word}
+\jhanote{Table reference numbers still need fixing!!}
 
 The Table~\ref{table:dynamic-diskspace} dynamic disk-space required
 during the runtime of bfast match step.  As can be seen from the
@@ -730,13 +729,10 @@ Cloud & FutureGrid & INDIA & Walrus & 256 TB \\
 
 \section{Mapping using Distributed, Scalable Architectures}
 
-\subsection{Existing Solutions: Limitations and Challenges}
+%\subsection{Existing Solutions: Limitations and Challenges}
 
 % \jhanote{Here we need to define what solutions are currently employed,
 %   what works well what doesn't}
-
-Recently, emerging distributed computing environments such as Cloud have garnered significant attention in particular for genome-wide analysis and infrastructure development efforts\cite{taylor2010,cloudburst,
-  cloudblast, langmead2009, langmead2010,gatk, halligan2009,luyf-2010}. 
 
 %\begin{itemize*}
 %\item GATK\cite{gatk}
@@ -745,11 +741,51 @@ Recently, emerging distributed computing environments such as Cloud have garnere
 %\item SNP finding and RNA-seq with Cloud\cite{langmead2009, langmead2010}
 %\end{itemize*}
 
-Such solutions have demonstrated meaningful advances, and most of them have focused on the utilization of emerging technologies such as Cloud computing or the employment of algorithms for distributed computing such as MapReduce.  Notably, a general purpose infrastructure or services have been also extensively developed, providing a variety of tools for genome-wide analysis through a uniform interface or framework software\cite{galaxy}. 
+% Such solutions have demonstrated meaningful advances, and most of them
+% have focused on the utilization of emerging technologies such as Cloud
+% computing or the employment of algorithms for distributed computing
+% such as MapReduce. 
 
-While interesting progress made by such efforts, some important requirement are notably missing in existing solutions. For example,
-how to utilize heterogeneous computing resources efficiently and effectively needs to be carefully addressed due to major efforts for building, maintaining, and extending an infrastructure.  One interesting idea to mitigate such efforts is to make an infrastructure with a framework that is agile for dealing with heterogeneous computing and data management resources that are distributed geographically.  The agility should address a quick development cycle for an incorporation of a new bioinformatics application, an efficient maintenance of existing applications, and an easiness of addition of new applications or of extension of the infrastructure itself.  Additionally, one aspect, which is largely not considered in many existing solutions, is a way to enhance a target application with the utilization of heterogeneous scalable resources, for example, supporting task level parallelism without an intrusive modification of a target application and leveraging data management with a given data storage architecture.
+% have garnered significant attention in particular 
 
+While interesting progress has been made in the algorithmic domain and
+there exist efforts at providing a runtime environment to support,
+some important requirement are notably missing in existing
+infrastructural solutions. Most significanlty, is the limitation that
+most solutions are taylored for a specific problem instance. But can
+an infrastructure be designed such that: it meets the requirements of
+a large range of problem instances -- both in terms of size of data
+involved and amount of computing required.  In order to meet these
+requirements, the ability to utilize multiple and heterogeneous
+resources will be inevitable.
+
+There has been significant recent efforts in utilizing emerging
+distributed computing environments such as Clouds for genome-wide
+analysis and infrastructure development
+efforts\cite{taylor2010,cloudburst, cloudblast, langmead2009,
+  langmead2010,gatk, halligan2009,luyf-2010}.
+A general purpose infrastructure has also been extensively developed,
+providing a variety of tools for genome-wide analysis through a
+uniform interface or framework software\cite{galaxy}.
+
+
+% For example the ability to utilize heterogeneous computing resources
+% efficiently and effectively needs to be carefully addressed due to
+% major efforts for building, maintaining, and extending an
+% infrastructure.
+% One interesting idea to mitigate such efforts is to make an
+% infrastructure with a framework that is agile in dealing with
+% heterogeneous computing and data management resources that are
+% distributed geographically.  The agility should address a quick
+% development cycle for an incorporation of a new bioinformatics
+% application, an efficient maintenance of existing applications, and an
+% easiness of addition of new applications or of extension of the
+% infrastructure itself.  Additionally, one aspect, which is largely not
+% considered in many existing solutions, is a way to enhance a target
+% application with the utilization of heterogeneous scalable resources,
+% for example, supporting task level parallelism without an intrusive
+% modification of a target application and leveraging data management
+% with a given data storage architecture.
 
 % 
 %%\begin{enumerate}
@@ -845,40 +881,49 @@ s4& 0.732  GB & 4 & 4 & **todo & 8.6 \\
 %on a four core node is the optimal configuration for time to completion. Because it balances each thread per core but  
 %running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
 
-
-
-\jhanote{Lines 44-47 of the Excel Sheet here}
+%\jhanote{Lines 44-47 of the Excel Sheet here}
 
 \subsection{Distributed Adaptive Runtime Environment}
 
-To achieve the goal that run efficiently a scientific application with heterogeneous distributed
-computing resources, we develop the Distributed Adaptive Runtime
-Environment (DARE) framework\cite{dareurl}.  The framework is compose
-of an open source Web application framework, Pylons and middleware of
-the application management system built upon SAGA an BigJob
+Considering the daunting size of data, in particular large genomes
+such as human as summarized in Table~\ref{table:two-genomes} and
+corresponding long computing times when carried out with a single or
+moderate size of clusters, parallel/concurrent execution of the target
+analysis with BFAST are desirable.
+ 
+Such task-level implementation to support multiple data fragmentation
+on grids and clouds within the same runtime environment using
+SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our
+implementation, all the parallel tasks of BFAST steps are defined as
+SubJobs in BigJobs.  It is possible to assign many cores for each
+SubJob with the configuration of BigJob before submitting BigJobs.
+
+To achieve the goal of running a scientific application efficiently
+on heterogeneous distributed computing resources, we develop the
+Distributed Adaptive Runtime Environment (DARE)
+framework\cite{dareurl}.  The framework is compose of an open source
+Web application framework, Pylons and middleware of the application
+management system built upon SAGA an BigJob
 abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
 This combination of the open source technology and the application
 management system enables us to develop a lightweight, extensible,
 full-fledged distributed computing science gateway quickly and
 effectively\cite{pylonsurl}.
 
-Considering a daunting size of data, in particular large genomes such as human as summarized in 
-Table~\ref{table:two-genomes} and corresponding long computing times when carried out with a 
-single or moderate size of clusters, parallel/concurrent execution of the target analysis with BFAST are desirable. 
- First, biological information could be utilized for such parallel execution. 
- For example, the short read sequences in fastq format could be split into many files that are 
- needed separately for parallel mapping.  At the last stage, all mapped results could be combined 
- with available tools such as SAMTools\cite{samtools}.   Additionally, a reference genome could be 
- divided into many if each dataset contains independent contigs.  For example, each chromosomes 
- or plasmids in microbes could be a separated sub-genome sequence contig.  However, note that 
- indexes of an entire contig should be used together, regardless of the low memory option that allows 
- to store indexes in many files, which is in fact the major obstacle to require a large disk-space.
+% First, biological information could be utilized for such parallel
+% execution.  For example, the short read sequences in fastq format
+% could be split into many files that are needed separately for
+% parallel mapping.  At the last stage, all mapped results could be
+% combined with available tools such as SAMTools\cite{samtools}.
+% Additionally, a reference genome could be divided into many if each
+% dataset contains independent contigs.  For example, each chromosomes
+% or plasmids in microbes could be a separated sub-genome sequence
+% contig.  However, note that indexes of an entire contig should be
+% used together, regardless of the low memory option that allows to
+% store indexes in many files, which is in fact the major obstacle to
+% require a large disk-space.
 
-We implement the above data fragmentation scheme on grids and clouds with the same runtime environment using 
-SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our implementation, all the parallel tasks of BFAST 
-steps are defined as SubJobs in BigJobs.  It is possible to assign many cores for each SubJob 
-with the configuration of BigJob before submitting BigJobs. 
-  
+ 
 %...\jhanote{needs merging} Most importantly, while the implementation
 %of multiple parallel tasks indicates advantages of distributed
 %multiple resource utilization, the large volume and variation of data
