@@ -629,7 +629,7 @@ that there will be around 16 temporary files in case A for to process
 each each read files. The size of each temporary file observed was
 105MB. Thus for each read to process it requires around 1.68 GB. If
 all the bfast matches processed concurrently the we require 40 times
-the disk-space required for each matching(40 $\times$ 1.68).  The
+the disk-space required for each matching -- 40 $\times$ 1.68.  The
 disk-space for other cases can also calculated similarly. The disk-space was calculated with respect to this particular configuration and
 may vary unpredictably with other configurations.
 
@@ -645,12 +645,12 @@ III&40 & 10 & 105MB & 13 &52 Gb \\
  \hline
  \end{tabular}
 
- \caption{This table shows the required disk-space when all the read files
-   are processed concurrently with different number of read files and
-   index files. Number of concurrent tasks are equal to number of read
-   files. The reference genome used is Human Genome 18
-   Chromosome 21 with total index file size 1.9 GB of and total size
-   of read files was 8.9 GB. \jhanote{The 4th column needs attention} }
+ \caption{Table showing the required disk-space for operating data,
+   for varying number of read files and index files, when all the read
+   files are processed concurrently.  Number of concurrent tasks are
+   equal to number of read files. The reference genome used is Human
+   Genome 18 Chromosome 21 with total index file size 1.9 GB of and
+   total size of read files was 8.9 GB.}
     \label{table:dynamic-diskspace} 
 \end{table}
 
@@ -886,28 +886,55 @@ regarding the size of read files, the number of thread for each
 %\jhanote{Lines 44-47 of the Excel Sheet here}
 
 \subsection{Distributed Adaptive Runtime Environment}
-\jkimnote{I changed a bit to follow Shantenu's suggestion}
-Considering the daunting size of data, in particular large genomes
-such as human as summarized in Table~\ref{table:two-genomes} and
-corresponding long computing times when carried out with a single or
-moderate size of clusters, parallel/concurrent execution of the target
-analysis with BFAST are desirable.
- 
-Such task-level implementation to support multiple data fragmentation
-on grids and clouds within the same runtime environment using
-SAGA-BigJob\cite{saga-royalsoc,saga-ccgrid10, ecmls10}.  In our
-implementation, all the parallel tasks of BFAST steps are defined as
-SubJobs in BigJobs.  It is possible to assign many cores for each
-SubJob with the configuration of BigJob before submitting BigJobs.
 
-To achieve the goal of running a scientific application efficiently
-on heterogeneous distributed computing resources, we develop the
+We have established that efficient analytics on NGS data is not just a
+matter of data-management, but also of providing large amounts of
+computing for analysis. Any solution that facilitates analytics across
+different problem instances, will require a general purpose framework
+that is able to exploit different types of architecture and platforms
+is required.
+
+%Given the large size of data involved, such as the as human genome as
+%summarized in Table~\ref{table:two-genomes} and corresponding long
+%computing times when carried out with a single or moderate size of
+%clusters, parallel/concurrent execution of the target analysis with
+%BFAST are desirable.
+ 
+This could involve supporting fine-grained parallelism, of the type
+that is supported by invoking the multi-threading option of BFAST, or
+it could involve invoking multiple instances of BFAST executing
+independently but on different read-files associated with the same
+problem instance. Which approach will be more effective depends upon
+the specific configuration of the problem instance, i.e., a problem
+instance maybe I/O bound or compute/memory bound.
+
+To achieve the goal of supporting both types of parallelism, on
+heterogeneous distributed computing resources, we have developed the
 Distributed Adaptive Runtime Environment (DARE)
-framework\cite{dareurl}.  The framework is composed of a web application using an open source web development framework, Pylons\cite{pylonsurl} and a key component of our run-time environment that conducts application management via SAGA an BigJob
-abstraction\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
-This combination of the open source technology and the application
-management system enables us to develop a lightweight but extensible, 
-full-fledged distributed computing science gateway quickly and effectively.
+framework\cite{dareurl}.  
+
+Such task-level concurrency supports different ways of splitting the
+data, whilst using the same runtime environment using SAGA-BigJob; all
+the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
+It is possible to explot multi-level configuration in that different
+thread/cores configurations are possible for each of the sub-jobs.
+
+At the core of the DARE framework, is a SAGA BigJob (which is a
+flexible general purpose pilot-job
+implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+Additionally, the framework is composed of a web application using an
+open source web development framework, Pylons\cite{pylonsurl}.  This
+combination of the open source technology and the application
+management system supports the development of a lightweight but
+extensible, science gateway capable of using a range of distributed
+resources.  In subsequent sections, we will demonstrate via
+performance numbers the effectiveness of how the DARE framework
+supports a range of infrastructure, problem instance configurations
+and size.
+
+
+
+
 
 % First, biological information could be utilized for such parallel
 % execution.  For example, the short read sequences in fastq format
@@ -922,7 +949,6 @@ full-fledged distributed computing science gateway quickly and effectively.
 % store indexes in many files, which is in fact the major obstacle to
 % require a large disk-space.
 
- 
 %...\jhanote{needs merging} Most importantly, while the implementation
 %of multiple parallel tasks indicates advantages of distributed
 %multiple resource utilization, the large volume and variation of data
