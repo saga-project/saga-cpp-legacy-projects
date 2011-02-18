@@ -164,9 +164,15 @@ sub pull_package {
     
      my $package_store_path = "$meph_tmp_dir";
     
-    if($package[0] eq "SVN") {
+    if (($package[0] eq "SVN") && ($enab_saga eq 1) && ($package[1] eq "SAGA")) {
+        $package_store_path .= "/$package[1]";
+        $package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
+#       print "\n\n $package_bin_path\n\n";
+    }
+    elsif($package[0] eq "SVN") {
        $package_store_path .= "/SVN_$package[1]";
     }
+
     elsif ($package[1] eq "BOOST") {
   	$package_store_path .= "/$package[1]";
 	$package_bin_path = "http://sourceforge.net/projects/boost/files/boost/" . $boost_check . "/boost_" . $no[0] . "_" . $no[1] . "_" . $no[2] . ".tar.gz/download";
@@ -194,18 +200,23 @@ sub pull_package {
 	$package_store_path .= "/$package[1]";
 	$package_bin_path ="http://wwwmaster.postgresql.org/redir/198/h/source/v" . $no3[0] . "." . $no3[1] . "." . $no3[2] . "/postgresql-" . $no3[0] . "." . $no3[1] . "." . $no3[2] . ".tar.gz";		
     }
-    elsif (($enab_saga eq 1) && ($package[1] eq "SAGA")) {
-        $package_store_path .= "/$package[1]";
-        $package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
-	print "\n\n $package_bin_path\n\n";       
-    }
+#    elsif (($enab_saga eq 1) && ($package[1] eq "SAGA")) {
+#        $package_store_path .= "/$package[1]";
+#        $package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
+#	print "\n\n $package_bin_path\n\n";       
+#    }
     else {
        $package_store_path .= "/$package[2]";
     }
     
-    print "\n\n Processing package $package[1]\n";
-    print "\n\n package path is $package_bin_path \n\n";
-    chdir($meph_tmp_dir);
+    print "\n Processing package $package[1] \n\n";
+if ($package[0] eq "LF") {
+    print " Package path is $package_bin_path \n\n"; ##changed from $package_bin_path
+   }
+else {
+    print " Package path is $package[2] \n\n"; 
+}
+ chdir($meph_tmp_dir);
 
     #try to download the packages
     
@@ -446,8 +457,9 @@ sub print_usage () {
 
     print " Options and Arguments:\n\n";
 	print "      --repository=          The repository version to use. By default,\n";
-	print "                             mephisto uses the latest version.\n\n";
-
+	print "                             mephisto uses the latest version.\n";
+        print "                             Please use --repository=svn_trunk\n";
+	print "                             for the latest saga version at the moment\n\n";
 	print "      --target-dir=          The base directory for the installation.\n"; 
 	print "                             All selected packages will end up in here.\n\n";
 
@@ -483,7 +495,7 @@ sub test_perform()
 {
     my @test_cmd = ("make check");
     my $test_dir = $meph_tmp_dir; 
-    print "\n\n Testing SAGA installaions...";
+    print "\n Testing SAGA installaions...";
 	$test_dir .= "/SVN_SAGA";
 #print "\n\n $test_dir \n\n";
     	chdir "$test_dir";
@@ -624,6 +636,10 @@ sub check_options () {
                         print_usage();
                         exit();
                 }
+		if ($saga_v ne 0)
+                {
+                        $enab_saga= 1;
+                }
 
                 if ($globus ne 0)
                 {
@@ -636,10 +652,6 @@ sub check_options () {
                 {       $enab_py =1;
                 }
 
-                if ($saga_v eq "1.5.3")
-                {
-                        $meph_version = "svn_trunk";
-                }
 
                 if($install_dir eq 0)
                 {
@@ -738,6 +750,15 @@ foreach my $line (@index) {
         if ($packages[1] eq "BOOST") {
    	print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
 	}
+	elsif (($enab_py eq 1) && ($packages[1] eq "PYTHON")) {
+	print " o $packages[1]: Python-$py_v \n";
+	}
+	elsif (($enab_post eq 1) && ($packages[1] eq "POSTGRESQL")) {
+        print " o $packages[1]: Postgresql-$post_gre \n";
+        }
+	elsif (($enab_saga eq 1) && ($packages[1] eq "SAGA")) {
+        print " o $packages[1]: SAGA-$saga_v \n";
+        }
     	else{
     	print " o $packages[1]: $packages[2]\n";
     	}
@@ -784,7 +805,7 @@ if ($test_enab eq 1)
 { test_perform();
 }
 
-print "\n\n \t Done \n\n";
+print "\n\n \t Done installations or testing (check logs for outputs and other information) :) \n\n";
 
 #
 ##############################################################################
