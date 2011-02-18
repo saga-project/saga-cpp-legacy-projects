@@ -576,7 +576,12 @@ We repeat the same configuration, but this time with a different
 number of index files (factor of four difference).  The linear
 relationship is maintained, but there is now a factor of four
 difference in the values, and thus the slope is also 4 times
-different.
+different. Although the exact reasons are unclear and lie in the
+complex structure of the index files, this represents a classic
+memory-time trade-off: in other words the peak memory consumed is
+dependent on the size of the index files (which decreases as the
+number of index files increases), whilst the runtime is dominated by
+the size of the read-file (linear dependence).
 
 % Secondly, the low memory option that creates more index files require
 % a longer calculation time as found with the comparison between 40
@@ -987,15 +992,31 @@ and size.
 
 \subsection{Execution on Grids and Clouds}
 
+In order to demonstrate the flexibility of the DARE framework and its
+ability to support both fine-grained parallelism and task-level
+parallelism, over multiple cloud environments, we perform tests over a
+HPC-grid (LONI) and a Cloud resource (FutureGrid).  (see
+Table~\ref{table:two-systems} for details of the infrastructure).
+
+
 \subsubsection{Using BFAST on HPC Grid}
-For demonstrating use cases for the mapping tool on distributed
-heterogeneous computing resources through our DARE tool, two distributed architectures, a HPC grid and a Cloud environment (see
-Table~\ref{table:two-systems}) were tested.
 
+The first two configurations -- case g1 and g2 in
+Table.\ref{table:cloud-VM} demonstrate how the DARE framework can
+support a large range task-concurrency without losing scalabilty.
+Specifically, in g1 \& g2 all parameters and conditions are kept
+similar, but the number of BFAST tasks (sub-jobs) are varied, and thus
+the number of cores utilized.  The individual processing time of each
+BFAST task is, as expected to decrease in proportion to the data-file
+size; interestingly, as can be seen, with twice as many tasks
+(sub-jobs) utilized within a BigJob, the time taken decreases by half,
+i.e., the increase in the coordination cost of multiple BFAST tasks is
+negligible. This provides a simple, but important test of scalability
+(with the number of tasks) of the DARE framework.
 
-% \jhanote{Before we say what we are
-%   presenting, please present a ``why and how'', i.e., outline the
-%   experiments}
+Cases g3 and g4 provide similar validation of the scalability, but on
+a different machine (painter) and for different value of core count.
+
  \begin{table}
  \small
  \begin{tabular}{|c|c|c|c|c|c|} 
@@ -1012,10 +1033,17 @@ g5 & 0.209 GB& 2& 40 & 80(20) & 1111 s \\
 g6&0.435 GB&2& 20 & 40(10)&2096 s\\
 \hline
 \end{tabular}
-\caption{Performance comparison among parallel implementation using
-  SAGA-BigJob with a HPC grid, LONI. One BigJob is submitted with the
-  number of SubJobs indicated in the column for the number of tasks
-  which is equivalent to the number of read files. g1, g2 and g3,g4 and g5,g6 are conducted on QB, Painter and Eric respectively. The cases g1, g2, g3 , g4 are conducted against 40 index files of a Human Chromosome 21.  Note that g5 and g6 are the results with 10 index files, g6 is specifically conducted for direct comparison to c5 obtained with Cloud as in the following Table~\ref{table:cloud-VM} }
+\caption{Performance comparison for different parallel configurations
+  using SAGA-BigJob on a HPC-Grid (LONI). One BigJob is submitted with
+  the number of sub-jobs, where each sub-job is a BFAST task.  The
+  total (read) data size is the read-file size multiplied by the
+  number of tasks (which is equal to the number of read-files); which
+  is a constant for g1-g6.  Cases g1, g2 and g3,g4 and g5,g6 are
+  conducted on QB, Painter and Eric respectively. The cases g1, g2,
+  g3, g4 are use 40 index files of a Human Chromosome 21.  Note that
+  g5 and g6 are the results with 10 index files; g6 is specifically
+  carried out to provide a direct comparison to c5 (on a cloud
+  resource as in the following Table~\ref{table:cloud-VM}) }
   
   \label{table:bigjob-loni} 
 \end{table}
