@@ -447,7 +447,9 @@ genome information.
 
 
 \hline
-\end{tabular} \caption{Description of BFAST commands and features for parallel and multi-threading execution. Note that the low memory option available for 'bfast index' does not target the parallel implementation directly, but this option could be utilized for task parallelization using low memory computing resources.}
+\end{tabular} \caption{Description of BFAST commands and features for parallel and multi-threading execution. 
+Note that the low memory option available for 'bfast index' does not target the parallel implementation directly, 
+but this option could be utilized for task parallelization using low memory computing resources.}
  \label{table:bfast-summary} 
 \end{table}
 
@@ -711,7 +713,12 @@ Environment & & Used & Type  &  Limit \\ \hline
 HPC Grid & LONI & QB & Disk & 58 TB   \\
  &  &  Painter  & Disk &  100 GB  \\
 Cloud & FutureGrid & INDIA & Walrus & 230GB \\
-&  &  SIERAA & Walrus & 58GB \\  \hline
+         &                    &  SIERAA & Walrus & 58GB \\ 
+Local &   Cyder  &    Cyder & Disk       & 5 TB\\
+
+ \hline
+
+
  \end{tabular}
 \caption{Specification of two distributed environments. LONI represents Louisiana Optical Network Initiative\cite{loni}. FutureGrid Cloud\cite{futuregrid} employs Eucalyptus}
 \label{table:two-systems} 
@@ -841,7 +848,7 @@ log-linear behavior.\jkimnote{more discussions if possible?}
 \includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small Measuring the time-to-completion as a function of the
-  number of threads.  The node used for tests has 12 cores.  Human
+  number of threads.  The node (Cyder)used for tests has 12 cores.  Human
   genome (hg18) chromosome 21 is used as the reference genome. The low
   memory option with 40 index files is used for this measurement. The
   time-to-completion decreases logarithmically, till the number of
@@ -853,7 +860,24 @@ log-linear behavior.\jkimnote{more discussions if possible?}
 
 \subsubsection{Understanding I/O}
 
-The system I/O influences the performance of the step for finding CALs (bfast match).  We conducted experiments with four different configurations that varies the amount of short data processed per task in conjunction with the varying number of threads per task, and the number of tasks running concurrently in one single node (see Table~\ref{table:understandio}).  First of all, the comparison between s1 and s2 suggests clearly the configuration of s2 is more efficient to utilize task-level concurrency using a smaller size of short reads than the configuration with more threads in a task requiring a larger size of short reads.  Considering the amount of total reads in these two experiments are exactly same, a noticeable difference in $T_C$ indicates the importance of finding an optimal configuration for a better performance.   The comparison between s3 and s4 finds that  a slight gain in the performance when more threads are utilized per a task.  Finally and interestingly, the results s3 and s4, compared to s2, indicates the significance of I/O for an optimal configuration since two cases require more memory due to the larger volume of short read data.\jkimnote{not sure this is correct} 
+The system I/O influences the performance of the step for finding CALs (bfast match).  
+We conducted experiments with four different configurations that varies the amount of 
+short data processed per task in conjunction with the varying number of threads per task,
+and the number of tasks running concurrently in one single node (see Table~\ref{table:understandio}).  
+First of all, the comparison between s1 and s2 suggests clearly the configuration of s2
+is more efficient to utilize task-level concurrency using a smaller size of short reads than the 
+configuration with more threads in a task requiring a larger size of short reads.  Considering the 
+amount of total reads in these two experiments are exactly same, a noticeable difference in $T_C$ 
+indicates the importance of finding an optimal configuration for a better performance. 
+
+    In case of s3, s4 where 4 bfast tasks run a single node the performance was varying inconsistently. 
+This can be expected because with reason that all the four bfast tasks were trying to access the same set of index files 
+for processing. In this case all LONI machines have luster filesystem for accessing the input data.
+Because of increase in access of same files there has been a unpredictable behavior in time to completion. This was also 
+observed on Local server Cyder and Walrus (Eucalyptus cloud storage).
+
+
+The comparison between s3 and s4 finds that  a slight gain in the performance when more threads are utilized per a task.  Finally and interestingly, the results s3 and s4, compared to s2, indicates the significance of I/O for an optimal configuration since two cases require more memory due to the larger volume of short read data.\jkimnote{not sure this is correct} 
 
 
 
