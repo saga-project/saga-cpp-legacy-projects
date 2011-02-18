@@ -1083,36 +1083,98 @@ g6&0.435 GB&2& 20 & 40(10)&2096 s\\
 
 \subsubsection{Using BFAST on Cloud}
 
-The results obtained with a Cloud environment,
-FutureGrid\cite{futuregrid} are summarized in
-Table~\ref{table:cloud-VM}.  
-Case c1 and c2 can be compared directly
-since the same workload is imposed with different configurations in
-terms of the number of VMs as well as the different type of VMs for
-each case. 
+In the previous sub-section, we established the ability of DARE to
+support concurrent task execution by establishing the scale-out to a
+large number of cores/resources. Although we did not use physically
+distributed resources to validate their performance, we used logically
+distributed tasks and have in earlier work established performance
+over distributed HPC-Grids\cite{saga-ccgrid10}.  The question that
+therefore arises: can the DARE framework support similar capabilities
+of scaling on clouds without sacrificing the ability to utilize
+fine-grained parallelism as needed? We attempt to address this
+question in the remainder of this section.
 
-In the case of c1 four different BigJob agents on 
-four VM's were launched as opposed one BigJob agent on a single VM in case of c2. 
-There exists a slight edge with a larger VM indicating the
-overall $T_C$ could be dependent on how to utilize available VMs and 
-distributed the same work load across VM's.  \smnote{needs attention}
+As mentioned, the cloud infrastructure used was the Eucalyptus based
+IaaS resources on the NSF-sponsored FutureGrid\cite{futuregrid}.
+Reource descriptions are summarized in Table~\ref{table:cloud-VM}.
 
-Here, we want to note that some difference in executing an application such as BFAST 
-with a HPC grid and with a Cloud environment.  Generally, a HPC system has a large size 
-of disk-space that can be accessed from all computing nodes but sometimes there exists a 
-restriction to utilize them.  For example, among LONI systems, the largest cluster, QB has 
-a significantly large disk-space while small cluster systems such as Painter allows only 
-100 GB imposed by the administration policy(see Table!~\ref{table:two-systems}).  
-On the other hand, the Cloud environment we tested supports additional storage
- via the walrus and this storage can be accessed by all VMs utilized together. 
-We do not compare how the data access mechanisms to these different types 
-of storages affect on the choice of execution patterns, in particular, with a Cloud
-in this work, since we consider an understanding of such factors is beyond the scope of this work.
-Nonetheless, the results presented in Table~\ref{table:bigjob-loni} and 
-Table~\ref{table:cloud-VM} demonstrate the capability of our DARE tool for 
-the utilization of heterogeneous distributed computing resources. 
+Case c1 and c2 have the same workload, however c2 uses an instance
+type c1.xlarge, whilst c1 uses a m1.large instance type.  In the case
+of c1 four different BigJob agents on four VM's were launched, as
+opposed to one BigJob agent on a single VM in case of c2.
 
-Finally, we compare the result with g6 of Table~\ref{table:bigjob-loni} and the result with c3 of Table~\ref{table:cloud-VM} that share the common configuration with the same number of total tasks and cores utilized.\jkimnote{I will complete this with the upcoming data}
+For exactly the same workload, the $T_C$ for cases c1 and c2 are shown
+in Table~\ref{table:cloud-VM}. We find that even though the number of
+cores and number of BFAST tasks employed are the same (8 and 4
+respectively), the $T_C$ for c2 is lower than that for c1; this is
+because there exists an overhead of marshalling 4 BFAST tasks into 4
+VMs compared to 1 VM.  Additionally, c1.xlarge is a more powerful
+instance than m1.large. 
+
+In contrast, c3 represents the configuration when a single large
+instance (c1.xlarge) is used for a single BFAST instance but using
+multiple threads; interestingly the $T_C$ is larger than c1 or c2.  We
+attribute this to the fact that increasing the number of threads
+increases the performance only logarithmically, whilst increasing the
+number of concurrent tasks executed (c1 and c2) has a linear
+performance improvement. The increase in $T_C$ for c4 now arises
+due to the fact that the size of the read file that is
+an important determinant of performance is now 4 times as larger
+than c1 or c2.
+
+
+% Here, we want to note that some difference in executing an
+% application such as BFAST with a HPC grid and with a Cloud
+% environment.  There exists a slight edge with a larger VM indicating
+% the overall $T_C$ could be dependent on how to utilize available VMs
+% and distributed the same work load across VM's.  Generally, a HPC
+% system has a large size of disk-space that can be accessed from all
+% computing nodes but sometimes there exists a restriction to utilize
+% them.  For example, among LONI systems, the largest cluster, QB has
+% a significantly large disk-space while small cluster systems such as
+% Painter allows only 100 GB imposed by the administration policy (see
+% Table!~\ref{table:two-systems}).  On the other hand, the Cloud
+% environment we tested supports additional storage via the walrus and
+% this storage can be accessed by all VMs utilized together.
+
+
+Although not very insightful, for completeness and and for pedagogical
+reasons it is instructive to compare Grid versus Cloud performance for
+idential work load configuration and resource capabilities.  We
+compare the result with g6 of Table~\ref{table:bigjob-loni} and the
+result with c4 of Table~\ref{table:cloud-VM}; they have a similar
+configuration with the same number of total tasks and cores, but c4
+has a lower $T_C$ than g6. In spite of the virtualization layer this
+is true probably because c1.xlarge uses newer and more powerful
+hardware than the 4 year old hardware of g6, as well as the fact that
+virtualization costs are a small percentage of overall costs for long
+running jobs (even if ``hot'' start-up times are significant).  A
+rigorous comparision would entail a comparision of data access
+mechanisms to the different types of storage on grids and clouds,
+which is beyond the scope of this current work.
+
+Nonetheless, the results presented in Table~\ref{table:bigjob-loni}
+and Table~\ref{table:cloud-VM} demonstrate the capability of the DARE
+framework to effectively utilize heterogeneous distributed computing
+resources.
+
+% Generally, a HPC system has a large size of disk-space that can be
+% accessed from all computing nodes but sometimes there exists a
+% restriction to utilize them.  For example, among LONI systems, the
+% largest cluster, QB has a significantly large disk-space while small
+% cluster systems such as Painter allows only 100 GB imposed by the
+% administration policy (see Table!~\ref{table:two-systems}).  On the
+% other hand, the Cloud environment we tested supports additional
+% storage via the walrus and this storage can be accessed by all VMs
+% utilized together.  We do not compare how the data access mechanisms
+% to these different types of storages affect on the choice of execution
+% patterns, in particular, with a Cloud in this work, since we consider
+% an understanding of such factors is beyond the scope of this work.
+% Nonetheless, the results presented in Table~\ref{table:bigjob-loni}
+% and Table~\ref{table:cloud-VM} demonstrate the capability of our DARE
+% tool for the utilization of heterogeneous distributed computing
+% resources.
+
 
 
 
@@ -1148,24 +1210,22 @@ Finally, we compare the result with g6 of Table~\ref{table:bigjob-loni} and the 
 
 c1& 0.435 GB&2 &  4 & 8 & 1492 s \\
 % 1495 +1487 
-c2 &0.435 GB & 2 & 4  & 8  &1149 s\\ \hline
+c2 &0.435 GB & 2 & 4  & 8  &1149 s\\ 
+c3 & 1.74 GB &8 & 1 &  8 &  4528 s \\\hline
 \hline
-c3 & 0.435 GB&2 & 20 & 40 &  1137 s \\
-\hline
-c4 & 1.74 GB &8 & 1 &  8 &  4528 s \\
-
+c4 & 0.435 GB&2 & 20 & 40 &  1137 s \\
 \hline
 
  \end{tabular}
 
- \caption{ The number of index files used for this measurement is 10. 
- In all cases the input and output data resides on VM itself.  VM in case c1 is of type m1.large
- whereas c2,c3,c4 are of type c1.xlarge
-  }
+ \caption{ The number of index files used for this measurement is 10.
+   In all cases the input and output data resides on VM itself.  VM in
+   case c1 is of type m1.large whereas c2, c3, c4 are of type
+   c1.xlarge }
   \label{table:cloud-VM} 
 \end{table}
 
-\jhanote{Need to refer to Table\ref{table:cloud-VM}}
+%\jhanote{Need to refer to Table\ref{table:cloud-VM}}
 
 
 \section{Conclusion and Future Work}
