@@ -569,14 +569,13 @@
  \subsection{SLI/OCCI for job submission endpoints, SAGA as client}
 
  On the simplest level, OCCI could be used in its reduced capability
- as job submission protocol: it would be relatively straight forward
- to, for example, provide a cluster job submission service based on
- the OCCI protocol.  That approach would allow applications and tools
- to uniformely submit jobs to cluster and cloud resources.  Along
- those lines, a SAGA adapter could implement job submission to such
- endpoints by using the OCCI Protocol.   The SAGA-OCCI adapter could
- make extensive usage of OCCI's automatic discovery and billig
- mechanisms.
+ as job submission protocol (see fig~\ref{fig:arch1}): it would be
+ relatively straight forward to, for example, provide a cluster job
+ submission service based on the OCCI protocol.  That approach would
+ allow applications and tools to uniformely submit jobs to cluster and
+ cloud resources.  Along those lines, a SAGA-OCCI adapter could
+ implement job submission to OCCI endpoints, while making extensive
+ usage of OCCI's automatic discovery and billig mechanisms.
 
  While that scenario is technically straight forward, and can very
  well co-exist with existing standards based job submission
@@ -584,7 +583,10 @@
  established job submission mechanisms.  The advantage of OCCI level
  SLI may justify that approach in some cases though.
 
- \amnote{needs diagram}
+ The approach allows for ALI based interoperation scenarios.  
+
+ \amnote{check if OCCI needs extensions for job submission}
+ \amnote{needs diagram (fig:arch1)}
 
  \amnote{I am not sure the previous paragraph still reflects what
  Thijs had in mind (see original text in tex comments).  If not,
@@ -605,22 +607,31 @@
 
  IaaS based clouds allow to create virtual machine instances on
  demand, and thus allow to provision resources for applications on the
- fly.  Pure VM instances are, however, not enough: the application
- needs to be enroled on these resources, and needs to be able to
- interact with other application components on other resources (data
- transfer, coordination, etc).  A common way to achieve this is to
- bootstrap the VM instances in such a way that some kind of midleware
- is provided on these resources, which can then be used by the
- application to get enroled as described.  
+ fly.  Pure VM instances are, however, not sufficient to run
+ applications: the application needs to be enroled on these resources,
+ and needs to be able to interact with other application components on
+ other resources (data transfer, coordination, etc).  A common way to
+ achieve this is to bootstrap the VM instances in such a way that some
+ kind of midleware is provided on these resources, which can then be
+ used by the application to get enroled as described.  The default on
+ many IaaS coulds is to enable ssh access for VM instances, but other
+ access mechanisms are possible and available.
 
  Since SAGA features a rich set of adapters to talk to Grid
  Middlewares (such as DRMAA and BES adaptors), it seems perfectly
  feasable to use OCCI to instantiate resources in a cloud DCI, in such
- a way, that the VM instances are configured to run one of the grid
+ a way that the VM instances are configured to run one of the grid
  middlewares supported by SAGA.  In some sense, OCCI is thus used to
  instantiate a virtual grid (or components thereof) on the cloud DCI,
  on the fly.  SAGA can then be used by the application to utilize
- those resources as it usually does (on pure grid resources).
+ those resources as it usually does (on pure grid resources).  That
+ scenario is shown in fig.~\ref{fig:arch2}.
+
+ SAGA is, at the moment, only offering very rudimentary means to
+ specify resource lifetime requirements, and is thus inadequately
+ equipped to implement the architecture shown.  The OGF SAGA working
+ group is, however, working on a resource management package which
+ will address exactly those issues.
 
  In order to get VM instances configured in  such a way, one needs to
  either add an extension to OCCI which allows to describe the VM's OS
@@ -631,9 +642,9 @@
  providers, and would be able to create and application environment
  which spans multiple cloud and grid DCIs transparently.
 
- \amnote{needs diagram}
+ \amnote{needs diagram (fig:arch2)}
 
- 
+
  % the first use-case describes a way to autmatically
  % provision such grid middlewares on demand. SAGA could use OCCI to
  % request initial or addtional Grid Resources.
@@ -654,22 +665,78 @@
 
  \subsection{Combine SAGA and OCCI to create a PaaS Offering}
 
- SAGA offers a rich set of calls in its API, and is further extensible
- to address future use cases.  Since OCCI ist mostly a protocol which
- can be used to create an API (by using extensions), SAGA can be used
- to enrich the OCCI functionalities and create a PaaS offering:
- Programmers would develop their first-principle distributed
- applications using SAGA, and the resulting applications would be
- provisioned in an OCCI defined manner. All resource provisioning
- details as well as concrete resource details would thus be
- transparently hidden from the end-user.  This could represent an 'HPC
- in the cloud' offering.
+ The above architectures utilize OCCI in its current main usage mode,
+ as managenment protocol for IaaS cloud resources.  We have seen
+ in~\ref{fig:arch2} that OCCI can potentially be used to enrol complex
+ virtual infrastructures on IaaS clouds, such as virtual clusters, or
+ virtual grids.  There are, however, two elements missing to turn
+ those virtual infrastructures into PaaS offerings: first, we miss an
+ (pervasive?) API which would allow to code 'native' applications
+ against that virtual infrastructure; secondly, OCCI is currently
+ missing the ability to enrol those applications on the vritual
+ infrastuctures.
 
- \amnote{needs diagram}
+ We argue that SAGA can be used to address the first concern, and that
+ a SAGA based service, utilized by an OCCI extension for application
+ deployment, is one way to address the second concern:  SAGA
+ applications (i.e. distributed application coded against the SAGA
+ API) have been shown to allow to express a wide variety of
+ distributed programming paradigms, and to utilize physical and
+ virtual distributed infrastructures -- SAGA would thus be able to
+ address the first missing element, an 'application API' for the PaaS
+ infrastructure.  But also it has been shown that SAGA can be used to
+ enrol applications on a wide range of infrastructures, thus a SAGA
+ based application deployment service could address the second missing
+ PaaS element, when enacting a respective OCCI application deployment
+ extension.
+
+ \amnote{check PaaS definitions}
+ \amnote{needs diagram (fig:arch2)}
+
+ \subsection{ALI versus SLI, revisited}
+
+ All three scenarios above allow for SAGA based applications to
+ utilize virtual IaaS or PaaS infrastructures.  It would thus
+ immediately allow to expand SAGA based ALI, as described in
+ section~\ref{sec:interop}, towards OCCI based infrastructures.
+
+ As the OCCI deployment of virtual resources in scenario 2 and 3 has
+ additional control over the deployed middleware stack, those
+ scenarios also allow for SLI scenarios: the created virtual
+ infrastructure can on the fly be configured in a way that it allows
+ for system level interoperation with other (virtual and physical)
+ distributed infrastructures.  One could, for example, imagine the
+ system level integration of remote data sources into the newly create
+ virtual environments, to support data intensive applications on
+ those.
+
+ It must be noted, however, that those scenarios are, for the time
+ being, outside of the OCCI scope -- they would require rather
+ sophisticated means to describe the virtual infrastructure, including
+ its software stack and middlware configuration, in fine detail before
+ its instantiation.  However, should the OCCI WG decide to pursue the
+ use of OCCI for PaaS, this or similar complex problems need to be
+ addressed at one level or the other.
+
+
+ \subsection{Mapping the use cases}
+
+ We have outlined three different ways to allow applications to
+ interoperate accoss physical and virtual (grid and cloud)
+ infrastructures.  We will shortly map our two application use cases
+ to these architectures, to further underpin the usability of the
+ proposed architectures.  While this is \F{circumstantial?} evidence
+ at best, we hope it helps to better illustrate the power and
+ flexibility of the proposed standards based approach on grid-cloud
+ interop.
+
+ \F{do}
 
 
 \section{Conclusions}
 \label{sec:conc}
+
+ \F{hurra hurra hurrra!}
 
 
 \bibliographystyle{plain}
