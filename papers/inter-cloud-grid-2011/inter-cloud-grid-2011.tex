@@ -19,13 +19,10 @@
 	\vspace*{-0.6em}
 }
 
-\usepackage{fancyhdr}
-\setlength{\headheight}{16.0pt}
-\pagestyle{fancy}
-\headheight = 0pt
-\headsep    = 25pt
-\fancyhf{}
-\fancyhead[OC]{\bf {\it \footnotesize{Jha et al: A Case for SAGA as an Access Layer for DCI}}}
+\usepackage{fancyhdr} \setlength{\headheight}{16.0pt}
+\pagestyle{fancy} \headheight = 0pt \headsep = 25pt \fancyhf{}
+\fancyhead[OC]{\bf {\it \footnotesize{Jha et al: Analysis of SAGA as
+      an Access Layer for DCI}}}
 
 \newif\ifdraft
 \drafttrue
@@ -59,12 +56,11 @@
 \title{Towards Grid-Cloud Interoperabilty: A Case for SAGA as Access
   Layer for OCCI backed Cloud Infrastructures}
 
-\author{Shantenu Jha$^{*1,2}$, Thijs Metsch$^{3}$, Andre Merzky$^{1}$\\
+\author{Andre Merzky$^{1}$, Thijs Metsch$^{3}$, Shantenu Jha$^{*1,2}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
   \small{\emph{$^{2}$Department of Computer Science, Louisiana State University, USA}}\\
   \small{\emph{$^{3}$Platform Computing, Germany}}\\
-  \small{\emph{$^{*}$Contact Author \texttt{sjha@cct.lsu.edu}}}
-  }
+  \small{\emph{$^{*}$Contact Author \texttt{sjha@cct.lsu.edu}}} }
 
 \maketitle
 
@@ -162,7 +158,7 @@
  alignment steps are the most computationally demanding -- compute
  requirements generally scale with the size of the reference genome as
  well as the number of short reads.
- 
+
  \BI{Ensemble-based MD simulations} are commonly used bio-molecular
  simulation approaches, used to enhance the sampling and convergence
  for biomolecular simulations.  Ensemble based approaches represent an
@@ -176,16 +172,53 @@
  sampling and to thereby increase the ''effective'' time-scales
  studied.
  
- In Ref.~\cite{ccgrid10, cloudcom10}, we have implemented the
- compute and coordination pattern represented by
- \I{replica-exchange} on different Clouds -- IaaS (Eucalyptus and
- Nimbus-based) and PaaS (Azure), by extending the BigJob framework
- to utilize the native abstractions provided by these Clouds, e.g.,
- such as worker roles on Azure -- storage and affinity groups.
+ In Ref.~\cite{ccgrid10, cloudcom10}, we have implemented the compute
+ and coordination pattern represented by \I{replica-exchange} on
+ different Clouds -- IaaS (Eucalyptus and Nimbus-based) and PaaS
+ (Azure), by extending the SAGA-based Pilot-Job (BigJob) framework to
+ utilize the native abstractions provided by these Clouds, e.g., such
+ as worker roles on Azure and affinity groups (at the data-center
+ level)
 
  \amnote{last sentence is somewhat hard to parse for me.  If I take
- the --...-- part out, I end up with '...on different clouds storage
- and affinity groups' - what does that mean?}
+   the --...-- part out, I end up with '...on different clouds storage
+   and affinity groups' - what does that mean?}
+
+ \jhanote{Does this make sense now?}
+
+ \subsubsection*{Understanding the Execution Patterns of the
+   Applications}
+
+ \jhanote{Need to say why these require grid-cloud interoperability}
+ 
+ The ensemble-based simulations have two primary modes of execution.
+ In the zero-coupled ensemble N ensemble run independent of each
+ other; they run to completion which is typically a fixed number of
+ steps. Although the runs are independent, the analysis is not always
+ independent. In the loosely-coupled ensemble mode, the individual
+ replicas run for a fixed number of steps, before exchanging state
+ information; the exact length of execution is also not well defined
+ as often the exchange step is a stochastic variable.  There are
+ multiple variants of the exchange algorithm, and depending upon which
+ version is employed, the pairing between replicas might be
+ time-dependent (dynamic determined) or independent (static).
+
+ The BFAST application in contrast is a data-intensive application; it
+ can be used to employ different levels of parallelism -- either fine
+ grained parallelism (at the thread level) or multiple concurrent
+ tasks.  There are two important data-sets that BFAST operates on: the
+ reference genome and input sequence data (from experiments). The
+ reference genome is processed to yield {\it index files} set-up in a
+ certain format, so as to exploit certain types of parallelism. The
+ input sequence data is in many millions of small (read) files.
+ Typically BFAST runs on a single processor, multiple-threads; however
+ due to IO sub-systems constraints, utilizing distributed resources is
+ can bring about performance improvements; additionally using
+ distributed resources is often be often beneficial from a
+ data-transfer and management issue.
+
+ There are multiple reasons why BFAST may use Cloud resources; it
+ requires a reference geneome which are often community resources.
  
 
  \subsection*{Ways to Interoperability}
