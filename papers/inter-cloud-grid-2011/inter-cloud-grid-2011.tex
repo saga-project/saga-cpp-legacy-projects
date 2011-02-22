@@ -620,9 +620,13 @@ Integration (bonding different Interfaces together using one
 Procotol).
 
 \begin{figure}[htb]
- \center{\includegraphics[scale=0.5]
- {figures/case1.png}}
- \caption{\label{fig:arch1} Using OCCI for Job Submission.}
+ \center{\includegraphics[width=0.35\textwidth]
+ {figures/arch_1.pdf}}
+ \caption{\footnotesize\label{fig:arch1} \B{Using OCCI for job 
+    submission} allows for ALI with traditional grid infrastructures.  
+    While this scenario focuses on job submission, the discussion 
+    applies just as well to scenarios focusing on data access or 
+    communication.}
 \end{figure}
 
 %\begin{figure}[htb]
@@ -678,7 +682,13 @@ address exactly those issues.
 
 \begin{figure}[htb]
  \center{\includegraphics[scale=0.5] {figures/arch_2.png}}
- \caption{\label{fig:arch2} Using OCCI for IaaS resource provisioning.}
+ \caption{\footnotesize\label{fig:arch2} \B{Using OCCI for IaaS resource provisioning}: 
+    (1) SAGA uses OCCI to request resources at an IaaS Service; 
+    (2) the IaaS service uses OCCI to provision those resources 
+         with a standardized job submission endpoint; 
+    then 
+    (3) SAGA uses the respective job submission protocol to utilize 
+    the provisioned resources.}
 \end{figure}
 
  % the first use-case describes a way to autmatically
@@ -698,63 +708,68 @@ address exactly those issues.
  % scenario. But it can also be used for Cloud-Bursting/Hybrid-Cloud
  % approaches.
 
-\begin{table}
-\centering
- \footnotesize
-\begin{tabular}{|p{20mm}|p{16mm}|p{16mm}|p{17mm}|}
-\hline
-                                             & \B{Scenario (A)}           & \B{Scenario (B)}      & \B{Scenario (C)}  \\
-                                             & \I{SAGA using\newline Job Service} 
-                                                                          & \I{SAGA using\newline IaaS} 
-                                                                                                  & \I{SAGA, OCCI\newline in PaaS} \\\hline\hline
-Application API                              & SAGA                       & SAGA                  & SAGA              \\\hline
-PaaS Interface                               & --                         & --                    & OCCI              \\\hline
-IaaS Interface                               & --                         & OCCI                  & OCCI              \\\hline
-Job Submisison Interface                     & BES, DRMAA, SSH, OCCI      & BES, DRMAA, SSH, OCCI & BES, DRMAA, SSH, OCCI  \\\hline
+ \begin{table}
+  \centering
+  \footnotesize
+  \begin{tabular}{|p{20mm}|p{16mm}|p{16mm}|p{17mm}|}
+   \hline
+                          & \B{Scenario (A)}      & \B{Scenario (B)}      & \B{Scenario (C)}       \\
+                          & \I{SAGA using\newline Job Service} 
+                                                  & \I{SAGA using\newline IaaS} 
+                                                                          & \I{SAGA, OCCI\newline in PaaS} \\\hline\hline
+   Application API        & SAGA                  & SAGA                  & SAGA                   \\\hline
+   PaaS Interface         & --                    & --                    & OCCI                   \\\hline
+   IaaS Interface         & --                    & OCCI                  & OCCI                   \\\hline
+   Job Submisison\newline 
+        Interface         & BES, DRMAA, SSH, OCCI & BES, DRMAA, SSH, OCCI & BES, DRMAA, SSH, OCCI  \\\hline
+  \end{tabular}
+  \caption{\label{table:standard-function}Table listing the different
+  levels at which integration of OGF Standards can take place.  See
+  figures~\ref{fig:arch1}-\ref{fig:arch3} for more details.}
+ \end{table}
 
-%Service Interface & OCCI, DRMAA & DRMAA, BES  & OCCI         \\\hline
-%IaaS              & --          & OCCI        & OCCI         \\\hline
-%PaaS              & --          & --          & OCCI         \\\hline
-%PaaS-API          & --          & --          & SAGA         \\\hline
-\end{tabular}
-\caption{Table listing the different levels at which integration of
-  OGF Standards can take place (Internal means inside the scope of the
-  Service Providers site)}
-\label{table:standard-function}
-\end{table}
+ \subsection{(C) Combine SAGA and OCCI to create a PaaS Offering}
 
-\subsection{(C) Combine SAGA and OCCI to create a PaaS Offering}
+ The above architectures utilize OCCI in its current main usage mode,
+ as management protocol for IaaS cloud resources.  We have seen
+ in~\ref{fig:arch3} that OCCI can potentially be used to enrol
+ (potentially complex) virtual infrastructures on IaaS clouds, such as
+ virtual clusters, or virtual grids.  There are, however, two elements
+ missing to turn those virtual infrastructures into PaaS offerings:
+ first, we miss an API which would allow to code 'native' applications
+ against that virtual infrastructure; secondly, OCCI is currently
+ missing the ability to enrol those applications on the virtual
+ infrastuctures.  Current PaaS offerings such as "Google's AppEngine"
+ or "Amazon's WebServices" are prominent examples of how those
+ capabilities could be rendered.
 
-The above architectures utilize OCCI in its current main usage mode,
-as management protocol for IaaS cloud resources.  We have seen
-in~\ref{fig:arch3} that OCCI can potentially be used to enrol
-(potentially complex) virtual infrastructures on IaaS clouds, such as
-virtual clusters, or virtual grids.  There are, however, two elements
-missing to turn those virtual infrastructures into PaaS offerings:
-first, we miss an API which would allow to code 'native' applications
-against that virtual infrastructure; secondly, OCCI is currently
-missing the ability to enrol those applications on the virtual
-infrastuctures.  Current PaaS offerings such as "Google's AppEngine"
-or "Amazon's WebServices" are prominent examples of how those
-capabilities could be rendered.
-
-We argue that SAGA can be used to address the first concern, and that
-a SAGA based service, utilized by an OCCI extension for application
-deployment, is one way to address the second concern: SAGA
-applications (i.e. distributed application coded against the SAGA API)
-have been shown to allow to express a wide variety of distributed
-programming paradigms, and to utilize physical and virtual distributed
-infrastructures -- SAGA would thus be able to address the first
-missing element, an 'application API' for the PaaS infrastructure.
-But also it has been shown that SAGA can be used to enrol applications
-on a wide range of infrastructures, thus a SAGA based application
-deployment service could address the second missing PaaS element, when
-enacting a respective OCCI application deployment extension.
+ We argue that SAGA can be used to address the first concern, and that
+ a SAGA based service, utilized by an OCCI extension for application
+ deployment, is one way to address the second concern: SAGA
+ applications (i.e. distributed application coded against the SAGA
+ API) have been shown to allow to express a wide variety of
+ distributed programming paradigms, and to utilize physical and
+ virtual distributed infrastructures -- SAGA would thus be able to
+ address the first missing element, an 'application API' for the PaaS
+ infrastructure.  But also it has been shown that SAGA can be used to
+ enrol applications on a wide range of infrastructures, thus a SAGA
+ based application deployment service could address the second missing
+ PaaS element, when enacting a respective OCCI application deployment
+ extension.
 
  \begin{figure}[htb]
   \center{\includegraphics[scale=0.5]
-  {figures/case3.png}}
-  \caption{\label{fig:arch3} Creating a PaaS offering using OCCI and SAGA.}
+  {figures/arch_3.png}}
+  \caption{\footnotesize\label{fig:arch3} \B{PaaS offering using 
+      OCCI and SAGA}: 
+      (1) a user tool uses OCCI to register a workload 
+          description and input data with an PaaS service; 
+      that service 
+      (2) uses OCCI to provision application data to virtual storage; 
+      (3) uses OCCI to provision compute resources; and
+      (4) uses OCCI to provision the application workload on these resources; 
+      (5) the application workload uses SAGA to access the virtual
+          infrastructure.}
  \end{figure}
 
 % \begin{figure}[htb]
