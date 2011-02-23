@@ -53,7 +53,7 @@ $enab_py	  = 0;
 $enab_post	  = 0;
 $enab_saga 	  = 0;
 $test_enab        = 0;
-
+$adaptors	  = 0;
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -482,6 +482,9 @@ sub print_usage () {
 	print "      --with-saga-version=   Overrides the Saga version defined in the\n";
 	print "                             repository. The version number should be \n";
 	print "                             specified as 'x.y.z' (must be >= 1.4).\n\n";   
+	print "      --with-adaptors=  choose saga adaptors to be included.\n";
+	print "                             If globus mentioned here,by default globus,\n";
+	print "                             x509 and globus-adaptors will be installed\n\n"; 
 	
 	#print "      --exclude=                 packages to be excluded from the downloads, choose from the list with commas separated(capitals only):PYTHON, BOOST, POSTGRESQL,SQLITE,SAGA,SAGA-PYTHON,SAGA-ADAPTORS-X509,\n";
     #print "	                                SAGA-ADAPTORS-SSH\n\n";
@@ -558,7 +561,8 @@ sub check_options () {
 						   'with-globus-version=s' 	=> \$globus,
 						   'with-postgresql-version=s'  => \$post_gre,
 						   'with-saga-version=s'   	=> \$saga_v,
-						   'exclude=s'	   		=> \$dellist) ; 
+						   'exclude=s'	   		=> \$dellist,
+						   'with-adaptors=s'            => \$adaptors ) ; 
                                                                          
 		@delitems = split(",",$dellist);	
 	
@@ -571,9 +575,19 @@ sub check_options () {
                 {
                         $enab_saga= 1;
                 }
+		if ($saga_v eq "svn" || $saga_v eq "svn_trunk")
+		{
+		        $enab_saga= 1;
+			$saga_v= "1.5.3";
+		}
 		if ($globus ne 0)
 		{
 			$enab= 1;
+		}
+		if (($adaptors ne 0) && ($adaptors eq "globus"))
+		{	
+			$globus = 5.0.2;	
+			$enab =1;
 		}
 		if ($post_gre ne 0)
 		{	$enab_post =1;
@@ -734,18 +748,22 @@ print "\n Source repository: $meph_rep_full\n\n";
 my $content = get $meph_rep_full. "/INDEX";
 die "Couldn't get $meph_rep_full" unless defined $content;
 
-my @midpack = ("LF","GLOBUS","$globus","'./configure'","'make prewsgram gridftp postinstall'","'make install'");
+my @midpack  = ("LF","GLOBUS","$globus","'./configure'","'make prewsgram gridftp postinstall'","'make install'");
+my @midpack1 = ("LF","X509","saga-adaptors-x509","'./configure'","'make'","'make install'"); 
+my @midpack2 = ("LF","GLOBUS-ADAPTORS","saga-adaptors-globus","'./configure'","'make'","'make install'");
+
 my @temp = split (/\./, $boost_check);
 if (@temp eq 2) {
 $boost_check .= ".0";
 }
+
 my $countp=0;
 my @index = split( "\n", $content );
 foreach my $line (@index) {
     my @packages = split( ";;", $line );
     if($countp eq 4 && $enab eq 1) {
     print " o $midpack[1]: http://www.globus.org/ftppub/$globus-all-source-installer.tar.bz2\n";
-    print " o $packages[1]: $packages[2]\n";
+  #  print " o $packages[1]: $packages[2]\n";
     }
         if ($packages[1] eq "BOOST") {
    	print " o $packages[1]: http://sourceforge.net/projects/boost/files/boost/$boost_check.tar.gz/download\n";
@@ -766,6 +784,11 @@ foreach my $line (@index) {
 	$countp = $countp + 1;
 #	print"\n $countp\n"; 
   }
+	if ($enab eq 1)
+    {
+	print " o $midpack1[1]: http://static.saga.cct.lsu.edu/software/saga-adaptors/saga-adaptors-x509-0.9.0.tgz\n";
+	print " o $midpack2[1]: http://static.saga.cct.lsu.edu/software/saga-adaptors/saga-adaptors-globus-0.9.5.tgz\n";
+    }
 
 ######change $count = 4 if you want  globus to be installed after sqlite and before saga
 my $count = 0;
@@ -797,6 +820,10 @@ foreach my $line (@index2) {
 	$count = $count + 1;
 	$flag = 0;
 	}
+}
+if ($enab eq 1) {
+pull_package(@midpack1);
+pull_package(@midpack2);
 }
 #after the for loop, here packages  will store all the values as an array as was the case above
 write_setenv();
