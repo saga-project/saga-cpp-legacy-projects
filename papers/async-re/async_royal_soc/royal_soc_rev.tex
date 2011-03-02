@@ -156,7 +156,7 @@ subsequently matched.
 8. It seems that even in the decentralized
 case, the advert service is still centralized? Are there issues of latency
 when accessing the advert service or keeping it consistent?
-9. When multiple replicas are concurrently searching for a partner to exchange with it is not clear how this is done safely. Even with reverification non-deterministic behavior could still arise if care is not taken.} the last statement is true - exchange negotiation in the decentralised version needs to be improved. 
+9. When multiple replicas are concurrently searching for a partner to exchange with it is not clear how this is done safely. Even with reverification non-deterministic behavior could still arise if care is not taken.} non deterministic behavior is not possible because of a single advert server but incorrect behavior is possible. we need to discuss this.
 
 \athotanote{addressed: corrected graph: from no. replicas to no. machines.
 1) Don't use symbols to refer to "Section" - write it out as text.
@@ -332,10 +332,11 @@ managing state (e.g., in a central database) and bookkeeping
 associated with replica pairing/exchanging ($T_{mgmt}$) (thus $T_{X} =
 T_{f} + T_{ex}+T_{mgmt}$); $T_W$ is comprised of the synchronisation
 time spent by a replica waiting for other replicas to complete running
-($T_s$), the time spent waiting to be restarted after each exchange
-and other associated costs ($T_r$). For example, in the
-asynchronous-centralised case, $T_r$ arises due to serialisation at
-the exchanging agent.  Similarly $T_{mgmt}$ arises due do different
+%($T_s$), the time spent waiting to be restarted after each exchange
+%and other associated costs ($T_r$). For example, in the
+%asynchronous-centralised case, $T_r$ arises due to serialisation at
+%the exchanging agent.  
+$T_{mgmt}$ arises due do different
 reasons -- which may be related to
 implementation % Not suprisingly, the
 % management costs also differ for
@@ -406,10 +407,10 @@ replica in the ensemble.  The reduction in {\it synchronisation}
 The specific values of the terms $T_{X}$ and $T_W$, in
 Equation~\ref{eq:totaltime} differ from the synchronous formulations.
 Since each replica on completing a run has to find a {\it new}
-partner, $T_f \neq 0$.  Additionally, $T_W$ only includes the time
-spent waiting for the next replica to become available, any time spent
-waiting before the replicas are restarted after an exchange and any
-other miscellaneous costs.
+partner, $T_f \neq 0$.  Additionally, $T_W$ is 0 because there is no synchronisation involved.% only includes the time
+%spent waiting for the next replica to become available, any time spent
+%waiting before the replicas are restarted after an exchange and any
+%other miscellaneous costs.
 
 % a pair of replicas are available, and where \jhanote{Is the
 %   algorithm similar or identical? If it is not identical, how is it
@@ -842,7 +843,7 @@ it stops the experiment.
 %   Framework). Here we are analyzing our implementation?}
 % \jhanote{``Basic characterization of the performance of our implementation''}
 
-In section~\ref{repexfw} we presented the basic components of the RE
+In section~\ref{repexfw}, we presented the basic components of the RE
 framework and discussed the control flow for the three RE algorithm
 formulations.  In this section we provide further details of the
 working of the RE framework, as well as a basic characterization of the
@@ -918,25 +919,25 @@ the results. We will discuss each case in the following sections.
 	$T_{MD}$       &71\,s &71\,s &71\,s\\
 	\hline
 	\hline
-	$T_{W}$        &2.8\,s &0.7\,s &1.1\,s\\
-    \hline
-    \hspace{2mm}$T_{s}$ &2.8\,s &0\,s &0\,s\\ 
-    \hline
-    \hspace{2mm}$T_{r}$ &0 s&0.7\,s &1.1\,s\\
+	$T_{W}$        &2.8\,s &0\,s &0\,s\\
+   % \hline
+    %\hspace{2mm}$T_{s}$ &2.8\,s &0\,s &0\,s\\ 
+    %\hline
+%    \hspace{2mm}$T_{r}$ &0 s&0.7\,s &1.1\,s\\
 	\hline\hline
-	$T_{X}$        &0.6\,s &7.2\,s &0.8\,s\\
+	$T_{X}$        &0.6\,s &7.9\,s &1.9\,s\\
 	\hline
-	\hspace{2mm}$T_{f}$        &0\,s   &6.4\,s &0.2\,s\\
+	\hspace{2mm}$T_{f}$        &0\,s   &6.4\,s &1.3\,s\\
 	\hline
 	\hspace{2mm}$T_{ex}$       &0.4\,s &0.6\,s &0.4\,s\\
 	\hline
-    \hspace{2mm}$T_{mgmt}$    &0.2\,s &0.2\,s  &0.2\,s\\
+    \hspace{2mm}$T_{mgmt}$    &0.2\,s &0.9\,s  &0.2\,s\\
 	\hline
 	\hline
 	$\mathbf{T}$        &\textbf{1003\,s} &\textbf{631\,s}    &\textbf{811\,s}\\
 	\hline
     \end{tabular}
-    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas and to be restarted; $T_s$=synchronisation time; $T_r$=time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T$=total time-to-completion.}
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas and to be restarted; $T_s$=synchronisation time; $T_r$=time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T$=total time-to-completion.} \athotanote{we need to find better names/symbols}
 	\label{table:repex_perf}
 \end{table}
 
@@ -959,15 +960,15 @@ sequentially, i.\,e.\ there is a delay between the startup of the
 first and the last replica. Also, the post-processing of each replica
 run, i.\,e.\ updating the state, marking nodes free, the stage-out of
 the output file, is done sequentially. The longer of the two
-determines the overall time spent waiting ($T_s$) for other replicas.
+determines the overall time spent waiting ($T_W$) for other replicas.
 In this case the post-processing time is the larger, and on average,
 it takes $1.4\,s$
 %for the % BigJob agent
-to process a replica that has completed running. Thus, $T_{s}$, which
+to process a replica that has completed running. Thus, $T_{W}$, which
 is defined for a pair of replicas, is $2.8\,s$. For an ensemble of 32
 replicas (with 16 pairs) the delay between the first and last replica
 transitioning to \texttt{done} state adds up to $44.8\,s$.  
-The waiting time at the BigJob-Agent is subsumed by the synchronisation time, thus the BigJob-Agent is effectively always ready to start replicas, thus, $T_r$ is 0 for synchronous RE.
+%The waiting time at the BigJob-Agent is subsumed by the synchronisation time, thus the BigJob-Agent is effectively always ready to start replicas, thus, $T_r$ is 0 for synchronous RE.
 
 % \alnote{which is also not really the case since sub-jobs
 % are all submitted at once and as we discuss in sec b, the bj-agent 
@@ -1094,7 +1095,7 @@ equation~\ref{eq:totaltime}, we get:
 A fundamental difference between synchronous and asynchronous
 formulations of RE is in the synchronisation barrier for the replicas
 before exchanges, i.e., the former has a barrier, the latter does not.
-So although, $T_s = 0$ for asynchronous formulations, this comes at
+So although, $T_W = 0$ for asynchronous formulations, this comes at
 the cost of a higher $T_f$, the lack of a synchronisation barrier
 leads to a more involved implementation to dynamically pair replicas.
 
@@ -1105,10 +1106,9 @@ its state in the advert server, which takes $0.1\,s$.  The
 replica-agent retrieves the energy and temperature from the output
 files, each of which takes $0.2\,s$. It then posts both these values
 to the advert server.  The waiting times to retrieve these values is
-thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_r = 0.7\,s$.  Note that
-here $T_r$ involves waiting at the replica-agent and not the 
-BigJob-Agent (like the centralised case).  Therefore the value of $T_W$ 
-$0.7\,s$.
+thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_mgmt = 0.7\,s$.  Note that
+here $T_mgmt$ involves pre-exchange management at the replica-agent and not the 
+BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
 
 % \alnote{\textbf{Old Paragraph - please check whether I put the important points into
 % the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
@@ -1184,7 +1184,7 @@ configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
 % initiator of the exchange, it has to wait for the other replica to set
 % its state as complete, so that it can restart).
 $T_{mgmt}$ is the time it takes to update the state in the advert
-server, which is $0.2\,s$.  Thus, $T_{X}$ is $6.4+0.6 +0.2=
+server, which is $0.2\,s$+$0.7\,s$ = 0.9\,s.  Thus, $T_{X}$ is $6.4+0.6 +0.9=
 7.2\,s$.  It should be noted that $T_{X}$ is highly dependent on
 the actual implementation. While the current implementation is kept
 simple on purpose, this value can be improved in a more sophisticated 
