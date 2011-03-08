@@ -38,12 +38,16 @@ SVNCO      = svn co
 #
 # target dependencies
 #
+.PHONY: all
 all::           saga-core saga-adaptors saga-bindings saga-clients
 
+.PHONY: externals
 externals::     boost postgresql sqlite3
 
+.PHONY: saga-core
 saga-core::     externals
 
+.PHONY: saga-adaptors
 saga-adaptors:: saga-adaptors-x509
 saga-adaptors:: saga-adaptors-globus 
 saga-adaptors:: saga-adaptors-bes 
@@ -51,8 +55,10 @@ saga-adaptors:: saga-adaptors-ssh
 saga-adaptors:: saga-adaptors-aws 
 # saga-adaptors:: saga-adaptors-drmaa
 
+.PHONY: saga-bindings
 saga-bindings:: saga-bindings-python
 
+.PHONY: saga-clients
 saga-clients::  saga-clients-mandelbrot
 
 ########################################################################
@@ -61,6 +67,7 @@ saga-clients::  saga-clients-mandelbrot
 #
 # create the basic directory infrastructure, documentation, etc
 #
+.PHONY: base
 base::
 	@echo "check basic setup" 
 	@test -d $(CSA_LOCATION)/src/      || mkdir -p $(CSA_LOCATION)/src/
@@ -78,6 +85,7 @@ BOOST_LOCATION = $(CSA_LOCATION)/external/boost/1.44.0/gcc-$(CC_VERSION)/
 BOOST_CHECK    = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC      = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 
+.PHONY: boost
 boost:: base $(BOOST_CHECK)
 
 $(BOOST_CHECK):
@@ -97,6 +105,7 @@ POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/gcc-$(CC_VERSION
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v9.0.2/postgresql-9.0.2.tar.bz2
 
+.PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
 
 $(POSTGRESQL_CHECK):
@@ -114,6 +123,7 @@ SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/9.0.2/gcc-$(CC_VERSION)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-autoconf-3070500.tar.gz
 
+.PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
 
 $(SQLITE3_CHECK):
@@ -143,6 +153,7 @@ else
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-$(SAGA_VERSION)/
 endif
 
+.PHONY: saga-core
 saga-core:: base $(SAGA_CHECK)
 
 $(SAGA_CHECK):
@@ -163,6 +174,7 @@ $(SAGA_CHECK):
 SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini)
 SA_X509_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/x509/trunk saga-adaptors-x509-trunk
 
+.PHONY: saga-adaptors-x509
 saga-adaptors-x509:: base $(SA_X509_CHECK)
 
 $(SA_X509_CHECK):
@@ -179,6 +191,7 @@ $(SA_X509_CHECK):
 SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.ini)
 SA_GLOBUS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/globus/trunk saga-adaptors-globus-trunk
 
+.PHONY: saga-adaptors-globus
 saga-adaptors-globus:: base $(SA_GLOBUS_CHECK)
 
 $(SA_GLOBUS_CHECK):
@@ -195,6 +208,7 @@ $(SA_GLOBUS_CHECK):
 SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini)
 SA_SSH_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ssh/trunk saga-adaptors-ssh-trunk
 
+.PHONY: saga-adaptors-ssh
 saga-adaptors-ssh:: base $(SA_SSH_CHECK)
 
 $(SA_SSH_CHECK):
@@ -211,6 +225,7 @@ $(SA_SSH_CHECK):
 SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_job.ini)
 SA_AWS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/aws/trunk saga-adaptors-aws-trunk
 
+.PHONY: saga-adaptors-aws
 saga-adaptors-aws:: base $(SA_AWS_CHECK)
 
 $(SA_AWS_CHECK):
@@ -227,6 +242,7 @@ $(SA_AWS_CHECK):
 SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_bes_job.ini)
 SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk saga-adaptors-ogf-trunk
 
+.PHONY: saga-adaptors-bes
 saga-adaptors-bes:: base $(SA_BES_CHECK)
 
 $(SA_BES_CHECK):
@@ -248,6 +264,7 @@ SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4
 SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0
 SAGA_PYTHON_PSRC     = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
 
+.PHONY: saga-bindings-python
 saga-bindings-python:: base $(SAGA_PYTHON_CHECK)
 
 $(SAGA_PYTHON_CHECK):
