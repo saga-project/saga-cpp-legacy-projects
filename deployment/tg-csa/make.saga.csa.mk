@@ -48,18 +48,18 @@ externals::     boost postgresql sqlite3
 saga-core::     externals
 
 .PHONY: saga-adaptors
-saga-adaptors:: saga-adaptors-x509
-saga-adaptors:: saga-adaptors-globus 
-saga-adaptors:: saga-adaptors-bes 
-saga-adaptors:: saga-adaptors-ssh 
-saga-adaptors:: saga-adaptors-aws 
-# saga-adaptors:: saga-adaptors-drmaa
+saga-adaptors:: saga-adaptor-x509
+saga-adaptors:: saga-adaptor-globus 
+saga-adaptors:: saga-adaptor-bes 
+saga-adaptors:: saga-adaptor-ssh 
+saga-adaptors:: saga-adaptor-aws 
+# saga-adaptors:: saga-adaptor-drmaa
 
 .PHONY: saga-bindings
 saga-bindings:: saga-bindings-python
 
 .PHONY: saga-clients
-saga-clients::  saga-clients-mandelbrot
+saga-clients::  saga-client-mandelbrot
 
 ########################################################################
 #
@@ -68,10 +68,14 @@ saga-clients::  saga-clients-mandelbrot
 # create the basic directory infrastructure, documentation, etc
 #
 .PHONY: base
-base::
-	@echo "check basic setup" 
-	@test -d $(CSA_LOCATION)/src/      || mkdir -p $(CSA_LOCATION)/src/
-	@test -d $(CSA_LOCATION)/external/ || mkdir -p $(CSA_LOCATION)/external/
+base:: $(CSA_LOCATION)/src/ $(CSA_LOCATION)/external/
+	@echo "basic setup               ok" 
+
+$(CSA_LOCATION)/src/:
+	@mkdir $@
+
+$(CSA_LOCATION)/external/:
+	@mkdir $@
 
 
 ########################################################################
@@ -87,9 +91,10 @@ BOOST_SRC      = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
+	@echo "boost                     ok"
 
 $(BOOST_CHECK):
-	@echo "installing boost $(BOOST_CHECK)"
+	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bootstrap.sh \
@@ -107,9 +112,10 @@ POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/sourc
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
+	@echo "postgresql                ok"
 
 $(POSTGRESQL_CHECK):
-	@echo "installing postgresql"
+	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
 	@cd $(SRCDIR) ; tar jxvf postgresql-9.0.2.tar.bz2
 	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline
@@ -125,9 +131,10 @@ SQLITE3_SRC      = http://www.sqlite.org/sqlite-autoconf-3070500.tar.gz
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
+	@echo "sqlite3                   ok"
 
 $(SQLITE3_CHECK):
-	@echo "installing sqlite3"
+	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-autoconf-3070500.tar.gz
 	@cd $(SRCDIR)/sqlite-autoconf-3070500/ ; ./configure --prefix=$(SQLITE3_LOCATION)
@@ -146,6 +153,7 @@ SAGA_ENV     += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV     += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV     += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
 SAGA_ENV     += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
+SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib:$(LD_LIBRARY_PATH)
 
 ifeq "$(SAGA_VERSION)" "trunk"
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/trunk/  saga-core-trunk
@@ -155,9 +163,10 @@ endif
 
 .PHONY: saga-core
 saga-core:: base $(SAGA_CHECK)
+	@echo "saga-core                 ok"
 
 $(SAGA_CHECK):
-	@echo "installing saga-core"
+	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SAGA_SRC)
 	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION)
 	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; make
@@ -170,88 +179,93 @@ $(SAGA_CHECK):
 #
 
 ########################################################################
-# saga-adaptors-x509
-SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini)
-SA_X509_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/x509/trunk saga-adaptors-x509-trunk
+# saga-adaptor-x509
+SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
+SA_X509_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/x509/trunk saga-adaptor-x509-trunk
 
-.PHONY: saga-adaptors-x509
-saga-adaptors-x509:: base $(SA_X509_CHECK)
+.PHONY: saga-adaptor-x509
+saga-adaptor-x509:: base $(SA_X509_CHECK)
+	@echo "saga-adaptor-x509         ok"
 
 $(SA_X509_CHECK):
-	@echo "installing saga-adaptors-x509 ($(SA_X509_CHECK))"
+	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SA_X509_SRC)
-	@cd $(SRCDIR)/saga-adaptors-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
-	@cd $(SRCDIR)/saga-adaptors-x509-trunk/ ; make
-	@cd $(SRCDIR)/saga-adaptors-x509-trunk/ ; make check
-	@cd $(SRCDIR)/saga-adaptors-x509-trunk/ ; make install
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; make
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; make check
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; make install
 
 
 ########################################################################
-# saga-adaptors-globus
-SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.ini)
-SA_GLOBUS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/globus/trunk saga-adaptors-globus-trunk
+# saga-adaptor-globus
+SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.ini
+SA_GLOBUS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/globus/trunk saga-adaptor-globus-trunk
 
-.PHONY: saga-adaptors-globus
-saga-adaptors-globus:: base $(SA_GLOBUS_CHECK)
+.PHONY: saga-adaptor-globus
+saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
+	@echo "saga-adaptor-globus       ok"
 
 $(SA_GLOBUS_CHECK):
-	@echo "installing saga-adaptors-globus"
+	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SA_GLOBUS_SRC)
-	@cd $(SRCDIR)/saga-adaptors-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
-	@cd $(SRCDIR)/saga-adaptors-globus-trunk/ ; make
-	@cd $(SRCDIR)/saga-adaptors-globus-trunk/ ; make check
-	@cd $(SRCDIR)/saga-adaptors-globus-trunk/ ; make install
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; make
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; make check
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; make install
 
 
 ########################################################################
-# saga-adaptors-ssh
-SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini)
-SA_SSH_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ssh/trunk saga-adaptors-ssh-trunk
+# saga-adaptor-ssh
+SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
+SA_SSH_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ssh/trunk saga-adaptor-ssh-trunk
 
-.PHONY: saga-adaptors-ssh
-saga-adaptors-ssh:: base $(SA_SSH_CHECK)
+.PHONY: saga-adaptor-ssh
+saga-adaptor-ssh:: base $(SA_SSH_CHECK)
+	@echo "saga-adaptor-ssh          ok"
 
 $(SA_SSH_CHECK):
-	@echo "installing saga-adaptors-ssh"
+	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SA_SSH_SRC)
-	@cd $(SRCDIR)/saga-adaptors-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
-	@cd $(SRCDIR)/saga-adaptors-ssh-trunk/ ; make
-	@cd $(SRCDIR)/saga-adaptors-ssh-trunk/ ; make check
-	@cd $(SRCDIR)/saga-adaptors-ssh-trunk/ ; make install
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; make
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; make check
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; make install
 
 
 ########################################################################
-# saga-adaptors-aws
-SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_job.ini)
-SA_AWS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/aws/trunk saga-adaptors-aws-trunk
+# saga-adaptor-aws
+SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
+SA_AWS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/aws/trunk saga-adaptor-aws-trunk
 
-.PHONY: saga-adaptors-aws
-saga-adaptors-aws:: base $(SA_AWS_CHECK)
+.PHONY: saga-adaptor-aws
+saga-adaptor-aws:: base $(SA_AWS_CHECK)
+	@echo "saga-adaptor-aws          ok"
 
 $(SA_AWS_CHECK):
-	@echo "installing saga-adaptors-aws"
+	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SA_AWS_SRC)
-	@cd $(SRCDIR)/saga-adaptors-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
-	@cd $(SRCDIR)/saga-adaptors-aws-trunk/ ; make
-	@cd $(SRCDIR)/saga-adaptors-aws-trunk/ ; make check
-	@cd $(SRCDIR)/saga-adaptors-aws-trunk/ ; make install
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; make
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; make check
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; make install
 
 
 ########################################################################
-# saga-adaptors-bes
-SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_bes_job.ini)
-SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk saga-adaptors-ogf-trunk
+# saga-adaptor-bes
+SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_hpcbp_job.ini
+SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk saga-adaptor-ogf-trunk
 
-.PHONY: saga-adaptors-bes
-saga-adaptors-bes:: base $(SA_BES_CHECK)
+.PHONY: saga-adaptor-bes
+saga-adaptor-bes:: base $(SA_BES_CHECK)
+	@echo "saga-adaptor-bes          ok"
 
 $(SA_BES_CHECK):
-	@echo "installing saga-adaptors-bes"
+	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SA_BES_SRC)
-	@cd $(SRCDIR)/saga-adaptors-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
-	@cd $(SRCDIR)/saga-adaptors-ogf-trunk/ ; make
-	@cd $(SRCDIR)/saga-adaptors-ogf-trunk/ ; make check
-	@cd $(SRCDIR)/saga-adaptors-ogf-trunk/ ; make install
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; make
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; make check
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; make install
 
 
 
@@ -266,9 +280,10 @@ SAGA_PYTHON_PSRC     = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
 
 .PHONY: saga-bindings-python
 saga-bindings-python:: base $(SAGA_PYTHON_CHECK)
+	@echo "saga-bindings-python      ok"
 
 $(SAGA_PYTHON_CHECK):
-	@echo "installing saga-bindings-python"
+	@echo "saga-bindings-python      installing"
 	@cd $(SRCDIR) ; $(SVNCO) $(SAGA_PYTHON_SRC)
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) | tee configure.log
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Found .* yes' configure.log || ( \
@@ -287,3 +302,21 @@ $(SAGA_PYTHON_CHECK):
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make install
 
+
+########################################################################
+#
+# mandelbrot client
+#
+SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
+SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/mandelbrot saga-client-mandelbrot
+
+.PHONY: saga-client-mandelbrot
+saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
+	@echo "saga-client-mandelbrot    ok"
+
+$(SC_MANDELBROT_CHECK):
+	@echo "saga-client-mandelbrot    installing"
+	@cd $(SRCDIR) ; $(SVNCO) $(SC_MANDELBROT_SRC)
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure 
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make install
