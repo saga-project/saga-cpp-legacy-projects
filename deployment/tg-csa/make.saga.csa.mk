@@ -335,14 +335,15 @@ CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION)
 
 .PHONY: readme
 readme:: saga-core $(CSA_README_CHECK)
+	@echo "README                    ok"
 
 $(CSA_README_CHECK):
-	echo "README                    creating"
-	$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
-	$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'     $(CSA_README_CHECK)
-	$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'   $(CSA_README_CHECK)
-	$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;' $(CSA_README_CHECK)
-	$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'     $(CSA_README_CHECK)
+	@echo "README                    creating"
+	@$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'     $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'   $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;' $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'     $(CSA_README_CHECK)
 	
 
 
