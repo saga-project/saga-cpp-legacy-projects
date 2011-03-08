@@ -39,7 +39,7 @@ SVNCO      = svn co
 # target dependencies
 #
 .PHONY: all
-all::           saga-core saga-adaptors saga-bindings saga-clients
+all::           saga-core saga-adaptors saga-bindings saga-clients readme
 
 .PHONY: externals
 externals::     boost postgresql sqlite3
@@ -320,3 +320,18 @@ $(SC_MANDELBROT_CHECK):
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure 
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make install
+
+########################################################################
+#
+# readme
+#
+# create some basic documentation about the installed software packages
+#
+.PHONY: readme
+readme:: saga-core $(CSA_LOCATION)/README
+
+$(CSA_LOCATION)/README:
+	@
+	
+
+
