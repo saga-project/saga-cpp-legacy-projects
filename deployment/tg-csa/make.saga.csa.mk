@@ -29,6 +29,7 @@ CC         = gcc
 CXX        = g++
 CC_VERSION = $(shell gcc --version | head -n 1 | rev | cut -f 1 -d ' ' | rev)
  
+SED        = sed
 ENV        = env
 WGET       = wget
 SVNCO      = svn co
@@ -149,11 +150,13 @@ $(SQLITE3_CHECK):
 SAGA_LOCATION = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/gcc-$(CC_VERSION)/
 SAGA_CHECK    = $(SAGA_LOCATION)/include/saga/saga.hpp
 
+SAGA_LDLIBPATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib
+
 SAGA_ENV     += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV     += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV     += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
 SAGA_ENV     += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
-SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib:$(LD_LIBRARY_PATH)
+SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LDLIBPATH)
 
 ifeq "$(SAGA_VERSION)" "trunk"
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/trunk/  saga-core-trunk
@@ -327,11 +330,19 @@ $(SC_MANDELBROT_CHECK):
 #
 # create some basic documentation about the installed software packages
 #
-.PHONY: readme
-readme:: saga-core $(CSA_LOCATION)/README
+CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
+CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION)
 
-$(CSA_LOCATION)/README:
-	@
+.PHONY: readme
+readme:: saga-core $(CSA_README_CHECK)
+
+$(CSA_README_CHECK):
+	echo "README                    creating"
+	$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
+	$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'     $(CSA_README_CHECK)
+	$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'   $(CSA_README_CHECK)
+	$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;' $(CSA_README_CHECK)
+	$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'     $(CSA_README_CHECK)
 	
 
 
