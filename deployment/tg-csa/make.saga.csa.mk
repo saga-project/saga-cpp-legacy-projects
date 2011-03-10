@@ -30,13 +30,23 @@ EXTDIR = $(CSA_LOCATION)/external/
 #
 CC         = gcc
 CXX        = g++
-CC_VERSION = $(shell gcc --version | head -n 1 | rev | cut -f 1 -d ' ' | rev | $(SED) -e 's/[^\d\.\-]//g;' )
+
  
 SED        = sed
 ENV        = env
 WGET       = wget
 SVNCO      = svn co
  
+
+########################################################################
+# 
+# find out gcc version
+#
+# gcc --version is stupidly formatted.  Worse, that format is inconsistent over
+# different distrubution channels.  Thus this detour to get the version directly
+# via gcc compiler macros:
+CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
+$(warning version: $(CC_VERSION))
 
 ########################################################################
 #
