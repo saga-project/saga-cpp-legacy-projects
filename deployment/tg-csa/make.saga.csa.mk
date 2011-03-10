@@ -19,7 +19,7 @@ else
 endif
 
 # never ever build parallel
-.NOTPARALLEL
+.NOTPARALLEL:
 
 SRCDIR = $(CSA_LOCATION)/src/
 EXTDIR = $(CSA_LOCATION)/external/
