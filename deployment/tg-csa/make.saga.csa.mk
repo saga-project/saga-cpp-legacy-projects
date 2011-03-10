@@ -18,6 +18,9 @@ else
   SAGA_VERSION=$(CSA_SAGA_VERSION)
 endif
 
+# never ever build parallel
+.NOTPARALLEL
+
 SRCDIR = $(CSA_LOCATION)/src/
 EXTDIR = $(CSA_LOCATION)/external/
 
@@ -27,7 +30,7 @@ EXTDIR = $(CSA_LOCATION)/external/
 #
 CC         = gcc
 CXX        = g++
-CC_VERSION = $(shell gcc --version | head -n 1 | rev | cut -f 1 -d ' ' | rev)
+CC_VERSION = $(shell gcc --version | head -n 1 | rev | cut -f 1 -d ' ' | rev | $(SED) -e 's/[^\d\.\-]//g;' )
  
 SED        = sed
 ENV        = env
