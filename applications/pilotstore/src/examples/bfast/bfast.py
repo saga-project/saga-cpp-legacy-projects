@@ -15,6 +15,10 @@ import saga
 import time
 import uuid
 
+# for logging
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
 
 APPLICATION_NAME="wordcount"
 DATABASE_HOST="localhost"
@@ -82,11 +86,13 @@ if __name__ == "__main__":
     base_dir = saga.url("file://localhost" + DATA_FILE_DIR)
     model_ps = pilot_store("model", base_dir, pd)
     index_ps = pilot_store("index", base_dir, pd)
-    read_ps = pilot_store("read", base_dir, pd)
+    base_dir_read_files = saga.url("file://localhost" + READ_FILE_DIR)
+    read_ps = pilot_store("read", base_dir_read_files, pd)
     
     model_files = []
     index_files = []
     read_files = []
+    print "Process data files"
     data_files=os.listdir(DATA_FILE_DIR)
     for i in data_files:
         if i.endswith(".fa"):
@@ -94,13 +100,19 @@ if __name__ == "__main__":
         elif i.endswith(".bif"):
             index_files.append(i)
     
-    read_files=os.listdir(READ_FILE_DIR)
-    for i in read_files:
+    
+    read_files_list=os.listdir(READ_FILE_DIR)
+    print "Process " + str(len(read_files_list)) + " read files"
+    for i in read_files_list:
+        print i
         if i.endswith(".fastq"):
             read_files.append(i)
-                  
+    
+    print "Register model files"              
     model_ps.register_files(model_files)
+    print "Register index files"              
     index_ps.register_files(index_files)
+    print "Register read files"              
     read_ps.register_files(read_files)
     
     pd.add_pilot_store(model_ps)
@@ -111,7 +123,7 @@ if __name__ == "__main__":
     print "Start some BigJob w/ affinity"
     resource_list = []
     resource_list.append( {"gram_url" : "fork://localhost", "number_cores" : "1", "allocation" : "loni_jhabig10",
-                           "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"),
+                           "queue" : "workq", "re_agent": (os.getcwd() + "/../../../../bigjob/bigjob_agent_launcher.sh"),
                            "working_directory": (os.getcwd() + "/agent"), "walltime":120, "affinity" : "affinity1"})
 
     #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "loni_jhabig10",
