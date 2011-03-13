@@ -140,8 +140,8 @@ svn: $(CSA_LOCATION)/svn.ok
 $(CSA_LOCATION)/svn.ok:
 	@$(SVN) --version && touch $@
 	@$(SVN) --version || ( \
-    cd $(CSA_LOCATION)/external/ \
-	  wget http://cyder.cct.lsu.edu/saga-interop/mandelbrot/demo/x/subversion-1.6.16.tgz \
+    cd $(CSA_LOCATION)/src/ \
+	  wget http://cyder.cct.lsu.edu/saga-interop/mandelbrot/csa/repos/subversion-1.6.16.tgz \
 		tar zxvf subversion-1.6.16.tgz \
 		cd subversion-1.6.16/ \
 		./configure --prefix= $(CSA_LOCATION)/external/subversion/1.1.16/$(CC_VERSION)/ \
@@ -171,9 +171,9 @@ $(POSTGRESQL_CHECK):
 
 ########################################################################
 # sqlite3
-SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/9.0.2/gcc-$(CC_VERSION)/
+SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/gcc-$(CC_VERSION)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
-SQLITE3_SRC      = http://www.sqlite.org/sqlite-autoconf-3070500.tar.gz
+SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
@@ -182,10 +182,10 @@ sqlite3:: base $(SQLITE3_CHECK)
 $(SQLITE3_CHECK):
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
-	@cd $(SRCDIR) ; tar zxvf sqlite-autoconf-3070500.tar.gz
-	@cd $(SRCDIR)/sqlite-autoconf-3070500/ ; ./configure --prefix=$(SQLITE3_LOCATION)
-	@cd $(SRCDIR)/sqlite-autoconf-3070500/ ; make
-	@cd $(SRCDIR)/sqlite-autoconf-3070500/ ; make install
+	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
+	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION)
+	@cd $(SRCDIR)/sqlite-3.6.13/ ; make
+	@cd $(SRCDIR)/sqlite-3.6.13/ ; make install
 
 
 ########################################################################
