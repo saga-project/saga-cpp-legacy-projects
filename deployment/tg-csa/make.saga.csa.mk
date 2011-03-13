@@ -26,17 +26,10 @@ EXTDIR = $(CSA_LOCATION)/external/
 
 ########################################################################
 #
-# basic tools
+# compiler to be used for *everything*
 #
 CC         = gcc
 CXX        = g++
-
- 
-SED        = sed
-ENV        = env
-WGET       = wget
-SVNCO      = svn co
- 
 
 ########################################################################
 # 
@@ -45,8 +38,23 @@ SVNCO      = svn co
 # gcc --version is stupidly formatted.  Worse, that format is inconsistent over
 # different distrubution channels.  Thus this detour to get the version directly
 # via gcc compiler macros:
+#
 CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
 $(warning version: $(CC_VERSION))
+
+
+
+########################################################################
+#
+# basic tools
+#
+SED        = sed
+ENV        = env
+WGET       = wget
+SVNCO      = $(SVN) co
+
+SVN        = $(shell "`which svn` || '$(CSA_LOCATION)/external/subversion/1.1.16/$(CC_VERSION)'")
+ 
 
 ########################################################################
 #
@@ -116,6 +124,30 @@ $(BOOST_CHECK):
                                --prefix=$(BOOST_LOCATION)
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bjam
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bjam install
+
+
+########################################################################
+#
+# svn
+#
+# alas, some systems come without svn client (grummerlgrummelkrakengrummel)
+# So, we install it locally.  The way to fetch svn sources is, unbeleavably, to
+# use svn checkout.  Brrr...  So, we rather fetch a prepacked version from
+# cyder.
+.PHONY: svn
+svn: $(CSA_LOCATION)/svn.ok
+
+$(CSA_LOCATION)/svn.ok:
+	@$(SVN) --version && touch $@
+	@$(SVN) --version || ( \
+    cd $(CSA_LOCATION)/external/ \
+	  wget http://cyder.cct.lsu.edu/saga-interop/mandelbrot/demo/x/subversion-1.6.16.tgz \
+		tar zxvf subversion-1.6.16.tgz \
+		cd subversion-1.6.16/ \
+		./configure --prefix= $(CSA_LOCATION)/external/subversion/1.1.16/$(CC_VERSION)/ \
+		make \
+		make install \
+	)
 
 
 ########################################################################
