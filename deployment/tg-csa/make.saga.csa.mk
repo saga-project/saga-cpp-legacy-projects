@@ -21,8 +21,11 @@ endif
 # never ever build parallel
 .NOTPARALLEL:
 
-SRCDIR = $(CSA_LOCATION)/src/
-EXTDIR = $(CSA_LOCATION)/external/
+SRCDIR         = $(CSA_LOCATION)/src/
+EXTDIR         = $(CSA_LOCATION)/external/
+
+HOSTNAME       = $(shell hostname)
+HOSTNAME_SHORT = $(shell hostname)
 
 ########################################################################
 #
@@ -53,7 +56,7 @@ ENV        = env
 WGET       = wget
 SVNCO      = $(SVN) co
 
-SVN        = $(shell "`which svn` || '$(CSA_LOCATION)/external/subversion/1.1.16/$(CC_VERSION)'")
+SVN        = $(shell "which svn 2>/dev/null || '$(CSA_LOCATION)/external/subversion/1.1.16/$(CC_VERSION)/bin/svn'")
  
 
 ########################################################################
@@ -376,7 +379,7 @@ $(SC_MANDELBROT_CHECK):
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION)
+CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(HOSTNAME_SHORT)
 
 .PHONY: readme
 readme:: saga-core $(CSA_README_CHECK)
