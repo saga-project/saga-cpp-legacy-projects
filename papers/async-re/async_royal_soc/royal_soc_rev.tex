@@ -322,27 +322,27 @@ the total number of exchanges is:
 %\alnote{I would propose to write $\frac{N_X}{\eta}$ to have both terms consistent}
 \begin{eqnarray}
   T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
-  {(T_{X} + T_{W})} \times {N_X \over \eta}]
+  {(T_{EX} + T_{W})} \times {N_X \over \eta}]
 \label{eq:totaltime}
 \end{eqnarray}
-where, $T_{X}$ is the time to perform a {\it pairwise} exchange and
-includes the following components, (i) time to find a partner ($T_f$),
-(ii) time to exchange/write/transfer files ($T_{ex}$) as well as (iii)
+where, $T_{EX}$ is the time to perform a {\it pairwise} exchange and
+includes the following components, (i) time to find a partner ($T_{find}$),
+(ii) time to exchange/write/transfer files ($T_{file}$) as well as (iii)
 managing state (e.g., in a central database) and bookkeeping
-associated with replica pairing/exchanging ($T_{mgmt}$) (thus $T_{X} =
-T_{f} + T_{ex}+T_{mgmt}$); $T_W$ is comprised of the synchronisation
+associated with replica pairing/exchanging ($T_{state}$) (thus $T_{X} =
+T_{find} + T_{file}+T_{state}$); $T_W$ is comprised of the synchronisation
 time spent by a replica waiting for other replicas to complete running
 %($T_s$), the time spent waiting to be restarted after each exchange
 %and other associated costs ($T_r$). For example, in the
 %asynchronous-centralised case, $T_r$ arises due to serialisation at
 %the exchanging agent.  
-$T_{mgmt}$ arises due do different
+$T_{state}$ arises due do different
 reasons -- which may be related to
 implementation % Not suprisingly, the
 % management costs also differ for
 of the different RE algorithms. Finally, $\eta$ is the number of
 independent exchange events occurring concurrently; for $N_R$
-replicas, this is typically $N_R \over 2$.
+replicas, this is typically $\frac{N_R}{2}$. %$N_R \over 2$.
 
 % It is worth
 % noting that depending upon the case in consideration, there might be
@@ -376,7 +376,7 @@ restarted after each exchange and any other miscellaneous costs.
 A major limitation of this model is that replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
 replicas.  As a consequence of pairs being determined before an
-exchange, although $T_f$ is $0$, this limits the number of possible
+exchange, although $T_{find}$ is $0$, this limits the number of possible
 exchange partners that are available for a given replica; this
 inhibits exchanges between replicas with non-nearest temperatures, and
 ultimately negates the possibility of crosswalks -- where a crosswalk
@@ -404,10 +404,10 @@ pre-determined state. An exchange occurs whenever a replica reaches a
 pre-determined state. It then performs an exchange with another suitable
 replica in the ensemble.  The reduction in {\it synchronisation}
 (wait) times comes at the cost of increased {\it coordination} costs.
-The specific values of the terms $T_{X}$ and $T_W$, in
+The specific values of the terms $T_{EX}$ and $T_W$, in
 Equation~\ref{eq:totaltime} differ from the synchronous formulations.
 Since each replica on completing a run has to find a {\it new}
-partner, $T_f \neq 0$.  Additionally, $T_W$ is 0 because there is no synchronisation involved.% only includes the time
+partner, $T_{find} \neq 0$.  Additionally, $T_W$ is 0 because there is no synchronisation involved.% only includes the time
 %spent waiting for the next replica to become available, any time spent
 %waiting before the replicas are restarted after an exchange and any
 %other miscellaneous costs.
@@ -890,8 +890,8 @@ of synchronous and asynchronous RE, we do not consider queueing times.
 As explained in section~\ref{sec:repex-approach} (\ref{sec:math-model}),
 the relative performance of RE implementations is primarily determined
 by the waiting time $T_W$ and the time for conducting the exchange
-$T_X$. In the following we analyse the average values for $T_{W}$ and
-$T_X$ for each replica pair.  Table~\ref{table:repex_perf} summarizes
+$T_{EX}$. In the following we analyse the average values for $T_{W}$ and
+$T_{EX}$ for each replica pair.  Table~\ref{table:repex_perf} summarizes
 the results. We will discuss each case in the following sections.
 
 
@@ -925,19 +925,19 @@ the results. We will discuss each case in the following sections.
     %\hline
 %    \hspace{2mm}$T_{r}$ &0 s&0.7\,s &1.1\,s\\
 	\hline\hline
-	$T_{X}$        &0.6\,s &7.9\,s &1.9\,s\\
+	$T_{EX}$        &0.6\,s &7.9\,s &1.9\,s\\
 	\hline
-	\hspace{2mm}$T_{f}$        &0\,s   &6.4\,s &1.3\,s\\
+	\hspace{2mm}$T_{find}$        &0\,s   &6.4\,s &1.3\,s\\
 	\hline
-	\hspace{2mm}$T_{ex}$       &0.4\,s &0.6\,s &0.4\,s\\
+	\hspace{2mm}$T_{file}$       &0.4\,s &0.6\,s &0.4\,s\\
 	\hline
-    \hspace{2mm}$T_{mgmt}$    &0.2\,s &0.9\,s  &0.2\,s\\
+    \hspace{2mm}$T_{state}$    &0.2\,s &0.9\,s  &0.2\,s\\
 	\hline
 	\hline
 	$\mathbf{T}$        &\textbf{1003\,s} &\textbf{631\,s}    &\textbf{811\,s}\\
 	\hline
     \end{tabular}
-    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=time waiting for other replicas and to be restarted; $T_s$=synchronisation time; $T_r$=time waiting to be restarted; $T_X$=time to make a pairwise exchange; $T_f$=time to find/lock a partner; $T_{ex}$=time to write/transfer files; $T_{mgmt}$=updating states after exchange; $T$=total time-to-completion.} \athotanote{we need to find better names/symbols}
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=synchronisation time; $T_EX$=time to make a pairwise exchange; $T_find$=time to find/lock a partner; $T_{file}$=time to write/transfer files; $T_{state}$=time to update states after exchange; $T$=total time-to-completion.} 
 	\label{table:repex_perf}
 \end{table}
 
@@ -1018,14 +1018,14 @@ transitioning to \texttt{done} state adds up to $44.8\,s$.
 %   difficult to understand. REMEMBER: Short simple (ie non compound)
 %   sentences}. \athotanote{i think its slightly better now..}
 
-$T_{X}$ comprises of three sub-components: $T_f$, $T_{ex}$ and
-$T_{mgmt}$. In this scenario $T_{f}=0$\,s due to the fact that there
+$T_{EX}$ comprises of three sub-components: $T_{find}$, $T_{file}$ and
+$T_{state}$. In this scenario $T_{find}=0$\,s due to the fact that there
 is fixed pairing. The updating and stage-out of the configuration
 files, is observed to be approximately $0.2\,s$ per replica and thus,
-$T_{ex} = 0.4\,s$ per replica pair (the transfer of the input files is
+$T_{file} = 0.4\,s$ per replica pair (the transfer of the input files is
 done sequentially). 
-$T_{mgmt}$ is the time required by the RE-Manager to post job
-description to the advert server. On average $T_{mgmt}$ amounts to
+$T_{state}$ is the time required by the RE-Manager to post job
+description to the advert server. On average $T_{state}$ amounts to
 $0.1$\,s per replica, i.\,e.\ $0.2$\,s per replica pair.
 Thus $T_{X}$ is: $0+0.4+0.2=0.6$ s. 
 
@@ -1096,18 +1096,18 @@ A fundamental difference between synchronous and asynchronous
 formulations of RE is in the synchronisation barrier for the replicas
 before exchanges, i.e., the former has a barrier, the latter does not.
 So although, $T_W = 0$ for asynchronous formulations, this comes at
-the cost of a higher $T_f$, the lack of a synchronisation barrier
+the cost of a higher $T_{find}$, the lack of a synchronisation barrier
 leads to a more involved implementation to dynamically pair replicas.
 
 In the asynchronous (decentralised) RE, the replicas are managed
 individually by replica-agents. The replica-agent constantly monitors
-all replicas. If it finds a replica that completed its run, it updates
+its replica. If it finds the replica has completed its run, it updates
 its state in the advert server, which takes $0.1\,s$.  The
 replica-agent retrieves the energy and temperature from the output
 files, each of which takes $0.2\,s$. It then posts both these values
 to the advert server.  The waiting times to retrieve these values is
-thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_mgmt = 0.7\,s$.  Note that
-here $T_mgmt$ involves pre-exchange management at the replica-agent and not the 
+thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_{find} = 0.7\,s$.  Note that
+here $T_{find}$ involves pre-exchange management at the replica-agent and not the 
 BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
 
 % \alnote{\textbf{Old Paragraph - please check whether I put the important points into
@@ -1151,7 +1151,7 @@ BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s
 % Each query requires $0.1\,s$,
 
 
-$T_{X}$ is primarily determined by $T_f$, i.\,e.\ the time necessary
+$T_{EX}$ is primarily determined by $T_{find}$, i.\,e.\ the time necessary
 to lock an exchange partner.  When searching for a replica randomly,
 %\alnote{does randomly also apply to case II?}
 on average it takes $N_R \over 2$ attempts to find a replica that is
@@ -1167,8 +1167,8 @@ random or sequential. Empirical observation suggests there are between 2 and 4
 find and reverify attempts before an exchange is attempted.  But in
 general, replicas contend with each other to lock a partner for
 exchange; this gets worse with increasing numbers of replicas, i.e.,
-$T_f$ increases with increasing $N_R$.  Specifically, for the random
-access case, we find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$
+$T_{find}$ increases with increasing $N_R$.  Specifically, for the random
+access case, we find $T_{find}$ is $2 \times N_R \times 0.1$ (where $0.1$
 is the typical time to set/get a value to/from the advert server).
 % \alnote{Should we argue with $\frac{N_R}{2}$*4 (in worst case) as
 %   previously described or is this too complex?}
@@ -1179,13 +1179,13 @@ is the typical time to set/get a value to/from the advert server).
 % that $T_f$ is $0.1\times64=6.4\,s$.
 The process of exchanging the
 states and temperatures via the advert server and writing a new
-configuration file takes, $T_{ex} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
+configuration file takes, $T_{file} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
 % even in the other scenario, where the replica in question is not the
 % initiator of the exchange, it has to wait for the other replica to set
 % its state as complete, so that it can restart).
-$T_{mgmt}$ is the time it takes to update the state in the advert
-server, which is $0.2\,s$+$0.7\,s$ = 0.9\,s.  Thus, $T_{X}$ is $6.4+0.6 +0.9=
-7.2\,s$.  It should be noted that $T_{X}$ is highly dependent on
+$T_{state}$ is the time it takes to update the state in the advert
+server, which is $0.2\,s$+$0.7\,s$ = 0.9\,s.  Thus, $T_{EX}$ is $6.4+0.6 +0.9=
+7.2\,s$.  It should be noted that $T_{EX}$ is highly dependent on
 the actual implementation. While the current implementation is kept
 simple on purpose, this value can be improved in a more sophisticated 
 implementation.
@@ -1300,15 +1300,15 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 1
 As in the decentralised case, the asynchronous centralised RE
 algorithm does not require synchronisation between {\it all} replicas
 in order to transition a replica-pair from \texttt{run\-ning} to
-\texttt{done} state and $T_s = 0$ by definition. Using a centralised
-implementation the time to find an exchange partner ($T_f$) can be
+\texttt{done} state and $T_W = 0$ by definition. Using a centralised
+implementation the time to find an exchange partner ($T_{find}$) can be
 reduced; however, this comes at a tradeoff that there is some
 contention at the master. Also, we observed some delays at the BigJob
 agents during the startup of the replicas sub-jobs mainly due to the
 fact that the BigJob-Agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
 time-to-submit a replica-pair to the BigJob-Manager, 
-i.\,e.\ two replica sub-jobs, is in the asynchronous (decentralised) case 
+i.\,e.\ two replica sub-jobs, is in the asynchronous (centralised) case 
 in average 1.1\,s. This is 0.5\,s longer than in cases
 without contentions at the BigJob-Agent -- in these cases the submission
 of two sub-jobs requires only 0.6\,s.
@@ -1353,12 +1353,12 @@ of two sub-jobs requires only 0.6\,s.
 %   replica view is correct. What is a reasonable $\eta$
 %   (resp. $\eta_{MD}$ and $\eta_{mgmt}$) for async RE?}
 
-In contrast to the synchronous case, $T_X$ for the asynchronous
-centralised case has a $T_f$ component since replica pairs are
-dynamically determined and not fixed. $T_f$ depends on the overall
+In contrast to the synchronous case, $T_{EX}$ for the asynchronous
+centralised case has a $T_{find}$ component since replica pairs are
+dynamically determined and not fixed. $T_{find}$ depends on the overall
 number of replicas ($N_R$), which determines the number of records the
 RE-Manager has to scan in order to find an available replica. On
-average the RE-Manager must search through $N_R/2$ replicas before it
+average the RE-Manager must search through $\frac{N_R}{2}$ replicas before it
 finds a partner. Although the search for a replica is random like the
 decentralised implementation, there is no need for reverifying, as due
 to centralised control there is no contention in replica pairing,
@@ -1368,9 +1368,9 @@ place at a time.  An advert query for a replica state takes
 implementation where there was a connection to the advert server for
 every replica-agent; here there is a single connection. For 32
 replicas, the RE-Manager requests on average 16 other replica states
-before it finds a partner; thus, $T_f$ is in total
-$0.01\times16=0.2\,s$. Both $T_{ex}$ and $T_{mgmt}$ are same as in the
-synchronous case, i.\,e.\ $T_{X}$ is thus: $0.2+0.4+0.2=0.8\,s$.
+before it finds a partner; thus, $T_{find}$ is in total
+$0.01\times16+1.1=1.3\,s$. Both $T_{file}$ and $T_{state}$ are same as in the
+synchronous case, i.\,e.\ $T_{EX}$ is thus: $1.3+0.4+0.2=1.9\,s$.
 
 % \alnote{\textbf{Abhinav: Could you improve the description of this paragraph, please? In particular
 % I don't really get the last sentence. Is this the worst or average case? Ok,
@@ -1439,7 +1439,7 @@ exchanging pairs is 1 due to the fact that exchanges are sequentially
 carried out by the RE-Manager.  Substituting the above values in
 equation ~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0.8 + 1.1)\times 128]} = {1 \over p} \times 811~s.
+T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0 + 1.9)\times 128]} = {1 \over p} \times 811~s.
 \label{eq:cent}
 \end{eqnarray}
 
