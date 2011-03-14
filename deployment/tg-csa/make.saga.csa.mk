@@ -338,17 +338,17 @@ $(SAGA_PYTHON_CHECK):
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) | tee configure.log
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Found .* yes' configure.log || ( \
-    export PYTHON_LOCATION=$(CSA_LOCATION)/external/python/2.7.1/gcc-$(CC_VERSION)/ \
-    export LD_LIBRARY_PATH=$(PYTHON_LOCATION)/lib:$(LD_LIBRARY_PATH) \
-    cd $(CSA_LOCATION)/external/ \
-    $(WGET) $(SAGA_PYTHON_PSRC) \
-    tar jxvf Python-2.7.1.tar.bz2 \
-    cd Python-2.7.1 \
-    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) \
-    make \
-    make install \
-    cd $(SRCDIR)/saga-bindings-python-0.9.0/ \
-	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) \
+    export PYTHON_LOCATION=$(CSA_LOCATION)/external/python/2.7.1/gcc-$(CC_VERSION)/ ; \
+    export LD_LIBRARY_PATH=$(PYTHON_LOCATION)/lib:$(LD_LIBRARY_PATH) ; \
+    cd $(CSA_LOCATION)/external/ ; \
+    $(WGET) $(SAGA_PYTHON_PSRC) ; \
+    tar jxvf Python-2.7.1.tar.bz2 ; \
+    cd Python-2.7.1 ; \
+    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) ; \
+    make ; \
+    make install ; \
+    cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; \
+	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) ; \
   )
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make clean && make && make install
 
