@@ -144,16 +144,16 @@ SVNLOC   = $(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/
 
 $(SVN):
 	@echo "svn                       installing"
-	# cd $(CSA_LOCATION)/src/                   && $(WGET) $(SVN_SRC)
-	# cd $(CSA_LOCATION)/src/                   && tar zxvf subversion-1.6.16.tgz
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && ./configure --prefix=$(SVNLOC)
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make && make install
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && ./configure --prefix=$(SVNLOC) --with-apr=../apr
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make && make install
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make && make install
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	# cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make && make install
+	cd $(CSA_LOCATION)/src/                   && $(WGET) $(SVN_SRC)
+	cd $(CSA_LOCATION)/src/                   && tar zxvf subversion-1.6.16.tgz
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && ./configure --prefix=$(SVNLOC)
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && ./configure --prefix=$(SVNLOC) --with-apr=../apr
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC)
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make install
