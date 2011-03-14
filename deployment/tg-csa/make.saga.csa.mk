@@ -54,7 +54,8 @@ $(warning version: $(CC_VERSION))
 #
 SED        = sed
 ENV        = env
-WGET       = wget
+WGET       = wget --no-check-certificate
+
 
 SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/bin/svn')
 SVNCO      = $(SVN) co
