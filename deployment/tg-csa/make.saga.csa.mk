@@ -152,13 +152,13 @@ $(SVN):
 	cd $(CSA_LOCATION)/src/                   && $(WGET) $(SVN_SRC)
 	cd $(CSA_LOCATION)/src/                   && tar zxvf subversion-1.6.16.tgz
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && ./configure --prefix=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make clean && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && ./configure --prefix=$(SVNLOC) --with-apr=../apr
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make clean && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make clean && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make clean && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC)
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make install
@@ -231,7 +231,7 @@ $(SAGA_CHECK):
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d saga-core-trunk && $(SVNUP) saga-core-trunk
 	@cd $(SRCDIR) ; test -d saga-core-trunk || $(SVNCO) $(SAGA_SRC)
-	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make && make install
+	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
 
 ########################################################################
 #
@@ -251,7 +251,7 @@ $(SA_X509_CHECK):
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP) saga-adaptor-x509-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk || $(SVNCO) $(SA_X509_SRC)
-	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make && make install
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
@@ -267,7 +267,7 @@ $(SA_GLOBUS_CHECK):
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP) saga-adaptor-globus-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk || $(SVNCO) $(SA_GLOBUS_SRC)
-	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make && make install
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
@@ -283,7 +283,7 @@ $(SA_SSH_CHECK):
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP) saga-adaptor-ssh-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk || $(SVNCO) $(SA_SSH_SRC)
-	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make && make install
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
@@ -299,7 +299,7 @@ $(SA_AWS_CHECK):
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP) saga-adaptor-aws-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk || $(SVNCO) $(SA_AWS_SRC)
-	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make && make install
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
@@ -315,7 +315,7 @@ $(SA_BES_CHECK):
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP) saga-adaptor-ogf-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk || $(SVNCO) $(SA_BES_SRC)
-	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make && make install
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
@@ -349,7 +349,7 @@ $(SAGA_PYTHON_CHECK):
     cd $(SRCDIR)/saga-bindings-python-0.9.0/ \
 	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) \
   )
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make && make install
+	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make clean && make && make install
 
 
 ########################################################################
@@ -367,7 +367,7 @@ $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP) saga-client-mandelbrot
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC)
-	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make && make install
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make clean && make && make install
 
 
 ########################################################################
