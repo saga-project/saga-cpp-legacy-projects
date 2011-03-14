@@ -230,7 +230,7 @@ saga-core:: base $(SAGA_CHECK)
 
 $(SAGA_CHECK):
 	@echo "saga-core                 installing"
-	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION)
+	-@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION)
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)
 	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
 
@@ -250,7 +250,7 @@ saga-adaptor-x509:: base $(SA_X509_CHECK)
 
 $(SA_X509_CHECK):
 	@echo "saga-adaptor-x509         installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP) saga-adaptor-x509-trunk
+	-@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP) saga-adaptor-x509-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk || $(SVNCO) $(SA_X509_SRC)
 	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
@@ -266,7 +266,7 @@ saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
 
 $(SA_GLOBUS_CHECK):
 	@echo "saga-adaptor-globus       installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP) saga-adaptor-globus-trunk
+	-@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP) saga-adaptor-globus-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk || $(SVNCO) $(SA_GLOBUS_SRC)
 	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
@@ -282,7 +282,7 @@ saga-adaptor-ssh:: base $(SA_SSH_CHECK)
 
 $(SA_SSH_CHECK):
 	@echo "saga-adaptor-ssh          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP) saga-adaptor-ssh-trunk
+	-@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP) saga-adaptor-ssh-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk || $(SVNCO) $(SA_SSH_SRC)
 	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
@@ -298,7 +298,7 @@ saga-adaptor-aws:: base $(SA_AWS_CHECK)
 
 $(SA_AWS_CHECK):
 	@echo "saga-adaptor-aws          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP) saga-adaptor-aws-trunk
+	-@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP) saga-adaptor-aws-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk || $(SVNCO) $(SA_AWS_SRC)
 	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
@@ -314,7 +314,7 @@ saga-adaptor-bes:: base $(SA_BES_CHECK)
 
 $(SA_BES_CHECK):
 	@echo "saga-adaptor-bes          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP) saga-adaptor-ogf-trunk
+	-@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP) saga-adaptor-ogf-trunk
 	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk || $(SVNCO) $(SA_BES_SRC)
 	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
@@ -334,7 +334,7 @@ saga-bindings-python:: base $(SAGA_PYTHON_CHECK)
 
 $(SAGA_PYTHON_CHECK):
 	@echo "saga-bindings-python      installing"
-	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0
+	-@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) | tee configure.log
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Found .* yes' configure.log || ( \
@@ -366,7 +366,7 @@ saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
 
 $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-mandelbrot    installing"
-	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP) saga-client-mandelbrot
+	-@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP) saga-client-mandelbrot
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC)
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make clean && make && make install
 
