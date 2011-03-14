@@ -230,8 +230,8 @@ saga-core:: base $(SAGA_CHECK)
 
 $(SAGA_CHECK):
 	@echo "saga-core                 installing"
-	@cd $(SRCDIR) ; test -d saga-core-trunk && $(SVNUP) saga-core-trunk
-	@cd $(SRCDIR) ; test -d saga-core-trunk || $(SVNCO) $(SAGA_SRC)
+	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION)
+	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)
 	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
 
 ########################################################################
