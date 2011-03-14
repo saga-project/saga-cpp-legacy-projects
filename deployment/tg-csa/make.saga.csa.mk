@@ -27,12 +27,14 @@ EXTDIR         = $(CSA_LOCATION)/external/
 HOSTNAME       = $(shell hostname)
 HOSTNAME_SHORT = $(shell hostname)
 
+
 ########################################################################
 #
 # compiler to be used for *everything*
 #
 CC         = gcc
 CXX        = g++
+
 
 ########################################################################
 # 
@@ -46,7 +48,6 @@ CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
 $(warning version: $(CC_VERSION))
 
 
-
 ########################################################################
 #
 # basic tools
@@ -57,6 +58,7 @@ WGET       = wget
 
 SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/bin/svn')
 SVNCO      = $(SVN) co
+
 
 ########################################################################
 #
@@ -84,6 +86,7 @@ saga-bindings:: saga-bindings-python
 
 .PHONY: saga-clients
 saga-clients::  saga-client-mandelbrot
+
 
 ########################################################################
 #
@@ -325,7 +328,6 @@ $(SA_BES_CHECK):
 	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; make install
 
 
-
 ########################################################################
 #
 # python bindings
@@ -378,6 +380,7 @@ $(SC_MANDELBROT_CHECK):
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) make install
 
+
 ########################################################################
 #
 # readme
@@ -399,5 +402,4 @@ $(CSA_README_CHECK):
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;' $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'     $(CSA_README_CHECK)
 	
-
 
