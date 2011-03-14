@@ -45,7 +45,8 @@ CXX        = g++
 # via gcc compiler macros:
 #
 CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
-$(warning version: $(CC_VERSION))
+$(info make info: gcc  version: $(CC_VERSION))
+$(info make info: saga version: $(SAGA_VERSION))
 
 
 ########################################################################
