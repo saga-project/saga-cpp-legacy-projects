@@ -228,7 +228,7 @@ SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LDLIBPATH)
 ifeq "$(SAGA_VERSION)" "trunk"
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/trunk/  saga-core-trunk
 else
-  SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-$(SAGA_VERSION)/
+  SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-$(SAGA_VERSION)
 endif
 
 .PHONY: saga-core
@@ -239,7 +239,7 @@ $(SAGA_CHECK):
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION) ; true
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)
-	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
+	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) CPPFLAGS="-D__NR_eventfd=323" ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
 
 ########################################################################
 #
