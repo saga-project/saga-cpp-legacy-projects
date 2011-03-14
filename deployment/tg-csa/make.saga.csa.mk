@@ -136,19 +136,17 @@ $(BOOST_CHECK):
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
-                               --prefix=$(BOOST_LOCATION)
-	@cd $(SRCDIR)/boost_1_44_0 ; ./bjam
-	@cd $(SRCDIR)/boost_1_44_0 ; ./bjam install
+                               --prefix=$(BOOST_LOCATION) && ./bjam && ./bjam install
 
 
 ########################################################################
 #
 # svn
 #
-# alas, some systems come without svn client (grummerlgrummelkrakengrummel)
-# So, we install it locally.  The way to fetch svn sources is, unbeleavably, to
-# use svn checkout.  Brrr...  So, we rather fetch a prepacked version from
-# cyder.
+# alas, some systems come without svn client, so we install it locally.  
+# The way to fetch svn sources is, unbeleavably, to use svn checkout.  
+# Brrr...  So, we rather fetch a prepacked version from cyder.
+#
 .PHONY: svn
 svn: $(SVN)
 
@@ -167,9 +165,7 @@ $(SVN):
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make clean && make && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make clean && make && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC) && make && make install
 
 
 ########################################################################
@@ -186,9 +182,7 @@ $(POSTGRESQL_CHECK):
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
 	@cd $(SRCDIR) ; tar jxvf postgresql-9.0.2.tar.bz2
-	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline
-	@cd $(SRCDIR)/postgresql-9.0.2/ ; make
-	@cd $(SRCDIR)/postgresql-9.0.2/ ; make install
+	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline && make && make install
 
 
 ########################################################################
@@ -205,9 +199,7 @@ $(SQLITE3_CHECK):
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
-	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION)
-	@cd $(SRCDIR)/sqlite-3.6.13/ ; make
-	@cd $(SRCDIR)/sqlite-3.6.13/ ; make install
+	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION) && make && make install
 
 
 ########################################################################
@@ -351,9 +343,7 @@ $(SAGA_PYTHON_CHECK):
     $(WGET) $(SAGA_PYTHON_PSRC) ; \
     tar jxvf Python-2.7.1.tar.bz2 ; \
     cd Python-2.7.1 ; \
-    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) ; \
-    make ; \
-    make install ; \
+    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) && make && make install ; \
     cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; \
 	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) ; \
   )
