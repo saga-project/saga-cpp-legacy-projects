@@ -27,7 +27,7 @@ import logging
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
 
-class bigjob():
+class bigjob(object):
     
     def __init__(self, database_host):        
         self.database_host = database_host
