@@ -155,7 +155,7 @@ class bigjob(object):
 
                     
                     
-class subjob():
+class subjob(object):
     
     def __init__(self, database_host):
         """Constructor"""
