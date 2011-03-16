@@ -136,29 +136,29 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 % Do we need to shorten it to 12? space-saving? Or is it sufficient
 % to do it with the camera-ready version?}
 
-\athotanote{unaddressed comments from the reviewers:  1. The paper would be improved if the work were better motivated by an example application near the start of the paper (for example, the MD simulation that is used later in the paper). 2. There needs to be an explanation of why the temperature needs to be exchanged between replicas and what the role of the Metropolis algorithm is.
-3. It would be useful for the authors to compare the replica exchange application,
-as disussed here, with the general class of "parameter sweep" application --
-where some synchronisation may also be required.
-4. The time calculation in equation 2.2 needs further elaboration. Parameters
-such as T-ex, T-mgmt are not clear. For instance, the mention of an
-"advert-server" is surely an implementation detail? (corrected) In particular, the authors
-should comment on whether such a simple linear combination is an effective
-representation of reality -- given that many of these operations are being
-performed over a distributed environment.
-5. What is the "Metropolis scheme" -- give reference or explain.
+
+\athotanote{addressed: corrected graph: from no. replicas to no. machines.
+8. It seems that even in the decentralized
+case, the advert service is still centralized? Are there issues of latency
+when accessing the advert service or keeping it consistent?
+9. When multiple replicas are concurrently searching for a partner to exchange with it is not clear how this is done safely. Even with reverification non-deterministic behavior could still arise if care is not taken.
+7. In section 3b(ii) -- what is "MD"? - we explain this earlier as molecular dynamics in parenthesis.. should we do that again? - fixed
 6. The advert service (in section 3(a)) needs further discussion. What is an
 advert in this context. Also how is a key/value pair generated. What does it
 mean in this context. Is this similar to a DHT in a peer-2-peer system? In
 particular, the authors should explain how a job is described -- and
 subsequently matched.
-7. In section 3b(ii) -- what is "MD"? - we explain this earlier as molecular dynamics in parenthesis.. should we do that again?
-8. It seems that even in the decentralized
-case, the advert service is still centralized? Are there issues of latency
-when accessing the advert service or keeping it consistent?
-9. When multiple replicas are concurrently searching for a partner to exchange with it is not clear how this is done safely. Even with reverification non-deterministic behavior could still arise if care is not taken.} non deterministic behavior is not possible because of a single advert server but incorrect behavior is possible. we need to discuss this.
-
-\athotanote{addressed: corrected graph: from no. replicas to no. machines.
+4. The time calculation in equation 2.2 needs further elaboration. Parameters
+such as T-ex, T-mgmt are not clear. For instance, the mention of an
+"advert-server" is surely an implementation detail? (corrected) In particular, the authors
+should comment on whether such a simple linear combination is an effective
+representation of reality -- given that many of these operations are being
+performed over a distributed environment. - addressed in section 2(a)
+3. It would be useful for the authors to compare the replica exchange application,
+as disussed here, with the general class of "parameter sweep" application --
+where some synchronisation may also be required. - addressed in section 2(b)
+2. There needs to be an explanation of why the temperature needs to be exchanged between replicas and what the role of the Metropolis algorithm is. 5. What is the "Metropolis scheme" -- give reference or explain.- we reference metropolis in section 2. 
+1. The paper would be improved if the work were better motivated by an example application near the start of the paper (for example, the MD simulation that is used later in the paper) - in introduction.
 1) Don't use symbols to refer to "Section" - write it out as text.
 2) Try to avoid using the word "utilize" and derivatives thereof. The word "use" can almost always be used instead.
 3) Introduction, line 1, change to "Replica-Exchange (RE)......methods represent a class of algorithms..."
@@ -224,6 +224,10 @@ concurrently that supports different
 exchange coordination mechanisms (synchronous versus asynchronous),
 and thereby different variants of the RE algorithm.  
 
+\athotanote{we already mention the next sentence in section 4.}The physical
+system that we use as benchmark is the Hepatitis-C Virus that was
+examined in Ref.~\cite{Luckow:2008fp}. The problem and our motivation is similar as before. \athotanote{check if this ok}
+
 % , if using multiple
 % distributed resources, they require prior co-scheduling (Manos et
 % al. 2008)
@@ -281,7 +285,7 @@ that there is an infrequent exchange between pairs of
 replicas; in addition to the frequency of communication between the
 replicas being low (relative to within a single replica), the amount
 of information/data exchanged between replicas is small (relative to
-the operating data-set size).
+the operating data-set size). The size of the data exchanged after each run is in bytes, where as the operating data-set size is approximately 20 megabytes. \athotanote{should i add anything else?}
 
 % \alnote{We should give a number for $\eta$ for sync
 %   RE}\athotanote{wouldn't that be implementation dependent?}
@@ -300,7 +304,7 @@ the operating data-set size).
 \label{sec:math-model}
 In this subsection we develop a mathematical model that captures
 the primary components that make up the total runtime of a RE
-experiment. In an ideal scenario, the total time-to-completion an
+experiment. In an ideal scenario, the total time-to-completion of an
 experiment would be equal to the concurrent runtime of the ensemble of
 replicas and there would be no overhead associated with the
 coordination of the replicas.  If the ensemble contains $N_R$
@@ -315,7 +319,7 @@ T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}})
 where $p$ is defined as the probability of a successful exchange (the
 probability of a successful exchange is not 1, the decision to accept
 an exchange or not is made using the Metropolis
-scheme~\citep{metropolis:1087}). However, any RE experiment will
+scheme~\citep{metropolis:1087}). After the exchange, the replicas are restarted with the new temperatures. \athotanote{reviewers asked to explain metropolis, its role, why temperature needs to be exchanged and/or provide reference. is the explanation we give here sufficient?}  However, any RE experiment will
 entail an overhead of coordination, job-submission and termination
 etc. Thus, the time $T$ to complete the RE experiment where N$_X$ is
 the total number of exchanges is:
@@ -329,7 +333,7 @@ where, $T_{EX}$ is the time to perform a {\it pairwise} exchange and
 includes the following components, (i) time to find a partner ($T_{find}$),
 (ii) time to exchange/write/transfer files ($T_{file}$) as well as (iii)
 managing state (e.g., in a central database) and bookkeeping
-associated with replica pairing/exchanging ($T_{state}$) (thus $T_{X} =
+associated with replica pairing/exchanging ($T_{state}$) (thus $T_{EX} =
 T_{find} + T_{file}+T_{state}$); $T_W$ is comprised of the synchronisation
 time spent by a replica waiting for other replicas to complete running
 %($T_s$), the time spent waiting to be restarted after each exchange
@@ -343,6 +347,7 @@ implementation % Not suprisingly, the
 of the different RE algorithms. Finally, $\eta$ is the number of
 independent exchange events occurring concurrently; for $N_R$
 replicas, this is typically $\frac{N_R}{2}$. %$N_R \over 2$.
+In an distributed scenario, $T_{MD}$ might be different on different machines and therefore, $T_W$ could be effected. Also, depending on the physical location and other network related aspects, $T_{EX}$ could also be effected. \athotanote{is this ok or should i add anything else?}
 
 % It is worth
 % noting that depending upon the case in consideration, there might be
@@ -371,7 +376,7 @@ For the synchronous RE formulation, all replicas must reach a
 pre-determined state (\texttt{done}), before exchanges are performed.
 $T_W$ includes the time waiting for all the replicas in the ensemble
 to reach this state, the time spent waiting before the replicas are
-restarted after each exchange and any other miscellaneous costs.
+restarted after each exchange and any other miscellaneous costs. In contrast to parameter-sweep applications, RE is not scatter-gather in nature. There is synchronization involved in RE, but not in scatter-gather applications. \athotanote{please verify preceding statement}
 
 A major limitation of this model is that replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
@@ -449,6 +454,7 @@ Additionally, our framework {\it natively} supports individual
 replicas that are MPI jobs. In this section we outline the
 architecture, implementation and the basic performance of the RE
 framework when used to implement the different formulations.
+The source-code is available here ~\cite{}. \athotanote{need to create citation or give url here?}
 
 % In following subsections we
 % introduce the different components in the RE Framework.
@@ -475,7 +481,9 @@ framework when used to implement the different formulations.
 \begin{figure}[t]
       \centering
           \includegraphics[scale=0.45]{../figures/Bigjob_arch.pdf}
-          \caption{\footnotesize SAGA/BigJob Architecture
+          \caption{\footnotesize RE-Manager and SAGA BigJob Manager framework: The BigJob-Agent is used
+as place-holder job for all replica sub-jobs under a big-job. The RE-Manager controls
+both the BigJob-Agent and the replica jobs using the SAGA BigJob Manager.
               }
       \label{fig:bigjob}
 \end{figure}
@@ -501,9 +509,10 @@ Figure ~\ref{fig:bigjob} shows the architecture of SAGA BigJob.  It
 consists of three components: (i) the BigJob-Manager, (ii) the
 BigJob-Agent and (iii) the advert service which is a central key/value
 store used for communication between the BigJob-Manager
-and the BigJob-Agent.  The BigJob-Manager submits the big-jobs to
-the resource manager and sub-job descriptions to the advert server.
-There is a separate BigJob-Agent for each big-job, even if there are
+and the BigJob-Agent. Here each application can store the endpoint contact URL as an advert, and another
+application which wants to connect to the first one may obtain this information
+from the advert service. \athotanote{check sentence} The key-value pairs are initially generated by the BigJob-Manager and once the big-job becomes active, the BigJob-Agent continuously updates the values. The advert service is different from a distributed-hash table in that it is a centralised system. The BigJob-Manager submits the big-jobs to the resource manager and sub-job descriptions to the advert server.
+There is a separate BigJob-Agent for each big-job, if there are
 multiple big-jobs on a given machine.  Once a big-job becomes active,
 the BigJob-Agent retrieves the job descriptions from the advert
 server, allocates the required number of nodes and launches the
@@ -561,8 +570,8 @@ functionally similar to the SAGA BigJob-Manager.
 
 \begin{figure}%
 \centering
-\subfigure[Central]{\includegraphics[width=0.35\textwidth]{../figures/central_AL.pdf}}\qquad
-\subfigure[Decentral]{\includegraphics[width=0.35\textwidth]{../figures/decentral_AL.pdf}}\\
+\subfigure[Centralised]{\includegraphics[width=0.35\textwidth]{../figures/central_AL.pdf}}\qquad
+\subfigure[Decentralised]{\includegraphics[width=0.35\textwidth]{../figures/decentral_AL.pdf}}\\
 \caption{\textbf{Centralised vs. Decentralised Coordination:} Both
   central coordination style is used both by the synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
   the master is only required for initially setting up all
@@ -648,7 +657,7 @@ exchange attempts.  The replica-agents upon launch, run the replicas;
 %  general description of what is happening here} 
 % \alnote{refined} \jhanote{Thanks Andre. Should have been clear, it was
 %   for Abhinav to understand. Sorry you had to do it}
-a list of nodes that is used to carry out the MD run is passed to the
+a list of nodes that is used to carry out the MD (molecular dynamics) run is passed to the
 replica-agent as an argument at startup.  The replica-agent constantly
 monitors the replica, and when the replica finishes, it updates the
 advert server with the current state of that replica.  It also reads
@@ -730,6 +739,8 @@ replicas. The replica-agent that initiated the exchange increments the
 exchange count. The RE-Manager constantly queries the advert server
 for the latest exchange count and when all exchanges have been made,
 it stops the experiment.
+
+It should be noted that even in the decentralised implementation, the advert service is still centralised. Only the decision-making and replica-management is decentralised. We did not observe any increase in latency when accessing the advert server with respect to increasing number of connections. But the communicationtime do vary depending on the physical distribution. Also, maintaining data consistency is not an issue because it is a centralised system. Two write actions cannot be carried out simultaneously on a single value. It should also be noted that the exchanges are non-deterministic in nature because the replicas available for exchange are found in a random order and then the Metropolis scheme~\citep{metropolis:1087} is used to match the replicas. 
 
 
 
@@ -927,17 +938,17 @@ the results. We will discuss each case in the following sections.
 	\hline\hline
 	$T_{EX}$        &0.6\,s &7.9\,s &1.9\,s\\
 	\hline
-	\hspace{2mm}$T_{find}$        &0\,s   &6.4\,s &1.3\,s\\
+	\hspace{2mm}$T_{find}$        &0\,s   &7.1\,s &1.3\,s\\
 	\hline
 	\hspace{2mm}$T_{file}$       &0.4\,s &0.6\,s &0.4\,s\\
 	\hline
-    \hspace{2mm}$T_{state}$    &0.2\,s &0.9\,s  &0.2\,s\\
+    \hspace{2mm}$T_{state}$    &0.2\,s &0.2\,s  &0.2\,s\\
 	\hline
 	\hline
 	$\mathbf{T}$        &\textbf{1003\,s} &\textbf{631\,s}    &\textbf{811\,s}\\
 	\hline
     \end{tabular}
-    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=synchronisation time; $T_EX$=time to make a pairwise exchange; $T_find$=time to find/lock a partner; $T_{file}$=time to write/transfer files; $T_{state}$=time to update states after exchange; $T$=total time-to-completion.} 
+    \caption{Average values of terms in Eqn~\ref{eq:totaltime} for the three RE algorithms. $T_{MD}$=time replica takes to complete 500 timesteps; $T_W$=synchronisation time; $T_{EX}$=time to make a pairwise exchange; $T_{find}$=time to find/lock a partner; $T_{file}$=time to write/transfer files; $T_{state}$=time to update states after exchange; $T$=total time-to-completion.} 
 	\label{table:repex_perf}
 \end{table}
 
@@ -1106,7 +1117,7 @@ its state in the advert server, which takes $0.1\,s$.  The
 replica-agent retrieves the energy and temperature from the output
 files, each of which takes $0.2\,s$. It then posts both these values
 to the advert server.  The waiting times to retrieve these values is
-thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so $T_{find} = 0.7\,s$.  Note that
+thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so part of $T_{find}$ is $0.7\,s$.  Note that
 here $T_{find}$ involves pre-exchange management at the replica-agent and not the 
 BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
 
@@ -1169,7 +1180,7 @@ general, replicas contend with each other to lock a partner for
 exchange; this gets worse with increasing numbers of replicas, i.e.,
 $T_{find}$ increases with increasing $N_R$.  Specifically, for the random
 access case, we find $T_{find}$ is $2 \times N_R \times 0.1$ (where $0.1$
-is the typical time to set/get a value to/from the advert server).
+is the typical time to set/get a value to/from the advert server), that is $6.4+0.7=7.1\,s.$
 % \alnote{Should we argue with $\frac{N_R}{2}$*4 (in worst case) as
 %   previously described or is this too complex?}
 % On average the replica-agent must scan
@@ -1184,8 +1195,8 @@ configuration file takes, $T_{file} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
 % initiator of the exchange, it has to wait for the other replica to set
 % its state as complete, so that it can restart).
 $T_{state}$ is the time it takes to update the state in the advert
-server, which is $0.2\,s$+$0.7\,s$ = 0.9\,s.  Thus, $T_{EX}$ is $6.4+0.6 +0.9=
-7.2\,s$.  It should be noted that $T_{EX}$ is highly dependent on
+server, which is $0.2\,s$.  Thus, $T_{EX}$ is $7.1+0.6 +0.2=
+7.9\,s$.  It should be noted that $T_{EX}$ is highly dependent on
 the actual implementation. While the current implementation is kept
 simple on purpose, this value can be improved in a more sophisticated 
 implementation.
@@ -1623,58 +1634,13 @@ In addition to the above explicable changes arising from different
 coordination costs, as $N_R$ increases different nodes of a machine
 tend to perform differently, thus influencing the time-to-completion
 of different replicas, but not always monotonically.  % Consequently,
-As $N_R$ increases, the the time to start and synchronise replicas
+As $N_R$ increases, the time to start and synchronise replicas
 typically increases.
 
 % When searching serially, we observed that the replica-agent
 % finds a partner after looping over the all the replicas between 2 and
 % 2.5 times. 
 %makes between 1 and 1.5 times $N_R$ calls to find a partner.
-
-%
-%%%%% FIGURE %%%%%
-\begin{figure}%
-\centering
-\includegraphics[scale=0.35]{../data/sync_scaleout.pdf}\qquad
-\caption{\textbf{synchronous.}\alnote{Please insert proper caption}}
-\label{fig:scaleout}
-\end{figure}
-
-\begin{figure}%
-\centering
-\includegraphics[scale=0.35]{../data/decent_scaleout.pdf}\qquad
-\caption{\textbf{asynchronous - decentralised.} \alnote{Please insert proper caption}}
-\label{fig:scaleout}
-\end{figure}
-
-
-\begin{figure}%
-\centering
-%\subfigure[8 replicas]{
-\includegraphics[scale=0.35]{../data/cent_scaleout.pdf}\qquad
-%\subfigure[16 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_16.pdf}}\\
-%\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
-\caption{\textbf{Scale-out performance for 8, 16 and 32 replicas, asynchronous (centralised):} 
-  As the number of machines increases, the time-to-completion increases in general mainly
-  due to higher exchange costs ($T_{X}$) caused by e.\,g.\  remote file copies and remote advert
-  service updates.}
-%   \alnote{Can we increase the linewidth and order the entries in the legend in the same order
-%   as the lines from top to down?} \athotanote{reordered the legend. could not increase linewidth.. tried a few things but did not work}
-\label{fig:scaleout}
-
-% \alnote{16 or 32 replicas? Why is the centralised async performing
-%   better for 8 replicas and a small number of machines? We should
-%   consider showing only the 32 replica scenario. bar chart instead of
-%   lines? opinions?}  \alnote{Could you check the figures again. They
-%   look very pixelated. Further I would propose to just have numbers on
-%   the x-axis und not 1Machine, 2Machines,.... If otherwise, please use
-%   a space between 1 and machine.} \jhanote{the labels have to be made
-%   larger. Currently can't be read}
-
-\end{figure}
-
-
-
 
 \subsection{Scale out}
 \alnote{Please reference figures in text.}
@@ -1694,27 +1660,63 @@ submission to the resource manager are considered and included in the
 results. This is to remove the queue wait time from the equation and
 focus on the runtime. Each experiment is repeated 5 times.
 
+%
+%%%%% FIGURE %%%%%
+\begin{figure}%
+\centering
+\includegraphics[scale=0.35]{../data/sync_scaleout.pdf}\qquad
+\caption{\textbf{Scale-out performance for 8, 16 and 32 replicas, synchronous:} As the number of machines increases, the time-to-completion increases in general mainly  due to higher exchange costs ($T_{EX}$) caused by e.\,g.\  remote file copies and additional synchronisation costs.}
+\label{fig:scaleout_sync}
+\end{figure}
 
 \subsubsection{Scale out - Synchronous}
 \alnote{Please use our model from sec 2}
-{\it Results:} The time to completion increases moderately from 
-1 machine to 2 and 4 machines. The increase in time to completion 
-can be caused by three factors: (a) increased synchronization costs, 
+{\it Results:} The results are shown in the graph~\ref{fig:scaleout_sync}. We see that as we go from 1 to 2 and 4 machines, the time to completion increases. The difference in performance that we see as we go from 1 to 2 and 4 machines could be caused by: (a) increased synchronisation costs, 
 (b) additional time taken for remote file staging, and (c) higher communication 
 costs to contact the advert server. But the machines we used are similar 
-in nature and the NAMD runtimes are almost close to each other. Therefore, 
-that can be ruled out. Also we do not observe any difference in the 
-communication times with the advert server. Therefore, the only factor 
-effecting the $T$ is the additional time to stage the configuration files. 
-The data supports this observation.
+in nature and the NAMD runtimes are almost close to each other. But still, the NAMD runtimes are not constant and vary slightly from one to another. We do not observe any difference in the 
+communication times with the advert server. Therefore, the factors
+effecting the $T$ is the additional time to stage the configuration files and the slight overhead added to the synchronisation cost.
+
+To copy the configuration file locally it takes 0.009 seconds and to a remote machine it takes 0.379 seconds, approximately. The difference in time is 0.37 seconds. In the graph~\ref{fig:scaleout_sync}, going in the 8 replica case, going from 1 machine to 2 machines, the $T$ changes from 608 to 623 seconds. In the 2 machine case, the RE Manager would have to stage 4 configuration files remotely every exchange step. That would be $4 \times 8 = 32$ times in the whole simulation. That is an additional $32 \times 0.37 = 12$ seconds. And, 608+12= 620 seconds. This holds for 16 and 32 replica cases. 
+
+\begin{figure}%
+\centering
+\includegraphics[scale=0.35]{../data/decent_scaleout.pdf}\qquad
+\caption{\textbf{Scale-out performance for 8, 16 and 32 replicas, asynchronous (decentralised):} As the number of machines increases, the time-to-completion remains constant as there are no remote file copies or synchronisation costs.} \alnote{Please insert proper caption}
+\label{fig:scaleout_dec}
+\end{figure}
 
 
 \subsubsection{Scale out - Asynchronous (decentralised)}
 \alnote{This is a very short analysis. I think the decentralised algorithm and thus, less synchronisation
 should also play an important role?}
-{\it Results:} The time to completion almost stays constant from 1 machine to 2 and 4 machines. 
-There is no remote file staging involved in this implementation and as mentioned earlier, 
-we do not observe any difference in the communications times with the advert server. 
+{\it Results:} The results are shown in the graph~\ref{fig:scaleout_dec}. We see in the graph that as we go from 1 to 2 and 4 machines, we do not observe a perceptible change in the time to completion.
+The time to completion almost stays constant from 1 machine to 2 and 4 machines. We believe that this is due to the fact that there is no remote file staging involved in this implementation. The fact that this is the asynchronous RE algorithm and a decentralised implementation also play a role. There is no synchronisation involved in this implementation. 
+
+\begin{figure}%
+\centering
+%\subfigure[8 replicas]{
+\includegraphics[scale=0.35]{../data/cent_scaleout.pdf}\qquad
+%\subfigure[16 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_16.pdf}}\\
+%\subfigure[32 replicas]{\includegraphics[width=0.47\textwidth]{../data/scaleout_32.pdf}}
+\caption{\textbf{Scale-out performance for 8, 16 and 32 replicas, asynchronous (centralised):} 
+  As the number of machines increases, the time-to-completion increases in general mainly
+  due to higher exchange costs ($T_{EX}$) caused by e.\,g.\  remote file copies.}
+%   \alnote{Can we increase the linewidth and order the entries in the legend in the same order
+%   as the lines from top to down?} \athotanote{reordered the legend. could not increase linewidth.. tried a few things but did not work}
+\label{fig:scaleout_cent}
+
+% \alnote{16 or 32 replicas? Why is the centralised async performing
+%   better for 8 replicas and a small number of machines? We should
+%   consider showing only the 32 replica scenario. bar chart instead of
+%   lines? opinions?}  \alnote{Could you check the figures again. They
+%   look very pixelated. Further I would propose to just have numbers on
+%   the x-axis und not 1Machine, 2Machines,.... If otherwise, please use
+%   a space between 1 and machine.} \jhanote{the labels have to be made
+%   larger. Currently can't be read}
+
+\end{figure}
 
 
 \subsubsection{Scale out - Asynchronous (centralised)}
@@ -1752,18 +1754,17 @@ we do not observe any difference in the communications times with the advert ser
 % scale-up analysis.}\jhanote{Please check and refine as you deem fit}
 % \alnote{Sounds good for the data we have.}
 {\it Results:} The results obtained are shown in
-Figure~\ref{fig:scaleout}.  The time-to-completion $T$ increases
+Figure~\ref{fig:scaleout_cent}.  The time-to-completion $T$ increases
 moderately or remains constant with higher number of machines, which
 indicates that the scale-out behaviour is quite good.  As discussed in
 section~\ref{sec:re_impl}, the asynchronous (centralised) RE algorithm
-does not involve any synchronisation cost ($T_s$). 
+does not involve any synchronisation cost ($T_W$). 
 Thus, the loose coordination between replicas at the exchange stage helps to 
 provide the flexibility to use multiple resources, which would not be possible if
 there was tighter coordination between replicas at the exchange stage.
-The main contributor of the small increase is $T_X$ are the higher
-costs for remote file transfers and remote advert updates;
-fluctuations in remote operations also account for the somewhat higher
-variations in the $T$.
+The main contributor of the small increase is $T_EX$ are the higher
+costs for remote file transfers; fluctuations in remote operations also account for the somewhat higher
+variations in the $T$. We observe in the graph that the increase in $T$ from 1 to 2 and 2 to 4 machines is not always consistent. But the inconsistencies are in order of seconds and almost always within the error bars. 
 
 % When $N_R$ is between 8 and 32 and number of BigJobs ($N_{BJ}$ is 4.
 
@@ -1840,7 +1841,7 @@ for multiple replicas.
 % \alnote{should we be here slightly more concrete and how BJ can help
 % here?}
 
-Results shown in figures~\ref{fig:scaleup} and~\ref{fig:scaleout}
+Results shown in figures~\ref{fig:scaleup} and~\ref{fig:scaleout_cent}
 indicate that using algorithmic formulations that impose less tight
 coordination constraints enables both good scale-up and scale-out
 behaviour.  Algorithms based on asynchronous coordination are
