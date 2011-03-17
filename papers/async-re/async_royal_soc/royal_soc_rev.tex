@@ -1503,8 +1503,8 @@ As a consequence of the ratio of the number of attempted exchanges to
 of replicas being a constant, the $T_{MD}$ term across the different
 values of $N_R$ is essentially the same; hence comparison between
 different cases will reveal differences in the coordination cost ($T_W
-~and~T_X$).  Thus, as $N_R$ increases, the variation in $T$ is due to
-the coordination component -- terms $T_X$ and $T_W$ in
+~and~T_{EX}$).  Thus, as $N_R$ increases, the variation in $T$ is due to
+the coordination component -- terms $T_{EX}$ and $T_W$ in
 Equation~\ref{eq:totaltime}.  The increase, however, is not uniform
 across the three implementations: it is largest for
 synchronous RE, and the least for asynchronous (decentralised) RE.  We
@@ -1514,7 +1514,7 @@ behaviour of the three cases.
  
 In the synchronous RE algorithm, there is an explicit synchronisation
 of all replicas; thus early replicas wait for other replicas to
-finish. As can be seen from Table~\ref{table:repex_perf}, $T_s$ is a
+finish. As can be seen from Table~\ref{table:repex_perf}, $T_W$ is a
 major component of the $T$.  As $N_R$ increases, the number of
 exchanges at a given exchange step increases; consequently the total
 coordination time at each exchange step increases.  For a value of
@@ -1579,17 +1579,17 @@ data in Figure~\ref{fig:scaleup}.
 % For the random access case,\alnote{I think in sec 4 we only talk about
 %   the random case now} 
 
-For the decentralised implementation, $T_f$ has a strong $N_R$
-dependence. We find $T_f$ is $2 \times N_R \times 0.1$ (where $0.1$ is
+For the decentralised implementation, $T_{find}$ has a strong $N_R$
+dependence. We find $T_{find}$ is $2 \times N_R \times 0.1$ (where $0.1$ is
 the typical time to set/get a value to/from the advert server).  For
 example, in Equation~\ref{eq:decent} we see that for 64 replicas,
-$T_f$ is approximately $2 \times 64 \times 0.1 = 12.8$ s.  Thus the
-difference in $T_X$ when $N_R$ is 64 versus 32 is 51.2s, which
+$T_{find}$ is approximately $2 \times 64 \times 0.1 = 12.8$ s.  Thus the
+difference in $T_{EX}$ when $N_R$ is 64 versus 32 is 51.2s, which
 accounts for the bulk of the increase in overall $T$ when $N_R$
 changes from 32 to 64. % The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
 %   difference in T here please again}.\athotanote{done}
 The variation in $T$ for other values of $N_R$ can be
-accounted for by changing values of $T_f$.
+accounted for by changing values of $T_{find}$.
 
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
@@ -1597,13 +1597,13 @@ accounted for by changing values of $T_f$.
 %  \alnote{Next two sentences: How much does this really impact the
 %    decentralised case?  Also, we defined $T_s$ as 0}
 
-In contrast to the decentralised implementation, $T_f$ in the
+In contrast to the decentralised implementation, $T_{find}$ in the
 asynchronous centralised case is only weakly dependent on $N_R$; however,
 since the RE-Manager makes the exchanges serially, we still see an
 increase in the time-to-completion with increasing $N_R$. % Using
 % Equation~\ref{eq:cent} for 32 replicas as a basis:
 For $N_R =$ 64 and $N_X$ 256, using Equation~\ref{eq:cent} leads to a
-new coordination ($T_W + T_X$) time of $(0.8+1.1) \times 256 =
+new coordination ($T_W + T_{EX}$) time of $(0.8+1.1) \times 256 =
 486.4\,s$, up from $243.2$ for $N_R = 32$. This change accounts for a
 large component of the difference in $T$ as $N_R$ goes from 32
 replicas to 64 replicas, as shown in Figure~\ref{fig:scaleup}. The
@@ -1807,6 +1807,10 @@ variations in the $T$. We observe in the graph that the increase in $T$ from 1 t
 %\athotanote{Further, we show performance gains by running across more than one machine. By running across more than one machine, we demonstrate the ability to divide the jobs into smaller sub-jobs and then distribute them across a number of machines, thereby reducing the risk of long queue wait times on an over-crowded resource. In Figure~\ref{fig:graph}, it can be seen that the asynchronous RE time to completion improves almost by a factor of 3 when moving from one machine to four machines. This was caused due to the fact that when the experiment was done on one machine, by the time the experiment ended, only 64 cores were allocated by the resource manager. But on the other hand, when the experiment was launched across four machines, it received an allocation of 64 cores on each of the four resources. The improvement that is seen in the case of synchronous RE from one to four machines is also due to a similar reason.} %The asynchronous RE appears faster by a couple of minutes due to the fact that when the BigJobs become available randomly, the synchronous RE has to wait for the newly running replicas to finish.
 
 %slightly over 2 machines, but again increases over 4 machines. This is due to the fact that the experiments have been run only a handful of times but, over time, it can be assumed that it will result in reduced queue wait times.
+
+\subsection{Comparison of Scale-Up and Scale-Out Results}
+In the preceding sections we have presented the scale-up and scale-out results of the different implementations. We would now like to compare the scale-up and scale-out results. Let us first consider the synchronous RE case with 32 replicas. The reader might have noticed that while it takes 1008 seconds to complete the experiment with 1 big-job in the scale-up case, it takes 931 seconds to complete the experiment on 1 machines with 4 big-jobs. The reason for this is the difference in the ratio of replicas per BigJob-Agent in the two cases. In the first case, there is one BigJob-Agent for 32 replicas, where as in the second case there are four BigJob-Agents for 32 replicas. Since the BigJob-Agent plays a major role in the management of the replicas, the number of BigJob-Agents effects the performance. This is true for  the centralised implementations more than the decentralised implementation. We do see an improvement in the decentralised implementation too, as the BigJob-Agents are used to start the replica-agents at the beginning of the experiment. For example, in the asynchronous (centralised) case with 32 replicas, it takes 816 seconds to complete the experiment with 1 BigJob-Agent and 638 seconds to complete the experiment with 4 BigJob-Agents on 1 machine. 
+The improvement in performance is the most pronounced in the asynchronous (centralised) RE. There is a performance improvement in the other two cases as well, but since the BigJob-Agent is not used after the start-up of replica-agents in the decetralised implementation and  due to increased synchronisation costs in the synchronous RE, the improvement in performance in subdued. 
 
 \section{Conclusion}
 \label{sec:conclusion}
