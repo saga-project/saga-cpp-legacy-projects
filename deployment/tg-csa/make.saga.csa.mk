@@ -209,13 +209,14 @@ $(SQLITE3_CHECK):
 SAGA_LOCATION = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/gcc-$(CC_VERSION)/
 SAGA_CHECK    = $(SAGA_LOCATION)/include/saga/saga.hpp
 
-SAGA_LDLIBPATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib
+SAGA_LDLIBPATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib:$(LD_LIBRARY_PATH)
 
 SAGA_ENV     += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV     += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV     += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
 SAGA_ENV     += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
 SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LDLIBPATH)
+SAGA_ENV     += CPPFLAGS="-D__NR_eventfd=323"
 
 ifeq "$(SAGA_VERSION)" "trunk"
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/trunk/  saga-core-trunk
@@ -231,7 +232,7 @@ $(SAGA_CHECK):
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION) ; true
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)
-	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) CPPFLAGS="-D__NR_eventfd=323" ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
+	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
 
 ########################################################################
 #
