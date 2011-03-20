@@ -41,9 +41,9 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 \author[Thota, Luckow, Jha]{
   Abhinav Thota$^{1,2}$, Andr\'e Luckow$^{1}$ and Shantenu Jha$^{1,2,3}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, Baton Rouge, LA 70803, USA}}\\
-  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
-      University, Baton Rouge, LA 70803, USA}}\\
-  \small{\emph{$^{3}$e-Science Institute, Edinburgh EH8 9AA, UK}}\\
+%  \small{\emph{$^{2}$Department of Computer Science, Louisiana State
+%      University, Baton Rouge, LA 70803, USA}}\\
+%  \small{\emph{$^{3}$e-Science Institute, Edinburgh EH8 9AA, UK}}\\
 }
 
 %\date{}
@@ -609,8 +609,8 @@ to be restarted. % \alnote{see comment about BJ
 % SAGA BigJob Manager don't have any responsibilities.
  
 
-Figure~\ref{fig:coordination}(b) shows the asynchronous
-(decentralised) RE control-flow.  In the decentralised
+Figure~\ref{fig:coordination}(b) shows % the asynchronous
+decentralised RE control-flow.  In the decentralised
 implementation, in order to conduct the exchanges the RE-Manager
 launches multiple replica-agents (in lieu of replicas directly).
 Replica-agents then take control of replica start/re-start and
@@ -619,7 +619,7 @@ exchange attempts.  The replica-agents upon launch, run the replicas;
 %  general description of what is happening here} 
 % \alnote{refined} \jhanote{Thanks Andre. Should have been clear, it was
 %   for Abhinav to understand. Sorry you had to do it}
-a list of nodes that is used to carry out the MD (molecular dynamics) run is passed to the
+a list of nodes that is used to carry out the MD run is passed to the
 replica-agent as an argument at startup.  The replica-agent constantly
 monitors the replica, and when the replica finishes, it updates the
 advert server with the current state of that replica.  It also reads
@@ -629,21 +629,25 @@ keeping track and count of the number of exchanges performed; when the
 desired number of exchanges are done, the RE-Manager ends the
 experiment.
 
-A replica can be in one of the these four states: (i)
-\texttt{running}, (ii) \texttt{done}, (iii) \texttt{pending} (for an
-exchange) and (iv) \texttt{complete} (exchange has been completed).
+A replica can be in one of the these four states: in addition to
+states (i) \texttt{running}, (ii) \texttt{done}, which were found in
+the centralised case, there are also (iii) \texttt{pending} (for an
+exchange) and (iv) \texttt{complete} (exchange has been completed) states.
 When a replica reaches a pre-determined state it (the replica-agent
 acts as the proxy for the replica) transitions from \texttt{running}
 to \texttt{done}. It initiates the search for a partner, and scans the
 list of replicas randomly, so as to avoid contention if multiple
 replicas have initiated a search for a partner.  If a replica finds
 another replica available, it reverifies that their states as still in
-\texttt{done} state; if both are still in \texttt{done} state, the exchange
-can proceed and their states are set as \texttt{pending}.  When {\it
-  reverifying} the state of the replicas, if the state of the
+\texttt{done} state; if both are still in \texttt{done} state, the
+exchange can proceed and their states are set as \texttt{pending}.
+When {\it reverifying} the state of the replicas, if the state of the
 initiating replica has already been changed (to \texttt{pending}), the
 current exchange attempt is aborted; if not, the exchange attempt
 proceeds.
+
+\jhanote{This is a way of addressing ``distributed coordination
+  and control. Need to mention}
 
 % , and waits for its state to
 % be set to \texttt{complete} by the other replica (the initiating replica now).
@@ -664,18 +668,24 @@ exchange count. The RE-Manager constantly queries the advert server
 for the latest exchange count and when all exchanges have been made,
 it stops the experiment.
 
-\alnote{paragraph needs attention}
-It should be noted that even in the decentralised implementation, the advert 
-service is still centralised. Only the decision-making and replica-management 
-is decentralised. We did not observe any increase in latency when accessing 
-the advert service with respect to increasing number of connections. 
-\alnote{we did observe a severe slowdown!!} \athotanote{at first I though it was due to the large number of connections. but it was actually because in the decentralised case each replica has a different directory. so, changing the directory and retrieving the states was taking longer.} But the 
-communication times do vary depending on the physical distribution. Also, 
-maintaining data consistency is not an issue because it is a centralised system. 
-Two write actions cannot be carried out simultaneously on a single value. 
-It should also be noted that the exchanges are non-deterministic in nature 
-because the replicas available for exchange are found in a random order 
-and then the Metropolis scheme~\citep{metropolis:1087} is used to match the replicas. 
+\alnote{paragraph needs attention} It should be noted that even in the
+decentralised implementation, the advert service is still
+centralised. Only the decision-making and replica-management is
+decentralised. We did not observe any increase in latency when
+accessing the advert service with respect to increasing number of
+connections.  \alnote{we did observe a severe slowdown!!}
+\athotanote{at first I though it was due to the large number of
+  connections. but it was actually because in the decentralised case
+  each replica has a different directory. so, changing the directory
+  and retrieving the states was taking longer.} But the communication
+times do vary depending on the physical distribution. Also,
+maintaining data consistency is not an issue because it is a
+centralised system.  \jhanote{What is ``it''?}Two write actions cannot
+be carried out simultaneously on a single value.  It should also be
+noted that the exchanges are non-deterministic in nature because the
+replicas available for exchange are found in a random order and then
+the Metropolis scheme~\citep{metropolis:1087} is used to match the
+replicas.
 
 % The search for an exchange partner is conducted in a random
 % manner when the number of replicas in the ensemble is large, so as to
@@ -1396,13 +1406,15 @@ T=  {1 \over p} \times {[ {(71\times {128\over 16}}) + (0 + 1.9)\times 128]} = {
 \section{Scale-Up and Scale-Out: Experiments and
   Results}\label{sec:performance}
 
-To evaluate the scaling properties of the different RE implementations, we conducted several experiments on TG and LONI
-resources. We initially increased the number of replicas on a single machine (``scale-up"); then for the
-asynchronous-centralised case, for a given number of replicas, we
-varied the number of distributed machines used (``scale-out''). In
-this section we outline the experiments conducted. Results of these
-experiments establish the advantages of asynchronous formulations for
-both scaling-up and scaling-out.
+To evaluate the scaling properties of the different RE
+implementations, we conducted several experiments on TG and LONI
+resources. We initially increased the number of replicas on a single
+machine (``scale-up"); then for the asynchronous-centralised case, for
+a given number of replicas, we varied the number of distributed
+machines used (``scale-out''). In this section we outline the
+experiments conducted. Results of these experiments establish the
+advantages of asynchronous formulations for both scaling-up and
+scaling-out.
 
 % \alnote{Should we reference the model used? Not sure which model it is
 %   Hepatitis or HIV?}
@@ -1414,11 +1426,13 @@ both scaling-up and scaling-out.
 \includegraphics[width=0.8\textwidth]{../data/scale_up.pdf}
 \caption{\small \textbf{Scale-Up Performance for 8 to 256 Replicas:}
   The graph shows the runtimes for the different RE implementations.
-  The ratio between the number of exchanges and number of replicas is kept constant. Each replica is assigned 16 processors and run 500 timesteps. 
-  The asynchronous decentralised RE implementation shows the best
-  scaling behaviour. Both centralised RE versions scale less well
-  mainly due to the limitations of the single master, which becomes a
-  bottleneck.}%\athotanote{there is a graph with log scale in svn, if needed.} 
+  The ratio between the number of exchanges and number of replicas is
+  kept constant. Each replica is assigned 16 processors and run 500
+  timesteps.  The asynchronous decentralised RE implementation shows
+  the best scaling behaviour. Both centralised RE versions scale less
+  well mainly due to the limitations of the single master, which
+  becomes a
+  bottleneck.}%\athotanote{there is a graph with log scale in svn, if needed.}
 \label{fig:scaleup}
 \vspace{-1em}
 \end{figure}
@@ -1443,12 +1457,14 @@ processors. Experiments up to 64 replicas are performed on {\it
 \emph{Ranger}; this is because \emph{QueenBee} only allocates a
 maximum of 2048 processors per job request and getting a 2048 processor allocation involved extremely large waiting times. We have normalised the data to factor in the difference in performance of {\it Ranger} and {\it QueenBee}.
 
-The reasoning behind this design of experiments is to understand the behavior 
-of the different implementations as we increase $N_R$. %We believe that  the scale-up properties of  the centralised implementations are easy to understand and predictable. 
-The reason we did experiments with larger $N_R$ is to ascertain the behavior of the different implementations. Now that we have seen the results for 256 replicas, 
-we are confident that we can predict the performance of different 
-implementations for even larger $N_R$. \athotanote{check preceding sentence}
-\alnote{bold claim}
+The reasoning behind this design of experiments is to understand the
+behavior of the different implementations as we increase
+$N_R$. %We believe that the scale-up properties of the centralised implementations are easy to understand and predictable.
+The reason we did experiments with larger $N_R$ is to ascertain the
+behavior of the different implementations. Now that we have seen the
+results for 256 replicas, we are confident that we can predict the
+performance of different implementations for even larger
+$N_R$. \athotanote{check preceding sentence} \alnote{bold claim}
 
 
 %\subsubsection{Scale up performance: Results and Analysis}
