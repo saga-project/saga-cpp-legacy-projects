@@ -833,7 +833,7 @@ implemented.
 In section~\ref{repexfw}, we presented the basic components of the RE
 framework and discussed the control flow for the three RE algorithm
 formulations.  In this section we provide further details of the
-working of the RE framework, as well as a basic characterization of
+working of the RE framework, as well as a basic characterisation of
 the performance of the RE framework for the three RE algorithm
 formulations.
 
@@ -842,13 +842,13 @@ formulations.
 
 For the basic characterisation, the following experimental
 configuration is used: (i) Infrastructure: Our experiments are
-performed on LONI and Teragrid shared resource \emph{QueenBee (QB)}. A
+performed on LONI and the Teragrid shared resource \emph{QueenBee (QB)}. A
 highly scalable, parallel MD code -- NAMD~\citep{Phillips:2005gd}, is
 used to perform the MD simulations for each replica (although, it
 is important to mention that any other MD or Monte Carlo code could be
 used just as simply and effectively with the RE framework).  (ii)
 Replica-Exchange Configuration: The total number of replicas ($N_R$)
-in the ensemble are 32 and the total number of pairwise exchanges
+in the ensemble is 32 and the total number of pairwise exchanges
 ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
 pairwise exchanges are possible after each concurrent run. Thus, each
 replica on average is restarted 7 times.  Each replica is configured
@@ -869,11 +869,10 @@ examined in Ref.~\cite{Luckow:2008fp}.
 % total time the ensemble of replicas spend running is $71 \times 8 =
 % 568$ s.
 
-The different RE algorithms were repeated multiple ($\approx$ 10)
-times, during different load factors; therefore specific queue wait
-times can be approximated to be similar.  Additionally, as we will
-%eventually be primarily 
-be interested in understanding the scale-up and scale-out properties
+Each run was repeated multiple times  ($\approx$ 10), during different 
+loads; \alnote{don't understand last part of sentence} therefore specific 
+queue wait  times can be approximated to be similar.  Additionally, as we 
+are interested in understanding the scale-up and scale-out properties
 of synchronous and asynchronous RE, we do not consider queueing times.
 As explained in section~\ref{sec:repex-approach} (\ref{sec:math-model}),
 the relative performance of RE implementations is primarily determined
@@ -939,11 +938,17 @@ the results. We will discuss the different RE implementations in the following s
 %   in the $T_W$ formula below. The reader will not know what to do with
 %   the 0.6 sec!}  For a pair of replicas, it is 0.6 s.
 
+\alnote{Not sure how. But if we have time we should find a way
+to explain better why the post-processing times determines
+$T_W$.}
 In the synchronous RE implementation replicas are started
 sequentially, i.\,e.\ there is a delay between the startup of the
 first and the last replica. Also, the post-processing of each replica
 run, i.\,e.\ updating the state, marking nodes free, the stage-out of
-the output file, is done sequentially. Post-processing of the ensemble of replicas takes longer than the delay between the start-up of first and last replicas. Thus, post-processing determines the overall time spent waiting ($T_W$) for other replicas.
+the output file, is done sequentially. Post-processing of the ensemble 
+of replicas takes longer than the delay between the start-up of first 
+and last replicas. Thus, post-processing determines the overall time 
+spent waiting ($T_W$) for other replicas.
 In this case the post-processing time is the larger, and on average,
 it takes $1.4\,s$
 %for the % BigJob agent
@@ -1002,20 +1007,21 @@ transitioning to \texttt{done} state adds up to $44.8\,s$.
 %   sentences}. \athotanote{i think its slightly better now..}
 
 $T_{EX}$ comprises of three sub-components: $T_{find}$, $T_{file}$ and
-$T_{state}$. In this scenario $T_{find}=0$\,s due to the fact that there
-is fixed pairing. The updating and stage-out of the configuration
-files, is observed to be approximately $0.2\,s$ per replica and thus,
-$T_{file} = 0.4\,s$ per replica pair (the transfer of the input files is
+$T_{state}$. In this scenario $T_{find}$ is $0$\,s due to the fact that there
+is a fixed pairing. The updating and stage-out of the configuration
+files, is observed to be approximately $0.2$\,s per replica and thus,
+$T_{file}$ is $0.4$\,s per replica pair (the transfer of the input files is
 done sequentially). 
-$T_{state}$ is the time required by the RE-Manager to post job
-description to the advert server. On average $T_{state}$ amounts to
+$T_{state}$ is the time required by the RE-Manager to post a job
+description to the advert service. On average $T_{state}$ amounts to
 $0.1$\,s per replica, i.\,e.\ $0.2$\,s per replica pair.
 Thus, $T_{EX}$ is: $0+0.4+0.2=0.6$\,s. 
 
 %\alnote{moved this from sec b to here (since it also applies heire)}
 Although there are $\frac{N_R}{2}$ concurrent pairs, the exchange 
 at the RE-Manager is carried out sequentially; thus the effective 
-number of concurrently exchanging pairs is 1. Substituting the above values in
+number of concurrently exchanging pairs is 1.\alnote{Not consistent 
+with formula 2.2 where we only define a single $\eta$} Substituting the above values in
 equation~\ref{eq:totaltime}, we get:
 % \alnote{TODO: validate numbers with just one decimal position!}
 \begin{eqnarray}
@@ -1075,21 +1081,22 @@ equation~\ref{eq:totaltime}, we get:
 
 %As in the asynchronous-centralised case the, asynchronous-decentralised implementation does not involve a replica waiting for other replicas to reach a specific state before initiating an exchange. There are other types of holding that contribute to the overall $T$, e.\,g.\ for managing simulation runs, for updating the advert service, etc. Also, queries and updates to the advert service take longer in the decentralised than in the other both case -- mainly due to the higher number of connections and requests. In total, there are three advert updates required: one for updating the state, two for posting the simulation results. Each update requires about $0.1\,s$, i.\,e.\ in sum about $0.5\,s$. Further, about $0.5\,s$ are required for monitoring, restarting replicas as well as processing of output file. Thus, in total $T_{W}$ has a value of $1\,s$ approximately.
 
-A fundamental difference between synchronous and asynchronous
-formulations of RE is in the synchronisation barrier for the replicas
-before exchanges, i.e., the former has a barrier, the latter does not.
+A fundamental difference between the synchronous and asynchronous
+formulation of RE is in the synchronisation barrier for the replicas
+before exchanges, i.\,e., the former has a barrier, the latter does not.
 So although, $T_W = 0$ for asynchronous formulations, this comes at
-the cost of a higher $T_{find}$, the lack of a synchronisation barrier
-leads to a more involved implementation to dynamically pair replicas.
+the cost of a higher $T_{find}$. The lack of a synchronisation barrier
+also leads to a more involved implementation to dynamically pair replicas.
 
 In the asynchronous (decentralised) RE, the replicas are managed
 individually by replica-agents. The replica-agent constantly monitors
 its replica. If it finds the replica has completed its run, it updates
-its state in the advert server, which takes $0.1\,s$.  The
-replica-agent retrieves the energy and temperature from the output
-files, each of which takes $0.2\,s$. It then posts both these values
-to the advert server.  The waiting times to retrieve these values is
-thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so part of $T_{find}$ is $0.7\,s$.  Note that
+its state at the advert service, which takes $0.1\,s$.  The
+replica-agent then retrieves the energy and temperature from the output
+file, each of which takes $0.2\,s$, and posts both these values
+to the advert service.  The waiting time to retrieve these values is
+thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so part of $T_{find}$ is $0.7\,s$. 
+\alnote{What is the other part of $T_{find}$?}  Note that
 here $T_{find}$ involves pre-exchange management at the replica-agent and not the 
 BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
 
