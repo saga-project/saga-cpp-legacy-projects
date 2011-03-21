@@ -143,38 +143,74 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \section{Introduction}
 
-Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods represent
-a class of algorithms that involve a large number of loosely-coupled
-ensembles.  RE simulations are used to understand physical phenomena
--- ranging from protein folding dynamics to binding affinity
-calculations.  The design and development of most RE
-implementations~\citep{Woods:2005nx} is influenced and constrained by
-the programming systems and the infrastructure it is developed within.
-Breaking this coupling between the development and the underlying
-infrastructure, to enable applications to be flexible (across
-infrastructure), extensible (to new methods of communication and
-coordination) and scalable is an important design objective of
-distributed applications -- both logically distributed and physically
-distributed.
+The Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods have
+been used to understand physical phenomena -- ranging from protein
+folding dynamics to binding affinity calculations.  The design and
+development of most RE runtime implementations (Woods et al. 2005) is
+influenced and constrained by the programming systems used, and the
+specific infrastructure developed for. Interoperability across
+infrastructure and extensible functionality are typically not
+first-class considerations. Breaking this coupling between the
+development and the underlying infrastructure, to enable applications
+to be flexible (across infrastructure), extensible (to new methods of
+communication and coordination) and scalable is an important design
+objective of distributed applications -- both logically distributed
+and physically distributed, and distributed execution environments.
 
-Application algorithms that are scalable while being flexible and
-extensible are better suited to using the diverse range of traditional
-and hybrid infrastructure (e.g., grid-cloud and heterogeneous
-resources). Along with application formulations that facilitate the
+Application formulations that are flexible are better suited to using
+the diverse range of traditional and hybrid infrastructure (e.g.,
+grid-cloud and heterogeneous resources) in a scalable manner.  Along
+with application formulations that facilitate the scalable and
 flexible utilisation of a range of infrastructure, it is imperative to
 have the correct runtime abstractions that support flexible deployment
-of these applications.  In support of flexible and scalable
-formulations of the RE class of algorithms, we develop a RE Framework
-that supports multiple formulations, is extensible to a broad range of
-infrastructure and as we shall show scales-up and scales-out.  Our RE
-framework uses a flexible pilot-job implementation (SAGA BigJob) to
-support the execution of the ensembles.  It supports scalable
-implementation of RE that can use a range of infrastructure
-concurrently that supports different exchange coordination mechanisms
+of these applications. This work brings together advances in
+application algorithms along with sophisticated runtime environments
+to support these algorithms. Specifically, in order to support
+flexible and scalable formulations of the RE class of algorithms, we
+develop a RE Framework that supports multiple formulations, is
+extensible to a broad range of infrastructure and as we shall show
+scales-up and scales-out.  Our RE Framework utilises a flexible
+pilot-job implementation (SAGA BigJob) to support the execution of the
+ensembles.  It supports scalable implementation of RE that can utilize
+a range of infrastructure concurrently that supports different
+coordination mechanisms different exchange coordination mechanisms
 (synchronous versus asynchronous), and thereby different variants of
-the RE algorithm. The physical
-system that we use as benchmark is the Hepatitis-C Virus that was
-examined in Ref.~\cite{Luckow:2008fp}. The problem and our motivation are similar as before. %\athotanote{check if this ok}\alnote{we could remove it from sec 4. The paragraph can in my opinion be merged with the one above}\athotanote{we already mention the next sentence in section 4.}
+the RE algorithm. The physical system that we use as benchmark is the
+Hepatitis-C Virus that was examined in Ref.~\cite{Luckow:2008fp}. The
+problem and our motivation are similar as before.
+
+% Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods represent
+% a class of algorithms that involve a large number of loosely-coupled
+% ensembles.  RE simulations are used to understand physical phenomena
+% -- ranging from protein folding dynamics to binding affinity
+% calculations.  The design and development of most RE
+% implementations~\citep{Woods:2005nx} is influenced and constrained by
+% the programming systems and the infrastructure it is developed within.
+% Breaking this coupling between the development and the underlying
+% infrastructure, to enable applications to be flexible (across
+% infrastructure), extensible (to new methods of communication and
+% coordination) and scalable is an important design objective of
+% distributed applications -- both logically distributed and physically
+% distributed.
+
+% Application algorithms that are scalable while being flexible and
+% extensible are better suited to using the diverse range of traditional
+% and hybrid infrastructure (e.g., grid-cloud and heterogeneous
+% resources). Along with application formulations that facilitate the
+% flexible utilisation of a range of infrastructure, it is imperative to
+% have the correct runtime abstractions that support flexible deployment
+% of these applications.  In support of flexible and scalable
+% formulations of the RE class of algorithms, we develop a RE Framework
+% that supports multiple formulations, is extensible to a broad range of
+% infrastructure and as we shall show scales-up and scales-out.  Our RE
+% framework uses a flexible pilot-job implementation (SAGA BigJob) to
+% support the execution of the ensembles.  It supports scalable
+% implementation of RE that can use a range of infrastructure
+% concurrently that supports different exchange coordination mechanisms
+% (synchronous versus asynchronous), and thereby different variants of
+% the RE algorithm.
+
+%\athotanote{check if this ok}\alnote{we could remove it from sec 4. The paragraph can in my opinion be merged with the one above}\athotanote{we already mention the next sentence in section 4.}
 
 % , if using multiple
 % distributed resources, they require prior co-scheduling (Manos et
@@ -297,16 +333,23 @@ etc. Thus, the time to complete the RE production run is:
 \label{eq:totaltime}
 \end{eqnarray}
 where, $T_{EX}$ is the time to perform a {\it pairwise} exchange. It
-includes the following components: (i) the time to find a partner ($T_{find}$),
-(ii) the time to exchange/write/transfer files ($T_{file}$) and (iii) the time 
-to manage state updates  (e.g., in a central database) and conduct bookkeeping
-operations associated with replica pairing/exchanging ($T_{state}$). $T_{state}$ 
-arises due do different reasons -- which may be related to
+includes the following components: (i) the time to find a partner
+($T_{find}$), (ii) the time to exchange/write/transfer files
+($T_{file}$) and (iii) the time to manage state updates (e.g., in a
+central database) and conduct book-keeping operations associated with
+replica pairing/exchanging ($T_{state}$). $T_{state}$ arises due do
+different reasons -- which may be related to
 implementation % Not suprisingly, the
 % management costs also differ for
-of the different RE algorithms; In summary, $T_{EX} = T_{find} + T_{file}+T_{state}$. The
-last component $T_W$ is the synchronisation
-time spent by a replica waiting for other replicas to complete running.
+of the different RE algorithms; In summary, $T_{EX} = T_{find} +
+T_{file}+T_{state}$.  The last component $T_W$ is the waiting time
+spent by a replica waiting to synchronise with other replicas that are
+not ready, e.g., maybe still running.
+
+% The last component $T_W$ is the synchronisation
+% time spent by a replica waiting for other replicas to complete
+% running.
+
 %($T_s$), the time spent waiting to be restarted after each exchange
 %and other associated costs ($T_r$). For example, in the
 %asynchronous-centralised case, $T_r$ arises due to serialisation at
