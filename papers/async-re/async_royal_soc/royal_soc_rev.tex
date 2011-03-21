@@ -479,14 +479,14 @@ and cloud infrastructure~\citep{Luckow:2008fp}.
 
 
 Figure ~\ref{fig:bigjob} shows the architecture of the RE Manager and
-SAGA-BigJob framework. The SAGA-BigJob framework consists of three
-components: (i) the SAGA-BigJob Manager, (ii) the BigJob-Agent and
+SAGA BigJob framework. The SAGA BigJob framework consists of three
+components: (i) the SAGA BigJob Manager, (ii) the BigJob-Agent and
 (iii) the advert service which is a central key/value store used for
-communication between the BigJob-Manager and the BigJob-Agent.
+communication between the SAGA BigJob Manager and the BigJob-Agent.
 
 For each new sub-job -- which is just an individual replica, an advert
 entry storing the description of the sub-job is created by the
-BigJob-Manager. The BigJob-Agent periodically polls for new jobs. If a
+SAGA BigJob Manager. The BigJob-Agent periodically polls for new jobs. If a
 new job is found and resources are available, the job is dispatched,
 otherwise it is queued.  Further, the agent continuously monitors the
 running sub-jobs and updates the sub-job states in the advert
@@ -495,10 +495,10 @@ marked as available.
 
 The various tasks that are carried out using the SAGA APIs include
 file staging, job spawning and conducting the exchange attempts. Here
-we use the BigJob framework to efficiently request and manage
+we use the SAGA BigJob framework to efficiently request and manage
 computational resources for multiple replicas, and enables the use of
 a range of infrastructure.  For example, we can submit multiple
-BigJobs on multiple resources and can start our sub-jobs when any one
+big-jobs on multiple resources and can start our sub-jobs when any one
 of them becomes active.
 
 
@@ -530,7 +530,7 @@ of them becomes active.
 %   AGENT here if not in previous subsection.}  \athotanote{please check if it's ok now}
   
 The RE-Manager is the master process controlling the different
-components: the SAGA-BigJob framework, the individual replicas, and it
+components: the SAGA BigJob framework, the individual replicas, and it
 defines the coordination/exchange mechanism employed.  The actual
 tasks that the RE Manager performs depends not only on the RE
 algorithm employed, but also which coordination mechanism is being
@@ -584,16 +584,16 @@ Figure~\ref{fig:coordination}(a) %\jhanote{Move later: which can be
   %implementations}.  
 A replica can be in one of these three states:
 (i) \texttt{new} (submitted but not started), (ii) \texttt{running}
-and (iii) \texttt{done}.  Once the BigJob(s) is active and replicas
+and (iii) \texttt{done}.  Once the big-job(s) is active and replicas
 are \texttt{running}, the RE-Manager constantly queries the SAGA
-BigJob-Manager for the latest replica states.  When the RE-Manager
+BigJob Manager for the latest replica states.  When the RE-Manager
 finds a replica that has finished running, it collects the energy and
 temperature of that replica by reading the output file. Once
 \emph{all} the replicas have finished running, the RE-Manager performs
 the exchanges by swapping temperatures and writing new configuration
 files. The new configuration files are staged to the appropriate
 location. The RE-Manager then submits the replicas for restarting, and
-the SAGA BigJob-Manager restarts them. The RE-Manager keeps count of
+the SAGA BigJob Manager restarts them. The RE-Manager keeps count of
 the successful exchanges, until the required number of exchanges are
 done.
 
@@ -605,7 +605,7 @@ finds a replica that has finished running, it tries to find a partner
 to make an exchange. In order to find a partner, the RE-Manager goes
 over the list of all the replicas in the ensemble. If it finds a
 replica available it attempts the exchange. If a replica is not found
-available, the RE-Manager queries the SAGA BigJob-Manager for the
+available, the RE-Manager queries the SAGA BigJob Manager for the
 latest replica states and updates its local list. It then loops over
 the list to find a replica that has finished running and a partner to
 exchange with that replica.  If successful, the replicas are submitted
@@ -847,7 +847,7 @@ in the ensemble is 32 and the total number of pairwise exchanges
 ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
 pairwise exchanges are possible after each concurrent run. Thus, each
 replica on average is restarted 7 times.  Each replica is configured
-to run 500 time-steps and is allocated 16 processors. One BigJob of
+to run 500 time-steps and is allocated 16 processors. One big-job of
 size 512 processors is requested. On average each 500 time-step run
 takes $71$ s.  For all implementations, in the event of a
 successful exchange, jobs are restarted~\citep{Luckow:2008fp} with new
@@ -1288,11 +1288,11 @@ in order to transition a replica-pair from \texttt{run\-ning} to
 \texttt{done} state and $T_W = 0$ by definition. Using a centralised
 implementation the time to find an exchange partner ($T_{find}$) can be
 reduced; however, this comes at a tradeoff that there is some
-contention at the master. Also, we observed some delays at the BigJob
-agents during the startup of the replicas sub-jobs mainly due to the
+contention at the master. Also, we observed some delays at the BigJob-
+Agents during the startup of the replicas sub-jobs mainly due to the
 fact that the BigJob-Agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
-time-to-submit a replica-pair to the BigJob-Manager, 
+time-to-submit a replica-pair to the SAGA BigJob Manager, 
 i.\,e.\ two replica sub-jobs, is in the asynchronous (centralised) case 
 in average 1.1\,s. This is 0.5\,s longer than in cases
 without contentions at the BigJob-Agent -- in these cases the submission
@@ -1630,9 +1630,9 @@ used the following TeraGrid and/or LONI resources: \emph{QueenBee,
 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are
 repeated on 1, 2 and 4 machines while distributing equal number of
 replicas on each machine. It is important to note that all
-experiments are conducted using four BigJobs, irrespective of the
-number of machines used because varying the number of BigJobs as well as the
-ratio of replicas per BigJob effects overall performance.  Another
+experiments are conducted using four big-jobs, irrespective of the
+number of machines used because varying the number of big-jobs as well as the
+ratio of replicas per big-job effects overall performance.  Another
 important point to note is that only the experimental runs where all
 the four big-jobs \alnote{when referring to the pilot job, BigJob should be consistently
 spelled as big-job} become active within $30\,s$ of each other on
