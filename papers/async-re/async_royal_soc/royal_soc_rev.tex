@@ -359,10 +359,12 @@ replicas.  As a consequence of pairs being determined before an
 exchange, although $T_{find}$ is $0$, this limits the number of possible
 exchange partners that are available for a given replica. This
 inhibits exchanges between replicas with non-nearest temperatures, and
-ultimately negates the possibility of crosswalks -- where a crosswalk
+ultimately reduces the possibility of crosswalks -- where a crosswalk
 is said to occur when a replica originally with a low temperature
 reaches the upper temperature range and then returns to the lower
-temperature range.
+temperature range~\citep{parashar_arepex}.
+
+%Crosswalks is a measure of mixing between the replicas. In our experiments we found that asynchronous RE algorithm is better suited to produce more crosswalks than the synchronous RE algorithm. For example, in an asynchronous RE experiment, when $N_R$ is 8 and $N_X$ is 32, we saw that all the replicas exchanged with at least 8 other replicas. But in the case of synchronous RE algorithm, 
 
 In addition to limitations in modeling the physics, rigid
 replica-pairing is efficient only in homogeneous environments; for
@@ -436,11 +438,6 @@ Additionally, our framework {\it natively} supports individual
 replicas that are MPI jobs. In this section we outline the
 architecture, implementation and the basic performance of the RE
 framework when used to implement the different formulations.
-
-The source-code for implementing these difference RE algorithms using
-the RE-Framework is available here ~\citep{async-re_url}. \athotanote{need to
-  create citation or give url here?} \jhanote{This needs to be moved
-  to an appropriate place}
 
 % In following subsections we
 % introduce the different components in the RE Framework.
@@ -545,7 +542,7 @@ supported.  The RE-Manager supports two different replica management
 mechanisms: centralised and decentralised. In the former, the
 RE-Manager manages all the replicas and performs the exchanges and in
 the latter, each replica is managed individually by a {\it
-  replica-agent}.
+  replica-agent}. 
 
 %The RE-Manager uses the SAGA BigJob-Manager;
 
@@ -567,8 +564,12 @@ the latter, each replica is managed individually by a {\it
 %   toggle between ``replicas'' and ``jobs''!}  
 
 
-As we will see, we implemented by S, AC using the centralised
-RE-Manager; the decentralised RE-Manager was used to support only AD.
+As we will see, we implemented synchronous and asynchronous RE algorithms using the centralised
+RE-Manager; the decentralised RE-Manager was used to support only the asynchronous RE algorithm.
+The source-code for implementing the different RE algorithms using
+the RE-Framework is available here ~\citep{async-re_url}.  \jhanote{This needs to be moved
+  to an appropriate place}
+
 
 \subsubsection{Centralised RE-Manager}
 
@@ -1827,9 +1828,9 @@ related aspects, $T_{EX}$ could also be effected. }
 
 %slightly over 2 machines, but again increases over 4 machines. This is due to the fact that the experiments have been run only a handful of times but, over time, it can be assumed that it will result in reduced queue wait times.
 
-\subsection{Comparison of Scale-Up and Scale-Out Results}
-In the preceding sections we have presented the scale-up and scale-out results of the different implementations. We would now like to compare the scale-up and scale-out results. Let us first consider the synchronous RE case with 32 replicas. The reader might have noticed that while it takes 1008 seconds to complete the experiment with 1 big-job in the scale-up case, it takes 931 seconds to complete the experiment on 1 machines with 4 big-jobs. The reason for this is the difference in the ratio of replicas per BigJob-Agent in the two cases. In the first case, there is one BigJob-Agent for 32 replicas, where as in the second case there are four BigJob-Agents for 32 replicas. Since the BigJob-Agent plays a major role in the management of the replicas, the number of BigJob-Agents effects the performance. This is true for  the centralised implementations more than the decentralised implementation. We do see an improvement in the decentralised implementation too, as the BigJob-Agents are used to start the replica-agents at the beginning of the experiment. For example, in the asynchronous (centralised) case with 32 replicas, it takes 816 seconds to complete the experiment with 1 BigJob-Agent and 638 seconds to complete the experiment with 4 BigJob-Agents on 1 machine. 
-The improvement in performance is the most pronounced in the asynchronous (centralised) RE. There is a performance improvement in the other two cases as well, but since the BigJob-Agent is not used after the start-up of replica-agents in the decentralised implementation and  due to increased synchronisation costs in the synchronous RE, the improvement in performance in subdued. 
+%\subsection{Comparison of Scale-Up and Scale-Out Results}
+%In the preceding sections we have presented the scale-up and scale-out results of the different implementations. We would now like to compare the scale-up and scale-out results. Let us first consider the synchronous RE case with 32 replicas. The reader might have noticed that while it takes 1008 seconds to complete the experiment with 1 big-job in the scale-up case, it takes 931 seconds to complete the experiment on 1 machines with 4 big-jobs. The reason for this is the difference in the ratio of replicas per BigJob-Agent in the two cases. In the first case, there is one BigJob-Agent for 32 replicas, where as in the second case there are four BigJob-Agents for 32 replicas. Since the BigJob-Agent plays a major role in the management of the replicas, the number of BigJob-Agents effects the performance. This is true for  the centralised implementations more than the decentralised implementation. We do see an improvement in the decentralised implementation too, as the BigJob-Agents are used to start the replica-agents at the beginning of the experiment. For example, in the asynchronous (centralised) case with 32 replicas, it takes 816 seconds to complete the experiment with 1 BigJob-Agent and 638 seconds to complete the experiment with 4 BigJob-Agents on 1 machine. 
+%The improvement in performance is the most pronounced in the asynchronous (centralised) RE. There is a performance improvement in the other two cases as well, but since the BigJob-Agent is not used after the start-up of replica-agents in the decentralised implementation and  due to increased synchronisation costs in the synchronous RE, the improvement in performance in subdued. 
 
 \section{Conclusion}
 \label{sec:conclusion}
