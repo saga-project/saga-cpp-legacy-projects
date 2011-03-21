@@ -267,19 +267,19 @@ runtime of a replica to complete a defined number of time steps is defined to be
 $T_{MD}$, the total time-to-completion of an experiment $T$ would
 be:
 \begin{eqnarray}
-T = {1\over p} \times (T_{MD} \times  {N_X \over \eta}) % {N_R \over 2}}) 
+T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}}) 
 \label{eq:totaltime1}
 \end{eqnarray}
 where $p$ is defined as the probability of a successful exchange (the
 probability of a successful exchange is not 1). The decision to accept
 an exchange or not is made using the Metropolis
-scheme~\citep{metropolis:1087}, which provides a stochastic algorithm to compare energies. \athotanote{please verify}
+scheme~\citep{metropolis:1087}, which provides a stochastic algorithm to compare energies. \athotanote{please verify preceding statement.}
 %The term {$N_R \over 2$} denotes the  number of exchanges that can occur after each run of the ensemble of 
 %replicas. 
 $\eta$ is the number of independent exchange events that can occur 
 concurrently; for $N_R$ replicas, this is typically $\frac{N_R}{2}$,
 i.\,e.\ $N_X \over {N_R \over 2}$ runs are needed to complete 
-$N_X$ exchanges. For example, if $N_R$ 
+$N_X$ exchanges.\athotanote{please note that $\eta$ is not always equal to $N_R \over 2$. for example in the centralised implementations all the exchanges don't occur concurrently. therefore, we cannot replace $N_R \over 2$ in eqn 2.1 and 2.2 with $\eta$. But since the replicas run concurrently for a majority of their runtimes, we multiply $T_{MD}$ with $N_X \over {N_R \over 2}$ }For example, if $N_R$ 
 is 4 and $N_X$ is 16, 2 exchanges are possible after an ensemble run 
 and 8 such runs are required to complete 16 exchanges. 
 After the exchange, the replicas are restarted with the new temperatures. 
@@ -291,7 +291,7 @@ entail some overhead  of job-submission, termination, coordinating the replicas 
 etc. Thus, the time to complete the RE production run is:
 %\alnote{I would propose to write $\frac{N_X}{\eta}$ to have both terms consistent}
 \begin{eqnarray}
-  T = {1\over p} \times [(T_{MD} \times  {N_X \over {\eta}}) +
+  T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2} }) +
   {(T_{EX} + T_{W})} \times {N_X \over \eta}]
 \label{eq:totaltime}
 \end{eqnarray}
@@ -562,9 +562,6 @@ the latter, each replica is managed individually by a {\it
 
 As we will see, we implemented synchronous and asynchronous RE algorithms using the centralised
 RE-Manager; the decentralised RE-Manager was used to support only the asynchronous RE algorithm.
-The source-code for implementing the different RE algorithms using
-the RE-Framework is available here ~\citep{async-re_url}.  \jhanote{This needs to be moved
-  to an appropriate place}
 
 
 \subsubsection{Centralised RE-Manager}
@@ -665,7 +662,7 @@ initiating replica has already been changed (to \texttt{pending}), the
 current exchange attempt is aborted; if not, the exchange attempt
 proceeds. The states that a replica can be in are different in centralised and decentralised implementations. In the centralised implementation, there is no \texttt{complete} state and in the decentralised implementation there is no \texttt{new} state. There is no \texttt{new} state in the decentralised implementation because the replica-agent starts running only after the processors become available and the replica is started. The additional states in the decentralised implementation are needed to address the distributed coordination and control of the exchange process.
 \jhanote{This is a way of addressing ``distributed coordination
-  and control.'' Need to mention}
+  and control.'' Need to mention} \athotanote{check sentence}
 
 % , and waits for its state to
 % be set to \texttt{complete} by the other replica (the initiating replica now).
@@ -828,8 +825,8 @@ implemented.
 In section~\ref{repexfw}, we presented the basic components of the RE
 framework and discussed the control flow for the three RE algorithm
 formulations.  In this section we provide further details of the
-working of the RE framework, as well as a basic characterisation of
-the performance of the RE framework for the three RE algorithm
+working of the RE Framework, as well as a basic characterisation of
+the performance of the RE Framework for the three RE algorithm
 formulations.
 
 % Further, we analyse the primary components
@@ -841,7 +838,7 @@ performed on LONI and the Teragrid shared resource \emph{QueenBee (QB)}. A
 highly scalable, parallel MD code -- NAMD~\citep{Phillips:2005gd}, is
 used to perform the MD simulations for each replica (although, it
 is important to mention that any other MD or Monte Carlo code could be
-used just as simply and effectively with the RE framework).  (ii)
+used just as simply and effectively with the RE Framework).  (ii)
 Replica-Exchange Configuration: The total number of replicas ($N_R$)
 in the ensemble is 32 and the total number of pairwise exchanges
 ($N_X$) is 128. As the ensemble of replicas are run concurrently, 16
@@ -864,17 +861,18 @@ examined in Ref.~\cite{Luckow:2008fp}.
 % total time the ensemble of replicas spend running is $71 \times 8 =
 % 568$ s.
 
-Each run was repeated multiple times  ($\approx$ 10), during different 
-loads; \alnote{don't understand last part of sentence} therefore specific 
-queue wait  times can be approximated to be similar.  Additionally, as we 
-are interested in understanding the scale-up and scale-out properties
-of synchronous and asynchronous RE, we do not consider queueing times.
+Each production run was repeated multiple times  ($\approx$ 10) %during different loads;
+ \alnote{don't understand last part of sentence}  \athotanote{fixed} and the start time of each run is measured only after the big-job becomes active.  As we  are only interested in understanding the scale-up and scale-out properties
+of synchronous and asynchronous RE, we do not consider queue wait-times.
 As explained in section~\ref{sec:repex-approach} (\ref{sec:math-model}),
 the relative performance of RE implementations is primarily determined
 by the waiting time $T_W$ and the time for conducting the exchange
 $T_{EX}$. In the following we analyse the average values for $T_{W}$ and
 $T_{EX}$ for each replica pair.  Table~\ref{table:repex_perf} summarizes
 the results. We will discuss the different RE implementations in the following sections.
+The source-code for implementing the different RE algorithms using
+the RE Framework is available here ~\citep{async-re_url}.  \athotanote{is the placement okay?}%\jhanote{This needs to be moved  to an appropriate place}
+
 
 
 
@@ -1016,7 +1014,7 @@ Thus, $T_{EX}$ is: $0+0.4+0.2=0.6$\,s.
 Although there are $\frac{N_R}{2}$ concurrent pairs, the exchange 
 at the RE-Manager is carried out sequentially; thus the effective 
 number of concurrently exchanging pairs is 1.\alnote{Not consistent 
-with formula 2.2 where we only define a single $\eta$} Substituting the above values in
+with formula 2.2 where we only define a single $\eta$} \athotanote{fixed in section2} Substituting the above values in
 equation~\ref{eq:totaltime}, we get:
 % \alnote{TODO: validate numbers with just one decimal position!}
 \begin{eqnarray}
@@ -1091,7 +1089,7 @@ replica-agent then retrieves the energy and temperature from the output
 file, each of which takes $0.2\,s$, and posts both these values
 to the advert service.  The waiting time to retrieve these values is
 thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so part of $T_{find}$ is $0.7\,s$. 
-\alnote{What is the other part of $T_{find}$?}  Note that
+\alnote{What is the other part of $T_{find}$?} \athotanote{in the next para.. I will try to improve explanation}  Note that
 here $T_{find}$ involves pre-exchange management at the replica-agent and not the 
 BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
 
@@ -1846,7 +1844,7 @@ coordination constraints enables both good scale-up and scale-out
 behaviour.  Algorithms based on asynchronous coordination are
 typically more difficult to implement than synchronous ones; however,
 we find that even with a simple, non-optimised prototype of the
-RE-framework, the advantages of asynchronous formulations soon outweigh the synchronous formulations, i.e., as $N_R$ increases the
+RE Framework, the advantages of asynchronous formulations soon outweigh the synchronous formulations, i.e., as $N_R$ increases the
 performance of asynchronous RE beats that of the synchronous RE.  
 
 Our analysis shows that a fundamental trade-off is between the lower
