@@ -1088,20 +1088,25 @@ A fundamental difference between the synchronous and asynchronous
 formulation of RE is in the synchronisation barrier for the replicas
 before exchanges, i.\,e., the former has a barrier, the latter does not.
 So although, $T_W = 0$ for asynchronous formulations, this comes at
-the cost of a higher $T_{find}$. The lack of a synchronisation barrier
+the cost of a higher $T_{find}$, the time required to discover a new
+exchange partner. The lack of a synchronisation barrier
 also leads to a more involved implementation to dynamically pair replicas.
 
+\alnote{an alternative would be to put the 0.7s into bookkeeping, but
+not sure whether I want to open that can of worms again...}
 In the asynchronous (decentralised) RE, the replicas are managed
 individually by replica-agents. The replica-agent constantly monitors
 its replica. If it finds the replica has completed its run, it updates
 its state at the advert service, which takes $0.1\,s$.  The
 replica-agent then retrieves the energy and temperature from the output
 file, each of which takes $0.2\,s$, and posts both these values
-to the advert service.  The waiting time to retrieve these values is
-thus $0.1+0.2\times2+0.1\times2=0.7\,s$, so part of $T_{find}$ is $0.7\,s$. 
-\alnote{What is the other part of $T_{find}$?} \athotanote{in the next para.. I will try to improve explanation}  Note that
-here $T_{find}$ involves pre-exchange management at the replica-agent and not the 
-BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s$.
+to the advert service.  The total time for these operations is
+thus: $0.1+0.2\times2+0.1\times2=0.7\,s$. 
+% \alnote{What is the other part of $T_{find}$?} \athotanote{in the next para.. 
+% I will try to improve explanation}  
+Note that here $T_{find}$ involves pre-exchange management at 
+the replica-agent and not the BigJob-Agent (like the centralised case).  
+%Therefore the value of $T_W$ $0.7\,s$.
 
 % \alnote{\textbf{Old Paragraph - please check whether I put the important points into
 % the paragraph above. Also check my comments in original paragraph.} \athotanote{can be removed}
@@ -1144,25 +1149,28 @@ BigJob-Agent (like the centralised case).  %Therefore the value of $T_W$ $0.7\,s
 % Each query requires $0.1\,s$,
 
 
-$T_{EX}$ is primarily determined by $T_{find}$, i.\,e.\ the time necessary
-to lock an exchange partner.  When searching for a replica randomly,
-%\alnote{does randomly also apply to case II?}
+% $T_{EX}$ is primarily determined by $T_{find}$, i.\,e.\ the time necessary
+% to lock an exchange partner.  
+The pre-exchange management is only one part of $T_{find}$. The other 
+component is the actual search time. When searching for a replica randomly,
 on average it takes $N_R \over 2$ attempts to find a replica that is
 in the \texttt{done} state.  However, finding a replica in the
-\texttt{done} state is not enough to ensure an exchange attempt.
-Given that there are several ``active exchanges'' being attempted,
-often the reverify step leads to an aborted exchange attempt; a
-reverify step must occur to ensure there has been no change in the
-states of either of the two replicas involved.  The exact number is a
+\texttt{done} state is not enough to complete an exchange attempt.
+Since there are commonly several concurrent exchange attempts,
+contentions and conflicts can arise. Thus, a reverify step must occur before
+the exchange is committed. During the re-verification both replica-agents
+that are involved in an exchange ensure that there has been state change 
+of either of the two replicas involved.  Often, the reverify step leads 
+to an aborted exchange attempt. The exact number of necessary attempts is a
 random variable, determined by the number of replicas, the
 distribution of states and whether the attempt to find a replica is
-random or sequential. Empirical observation suggests there are between 2 and 4
-find and reverify attempts before an exchange is attempted.  But in
-general, replicas contend with each other to lock a partner for
-exchange; this gets worse with increasing numbers of replicas, i.e.,
-$T_{find}$ increases with increasing $N_R$.  Specifically, for the random
-access case, we find $T_{find}$ is $2 \times N_R \times 0.1$ (where $0.1$
-is the typical time to set/get a value to/from the advert server), that is $6.4+0.7=7.1\,s.$
+random or sequential. Empirical observations suggest there are between 2 and 4
+find and reverify attempts before an exchange is successful.  
+Also, replicas contend with each during this phase: the higher the numbers of replicas,
+the higher the contention. That means that $T_{find}$ increases with a higher $N_R$. 
+Specifically for our scenario with 32 replicas and random search, $T_{find}$ is 
+$2 \times N_R \times 0.1$ (where $0.1$ is the typical time to set/get a value 
+to/from the advert service), that is $6.4+0.7=7.1$\,s.
 % \alnote{Should we argue with $\frac{N_R}{2}$*4 (in worst case) as
 %   previously described or is this too complex?}
 % On average the replica-agent must scan
@@ -1170,14 +1178,15 @@ is the typical time to set/get a value to/from the advert server), that is $6.4+
 % an exchange (due to conflicts with other attempting replicas).  As a
 % consequence of the data-structure and pairing approach used, we find
 % that $T_f$ is $0.1\times64=6.4\,s$.
-The process of exchanging the
-states and temperatures via the advert server and writing a new
-configuration file takes, $T_{file} = 0.1\times 4 +0.2 = 0.6\,s$. % (And
+
+$T_{file}$ includes the process of posting respectively reading the states 
+and temperatures to/from the advert service and writing a new configuration 
+file: $T_{file}$ is $0.1\times 4 +0.2~=~0.6$\,s. % (And
 % even in the other scenario, where the replica in question is not the
 % initiator of the exchange, it has to wait for the other replica to set
 % its state as complete, so that it can restart).
-$T_{state}$ is the time it takes to update the state in the advert
-server, which is $0.2\,s$.  Thus, $T_{EX}$ is $7.1+0.6 +0.2=
+$T_{state}$ is the time required to update the state in the advert
+service, which is $0.2\,s$.  In sum, $T_{EX}$ is $7.1+0.6 +0.2=
 7.9\,s$.  It should be noted that $T_{EX}$ is highly dependent on
 the actual implementation. While the current implementation is kept
 simple on purpose, this value can be improved in a more sophisticated 
@@ -1291,16 +1300,16 @@ T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times 128\over 1
 % $0.16+0.4+0.22=0.78$ s. 
 
 As in the decentralised case, the asynchronous centralised RE
-algorithm does not require synchronisation between {\it all} replicas
+formulation does not require synchronisation between {\it all} replicas
 in order to transition a replica-pair from \texttt{run\-ning} to
-\texttt{done} state and $T_W = 0$ by definition. Using a centralised
+\texttt{done} state and thus, $T_W = 0$ by definition. Using a centralised
 implementation the time to find an exchange partner ($T_{find}$) can be
 reduced; however, this comes at a tradeoff that there is some
-contention at the master. Also, we observed some delays at the BigJob-
-Agents during the startup of the replicas sub-jobs mainly due to the
+contention at the master. Also, we observed some delays at the BigJob-Agents 
+during the startup of the replicas sub-jobs mainly due to the
 fact that the BigJob-Agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
-time-to-submit a replica-pair to the SAGA BigJob Manager, 
+time-to-submit a replica-pair to the BigJob-Manager, 
 i.\,e.\ two replica sub-jobs, is in the asynchronous (centralised) case 
 in average 1.1\,s. This is 0.5\,s longer than in cases
 without contentions at the BigJob-Agent -- in these cases the submission
@@ -1350,17 +1359,18 @@ In contrast to the synchronous case, $T_{EX}$ for the asynchronous
 centralised case has a $T_{find}$ component since replica pairs are
 dynamically determined and not fixed. $T_{find}$ depends on the overall
 number of replicas ($N_R$), which determines the number of records the
-RE-Manager has to scan in order to find an available replica. On
-average the RE-Manager must search through $\frac{N_R}{2}$ replicas before it
+RE-Manager has to scan to find an available replica. If random search is used,
+the RE-Manager must search through $\frac{N_R}{2}$ replicas on average, before it
 finds a partner. Although the search for a replica is random like the
 decentralised implementation, there is no need for reverifying, as due
 to centralised control there is no contention in replica pairing,
 i.e., exchanges are made by the RE-Manager and only one exchange takes
 place at a time.  An advert query for a replica state takes
 0.01\,s. Note this is a factor of 10 less than the decentralised
-implementation where there was a connection to the advert server for
-every replica-agent; here there is a single connection. For 32
-replicas, the RE-Manager requests on average 16 other replica states
+implementation where there was a connection to the advert service for
+every replica-agent; here there is a single connection. \alnote{previously,
+we state that multiple connections are not an issue...}
+For 32 replicas, the RE-Manager requests on average 16 other replica states
 before it finds a partner; thus, $T_{find}$ is in total
 $0.01\times16+1.1=1.3\,s$. Both $T_{file}$ and $T_{state}$ are same as in the
 synchronous case, i.\,e.\ $T_{EX}$ is thus: $1.3+0.4+0.2=1.9\,s$.
