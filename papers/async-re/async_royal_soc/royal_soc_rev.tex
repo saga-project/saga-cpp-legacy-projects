@@ -172,13 +172,10 @@ support the execution of the ensembles.  It supports scalable
 implementation of RE that can use a range of infrastructure
 concurrently that supports different exchange coordination mechanisms
 (synchronous versus asynchronous), and thereby different variants of
-the RE algorithm.
-
-\athotanote{we already mention the next sentence in section 4.}The physical
+the RE algorithm. The physical
 system that we use as benchmark is the Hepatitis-C Virus that was
-examined in Ref.~\cite{Luckow:2008fp}. The problem and our motivation is similar as before. \athotanote{check if this ok}
-\alnote{we could remove it from sec 4. The paragraph can in my opinion 
-be merged with the one above}
+examined in Ref.~\cite{Luckow:2008fp}. The problem and our motivation are similar as before. %\athotanote{check if this ok}\alnote{we could remove it from sec 4. The paragraph can in my opinion be merged with the one above}\athotanote{we already mention the next sentence in section 4.}
+
 % , if using multiple
 % distributed resources, they require prior co-scheduling (Manos et
 % al. 2008)
@@ -238,8 +235,7 @@ replicas being low (relative to within a single replica), the amount
 of information/data exchanged between replicas is small (a couple of bytes) 
 compared to the size of the data model that the simulation is 
 operating on. 
-\alnote{removed the 20MB data model size since this is specific to our RE scenario 
-and has nothing to do with the algorithm}
+%\alnote{removed the 20MB data model size since this is specific to our RE scenario and has nothing to do with the algorithm}
 % the operating data-set size) - the size of the data exchanged between 
 % stages is in bytes, where as the operating data-set size is approximately 
 % 20 megabytes. %\athotanote{should i add anything else?}
@@ -275,9 +271,9 @@ T = {1\over p} \times (T_{MD} \times  {N_X \over \eta}) % {N_R \over 2}})
 \label{eq:totaltime1}
 \end{eqnarray}
 where $p$ is defined as the probability of a successful exchange (the
-probability of a successful exchange is not 1, the decision to accept
+probability of a successful exchange is not 1). The decision to accept
 an exchange or not is made using the Metropolis
-scheme~\citep{metropolis:1087}. 
+scheme~\citep{metropolis:1087}, which provides a stochastic algorithm to compare energies. \athotanote{please verify}
 %The term {$N_R \over 2$} denotes the  number of exchanges that can occur after each run of the ensemble of 
 %replicas. 
 $\eta$ is the number of independent exchange events that can occur 
@@ -351,7 +347,7 @@ In contrast to parameter sweep applications in which coordination
 commonly only occurs at the beginning and end -- a pattern commonly referred to as
 scatter-gather -- RE requires a periodic coordination. In the synchronous RE
 formulation coordination occurs in defined intervals. 
-\athotanote{please verify preceding statement} \alnote{Ok} 
+%\athotanote{please verify preceding statement} \alnote{Ok} 
 
 A major limitation of this model is that replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
@@ -667,8 +663,7 @@ exchange can proceed and their states are set as \texttt{pending}.
 When {\it reverifying} the state of the replicas, if the state of the
 initiating replica has already been changed (to \texttt{pending}), the
 current exchange attempt is aborted; if not, the exchange attempt
-proceeds.
-
+proceeds. The states that a replica can be in are different in centralised and decentralised implementations. In the centralised implementation, there is no \texttt{complete} state and in the decentralised implementation there is no \texttt{new} state. There is no \texttt{new} state in the decentralised implementation because the replica-agent starts running only after the processors become available and the replica is started. The additional states in the decentralised implementation are needed to address the distributed coordination and control of the exchange process.
 \jhanote{This is a way of addressing ``distributed coordination
   and control.'' Need to mention}
 
@@ -693,8 +688,7 @@ it stops the experiment.
 
 %\alnote{paragraph needs attention} 
 It should be noted that even in the decentralised implementation, the
-advert service is still centralised. Only the decision-making and
-replica-management is decentralised. We did not observe any increase
+advert service is still centralised. Only the replica-management and exchange coordination are decentralised. We did not observe any increase
 in latency when accessing the advert service with respect to
 increasing number of connections.  % \alnote{we did observe a severe
 %   slowdown!!}
@@ -703,9 +697,9 @@ increasing number of connections.  % \alnote{we did observe a severe
 %   decentralised case each replica has a different directory. so,
 %   changing the directory and retrieving the states was taking longer.}
 But the communication times do vary depending on the physical
-distribution. Also, maintaining data consistency is not an issue
-because it is a centralised system.  \jhanote{What is ``it''?}Two
-write actions cannot be carried out simultaneously on a single value.
+distribution of the advert-service. Also, maintaining data consistency is not an issue
+because there is only one advert-server.  %\jhanote{What is ``it''?}
+Two write actions cannot be carried out simultaneously on a single value.
 It should also be noted that the exchanges are non-deterministic in
 nature because the replicas available for exchange are found in a
 random order and then the Metropolis scheme~\citep{metropolis:1087} is
@@ -1587,9 +1581,9 @@ data in Figure~\ref{fig:scaleup}.
 For the decentralised implementation, $T_{find}$ has a strong $N_R$
 dependence. We find $T_{find}$ is $2 \times N_R \times 0.1$ (where $0.1$ is
 the typical time to set/get a value to/from the advert server).  For
-example, in Equation~\ref{eq:decent} we see that for 64 replicas,
-$T_{find}$ is approximately $2 \times 64 \times 0.1 = 12.8$ s.  Thus the
-difference in $T_{EX}$ when $N_R$ is 64 versus 32 is 51.2s, which
+example, from Equation~\ref{eq:decent} we see that for 64 replicas,
+$T_{find}$ is approximately $0.7$+ $2 \times 64 \times 0.1 = 13.5$ s.  Thus the
+difference between $T_{EX}$ when $N_R$ is 64 and $N_R$ is 32 is 45s, which
 accounts for the bulk of the increase in overall $T$ when $N_R$
 changes from 32 to 64. % The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
 %   difference in T here please again}.\athotanote{done}
@@ -1608,19 +1602,16 @@ since the RE-Manager makes the exchanges serially, we still see an
 increase in the time-to-completion with increasing $N_R$. % Using
 % Equation~\ref{eq:cent} for 32 replicas as a basis:
 For $N_R =$ 64 and $N_X$ 256, using Equation~\ref{eq:cent} leads to a
-new coordination ($T_W + T_{EX}$) time of $(0.8+1.1) \times 256 =
+new coordination ($T_W + T_{EX}$) time of $(0+1.9) \times 256 =
 486.4\,s$, up from $243.2$ for $N_R = 32$. This change accounts for a
 large component of the difference in $T$ as $N_R$ goes from 32
 replicas to 64 replicas, as shown in Figure~\ref{fig:scaleup}. The
 actual difference observed in $T$ from 32 to 64 replicas is 293
-s. % \jhanote{Abhinav
-%   provide specific values of T difference}\athotanote{done}.
-We have verified this for different number of replicas and found it to
-be consistent.
+s. We have verified this scale-up model for different number of replicas and found it to
+be consistent with the data in the Figure~\ref{fig:scaleup}.
 
 In addition to the above explicable changes arising from different
-coordination costs, as $N_R$ increases different nodes of a machine
-tend to perform differently, thus influencing the time-to-completion
+coordination costs, as $N_R$ increases and as more nodes of a machine are used, we find that some of them tend to perform differently, thus influencing the time-to-completion
 of different replicas, but not always monotonically.  % Consequently,
 As $N_R$ increases, the time to start and synchronise replicas
 typically increases.
@@ -1637,10 +1628,10 @@ when scaling out across many machines, we
 used the following TeraGrid and/or LONI resources: \emph{QueenBee,
   Eric, Louie} and \emph{Oliver}. The experiments conducted are 8, 16
 and 32 replicas making 32, 64 and 128 exchanges. These exchanges are
-repeated on 1, 2 and 4 machines while distributing the number of
-replicas equally on each machine. It is important to note that all
+repeated on 1, 2 and 4 machines while distributing equal number of
+replicas on each machine. It is important to note that all
 experiments are conducted using four BigJobs, irrespective of the
-number of machines used; varying the number of BigJobs as well as the
+number of machines used because varying the number of BigJobs as well as the
 ratio of replicas per BigJob effects overall performance.  Another
 important point to note is that only the experimental runs where all
 the four big-jobs \alnote{when referring to the pilot job, BigJob should be consistently
