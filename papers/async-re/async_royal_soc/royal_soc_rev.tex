@@ -95,13 +95,13 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 \begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}  
   Replica-Exchange (RE) algorithms are used to understand physical
   phenomena -- ranging from protein folding dynamics to binding
-  affinity calculations.  The represent a class of algorithms that
+  affinity calculations.  They represent a class of algorithms that
   involve a large number of loosely-coupled ensembles, and are thus
-  amenable to utilising distributed resources. We develop a framework
-  for RE that supports different replica pairing and coordinations
-  mechanisms, that can use a range of production cyberinfrastructure
-  concurrently.  We use this framework to implement three different RE
-  algorithms.  We characterise the performance of the different RE
+  amenable to using distributed resources. We develop a framework
+  for RE which supports different replica pairing and coordination
+  mechanisms and which can use a range of production cyberinfrastructure
+  concurrently.  We use this framework to implement two different RE
+  algorithms in two different ways.  We characterise the performance of the different RE
   algorithms at unprecedented scales on production distributed
   infrastructure.
 
@@ -170,11 +170,11 @@ to support these algorithms. Specifically, in order to support
 flexible and scalable formulations of the RE class of algorithms, we
 develop a RE Framework that supports multiple formulations, is
 extensible to a broad range of infrastructure and as we shall show
-scales-up and scales-out.  Our RE Framework utilises a flexible
+scales-up and scales-out.  Our RE Framework uses a flexible
 pilot-job implementation (SAGA BigJob) to support the execution of the
 ensembles.  It supports scalable implementation of RE that can use
-a range of infrastructure concurrently that supports different
-coordination mechanisms different exchange coordination mechanisms
+a range of infrastructure concurrently, that supports different replica
+coordination mechanisms, different exchange coordination mechanisms
 (synchronous versus asynchronous), and thereby different variants of
 the RE algorithm. The physical system that we use as benchmark is the
 Hepatitis-C Virus that was examined in Ref.~\cite{Luckow:2008fp}. The
@@ -229,7 +229,7 @@ problem and our motivation are similar as before.
 % suited for a particular set of resources (distributed, local etc.,)
 
 The paper is organised as follows. Section~\ref{sec:repex-approach}
-sketches out the three different RE algorithms that are investigated;
+sketches out the two different RE algorithms that are investigated;
 we also present an approximate mathematical model for the different
 algorithms.  Section~\ref{repexfw} outlines the architecture of the RE
 Framework -- the SAGA BigJob (how it supports the dynamic execution of
@@ -261,11 +261,11 @@ discusses future work.
 
 \section{Replica-Exchange Algorithms}\label{sec:repex-approach}
 
-The RE class of algorithms involves the concurrent execution of
+The RE class of algorithms involve the concurrent execution of
 \emph{replicas} - which are defined as instances of essentially
 similar simulations but with minor differences, such as the defining
 temperature of the replica. These replicas are loosely-coupled, in
-that there is an infrequent exchange between pairs of 
+that there are infrequent exchanges between pairs of 
 % \jhanote{do we want to say paired?} \athotanote{fixed}
 replicas. In addition to the frequency of communication between the
 replicas being low (relative to within a single replica), the amount
@@ -370,7 +370,7 @@ of the different RE algorithms; In summary, $T_{EX} = T_{find} +
 T_{file}+T_{state}$.  The last component $T_W$ is the waiting time
 spent by a replica waiting to synchronise with other replicas that are
 not ready, e.g., maybe still running. $\eta$ describes the number of 
-independent exchanges. At maximum $\eta$ is $\frac{N_R}{2}$; it can however
+concurrent exchanges taking place. At maximum $\eta$ is $\frac{N_R}{2}$; it can however
 be lower if exchanges cannot be conducted concurrently.
 
 % this is typically $\frac{N_R}{2}$,
@@ -400,8 +400,7 @@ be lower if exchanges cannot be conducted concurrently.
 
 Traditionally, RE algorithms have been implemented such that the
 exchanges have been synchronous.  If the number of replicas is
-${N_R}$, this leads to a {\it fixed} number of ${N_R \over 2}$ pairs
-of replicas are created.  When \emph{all} the replicas in the ensemble
+${N_R}$, a {\it fixed} number (${N_R \over 2}$) of replica pairs are created. When \emph{all} the replicas in the ensemble
 reach a pre-determined state (e.g. the Molecular Dynamics (MD)
 simulation completes a pre-determined number of steps), an exchange of
 temperatures between the paired replicas is attempted using the
@@ -414,18 +413,18 @@ such as the temperature are swapped.
 %running concurrently
 
 For the synchronous RE formulation, all replicas must reach a
-pre-determined state (\texttt{done}), before exchanges are performed.
+pre-determined state before exchanges are performed.
 $T_W$ includes the time waiting for all the replicas in the ensemble
 to reach this state, the time spent waiting before the replicas are
 restarted after each exchange and any other miscellaneous costs.  In
 contrast to parameter sweep applications in which coordination
 commonly only occurs at the beginning and end -- a pattern commonly
 referred to as scatter-gather -- RE requires periodic coordination. In
-the synchronous RE formulation coordination occurs in defined
+the synchronous RE formulation coordination occurs at defined
 intervals.
 %\athotanote{please verify preceding statement} \alnote{Ok} 
 
-A major limitation of this model is that replicas are paired in fixed
+A major limitation of this model is that the replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
 replicas.  As a consequence of pairs being determined before an
 exchange, although $T_{find}$ is $0$, this limits the number of possible
@@ -454,12 +453,12 @@ overcome in the asynchronous (exchange) formulations of RE.
 In asynchronous formulations of the RE
 algorithms~\citep{parashar_arepex,DBLP:journals/jcc/GallicchioLP08}, a
 replica does not have to wait for {\it all} other replicas to reach a
-pre-determined state. An exchange occurs whenever a replica reaches a
-pre-determined state. It then performs an exchange with another
+pre-determined state. An exchange can occur whenever a replica reaches a
+pre-determined state. The replica attempts an exchange with another
 suitable replica in the ensemble.  The reduction in {\it
   synchronisation} (wait) times comes at the cost of increased {\it
   coordination} costs.  The specific value of the term $T_{EX}$
-(Equation~\ref{eq:totaltime}) differ from the synchronous formulation.
+(Equation~\ref{eq:totaltime}) differs from the synchronous formulation.
 Since each replica on completing a run has to find a {\it new}
 partner, $T_{find} \neq 0$, however $T_W$ is 0 because there is no
 synchronisation involved. % only includes the time
@@ -492,14 +491,14 @@ synchronisation involved. % only includes the time
 
 An important motivation for and contribution of this work is the design
 and implementation of a framework that provides the capability to
-support different RE algorithmic formulations and compare their
+support different RE algorithmic formulations and enables us to compare their
 performance at large-scales.
 % and compare the performance of the different RE algorithmic
 % formulations at large-scales. 
 %In addition, it is important that the
 The framework is independent of the underlying infrastructure and thus
-supports the use of multiple heterogeneous infrastructure -- as is
-typically presented to the end-users.  It is useful to highlight that
+supports the use of multiple heterogeneous infrastructure -- which is
+typically made available to the end-users.  It is useful to highlight that
 we differ from other RE implementations (e.g.  \cite{parashar_arepex})
 in that we use {\it production-grade} national and regional
 cyberinfrastructure, such as the US TeraGrid and
@@ -571,10 +570,10 @@ marked as available.
 The various tasks that are carried out using the SAGA APIs include
 file staging, job spawning and conducting the exchange attempts. Here
 we use the SAGA BigJob framework to efficiently request and manage
-computational resources for multiple replicas, and enables the use of
+computational resources for multiple replicas and it enables the use of
 a range of infrastructure.  For example, we can submit multiple
 big-jobs on multiple resources and can start our sub-jobs when any one
-of them becomes active.
+of the big-jobs becomes active.
 
 
 % \athotanote{check sentence} \alnote{refined. please refer to the
@@ -622,9 +621,9 @@ replica is managed individually by a {\it replica-agent}.
 \centering
 \subfigure[Centralised]{\includegraphics[width=0.35\textwidth]{../figures/central_AL.pdf}}\qquad
 \subfigure[Decentralised]{\includegraphics[width=0.35\textwidth]{../figures/decentral_AL.pdf}}\\
-\caption{\textbf{Centralised vs. Decentralised Coordination:} Both
-  central coordination style is used both by the synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
-  the master is only required for initially setting up all
+\caption{\textbf{Centralised vs. Decentralised Coordination:} 
+  Centralised coordination style is used by both synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
+  the master is only required for initially setting up of all
   replicas. The later coordination is done peer-to-peer via the Advert
   Service.}
 \label{fig:coordination}
@@ -653,7 +652,7 @@ algorithm.
 % Figure~\ref{fig:coordination}a) shows the control flow.
 
 The control flow of a centralised RE scheme is shown in
-Figure~\ref{fig:coordination}(a) %\jhanote{Move later: which can be
+Figure~\ref{fig:coordination}(a). %\jhanote{Move later: which can be
   %used to understand both the asynchronous and synchronous RE
   %implementations}.  
 A replica can be in one of these three states:
@@ -727,7 +726,7 @@ implementations. In the centralised implementation, there is no
 is no \texttt{new} state. There is no \texttt{new} state in the
 decentralised implementation because the replica-agent starts running
 only after the processors become available and the replica is
-started. The additional states in the decentralised implementation are
+started and put directly in the \texttt{running} state. The additional states in the decentralised implementation are
 needed to implement and maintain distributed coordination/control.
 
 % \jhanote{This is a way of addressing ``distributed coordination
@@ -770,8 +769,8 @@ the RE-Manager ends the experiment.
 %\alnote{paragraph needs attention} 
 It should be noted that even in the decentralised implementation, the
 advert service is still centralised. Only the replica-management and exchange coordination are decentralised. We did not observe any increase
-in latency when accessing the advert service with respect to
-increasing number of connections.  % \alnote{we did observe a severe
+in latency with respect to the
+increasing number of connections when accessing the advert service .  % \alnote{we did observe a severe
 %   slowdown!!}
 % \athotanote{at first I though it was due to the large
 %   number of connections. but it was actually because in the
@@ -957,7 +956,7 @@ we do not consider queue wait-times.  As explained in
 section~\ref{sec:repex-approach} (\ref{sec:math-model}), the relative
 performance of RE implementations is primarily determined by the
 waiting time $T_W$ and the time for conducting the exchange
-$T_{EX}$. In the following we analyse the average values for $T_{W}$
+$T_{EX}$. In the following sections, we analyse the average values for $T_{W}$
 and $T_{EX}$ for each replica pair.  Table~\ref{table:repex_perf}
 summarizes the results. We will discuss the different RE
 implementations in the following sections.  The source-code for
@@ -1104,7 +1103,7 @@ Thus, $T_{EX}$ is: $0+0.4+0.2=0.6$\,s.
 %\alnote{moved this from sec b to here (since it also applies heire)}
 Although there are $\frac{N_R}{2}$ concurrent pairs, the exchange 
 at the RE-Manager is carried out sequentially; thus the effective 
-number of concurrently exchanging pairs is 1. 
+number of concurrently exchanging pairs is 1 ($\eta$). 
 % \alnote{Not consistent with formula 2.2 where we only define a
 %   single $\eta$} \athotanote{fixed in section2}
 Substituting the above values in equation~\ref{eq:totaltime}, we get:
@@ -1309,10 +1308,10 @@ implementation.
 % causes the time taken per unit exchange to go up, more exchanges occur
 % in unit time.
 
-As there are $N_R \over 2$ concurrent pairs, substituting the above
+As there are $N_R \over 2$ concurrent exchanges, $\eta$ is 16. Substituting the above
 values in equation~\ref{eq:totaltime}, we get:
 \begin{eqnarray}
-T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(7.2+0.7)\times {128\over 16}}} = {1 \over p} \times 631~s.
+T=  {1 \over p} \times {{(71\times {128\over 16}}) + {(0+7.9)\times {128\over 16}}} = {1 \over p} \times 631~s.
 \label{eq:decent}
 \end{eqnarray}
 
@@ -1389,7 +1388,7 @@ in order to transition a replica-pair from \texttt{run\-ning} to
 \texttt{done} state and thus, $T_W = 0$ by definition. Using a centralised
 implementation the time to find an exchange partner ($T_{find}$) can be
 reduced; however, this comes at a tradeoff that there is some
-contention at the master. Also, we observed some delays at the BigJob-Agents 
+contention at the master. Also, we observed some delays at the BigJob-Agent 
 during the startup of the replicas sub-jobs mainly due to the
 fact that the BigJob-Agent is single-threaded and thus, is busy
 processing other replicas after their termination.  Specifically, the
@@ -1445,13 +1444,13 @@ dynamically determined and not fixed. $T_{find}$ depends on the overall
 number of replicas ($N_R$), which determines the number of records the
 RE-Manager has to scan to find an available replica. If random search is used,
 the RE-Manager must search through $\frac{N_R}{2}$ replicas on average, before it
-finds a partner. Although the search for a replica is random like the
+finds a partner. Although the search for a replica is random like in the
 decentralised implementation, there is no need for reverifying, as due
-to centralised control there is no contention in replica pairing,
+to centralised control there are no conflicts in replica pairing,
 i.e., exchanges are made by the RE-Manager and only one exchange takes
 place at a time.  An advert query for a replica state takes
 0.01\,s. Note this is a factor of 10 less than the decentralised
-implementation. This is because in the centralised case, all the values are located in the same advert directory; where as in the decentralised case, each replica's information is located in a different advert directory.  % \alnote{previously,
+implementation. This is because in the centralised case, all the values are located in the same advert directory; where as in the decentralised case, each replica's information is located in a distinct advert directory, so as to enable other replica-agents to find it.  % \alnote{previously,
 % we state that multiple connections are not an issue...}
 % \athotanote{please comment whether the factor of 10 explanation is
 %   necessary/helpful at all? or are we just giving too much
@@ -1578,7 +1577,7 @@ scaling-out.
 
 {\it Experiments: } To understand the scaling behaviour of the three
 cases, we compute the $T$ for 4, 8, 16, 32, 64, 128 and 256 replicas,
-for 16, 32, 64, 128, 256, 512 and 1024 exchanges respectively. This
+making 16, 32, 64, 128, 256, 512 and 1024 exchanges respectively. This
 fixes the ratio of the number of exchanges to the number of replicas
 ($N_X \over N_R$) to 4.  Each replica is configured to run 500
 time-steps before an exchange is attempted, and is allocated 16
@@ -1631,8 +1630,8 @@ of all replicas; thus early replicas wait for other replicas to
 finish. As can be seen from Table~\ref{table:repex_perf}, $T_W$ is a
 major component of the $T$.  As $N_R$ increases, the number of
 exchanges at a given exchange step increases; consequently the total
-coordination time at each exchange step increases.  For a value of
-$N_R$ of 64 and $N_X$ of 256, using Equation~\ref{eq:totaltime}, the
+coordination time at each exchange step increases.  For
+$N_R = 64$ and $N_X = 256$, using Equation~\ref{eq:totaltime}, the
 coordination time is $(0.6+2.8) \times 256 = 870.4$.  The difference
 in coordination times ($435.2$ s) accounts for the difference
 in $T$ for 32 and 64 replicas in the
@@ -1722,7 +1721,7 @@ new coordination ($T_W + T_{EX}$) time of $(0+1.9) \times 256 =
 486.4\,s$, up from $243.2$ for $N_R = 32$. This change accounts for a
 large component of the difference in $T$ as $N_R$ goes from 32
 replicas to 64 replicas, as shown in Figure~\ref{fig:scaleup}. The
-actual difference observed in $T$ from 32 to 64 replicas is 293~s. We
+actual difference observed in $T$ from 32 to 64 replicas is 311~s. We
 have verified this scale-up model for different number of replicas and
 found it to be consistent with the data in the
 Figure~\ref{fig:scaleup}.
@@ -1732,7 +1731,7 @@ coordination costs, as $N_R$ increases and as more nodes of a machine
 are used, we find that some of them tend to perform differently, thus
 influencing the time-to-completion of different replicas, but not
 always monotonically. Therefore, as $N_R$ increases, the time to synchronise replicas ($T_W$)
-typically increases, increasing $T$. \jhanote{What is the implication of this?} \athotanote{fixed}
+typically increases, increasing $T$. %\jhanote{What is the implication of this?} \athotanote{fixed}
 
 % When searching serially, we observed that the replica-agent
 % finds a partner after looping over the all the replicas between 2 and
@@ -1757,7 +1756,7 @@ big-jobs %\alnote{when referring to the pilot job, BigJob should be consistently
 become active within $30\,s$ of each other on submission to the
 resource manager are considered and included in the results. This is
 to remove the queue wait time from the equation and focus on the
-runtime. Each experiment is repeated 5 times.
+runtime. Each experiment was repeated 5 times.
 
 %
 %%%%% FIGURE %%%%%
@@ -1912,7 +1911,7 @@ moderately or remains constant with higher number of machines, which
 indicates that the scale-out behaviour is quite good.  %As discussed in section~\ref{sec:re_impl}, the asynchronous (centralised) RE algorithm does not involve any synchronisation cost ($T_W$). 
 Thus, the loose coordination between replicas at the exchange stage helps to 
 provide the flexibility to use multiple resources, which would not be possible if
-there was tighter coordination between replicas at the exchange stage. The data from Figure~\ref{fig:scaleout_cent} might only suggest additional file transfer costs, but in a typical distributed scenario, with machines from distinct networks, physical locations, cost of distributed exchanges and heterogeneity may also play a role in effecting the performance. We intend to examine these details in the future.
+there was tighter coordination between replicas at the exchange stage. The data from Figure~\ref{fig:scaleout_cent} might only suggest additional file transfer costs, but in a typical distributed scenario, with machines on different networks, physical locations, cost of distributed exchanges and heterogeneity may also play a role in effecting the performance. We intend to examine these details in the future.
 
 %\alnote{\textbf{small analysis piece from sec 2:}
 %In a distributed scenario, $T_{MD}$ might be different on 
