@@ -23,11 +23,15 @@ import os
 import traceback
 import logging
 
+# import other BigJob packages
+# import API
+import api.base
+
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
 
-class bigjob(object):
+class bigjob(api.base.bigjob):
     
     def __init__(self, database_host):        
         self.database_host = database_host
@@ -155,7 +159,7 @@ class bigjob(object):
 
                     
                     
-class subjob(object):
+class subjob(api.base.subjob):
     
     def __init__(self, database_host):
         """Constructor"""

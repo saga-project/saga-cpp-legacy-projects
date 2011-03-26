@@ -45,7 +45,7 @@ EUCA_KEYNAME="fg-india"
 EUCA_SSH_PRIVATE_KEY_FILE="/Users/luckow/.ec2/fg-india/fg-india.pem"
 EUCA_INSTANCE_TYPE="m1.xlarge"
 
-class bigjob_cloud():
+class bigjob_cloud(object):
     
     """ Initialize BigJob
         In contrast to advert-based BigJob no database host is required.
@@ -681,7 +681,7 @@ class bigjob_cloud():
 
                     
                     
-class subjob():
+class subjob(object):
     
     def __init__(self, 
                  database_host=None,

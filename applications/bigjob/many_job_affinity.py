@@ -1,3 +1,6 @@
+import os
+import sys
+sys.path.append(os.path.dirname( __file__ ))
 from many_job import *
 
 class many_job_affinity_service(many_job_service):

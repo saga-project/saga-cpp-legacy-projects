@@ -5,15 +5,15 @@
 This Module is used to launch a set of bigjobs.
 
 """
-
+import pdb
 import sys
+import os
+sys.path.append(os.path.dirname( __file__ ))
 import getopt
 import saga
 import time
 import uuid
-import pdb
 import socket
-import os
 import traceback
 import bigjob
 import Queue

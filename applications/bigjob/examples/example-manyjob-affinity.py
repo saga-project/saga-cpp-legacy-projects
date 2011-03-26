@@ -6,7 +6,6 @@ This Module is used to launch a set of bigjobs.
 
 """
 
-import sys
 import getopt
 import saga
 import time
@@ -15,9 +14,13 @@ import os
 import traceback
 import bigjob
 import logging
+
+import sys
+sys.path.append("..")
 import many_job_affinity
 
 NUMBER_JOBS=8
+BIGJOB_HOME= os.getcwd() + "/../"
 
 def has_finished(state):
         state = state.lower()
@@ -38,7 +41,7 @@ if __name__ == "__main__":
         #                       "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
 
         resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+                               "queue" : "workq", "re_agent": (BIGJOB_HOME+"/bigjob_agent_launcher.sh"), 
                                "working_directory": (os.getcwd() + "/agent"), "walltime":10, "affinity" : "affinity1"})
 
         print "Create manyjob service "

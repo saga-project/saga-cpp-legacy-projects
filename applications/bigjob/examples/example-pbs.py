@@ -8,7 +8,14 @@ import bigjob
 import time
 import pdb
 
+# BigJob implementation can be swapped here by importing another implementation,
+# e.g. condor, cloud, azure
+import sys
+sys.path.append("..")
+from bigjob import bigjob, subjob
+
 advert_host = "localhost"
+BIGJOB_HOME= os.getcwd() + "/../"
 
 """ Test Job Submission via Advert """
 if __name__ == "__main__":
@@ -16,16 +23,16 @@ if __name__ == "__main__":
     ##########################################################################################
     # Start BigJob
     # Parameter for BigJob
-    bigjob_agent = os.getcwd() + "/bigjob_agent_launcher.sh" # path to agent
+    bigjob_agent = BIGJOB_HOME+"/bigjob_agent_launcher.sh" # path to agent
     #bigjob_agent = "/bin/echo"
     nodes = 1 # number nodes for agent
-    lrms_url = "fork://localhost" # resource url
+    lrms_url = "pbspro://localhost" # resource url
     workingdirectory=os.getcwd() +"/agent"  # working directory for agent
     userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
 
     # start pilot job (bigjob_agent)
     print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
-    bj = bigjob.bigjob(advert_host)
+    bj = bigjob(advert_host)
     bj.start_pilot_job(lrms_url,
                             bigjob_agent,
                             nodes,
@@ -33,7 +40,8 @@ if __name__ == "__main__":
                             None,
                             workingdirectory, 
                             userproxy,
-                            None)
+                            None,
+                            processes_per_node=4)
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################
@@ -47,7 +55,7 @@ if __name__ == "__main__":
     jd.output = "stdout.txt"
     jd.error = "stderr.txt"
     
-    sj = bigjob.subjob(advert_host)
+    sj = subjob(advert_host)
     sj.submit_job(bj.pilot_url, jd)
     
     # busy wait for completion

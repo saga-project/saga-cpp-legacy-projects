@@ -13,11 +13,17 @@ import time
 import pdb
 import os
 import traceback
-import bigjob
 import logging
+
+
+# BigJob implementation can be swapped here by importing another implementation,
+# e.g. condor, cloud, azure
+import sys
+sys.path.append("..")
 import many_job
 
-NUMBER_JOBS=128
+BIGJOB_HOME= os.getcwd() + "/../"
+NUMBER_JOBS=8
 
 def has_finished(state):
         state = state.lower()
@@ -38,7 +44,7 @@ if __name__ == "__main__":
         #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "32", "processes_per_node":"4", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
         #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
-        resource_list.append( {"gram_url" : "pbspro://localhost/", "number_cores" : "32", "processes_per_node":"4", "allocation" : None, "queue" : None, "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
+        resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "1", "processes_per_node":"1", "allocation" : None, "queue" : None, "re_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
                                "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
 #                           {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "8", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"}  )
@@ -68,9 +74,9 @@ if __name__ == "__main__":
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
             jd.arguments = [""]
-            jd.working_directory = "/work/luckow"
-            jd.output =  "/work/luckow/output/stdout-" + str(i) + ".txt"
-            jd.error = "/work/luckow/output/stderr-" + str(i) + ".txt"
+            jd.working_directory = "/tmp"
+            jd.output =  "/tmp/stdout-" + str(i) + ".txt"
+            jd.error = "/tmp/stderr-" + str(i) + ".txt"
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
