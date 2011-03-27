@@ -54,16 +54,8 @@ class bigjob(api.base.bigjob):
                  walltime,
                  processes_per_node=1):
         
-        s = saga.session()
-        """ start advert_launcher on specified host """
-        if userproxy != None and userproxy != '':
-            os.environ["X509_USER_PROXY"]=userproxy
-            ctx = saga.context("x509")
-            ctx.set_attribute ("UserProxy", userproxy)
-            s.add_context(ctx)
-            print "use proxy: " + userproxy
-        else:
-            print "use standard proxy"
+
+
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
@@ -103,8 +95,20 @@ class bigjob(api.base.bigjob):
         jd.output = "stdout-bigjob_agent-" + str(self.uuid) + ".txt"
         jd.error = "stderr-bigjob_agent-" + str(self.uuid) + ".txt"
            
-        # Submit jbo
-        js = saga.job.service(s, lrms_saga_url)
+        # Submit job
+	js = None	
+        if userproxy != None and userproxy != '':
+      	    s = saga.session()
+            os.environ["X509_USER_PROXY"]=userproxy
+            ctx = saga.context("x509")
+            ctx.set_attribute ("UserProxy", userproxy)
+            s.add_context(ctx)
+            print "use proxy: " + userproxy
+            js = saga.job.service(s, lrms_saga_url)
+        else:
+            print "use standard proxy"
+            js = saga.job.service(lrms_saga_url)
+
         self.job = js.create_job(jd)
         print "Submit pilot job to: " + str(lrms_saga_url)
         self.job.run()
