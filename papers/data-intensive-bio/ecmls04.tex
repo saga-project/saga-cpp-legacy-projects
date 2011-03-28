@@ -479,14 +479,17 @@ distributed architectures?
 
 \begin{figure}
  \centering
-\includegraphics[scale=0.66]{figures/readsvstime.pdf}
+\includegraphics[scale=0.66]{figures/readsvstime_hg18.pdf}
+\includegraphics[scale=0.66]{figures/readsvstime_hg18_chr21.pdf}
+\includegraphics[scale=0.66]{figures/readsvstime_bglumae.pdf}
+
+
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small The time-to-completion of the 'bfast match' step is
   measured by varying the size of short read file.  Two lines
   represent two cases differing in the low memory option, which
-  results in the different number of index files.  Human genome (hg18)
-  chromosome 21 is used as the reference genome. The number of threads with the multi-threading option is set to 4.}
+  results in the different number of index files (40 vs 10).  Results against the entire human genome (hg18) (upper) and chromosome 21 only (middle) as reference sequences for exome analysis, are presented along with results with B. Glumae (lower).  The number of threads with the multi-threading option is set to 12.}
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -571,14 +574,16 @@ display widely different data sizes in terms of the reference genome
 sequence, short reads data, and required disk-space for carrying out
 the mapping with BFAST.
 
+\jkimnote{The following four sentences were changed for describing new results with Fig. 2}
+
 To investigate the computational requirements, we first measure the
 time-to-completion for 'bfast match' step while varying the size of a
 read file.  The results are shown in
 Fig.~\ref{fig:parallel-execution}. % \jhanote{This is pointing to the
-% wrong figure?!}\jkimnote{fixed}
-When the number of index files is
-equal to 10, there exists a linear scaling in time-to-completion as
-the size of read file is increased.  This suggests that if the read
+% wrong figure?!}\jkimnote{fixed} 
+Here, also we compare the time to solution between exome analysis with two different reference genomes, the entire human genome (hg18) and one of its chromosomes, chromosome 21, along with the whole genome resequencing with B. Glumae (see Table~\ref{table:two-genomes}).   For each case, we compare two different options for the \texttt{-d} flag.   
+
+According to the results in Fig.~\ref{fig:parallel-execution}, we conclude the followings. First, there exists a linear scaling in time-to-completion as the size of read file is increased.  This suggests that if the read
 files can be broken up into smaller fragments and which can be
 processed concurrently, there is the possibility of a speed-up. This
 points to the potential of task-level concurrency.
@@ -586,18 +591,14 @@ points to the potential of task-level concurrency.
 % indicating the parallel option with multiple read files is a useful
 % strategy of scaling out, i.e.  using more cores with a smaller size
 % of read files.
-
-We repeat the same configuration, but this time with a different
-number of index files (factor of four difference).  The linear
-relationship is maintained, but there is now a factor of four
-difference in the values, and thus the slope is also 4 times
-different. Although the exact reasons are unclear and lie in the
+Secondly, the memory option for generating 40 index files (factor of four difference from the option with  $d=0$) indicates that there is approximately four difference in the time-to-completion.  The ratios of slopes between 40 and 10 index files are 3.50, 4.25, and 4.46, respectively.  Although the exact reasons are unclear and lie in the
 complex structure of the index files, this represents a classic
 memory-time trade-off: in other words the peak memory consumed is
 dependent on the size of the index files (which decreases as the
 number of index files increases), whilst the runtime is dominated by
 the size of the read-file (linear dependence).
 
+Finally, difference in two related reference genome sequences, the entire human genome and its chromosome 21 finds minimal increase in time-to-solution with the former, but it is noted that required disk spaces and memory requirement are considerably lower with the latter.  Consequently, three cases shown in Fig.~\ref{fig:parallel-execution} highlight diverse biological scenarios leading to different optimal strategies for distributed parallel executions.
 % Secondly, the low memory option that creates more index files require
 % a longer calculation time as found with the comparison between 40
 % index files $(d = 1)$ vs. 10 index files ($ d = 0 $) ($n_m = 10$ is
