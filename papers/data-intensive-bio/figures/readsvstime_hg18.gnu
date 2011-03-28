@@ -1,7 +1,7 @@
 set terminal postscript eps 
 set output 'readsvstime_hg18.eps'
 
-set xlabel "Read file size(Gb)"
+set xlabel "Read file size(GB)"
 set ylabel "Time to Completion (seconds)"
 
 set autoscale
