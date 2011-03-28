@@ -41,10 +41,13 @@ def sub_jobs_submit(job_type, number_of_jobs, jd_executable, jd_number_of_proces
             jd.executable = jd_executable
             jd.number_of_processes = jd_number_of_processes
             jd.spmd_variation = "single"
+
+
             if job_type == "reads":
                 jd.arguments = ["-n",  "%s" %(bfast_reads_num),  
                                 "-o", "%s/reads.%s" %(bfast_reads_dir, bfast_uuid),
-                                 "%s/*.csfasta",  "%s/*.qual" %(bfast_raw_reads_dir,bfast_raw_reads_dir)]
+                                 "%s/*.csfasta"%(bfast_raw_reads_dir),
+                                 "%s/*.qual" %(bfast_raw_reads_dir)]
                                   
             elif job_type == "count":
                 jd.arguments = [" -altr" ,"%s/reads*" %(bfast_reads_dir),  
@@ -78,8 +81,8 @@ def sub_jobs_submit(job_type, number_of_jobs, jd_executable, jd_number_of_proces
          
             
             jd.working_directory = work_dir
-            jd.output =  log_dir + "/stdout_" + job_type + "-"+ str(bfast_uuid) + str(i) + ".txt"
-            jd.error = log_dir + "/stderr_"+ job_type + "-"+str(bfast_uuid) +str(i) + ".txt"
+            jd.output =  os.path.join(work_dir, "stdout_" + job_type + "-"+ str(bfast_uuid) + str(i) + ".txt")
+            jd.error = os.path.join(work_dir, "stderr_"+ job_type + "-"+str(bfast_uuid) +str(i) + ".txt")
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
@@ -124,12 +127,12 @@ def sub_jobs_submit(job_type, number_of_jobs, jd_executable, jd_number_of_proces
 if __name__ == "__main__":
     config = {}
 
-    #cwd = "/home/cctsg/pylons/DARE-BIOSCOPE/darebioscope/lib/adams/"
-
-    cwd = os.cwd()
- 
+    cwd = "/home/cctsg/pylons/DARE-BIOSCOPE/darebioscope/lib/adams/"
+    #cwd = os.getcwd()
 
     bfast_uuid = uuid.uuid1()
+    
+    #bfast_uuid = "371064a4-4e5c-11e0-88e1-d8d385abb2b0"
     # parse conf files
     parser = optparse.OptionParser()
     
@@ -137,49 +140,45 @@ if __name__ == "__main__":
 
     (options, args) = parser.parse_args()
    
-       #parse job conf file
+    #parse job conf file
     job_conf = options.job_conf
     config = initialize(job_conf)
     refgnome = config.get('Bfast', 'refgnome')
     job_id = config.get('Bfast', 'job_id')
-    #number_of_jobs = config.getint('Bfast', 'numberofjobs')
-    #number_of_bigjobs = 1
     machine_use=config.get('Bfast', 'machine_use') 
     dir_calc=config.get('Bfast', 'workdir')
 
 
     #parse adams conf file
-    adams_conf = "adams.conf"
+    adams_conf = os.path.join(cwd, "adams.conf")
     config = initialize(adams_conf)
     
-    work_dir = config.get(machine_use, dir_calc+'_dir')
-    print "wor_dir"+work_dir 
-    log_dir = config.get(machine_use, 'log_dir')   
+    work_dir = config.get(machine_use, 'work_dir')
+    #print "wor_dir"+work_dir 
     bioscope_exe = config.get(machine_use, 'bioscope_exe')  
     gram_url= config.get(machine_use, 'gram_url') 
     re_agent= config.get(machine_use, 're_agent')
     allocation= config.get(machine_use, 'allocation')
     queue = config.get(machine_use, 'queue')
-    num_cores_machine= config.get(machine_use, 'num_cores') 
     bfast_raw_reads_dir = config.get(machine_use, 'bfast_raw_reads_dir') 
     bfast_reads_num = config.get(machine_use, 'bfast_reads_num') 
     bfast_reads_dir = config.get(machine_use, 'bfast_reads_dir') 
     bfast_ref_genome_dir = config.get(machine_use, 'bfast_ref_genome_dir') 
     bfast_tmp_dir = config.get(machine_use, 'bfast_tmp_dir') 
-    bfast_matches_dir = config.get(machine_use, 'bfast_matches_dir') 
-    bfast_num_threads = config.getint(machine_use, 'bfast_num_threads') 
+    bfast_matches_dir = config.get(machine_use, 'bfast_matches_dir')
+    bfast_num_cores = config.getint(machine_use, 'bfast_num_cores_threads')
     bfast_localalign_dir = config.get(machine_use, 'bfast_localalign_dir')
     bfast_reported_dir = config.get(machine_use, 'bfast_reported_dir')
-    jd_executable_bfast = bioscope_exe + "bfast"
-    jd_executable_solid2fastq = bioscope_exe + "solid2fastq"
+    jd_executable_bfast = os.path.join(bioscope_exe , "bfast")
+    jd_executable_solid2fastq = os.path.join(bioscope_exe , "solid2fastq")
     
     
    #parse dare conf file
-    dare_conf = "dare.conf"
+    dare_conf = os.path.join(cwd, "dare.conf")
     config = initialize(dare_conf)
     refgnome = config.get('hg18-ch21', 'filename')
     
-    LOG_FILENAME = cwd + 'logfiles/%s_%s_log_bfast.txt'%(job_id, bfast_uuid)
+    LOG_FILENAME = os.path.join(cwd, 'logfiles', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
 
     logger = logging.getLogger('adams_bfast_manyjob')
     hdlr = logging.FileHandler(LOG_FILENAME)
@@ -192,7 +191,6 @@ if __name__ == "__main__":
     logger.info("Job id  is "  + str(job_id) )
     logger.info("Working Dir is " + work_dir )  
     logger.info("Machine used is " + machine_use )
-    logger.info("Log Dir is " + log_dir )
     logger.info("Reference GNOME " + refgnome)
     #logger.info("number_of_jobs " + str(number_of_jobs)) 
     
@@ -204,7 +202,7 @@ if __name__ == "__main__":
         # submit via mj abstraction
         resource_list1 = []
         resource_list1.append( {"gram_url" : gram_url, "walltime": "60" , 
-                                "number_cores" : 8, "allocation" : allocation,
+                                "number_cores" : bfast_num_cores , "allocation" : allocation,
                                 "queue" : queue, "re_agent": re_agent, "working_directory": work_dir})
         print "Create manyjob service "
         mjs = many_job.many_job_service(resource_list1, None)
@@ -213,7 +211,7 @@ if __name__ == "__main__":
         ### run the preparing read files step
         
         sub_jobs_submit("new", "1", "/bin/date", "2") ##dummy job for testing
-        #sub_jobs_submit("reads" , 1, jd_executable_solid2fastq, 8)
+        #sub_jobs_submit("reads" , "1", jd_executable_solid2fastq, str(bfast_num_cores))
         
         prep_reads_runtime = time.time()-prep_reads_starttime
         logger.info("prepare reads Runtime: " + str( prep_reads_runtime))
@@ -230,18 +228,17 @@ if __name__ == "__main__":
         
         
         f = open(r'%s/logfiles/out.%s.txt'%(cwd, bfast_uuid))
-        num_matches=f.readline()
+        num_reads=f.readline()
         f.close()
         
         mjs.cancel()
         
-       # for testing
-        num_matches = 1
+        #num_reads = 1
+        
         
         resource_list = []
-        # for real cal wall time should be > 240 minutes
-        resource_list.append( {"gram_url" : gram_url, "walltime": "60" , 
-                               "number_cores" : int(int(num_matches)*int(num_cores_machine)), "allocation" : allocation,
+        resource_list.append( {"gram_url" : gram_url, "walltime": "240" , 
+                               "number_cores" : int(int(num_reads)*int(bfast_num_cores)), "allocation" : allocation,
                                "queue" : queue, "re_agent": re_agent, "working_directory": work_dir})
 
         print "Creating manyjob service 2 "
@@ -249,8 +246,8 @@ if __name__ == "__main__":
         matches_starttime = time.time()
         
         ### run the matching step
-        sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        #sub_jobs_submit("matches" , 1, jd_executable_solid2fastq, 8)
+        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
+        sub_jobs_submit("matches" , num_reads, jd_executable_bfast, str(bfast_num_cores))
         
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )
@@ -258,8 +255,8 @@ if __name__ == "__main__":
         ### run the local-alignment step
         localalign_starttime = time.time()
         
-        sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        #sub_jobs_submit("localalign" , 1, jd_executable_solid2fastq, 8)
+        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
+        sub_jobs_submit("localalign" , num_reads, jd_executable_bfast, str(bfast_num_cores))
 
         localalign_runtime = time.time() - localalign_starttime
         logger.info("localalign Runtime: " + str( localalign_runtime) )
@@ -267,8 +264,8 @@ if __name__ == "__main__":
         postprocess_starttime = time.time()
 
         ### run the postprocess step        
-        sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        #sub_jobs_submit("postprocess" , 1, jd_executable_solid2fastq, 8)
+        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
+        sub_jobs_submit("postprocess" ,num_reads , jd_executable_bfast, str(bfast_num_cores))
 
         postprocess_runtime = time.time() - postprocess_starttime
         logger.info("Postporcess Runtime: " + str( postprocess_runtime) )
