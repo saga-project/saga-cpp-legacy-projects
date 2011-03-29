@@ -98,12 +98,14 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
   affinity calculations.  They represent a class of algorithms that
   involve a large number of loosely-coupled ensembles, and are thus
   amenable to using distributed resources. We develop a framework
-  for RE which supports different replica pairing and coordination
-  mechanisms and which can use a range of production cyberinfrastructure
+  for RE which supports different replica pairing (synchronous vs. asynchronous) and coordination
+  mechanisms (centralised vs. decentralised) and which can use a range of production cyberinfrastructure
   concurrently.  We use this framework to implement two different RE
   algorithms in two different ways.  We characterise the performance of the different RE
   algorithms at unprecedented scales on production distributed
-  infrastructure.
+  infrastructure. We scale-up, increasing the number of replicas and scale-out, increasing the number of machines. We find that even with a simple, non-optimised prototype of the
+RE Framework, the advantages of asynchronous formulations soon outweigh the synchronous formulations, i.e., as the number of replicas increases the
+performance of asynchronous RE beats that of the synchronous RE. \athotanote{added preceding sentences}
 
 
 %  flexible and robust implementation enables the efficient use of a
@@ -1010,7 +1012,7 @@ available here ~\citep{async-re_url}.  %\athotanote{is the placement
 \end{table}
 
 \subsection{Synchronous RE}
-
+\label{subsec:sync}
 % The replicas are run by the BigJob agent after the BigJob becomes
 % active. The average time the Bigjob agent takes to start one replica
 % is 0.3 s.  \alnote{Is this the time agent only? Or does it
@@ -1582,12 +1584,12 @@ making 16, 32, 64, 128, 256, 512 and 1024 exchanges respectively. This
 fixes the ratio of the number of exchanges to the number of replicas
 ($N_X \over N_R$) to 4.  Each replica is configured to run 500
 time-steps before an exchange is attempted, and is allocated 16
-processors. Experiments up to 64 replicas are performed on {\it
-  QueenBee}, while experiments with 128 and 256 replicas are done on
-\emph{Ranger}; this is because \emph{QueenBee} only allocates a
-maximum of 2048 processors per job request and getting a 2048
+processors. Experiments up to 64 replicas were performed on {\it
+  QueenBee}, while experiments with 128 and 256 replicas were done on
+\emph{Ranger}; this is because 128 replicas would require 2048 cores and \emph{QueenBee} only allocates a
+maximum of 2048 processors per job request. As getting a 2048
 processor allocation involves extremely large waiting times in the
-queue. We have normalised the data to factor in the difference in
+queue, \emph{Ranger} was used. We have normalised the data to factor in the difference in
 performance of {\it Ranger} and {\it QueenBee}.
 
 The rationale underlying the design of experiments is to understand
@@ -1608,8 +1610,7 @@ implementations for even larger $N_R$.
 %\alnote{please double-check that the new abbreviations are used!
 %$T_{EX}$}
 
-{\it Results:} Figure~\ref{fig:scaleup} shows the results obtained by
-running the scale-up experiments mentioned.  % The ratio of the number
+{\it Results:}   % The ratio of the number
 % of exchanges ($N_X$) to the number replicas ($N_R$) is kept constant,
 % i.e., the number of generations is a constant for different replica
 % counts. 
@@ -1623,8 +1624,8 @@ $T_{EX}$ and $T_W$ in Equation~\ref{eq:totaltime}.  The increase,
 however, is not uniform across the three implementations: it is
 largest for synchronous RE, and the least for asynchronous
 (decentralised) RE.  We analysed $T$ and the values of its components
-for 32 replicas in section~4.1; we use that analysis as the basis to
-understand the scale-up behaviour of the three cases.
+for 32 replicas in section~\ref{sec:re_impl}(\ref{subsec:sync}); we use that analysis as the basis to
+understand the scale-up behaviour of the three cases. We can see the behaviour of different RE implementations in Figure~\ref{fig:scaleup}. That the change in $T$ as $N_R$ increases is exponential for synchronous and asynchronous (centralised) RE and linear for asynchronous (decentralised) RE denotes the scale-up properties of the three implementations. We explain the reasons for this behaviour - algorithmic and implementation - in the following paragraphs. \athotanote{added preceding sentences}
  
 In the synchronous RE algorithm, there is an explicit synchronisation
 of all replicas; thus early replicas wait for other replicas to
@@ -1636,11 +1637,11 @@ $N_R = 64$ and $N_X = 256$, using Equation~\ref{eq:totaltime}, the
 coordination time is $(0.6+2.8) \times 256 = 870.4$.  The difference
 in coordination times ($435.2$ s) accounts for the difference
 in $T$ for 32 and 64 replicas in the
-Figure~\ref{fig:scaleup}. % The actual difference observed in $T$ from 32 to 64 replicas is 366 s. \jhanote{Abhinav: Please provide value of
+Figure~\ref{fig:scaleup}. While this is a single threaded implementation, the cost of synchronisation ($T_W$) is unavoidable even in a decentralised implementation. Thus, $T_W$, which is algorithmic, is the major cause for the increase in $T$. \athotanote{added preceding sentence} % The actual difference observed in $T$ from 32 to 64 replicas is 366 s. \jhanote{Abhinav: Please provide value of
 %   the difference in T here please} \athotanote{mentioned}
 A similar analysis was performed for different replica and exchange
 counts and the values obtained are in agreement with the empirical
-data in Figure~\ref{fig:scaleup}.
+data in Figure~\ref{fig:scaleup}. 
 
 % Since replicas are currently started sequentially by the master, a
 % delay between the start and thus the termination of the first and last
@@ -1704,7 +1705,7 @@ overall $T$ when $N_R$ changes from 32 to
 64. % The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
 %   difference in T here please again}.\athotanote{done}
 The variation in $T$ for other values of $N_R$ can be
-accounted for by changing values of $T_{find}$.
+accounted for by changing values of $T_{find}$. As this is an asynchronous algorithm, $T_W$ is 0. The reason we give for a linear increase in $T$ ad $N_R$ increases is $T_{find}$, which is an implementation detail. We find that the asynchronous RE algorithm itself does not limit the performance. \athotanote{added preceding sentence} 
 
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
@@ -1724,8 +1725,7 @@ large component of the difference in $T$ as $N_R$ goes from 32
 replicas to 64 replicas, as shown in Figure~\ref{fig:scaleup}. The
 actual difference observed in $T$ from 32 to 64 replicas is 311~s. We
 have verified this scale-up model for different number of replicas and
-found it to be consistent with the data in the
-Figure~\ref{fig:scaleup}.
+found it to be consistent with the data in the Figure~\ref{fig:scaleup}. 
 
 In addition to the above, explicable changes arising from different
 coordination costs, as $N_R$ increases and as more nodes of a machine
@@ -1860,13 +1860,12 @@ runtime. Each experiment was repeated 5 times.
 % \alnote{The scale-out analysis needs to be improved to get on par with the
 % scale-up analysis.}\jhanote{Please check and refine as you deem fit}
 % \alnote{Sounds good for the data we have.}
-{\it Results:} The results obtained running the scale-out experiments
-are shown in Figure~\ref{fig:scaleout_cent}. We want to analyse how
+{\it Results:} We want to analyse how
 the performance of the asynchronous (centralised) RE implementation is
 effected as the distribution of resources is increased from 1 to 2 and
 2 to 4, while keeping the number of replicas constant. The model
-developed in equation 2.2 still holds and after factoring in the
-performance difference due to the additional BigJob-Agents, the
+developed in Equation~\ref{eq:totaltime} still holds and after factoring in the
+performance advantage due to the additional BigJob-Agents, the
 analysis provided
 in~\ref{sec:re_impl}(c) %\alnote{there is no section 4.3. please use refs}
 can be used to understand the behaviour. In a distributed scenario,
@@ -1887,6 +1886,7 @@ a second from one machine to another. From {\it QueenBee}, it takes
 0.007 s, from {\it Eric}, it takes 0.005 s, from {\it Louie}, it takes
 0.024 s and from {\it Oliver}, it takes 0.016 s.
 
+The scale-out behaviour can be seen in Figure~\ref{fig:scaleout_cent}. 
 For 8 replicas on 1 machine conducting 32 exchanges, $T$ is 570
 s. When 8 replicas are equally distributed over 2 machines, $T$ is 586
 s (see Figure~\ref{fig:scaleout_cent}). Each remote file-transfer
@@ -1904,11 +1904,11 @@ Some of the data points on the graph do not behave in the model that
 we predicted. % \alnote{can you give an example?}
 For example, in the 16 replica case, going from 1 to 2 machines, $T$
 only changes by 4 s, when it should have moved by 23 s. But the
-inconsistencies are of the same order (seconds), and can easily be
+fluctuations are of the same order (seconds), and can easily be
 explained by fluctuations in the performance of remote operations.
 
-The time-to-completion $T$ increases
-moderately or remains constant with higher number of machines, which
+As the time-to-completion $T$ increases
+moderately or remains constant with higher number of machines, it
 indicates that the scale-out behaviour is quite good.  %As discussed in section~\ref{sec:re_impl}, the asynchronous (centralised) RE algorithm does not involve any synchronisation cost ($T_W$). 
 Thus, the loose coordination between replicas at the exchange stage helps to 
 provide the flexibility to use multiple resources, which would not be possible if
@@ -1990,8 +1990,8 @@ Following on from earlier theoretical explorations,
 ~\citep{parashar_arepex,DBLP:journals/jcc/GallicchioLP08}, in this
 paper, we investigate {\it traditional} and {\it advanced}
 replica-exchange algorithms at unprecedented scales.  An important
-motivation for this work has been to implement a framework which in
-turn supports multiple RE algorithms; it is the aim that the RE
+motivation for this work has been to implement a framework which
+supports multiple RE algorithms; it is the aim that the RE
 framework use general purpose and standard capabilities available
 on production infrastructure, such as, the Teragrid and LONI.
 Additionally, our framework uses a flexible pilot-job implementation,
@@ -2008,7 +2008,7 @@ behaviour.  Algorithms based on asynchronous coordination are
 typically more difficult to implement than synchronous ones; however,
 we find that even with a simple, non-optimised prototype of the
 RE Framework, the advantages of asynchronous formulations soon outweigh the synchronous formulations, i.e., as $N_R$ increases the
-performance of asynchronous RE beats that of the synchronous RE.  
+performance of asynchronous RE beats that of the synchronous RE. 
 
 Our analysis shows that a fundamental trade-off is between the lower
 cost of replica synchronisation at the exchange stage that
