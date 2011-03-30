@@ -327,6 +327,8 @@ SAGA_PYTHON_LOCATION =
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
 SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0
 SAGA_PYTHON_PSRC     = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
+SAGA_PYTHON_VERSION  = $(shell python -c "import sys; print(sys.version)"  | head -1 | cut -f 1 -d ' ')
+SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(SAGA_PYTHON_VERSION)/site-packages
 
 .PHONY: saga-bindings-python
 saga-bindings-python:: base $(SAGA_PYTHON_CHECK)
@@ -344,10 +346,10 @@ $(SAGA_PYTHON_CHECK):
     $(WGET) $(SAGA_PYTHON_PSRC) ; \
     tar jxvf Python-2.7.1.tar.bz2 ; \
     cd Python-2.7.1 ; \
-    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) && make && make install ; \
+    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) | tee configure.log && make && make install ; \
     cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; \
 	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) ; \
-  )
+  )	
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make clean && make && make install
 
 
@@ -378,6 +380,8 @@ $(SC_MANDELBROT_CHECK):
 CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(HOSTNAME_SHORT)
 
+PYTHONPATH=$(SAGA_LOCATION)/$(shell cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Package Path' configure.log | cut -f 2 -d ':' | cut -f 2 -d ' ')
+
 .PHONY: readme
 readme:: saga-core $(CSA_README_CHECK)
 	@echo "README                    ok"
@@ -385,9 +389,10 @@ readme:: saga-core $(CSA_README_CHECK)
 $(CSA_README_CHECK):
 	@echo "README                    creating"
 	@$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'     $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'   $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;' $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'     $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'       $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'     $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;'   $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;' $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'       $(CSA_README_CHECK)
 	
 
