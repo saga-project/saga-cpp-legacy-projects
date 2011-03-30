@@ -298,49 +298,100 @@ Our approach is to primarily focus on the mapping process of short
 reads from NGS platforms against a reference genome.  The mapping is
 carried out with the tool, BFAST\cite{bfast2009, bfast2009b} which was
 chosen specifically considering its capability to support parallel and
-multi-threading execution. \jkimnote{the following is added to response of reviewer 7 on the choice of BFAST} Moreover, since BFAST was developed to achieve high sensitivity and accuracy while an efficient memory usage and requiring smaller data volume are not the top priorities compared to other popular programs such as BWA or Bowtie\cite{bfast2009}, the choice of this tool is appropriate for our purposes. Indeed, our investigation with this bioinformatic program would represent a representative situation for a bioinformatics tool
-enhanced considerably for genome-wide analysis with scalable infrastructure.  As a use case, we
-understand the computational complexity of BFAST\cite{bfast2009,
-  bfast2009b} and the determinants of its performance for two
-exemplary genomes, human genome and a microbial genome {\it
-  Bukerholderia Glumae}.
- 
-Having understood the computational requirements, and the importance
-of both scaling-up and scaling-out, we present our initial design
-objectives and a prototype infrastructure that seamlessly uses
-High-Performance Computing (HPC) grids and Cloud environment for
-genome-wide analysis.  Our infrastructure builds upon existing
-capabilities of the Distributed Adaptive Runtime Environment (DARE)
-framework -- which enables the seamless utilization of heterogeneous
-distributed computing resources.  \reviewer{R-7 : "an existing framework -- which enables the seamless utilization of heterogenous resources" and When I think of seamless utilization of heterogeneous resources I think of swift, work queue/makeflow, and other lightweight "ad hoc" cloud systems.  The contribution here is that compiling BFAST in the DARE framework allows using different resources, but not at the same time?  It is unclear without reading the previous work why this is an improvement on something like swift or other workflow-enabling lightweight frameworks.
-} DARE provides an existing efficient framework upon which to build a scalable infrastructure to support a
-wide range of abstractions and execution requirements for the
-analytics required for NGS data\cite{tg11}. \reviewer{R-7 : ""an existing efficient framework upon which to build a scalable infrastructure to support a wide range of abstractions and execution environments.""   When I think efficient, I usually think of the HPC concept of speedup /  number of processors or a more loosely defined programability argument.  None of the traditional measures are present in this paper.  For example, in Table 6 the framework appears to scale to at least 80 cores but I have at least three concerns with these data:  1.)  how long did the job take on a serial system, and therefore what is the speedup on the grid/cloud?  2.)  Were the authors able to process a complete run of either the human or Burkholderia? This is unclear from the abstract examples. 4.) Does the grid/cloud version provide speedup over a plain threaded version of BFAST on similar hardware?  5.)  No ability to measure how scalable the software is as there are only two data points on an HPC grid (LONI) that I assume had a shared file system?  The same number of cores were used in Table 7. }\smnote{ 1) Lets say we have "n" read files and with DARE it takes around time "t" time for matching step if we run it serially it would take n*t time. It probably exceeds wall time limit. Therefore speed up in match step depends how many number of read files we generate and process concurrently.
-2) Yes we were able to process the complete run with entire Human Genome on QB and Ranger separately. (**I am currently working this to utilizing QB and Ranger together.) 
-4) it should clearly provide the advantage with multiple resources. If we want to use the cloud resources from India to complete Human Genome run it is not practically possible because of the current limited disk size access provided by the FG Eucalyptus resources. Because whole human genome index files are of size 129 GB for Bfast matching step as opposed to HG 18 Chromosome 21 with size of  2 GB index files. On the other hand it also requires the temporary files disk space.  Thus it is important to utilize large capacity resources like QB and Ranger divide the work load across machines.}
+multi-threading execution.
+BFAST was developed to achieve high sensitivity and accuracy.  BFAST
+does not have the same efficient memory usage and data volume compared
+to other popular programs such as BWA or Bowtie\cite{bfast2009}.
+However even though these are not the top priorities the choice of
+this tool is appropriate for our purposes, as this % Indeed, our investigation
+% with this bioinformatic program would
+is a representative situation for a bioinformatics tool enhanced
+considerably for genome-wide analysis with scalable infrastructure.
 
+% \reviewer{R-7 : "an existing framework -- which enables the seamless
+%   utilization of heterogenous resources" and When I think of seamless
+%   utilization of heterogeneous resources I think of swift, work
+%   queue/makeflow, and other lightweight "ad hoc" cloud systems.  The
+%   contribution here is that compiling BFAST in the DARE framework
+%   allows using different resources, but not at the same time?  It is
+%   unclear without reading the previous work why this is an improvement
+%   on something like swift or other workflow-enabling lightweight
+%   frameworks.  } 
 
-\jkimnote{this is for other works and comparison to our apporach} Our
-approach has distinctive characteristics from other
-works\cite{taylor2010,cloudburst, cloudblast,
+As a use case, we analyse the computational complexity of
+BFAST\cite{bfast2009, bfast2009b} and the determinants of its
+performance for two exemplary genomes, human genome and a microbial
+genome {\it Bukerholderia Glumae}.  Having understood the
+computational requirements, and the importance of both scaling-up and
+scaling-out, we present the initial design objectives and a prototype
+of an infrastructure that seamlessly uses High-Performance Computing
+(HPC) grids and Cloud environment for genome-wide analysis.  Our
+infrastructure builds upon existing capabilities of the Distributed
+Adaptive Runtime Environment (DARE) framework\cite{tg11} -- which
+enables the seamless utilization of heterogeneous distributed
+computing resources.  DARE provides an existing efficient framework
+upon which to build a scalable infrastructure to support a wide range
+of abstractions and execution requirements for the analytics required
+for NGS data. \reviewer{R-7 : ""an existing efficient framework upon
+  which to build a scalable infrastructure to support a wide range of
+  abstractions and execution environments.""  When I think efficient,
+  I usually think of the HPC concept of speedup / number of processors
+  or a more loosely defined programability argument.  None of the
+  traditional measures are present in this paper.  For example, in
+  Table 6 the framework appears to scale to at least 80 cores but I
+  have at least three concerns with these data: 1.)  how long did the
+  job take on a serial system, and therefore what is the speedup on
+  the grid/cloud?  2.)  Were the authors able to process a complete
+  run of either the human or Burkholderia? This is unclear from the
+  abstract examples. 4.) Does the grid/cloud version provide speedup
+  over a plain threaded version of BFAST on similar hardware?  5.)  No
+  ability to measure how scalable the software is as there are only
+  two data points on an HPC grid (LONI) that I assume had a shared
+  file system?  The same number of cores were used in Table
+  7. }\smnote{ 1) Lets say we have "n" read files and with DARE it
+  takes around time "t" time for matching step if we run it serially
+  it would take n*t time. It probably exceeds wall time
+  limit. Therefore speed up in match step depends how many number of
+  read files we generate and process concurrently.  2) Yes we were
+  able to process the complete run with entire Human Genome on QB and
+  Ranger separately. (**I am currently working this to utilizing QB
+  and Ranger together.)  4) it should clearly provide the advantage
+  with multiple resources. If we want to use the cloud resources from
+  India to complete Human Genome run it is not practically possible
+  because of the current limited disk size access provided by the FG
+  Eucalyptus resources. Because whole human genome index files are of
+  size 129 GB for Bfast matching step as opposed to HG 18 Chromosome
+  21 with size of 2 GB index files. On the other hand it also requires
+  the temporary files disk space.  Thus it is important to utilize
+  large capacity resources like QB and Ranger divide the work load
+  across machines.}
+
+Our infrastructure has distinctive characteristics, compared to other
+related approaches\cite{taylor2010,cloudburst, cloudblast,
   langmead2009,langmead2010,gatk,halligan2009,luyf-2010}, many of
 which have been developed in the Cloud environment.  First of all,
-most of other approaches are lack of interoperability between
-different distributed computing environment.  This is partly because
-the application layer is tightly coupled to the runtime environment
-layer.  Secondly, other works support a single or closely related few
+most other approaches lack interoperability between different
+distributed computing environments.  This is partly because the
+application layer is tightly coupled to the runtime environment layer.
+Secondly, other approaches support a single or closely related few
 applications.  The main design strategy of the DARE framework is to
-separate an application logic from a target tool(s), consequently
+separate the application logic from a target tool(s), consequently
 resulting in easy-to-develop cycles for improvement, changes, and
-deployment of new tools.  On the other hand, it is also true that some
-tools such as CloudBurst\cite{cloudburst},
-CloudBlast\cite{cloudblast},Crossbow\cite{langmead2009}, and
-GATK\cite{gatk} have edges in the Cloud environment as well as in the
-utilization of effective programming models such as MapReduce or
-software frameworks, whereas others\cite{luyf-2010} focus on the HPC
-grid environment.
+deployment of new tools.  % On the other hand, it is also true that
+Some tools such as CloudBurst\cite{cloudburst},
+CloudBlast\cite{cloudblast}, Crossbow\cite{langmead2009}, and
+GATK\cite{gatk} have advantages that are specifically confined to
+Cloud environments, as well as permit ease of utilization of effective
+programming models such as MapReduce or other software frameworks,
+whereas others\cite{luyf-2010} focus on the HPC grid environment.
 
-This paper is organized as follows.  We introduce BFAST and present its characteristic features focusing on computational and data requirements for mapping.  In the following section, we examine details on execution of BFAST using a local resource and then two distributed environments, a HPC grid and a Cloud via our run-time environment DARE.  Finally, we conclude with the summary of this work and future works.   
+This paper is organized as follows.  We introduce BFAST and present
+its characteristic features focusing on computational and data
+requirements for mapping.  In the following section, we examine
+details on execution of BFAST using a local resource and then two
+distributed environments, a HPC grid and a Cloud via our run-time
+environment DARE.  Finally, we conclude with the summary of this work
+and future works.
 
 % are keenly utilized for a scalable computation of a target genome-wide
 % analysis tool.
@@ -377,7 +428,7 @@ This paper is organized as follows.  We introduce BFAST and present its characte
 %   the problem instances, Bfast is the application and the BigJob etc
 %   are execution tools}
 
-In short, BFAST requires a reference genome sequence and NGS
+BFAST requires a reference genome sequence and NGS
 platform generated short reads initially and produces mapping results
 of billions of short reads onto a target reference genome.  Notable
 key common features of BFAST that are generally shared among diverse genome-wide analysis applications include: i) a requirement of input data containing
@@ -397,17 +448,21 @@ input.
 %   same notation.. as opposed to introducing new notation such as ``low
 %   memory''}
 
-Such features often allow a pipeline approach and task-level concurrency if data fragmentation is utilized, and in fact BFAST is suggested to be utilized as a pipeline as summarized in
-Fig.~\ref{fig:workflow-bfast} and Table~\ref{table:bfast-summary},
-The pipeline of BFAST comprises six different steps. Of these three steps (creation of an index of a
-ref. genome, finding Candidate Alignment Locations (CALs), and alignment of CALs), which are computationally demanding, can be executed in
-parallel or multi-threading support options.
+Such features often allow a pipeline approach and task-level
+concurrency if data fragmentation is utilized, in fact it is
+recommended that BFAST is utilized as a pipeline as summarized in
+Fig.~\ref{fig:workflow-bfast} and Table~\ref{table:bfast-summary}, The
+pipeline of BFAST comprises six different steps. Of these three steps
+(creation of an index of a ref. genome, finding Candidate Alignment
+Locations (CALs), and alignment of CALs), which are computationally
+demanding, can be executed in parallel or multi-threading support
+options.
  
 In order to facilitate the utilization of the (single) resource that
-is employed, the index file should be suitably created, and the possible
-fragmentation of data sets should be considered.  For example, short reads can be stored in
-multiple files and mapping of each read file can be conducted
-independently.
+is employed, the index file should be suitably created, and the
+possible fragmentation of data sets should be considered.  For
+example, short reads can be stored in multiple files and mapping of
+each read file can be conducted independently.
  
 There can be large variation in the data volume -- input, output,
 and/or temporary files, often requiring that BFAST should support
@@ -569,7 +624,7 @@ Before we can propose a scalable, extensible infrastructure to support
 data-analytics on a range of problem-instances, it is critical to
 characterize the computational and data dependencies of the BFAST
 application.  The overall execution of BFAST, or any other short
-mapping applications aligning short reads onto a reference genome is
+mapping application that aligns short reads onto a reference genome is
 affected by the specific biological problem at hand -- such as types
 of target reference genomes and high-throughput sequencing techniques
 and protocols, as well as computational attributes such as data
@@ -604,24 +659,44 @@ time-to-completion for 'bfast match' step while varying the size of a
 read file.  The results are shown in
 Fig.~\ref{fig:parallel-execution}. % \jhanote{This is pointing to the
 % wrong figure?!}\jkimnote{fixed} 
-Here, also we compare the time to solution between exome analysis with two different reference genomes, the entire human genome (hg18) and one of its chromosomes, chromosome 21, along with the whole genome resequencing with B. Glumae (see Table~\ref{table:two-genomes}).   For each case, we compare two different options for the \texttt{-d} flag.   
+Here, also we compare the time to solution between exome analysis with
+two different reference genomes, the entire human genome (hg18) and
+one of its chromosomes, chromosome 21, along with the whole genome
+resequencing with B. Glumae (see Table~\ref{table:two-genomes}).  For
+each case, we compare two different options for the \texttt{-d} flag.
 
-According to the results in Fig.~\ref{fig:parallel-execution}, we conclude the followings. First, there exists a linear scaling in time-to-completion as the size of read file is increased.  This suggests that if the read
-files can be broken up into smaller fragments and which can be
-processed concurrently, there is the possibility of a speed-up. This
-points to the potential of task-level concurrency.
+As shown in Fig.~\ref{fig:parallel-execution}, time-to-completion 
+scales linearly as the size of read file is increases.
+This suggests that if the read files can be broken up into smaller
+fragments and which can be processed concurrently, there is the
+possibility of a speed-up. This points to the potential of task-level
+concurrency.
 
 % indicating the parallel option with multiple read files is a useful
 % strategy of scaling out, i.e.  using more cores with a smaller size
 % of read files.
-Secondly, the memory option for generating 40 index files (factor of four difference from the option with  $d=0$) indicates that there is approximately four difference in the time-to-completion.  The ratios of slopes between 40 and 10 index files are 3.50, 4.25, and 4.46, respectively.  Although the exact reasons are unclear and lie in the
-complex structure of the index files, this represents a classic
-memory-time trade-off: in other words the peak memory consumed is
-dependent on the size of the index files (which decreases as the
+
+Secondly, the memory option for generating 40 index files (factor of
+four difference \jhanote{4 difference in what?} from the option with
+$d=0$) indicates that there is approximately four difference in the
+time-to-completion.  The ratios of slopes between 40 and 10 index
+files are 3.50, 4.25, and 4.46, respectively.  \jhanote{Previous
+  sentence needs attention too} Although the exact reasons are unclear
+and lie in the complex structure of the index files, this represents a
+classic memory-time trade-off: in other words the peak memory consumed
+is dependent on the size of the index files (which decreases as the
 number of index files increases), whilst the runtime is dominated by
 the size of the read-file (linear dependence).
 
-Finally, difference in two related reference genome sequences, the entire human genome and its chromosome 21 finds minimal increase in time-to-solution with the former, but it is noted that required disk spaces and memory requirement are considerably lower with the latter.  Consequently, three cases shown in Fig.~\ref{fig:parallel-execution} highlight diverse biological scenarios leading to different optimal strategies for distributed parallel executions.
+Finally, difference in two related reference genome sequences, the
+entire human genome and its chromosome 21, results in a minimal
+increase in time-to-solution for the former, however we note that the
+required disk spaces and memory requirement are considerably lower
+with the latter.  Consequently, three cases shown in
+Fig.~\ref{fig:parallel-execution} highlight diverse biological
+scenarios leading to different optimal strategies for distributed
+parallel executions.
+
 % Secondly, the low memory option that creates more index files require
 % a longer calculation time as found with the comparison between 40
 % index files $(d = 1)$ vs. 10 index files ($ d = 0 $) ($n_m = 10$ is
