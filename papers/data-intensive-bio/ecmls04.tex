@@ -42,7 +42,7 @@
 %Format\titlenote{(Does NOT produce the permission block, copyright information nor page numbering). For use with ACM\_PROC\_ARTICLE-SP.CLS. Supported by ACM.}}
 
 \newif\ifdraft
-\drafttrue                                                                                                   
+%\drafttrue                                                                                                   
 
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
@@ -565,7 +565,7 @@ distributed architectures?
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small The time-to-completion of the 'bfast match' step is
-  measured by varying the size of short read file.  Two lines
+  measured by varying the size of short read files.  Two lines
   represent two cases differing in the low memory option, which
   results in the different number of index files (40 vs 10).  Results against the entire human genome (hg18) (upper) and chromosome 21 only (middle) as reference sequences for exome analysis, are presented along with results with B. Glumae (lower).  The number of threads with the multi-threading option is set to 12.}
   \label{fig:parallel-execution} 
@@ -607,8 +607,8 @@ Genome Analysis  & Analysis &  Genome \\
 space required & &\\
 \hline  \hline
 \end{tabular} \caption{The information about the size of reference genomes, volumes of datasets from
- Next Generation Sequencing (NGS) platforms and disk-space required during the mapping calculation 
- with BFAST is summarized assuming all calculations are carried out with a single machine.}
+  Next Generation Sequencing (NGS) platforms and disk-space required during the mapping calculation 
+  with BFAST is summarized assuming all calculations are carried out on a single machine.}
  \label{table:two-genomes} 
 \end{table}
 
@@ -652,7 +652,8 @@ display widely different data sizes in terms of the reference genome
 sequence, short reads data, and required disk-space for carrying out
 the mapping with BFAST.
 
-\jkimnote{The following four sentences were changed for describing new results with Fig. 2}
+\jkimnote{The following four sentences were changed for describing new
+  results with Fig. 2}
 
 To investigate the computational requirements, we first measure the
 time-to-completion for 'bfast match' step while varying the size of a
@@ -666,7 +667,7 @@ resequencing with a microbe, B. Glumae\cite{kim2011} (see Table~\ref{table:two-g
 each case, we compare two different options for the \texttt{-d} flag.
 
 As shown in Fig.~\ref{fig:parallel-execution}, time-to-completion 
-scales linearly as the size of read file is increases.
+scales linearly as the size of read files increases.
 This suggests that if the read files can be broken up into smaller
 fragments and which can be processed concurrently, there is the
 possibility of a speed-up. This points to the potential of task-level
@@ -676,14 +677,20 @@ concurrency.
 % strategy of scaling out, i.e.  using more cores with a smaller size
 % of read files.
 
-Secondly, the memory option ($d=1$) for generating 40 index files (factor of
-four increase in the number of files\jhanote{4 difference in what?} compared to the option with
-$d=0$) indicates that there is approximately four difference in the
-time-to-completion.  We calculated the ratios of slopes between 40 and 10 index
-files and those are 3.50 (hg18), 4.25 (hg18-chr21), and 4.46 (B. Glumae), respectively.  \jhanote{Previous
-  sentence needs attention too}  Although many factors including the complex structure of the index files affect on the speed-down with the option ($d=1$), the main reason is that such low memory option requires four sequential CAL finding with four index files as indicated in the publication\cite{bfast2009}.  Therefore, this represents a
-classic memory-time trade-off: in other words the peak memory consumed
-is dependent on the size of the index files (which decreases as the
+Secondly, the memory option ($d=1$) for generating 40 index files
+(factor of four increase in the number of files\jhanote{4 difference
+  in what?} compared to the option with $d=0$) indicates that there is
+approximately a factor of four difference in the time-to-completion.
+We calculated the ratios of slopes between 40 and 10 index files and
+those are 3.50 (hg18), 4.25 (hg18-chr21), and 4.46 (B. Glumae),
+respectively.  \jhanote{Previous sentence needs attention too}
+Although many factors including the complex structure of the index
+files affect on the speed-down with the option ($d=1$), the main
+reason is that such low memory option requires four sequential CAL
+finding with four index files as indicated in the
+publication\cite{bfast2009}.  Therefore, this represents a classic
+memory-time trade-off: in other words the peak memory consumed is
+dependent on the size of the index files (which decreases as the
 number of index files increases), whilst the runtime is dominated by
 the size of the read-file (linear dependence).
 
@@ -1039,7 +1046,7 @@ s4& 0.6 GB & 4 & 4 & 5804 s \\
  \hline
  \end{tabular}
  
- \caption{Computing time for the 'bfast match' step with a single node
+ \caption{Computing time for the 'bfast match' step on a single node
    (eric). Note that all cases have the same amount of total read
    data, and use ten index files.  Under the restriction that the
    hardware node has 4 cores, the time-to-completion is compared with
@@ -1062,8 +1069,8 @@ We have established that efficient analytics on NGS data is not just a
 matter of data-management, but also of providing large amounts of
 computing for analysis. Any solution that facilitates analytics across
 different problem instances, will require a general purpose framework
-that is able to exploit different types of architecture and platforms
-is required.
+that is able to exploit different types of architecture and platforms.
+
 
 %Given the large size of data involved, such as the as human genome as
 %summarized in Table~\ref{table:two-genomes} and corresponding long
@@ -1084,24 +1091,26 @@ heterogeneous distributed computing resources, we have developed the
 Distributed Adaptive Runtime Environment (DARE)
 framework\cite{dareurl}.  
 
+At the core of the DARE framework, is a SAGA BigJob (which is a
+flexible general purpose pilot-job
+implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+% Additionally, the framework is composed of a web application using an
+% open source web development framework, Pylons\cite{pylonsurl}. 
+% This
+% combination of the open source technology and the application
+% management system 
+With a suitable wep development framework, it supports the development
+of a lightweight but extensible, science gateway capable of using a
+range of distributed resources.  In subsequent sections, we will
+demonstrate via performance numbers the effectiveness of how the DARE
+framework supports a range of infrastructure, problem instance
+configurations and size.
+
 Such task-level concurrency supports different ways of splitting the
 data, whilst using the same runtime environment using SAGA-BigJob; all
 the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
 It is possible to exploit multi-level configuration in that different
 thread/cores configurations are possible for each of the sub-jobs.
-
-At the core of the DARE framework, is a SAGA BigJob (which is a
-flexible general purpose pilot-job
-implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
-Additionally, the framework is composed of a web application using an
-open source web development framework, Pylons\cite{pylonsurl}.  This
-combination of the open source technology and the application
-management system supports the development of a lightweight but
-extensible, science gateway capable of using a range of distributed
-resources.  In subsequent sections, we will demonstrate via
-performance numbers the effectiveness of how the DARE framework
-supports a range of infrastructure, problem instance configurations
-and size.
 
 
 
