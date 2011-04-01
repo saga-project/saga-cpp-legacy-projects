@@ -185,7 +185,7 @@ a range of infrastructure concurrently, that supports different replica
 coordination mechanisms, different exchange coordination mechanisms
 (synchronous versus asynchronous), and thereby different variants of
 the RE algorithm. The physical system that we use as benchmark is the
-Hepatitis-C Virus that was examined in Ref.~\cite{Luckow:2008fp}. The
+Hepatitis-C Virus that was examined in~\cite{Luckow:2008fp}. The
 problem and our motivation are similar as before.
 
 % Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods represent
@@ -370,7 +370,7 @@ includes the following components: (i) the time to find a partner
 ($T_{find}$), (ii) the time to exchange/write/transfer files
 ($T_{file}$) and (iii) the time to manage state updates (e.g., in a
 central database) and conduct book-keeping operations associated with
-replica pairing/exchanging ($T_{state}$). $T_{state}$ arises due do
+replica pairing/exchanging ($T_{state}$). $T_{state}$ arises due to
 different reasons -- which may be related to
 implementation % Not suprisingly, the
 % management costs also differ for
@@ -679,15 +679,17 @@ the SAGA BigJob Manager restarts them. The RE-Manager keeps count of
 the successful exchanges, until the required number of exchanges are
 done.
 
+\alnote{refined after Bishops comment}
 We implemented both the synchronous and asynchronous RE using the
 centralised version of the framework. %  the decentralised version was
 % used only to support the asynchronous RE.
-Even though both use the centralised framework, the implementation of
+Even though both use the same framework, the implementation of
 the asynchronous RE-Manager is different from the synchronous
-RE-Manager, in that, instead of waiting for \emph{all} replicas to
-finish running before performing \emph{all} exchanges, whenever the
-asynchronous RE-Manager finds a replica that has finished running, it
-tries to find a partner to make an exchange. In order to find a
+RE-Manager. The asynchronous RE-Manager e.\,g.\ is not required 
+waiting for \emph{all} replicas to finish running before 
+performing \emph{all} exchanges. Whenever the asynchronous RE-Manager 
+finds a replica that has finished running, it
+tries to find a partner to make an exchange. To find a
 partner, the RE-Manager goes over the list of all the replicas in the
 ensemble. If it finds a replica available it attempts the exchange. If
 a replica is not found available, the RE-Manager queries the SAGA
@@ -722,15 +724,19 @@ replica-agent acts as the proxy for the replica) transitions from
 \texttt{running} to \texttt{done}. It initiates the search for a
 partner, and scans the list of replicas randomly, so as to avoid
 contention if multiple replicas have initiated a search for a partner.
-If a replica finds another replica available, it reverifies that their
-states as still in \texttt{done} state; if both are still in
+
+\alnote{refined after Bishops comment}
+If a replica finds a potential exchange partner, it must reverify that both
+states are still in the \texttt{done} state. This step is necessary to avoid 
+concurrency issues that arise if multiple replicas attempt to exchange with
+the same partner. If both replicas are still in
 \texttt{done} state, the exchange can proceed and their states are set
-as \texttt{pending}.  When {\it reverifying} the state of the
-replicas, if the state of the initiating replica has already been
-changed (to \texttt{pending}), the current exchange attempt is
-aborted; if not, the exchange attempt proceeds. The states that a
-replica can be in are different in centralised and decentralised
-implementations. In the centralised implementation, there is no
+to \texttt{pending}.  If the state of any replica has already been
+changed (to \texttt{pending}), the  exchange attempt is
+aborted.
+
+The states that a replica can be in are different in centralised and 
+decentralised implementations. In the centralised implementation, there is no
 \texttt{complete} state and in the decentralised implementation there
 is no \texttt{new} state. There is no \texttt{new} state in the
 decentralised implementation because the replica-agent starts running
@@ -946,7 +952,7 @@ successful exchange, jobs are restarted~\citep{Luckow:2008fp} with new
 temperature values.  In the case of an unsuccessful exchange, jobs are
 restarted without exchanging the configuration.  (iii) The physical
 system that we use as benchmark is the Hepatitis-C Virus that was
-examined in Ref.~\cite{Luckow:2008fp}.
+examined in~\cite{Luckow:2008fp}.
 
 
 % \jhanote{Can the following be eliminated or moved to someplace later} \athotanote{yes, can be deleted}
