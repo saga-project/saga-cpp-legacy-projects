@@ -11,6 +11,10 @@ ifndef CSA_LOCATION
  $(error CSA_LOCATION not set - should point to the CSA space allocated on this TG machine)
 endif
 
+# get rid of symlinks in CSA_LOCATION
+CSA_TMP_LOCATION  = $(shell cd $(CSA_LOCATION) && pwd -P)
+CSA_LOCATION     := $(CSA_TMP_LOCATION)
+
 ifndef CSA_SAGA_VERSION
  $(warning CSA_SAGA_VERSION not defined - installing from SVN trunk)
  SAGA_VERSION = trunk
