@@ -5,15 +5,15 @@
 This Module is used to launch a set of bigjobs.
 
 """
-
+import pdb
 import sys
+import os
+sys.path.append(os.path.dirname( __file__ ))
 import getopt
 import saga
 import time
 import uuid
-import pdb
 import socket
-import os
 import traceback
 import bigjob
 import Queue
@@ -28,7 +28,7 @@ logging.basicConfig(level=logging.DEBUG)
 
 DEFAULT_ADVERT_HOST="advert.cct.lsu.edu"
 
-class many_job_service():
+class many_job_service(object):
 
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
@@ -72,14 +72,20 @@ class many_job_service():
             gram_url = i["gram_url"]
             logging.debug("start bigjob at: " + gram_url)
             bj = bigjob.bigjob(self.advert_host)
+            ppn=0
+            if ("processes_per_node" in i):
+                ppn=i["processes_per_node"]
+            else:
+                ppn=1
             bj.start_pilot_job(gram_url,
                                     i["re_agent"],
                                     i["number_cores"],
                                     i["queue"],
                                     i["allocation"],
                                     i["working_directory"], 
-                                    None,
-                                    i["walltime"])
+                                    i["userproxy"],
+                                    i["walltime"],
+                                    ppn)
             i["bigjob"]=bj # store bigjob for later reference in dict
             i["free_cores"]=int(i["number_cores"])
             # lock for modifying the number of free nodes
@@ -101,15 +107,16 @@ class many_job_service():
         job = subjob.job 
         if job == None:
             #create new subjob
+            #bj = bigjob_info["bigjob"]
             job = bigjob.subjob(self.advert_host)
 
         if bigjob_info == None:
             return job
 
         # create subjob on bigjob
-        bigjob = bigjob_info["bigjob"]
+        bj = bigjob_info["bigjob"]
         st = time.time()
-        job.submit_job(bigjob.pilot_url, subjob.job_description)
+        job.submit_job(bj.pilot_url, subjob.job_description)
         self.submisssion_times.append(time.time()-st)
 
         # store reference of subjob for further bookkeeping    
@@ -132,7 +139,7 @@ class many_job_service():
             free_cores = i["free_cores"]
             bigjob_url = bigjob.pilot_url
             state = bigjob.get_state_detail()
-            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + str(i["number_cores"]) + " State: " + state)
+            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " State: " + state)
             if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes):
                 free_cores = i["free_cores"]
                 free_cores = free_cores - int(subjob.job_description.number_of_processes)

@@ -23,11 +23,15 @@ import os
 import traceback
 import logging
 
+# import other BigJob packages
+# import API
+import api.base
+
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
 
-class bigjob():
+class bigjob(api.base.bigjob):
     
     def __init__(self, database_host):        
         self.database_host = database_host
@@ -47,13 +51,11 @@ class bigjob():
                  project,
                  working_directory,
                  userproxy,
-                 walltime):
-        """ start advert_launcher on specified host """
-        if userproxy != None and userproxy != '':
-            os.environ["X509_USER_PROXY"]=userproxy
-            print "use proxy: " + userproxy
-        else:
-            print "use standard proxy"
+                 walltime,
+                 processes_per_node=1):
+        
+
+
 
         #register advert entry
         lrms_saga_url = saga.url(lrms_url)
@@ -62,13 +64,13 @@ class bigjob():
         self.pilot_dir = saga.advert.directory(saga.url(self.pilot_url), saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # application level state since globus adaptor does not support state detail
         self.pilot_dir.set_attribute("state", str(saga.job.Unknown)) 
-        self.pilot_dir.set_attribute("macthesnum", str("0")) 
         logging.debug("set pilot state to: " + self.pilot_dir.get_attribute("state"))
         self.number_nodes=int(number_nodes)        
  
         # create job description
         jd = saga.job.description()
         jd.number_of_processes = str(number_nodes)
+        jd.processes_per_host=str(processes_per_node)
         jd.spmd_variation = "single"
         jd.arguments = [bigjob_agent_executable, self.database_host, self.pilot_url]
         jd.executable = "/bin/bash"
@@ -81,19 +83,32 @@ class bigjob():
             jd.wall_time_limit=str(walltime)
 
         if working_directory != None:
+            #if not os.path.isdir(working_directory):
+             #   os.mkdir(working_directory)
             jd.working_directory = working_directory
-            #if not os.path.isdir(jd.working_directory):
-             #   os.mkdir(jd.working_directory)
+            #jd.working_directory = working_directory
         else:
-            jd.working_directory ="$(HOME)" 
+            jd.working_directory = "$(HOME)"
             
         print "Working directory: " + jd.working_directory
         
         jd.output = "stdout-bigjob_agent-" + str(self.uuid) + ".txt"
         jd.error = "stderr-bigjob_agent-" + str(self.uuid) + ".txt"
            
-        # Submit jbo
-        js = saga.job.service(lrms_saga_url)
+        # Submit job
+	js = None	
+        if userproxy != None and userproxy != '':
+      	    s = saga.session()
+            os.environ["X509_USER_PROXY"]=userproxy
+            ctx = saga.context("x509")
+            ctx.set_attribute ("UserProxy", userproxy)
+            s.add_context(ctx)
+            print "use proxy: " + userproxy
+            js = saga.job.service(s, lrms_saga_url)
+        else:
+            print "use standard proxy"
+            js = saga.job.service(lrms_saga_url)
+
         self.job = js.create_job(jd)
         print "Submit pilot job to: " + str(lrms_saga_url)
         self.job.run()
@@ -154,7 +169,7 @@ class bigjob():
 
                     
                     
-class subjob():
+class subjob(api.base.subjob):
     
     def __init__(self, database_host):
         """Constructor"""
