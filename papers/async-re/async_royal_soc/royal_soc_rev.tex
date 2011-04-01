@@ -98,14 +98,20 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
   affinity calculations.  They represent a class of algorithms that
   involve a large number of loosely-coupled ensembles, and are thus
   amenable to using distributed resources. We develop a framework
-  for RE which supports different replica pairing (synchronous vs. asynchronous) and coordination
-  mechanisms (centralised vs. decentralised) and which can use a range of production cyberinfrastructure
-  concurrently.  We use this framework to implement two different RE
-  algorithms in two different ways.  We characterise the performance of the different RE
-  algorithms at unprecedented scales on production distributed
-  infrastructure. We scale-up, increasing the number of replicas and scale-out, increasing the number of machines. We find that even with a simple, non-optimised prototype of the
-RE Framework, the advantages of asynchronous formulations soon outweigh the synchronous formulations, i.e., as the number of replicas increases the
-performance of asynchronous RE beats that of the synchronous RE. \athotanote{added preceding sentences}
+  for RE which supports different replica pairing (synchronous vs. 
+  asynchronous) and coordination  mechanisms (centralised vs. 
+  decentralised) and which can use a range of production cyberinfrastructure
+  concurrently.  \alnote{\textbf{This sentence is in my opinion redundant to the previous
+  one:}  We use this framework to implement two different RE
+  algorithms in two different ways.}  We characterise the performance 
+  of both RE algorithms at unprecedented scales on production distributed
+  infrastructure. \alnote{Not sure whether this are unprecedented scales - 
+  see Tom's comment...}
+  %We scale-up, increasing the number of replicas and scale-out, 
+  %increasing the number of machines. 
+  We find that the advantages of the asynchronous 
+  formulations outperforms the synchronous formulations, in particular with 
+  higher number of replicas. \athotanote{added preceding sentences}\alnote{refined}
 
 
 %  flexible and robust implementation enables the efficient use of a
@@ -1624,24 +1630,44 @@ $T_{EX}$ and $T_W$ in Equation~\ref{eq:totaltime}.  The increase,
 however, is not uniform across the three implementations: it is
 largest for synchronous RE, and the least for asynchronous
 (decentralised) RE.  We analysed $T$ and the values of its components
-for 32 replicas in section~\ref{sec:re_impl}(\ref{subsec:sync}); we use that analysis as the basis to
-understand the scale-up behaviour of the three cases. We can see the behaviour of different RE implementations in Figure~\ref{fig:scaleup}. That the change in $T$ as $N_R$ increases is exponential for synchronous and asynchronous (centralised) RE and linear for asynchronous (decentralised) RE denotes the scale-up properties of the three implementations. We explain the reasons for this behaviour - algorithmic and implementation - in the following paragraphs. \athotanote{added preceding sentences}
+for 32 replicas in section~\ref{sec:re_impl}(\ref{subsec:sync}); we 
+use that analysis as the basis to understand the scale-up behaviour 
+of the three cases. We can see the behaviour of different RE 
+implementations in Figure~\ref{fig:scaleup}. %
+\alnote{This is not reflected in our model.}
+The increase in $T$ as $N_R$ increases is exponential for synchronous and 
+asynchronous (centralised) RE and linear for asynchronous (decentralised) 
+RE. 
+\alnote{\textbf{Next sentence adds not any value besides filling pages - unless
+you explain what we mean by algorithmic and implementation} We explain the
+reasons for this behaviour - algorithmic and implementation - in the following
+paragraphs. } \athotanote{added preceding sentences}
  
-In the synchronous RE algorithm, there is an explicit synchronisation
-of all replicas; thus early replicas wait for other replicas to
-finish. As can be seen from Table~\ref{table:repex_perf}, $T_W$ is a
-major component of the $T$.  As $N_R$ increases, the number of
-exchanges at a given exchange step increases; consequently the total
-coordination time at each exchange step increases.  For
-$N_R = 64$ and $N_X = 256$, using Equation~\ref{eq:totaltime}, the
-coordination time is $(0.6+2.8) \times 256 = 870.4$.  The difference
-in coordination times ($435.2$ s) accounts for the difference
-in $T$ for 32 and 64 replicas in the
-Figure~\ref{fig:scaleup}. While this is a single threaded implementation, the cost of synchronisation ($T_W$) is unavoidable even in a decentralised implementation. Thus, $T_W$, which is algorithmic, is the major cause for the increase in $T$. \athotanote{added preceding sentence} % The actual difference observed in $T$ from 32 to 64 replicas is 366 s. \jhanote{Abhinav: Please provide value of
-%   the difference in T here please} \athotanote{mentioned}
-A similar analysis was performed for different replica and exchange
-counts and the values obtained are in agreement with the empirical
-data in Figure~\ref{fig:scaleup}. 
+ 
+In the synchronous RE algorithm, there is an explicit synchronisation of all
+replicas; thus early replicas wait for other replicas to finish. As can be seen
+from Table~\ref{table:repex_perf}, $T_W$ is a major component of the $T$.  As
+$N_R$ increases, the number of exchanges at a given exchange step increases;
+consequently the total coordination time at each exchange step increases.  
+The cause for the increase in $T_W$ is mainly algorithmic and arises due
+to contentions at the central process that coordinates the exchange. Further,
+some implementation details, such as the fact that the current implementation
+of the coordinator process is single-threaded, also effect $T_W$.
+%While this is a single threaded implementation, the
+%cost of synchronisation ($T_W$) is unavoidable even in a decentralised
+%implementation. Thus, $T_W$, which is algorithmic, is the major cause for the
+%increase in $T$. 
+\athotanote{added preceding sentence}\alnote{re-arranged and refined.}
+For $N_R = 64$ and $N_X = 256$, using Equation~\ref{eq:totaltime}, the coordination
+time is $(0.6+2.8) \times 256 = 870.4$.  The difference in coordination times
+($435.2$ s) accounts for the difference in $T$ for 32 and 64 replicas in the
+Figure~\ref{fig:scaleup}.  %
+% The actual difference observed in $T$ from 32 to 64 replicas is 366 s. 
+% \jhanote{Abhinav: Please provide value of the difference in T here please} 
+%\athotanote{mentioned} 
+A similar analysis was performed for different replica and exchange counts and the
+values obtained are in agreement with the empirical data in
+Figure~\ref{fig:scaleup}.
 
 % Since replicas are currently started sequentially by the master, a
 % delay between the start and thus the termination of the first and last
@@ -1694,18 +1720,27 @@ data in Figure~\ref{fig:scaleup}.
 % For the random access case,\alnote{I think in sec 4 we only talk about
 %   the random case now} 
 
-For the decentralised implementation, $T_{find}$ has a strong $N_R$
-dependence. We determine $T_{find}$ to be $2 \times N_R \times 0.1$
+For the decentralised asynchronous implementation, $T_W$ is 0. 
+$T_{find}$ has a strong $N_R$ dependence. 
+The finding operation involves several queries to the advert
+service; $T_{find}$ can be approximated as follows: $2 \times N_R \times 0.1$
 (where $0.1$ is the typical time to set/get a value to/from the advert
-server).  For example, from Equation~\ref{eq:decent} we see that for
-64 replicas, $T_{find}$ is approximately $0.7$+ $2 \times 64 \times
-0.1 = 13.5$ s.  Thus the difference in $T_{EX}$ when $N_R$ is 64
-and $N_R$ is 32 is 45s, which accounts for the bulk of the increase in
-overall $T$ when $N_R$ changes from 32 to
-64. % The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
+service).  From Equation~\ref{eq:decent} it can be derived
+that for 64 replicas, $T_{find}$ is approximately $0.7$+ $2 \times 64 \times
+0.1 = 13.5$\,s. \alnote{Where do the 0.7 come from? $T_{file}$?} 
+The difference in $T_{EX}$ between $N_R$ is 64 and 32 is 45\,s, which accounts 
+for the bulk of the increase in overall $T$. 
+% The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
 %   difference in T here please again}.\athotanote{done}
-The variation in $T$ for other values of $N_R$ can be
-accounted for by changing values of $T_{find}$. As this is an asynchronous algorithm, $T_W$ is 0. The reason we give for a linear increase in $T$ ad $N_R$ increases is $T_{find}$, which is an implementation detail. We find that the asynchronous RE algorithm itself does not limit the performance. \athotanote{added preceding sentence} 
+The variation in $T$ for other values of $N_R$ can be accounted for by changing
+values of $T_{find}$.  In summary, the observed performance
+behaviour can mainly be accounted to the specific implementation of the
+find operation. The asynchronous RE algorithm itself possesses no inherent 
+performance limitation. 
+\athotanote{added preceding sentence} \alnote{Is this correct? I mean
+how could one implement a better find operation? There must a minimal overhead
+for finding another replica - and I think this overhead also 
+has a $N_R$ dependence}
 
 % For 64 replicas, $T_f$ is approximately $1.5 \times 64 \times 0.11 =
 % 10.56$ s.  Only $T_f$ changes with the number of replicas.
