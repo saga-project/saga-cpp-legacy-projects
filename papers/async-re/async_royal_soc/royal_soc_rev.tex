@@ -540,18 +540,6 @@ framework when used to implement the different formulations.
 % (OGF)~\citep{ogf_web}, an international standards development body
 % concerned primarily with standards for distributed computing. 
 
-%%%%% FIGURE %%%%%
-\begin{figure}[t]
-      \centering
-          \includegraphics[scale=0.45]{../figures/Bigjob_arch.pdf}
-          \caption{\footnotesize RE-Manager and SAGA BigJob Manager
-            framework: The BigJob-Agent is used as place-holder job
-            for all replica sub-jobs under a big-job. The RE-Manager
-            controls both the BigJob-Agent and the replica jobs using
-            the SAGA BigJob Manager.  }
-      \label{fig:bigjob}
-\end{figure}
-
 SAGA~\citep{saga-url} %\athotanote{2011?}
 is an API for the basic functionality required to build distributed
 applications, tools and frameworks. SAGA was designed to be independent of the
@@ -562,21 +550,31 @@ run RE simulations across multiple, heterogeneous, distributed grid
 and cloud infrastructure~\citep{Luckow:2008fp}. 
 
 
-Figure ~\ref{fig:bigjob} shows the architecture of the RE Manager and
+Figure~\ref{fig:bigjob} shows the architecture of the RE Manager and
 SAGA BigJob framework. The SAGA BigJob framework consists of three
 components: (i) the SAGA BigJob Manager, (ii) the BigJob-Agent and
 (iii) the advert service which is a central key/value store used for
 communication between the SAGA BigJob Manager and the BigJob-Agent.
 
-For each new sub-job -- which is just an individual replica, an advert
-entry storing the description of the sub-job is created by the
-SAGA BigJob Manager. The BigJob-Agent periodically polls for new jobs. If a
-new job is found and resources are available, the BigJob-Agent runs the job. 
+For each BigJob request from the RE Manager (1 in Figure~\ref{fig:bigjob}), the SAGA BIgJob Manager submits a request to the resource manager (2 in Figure~\ref{fig:bigjob}). When the BigJob becomes active, the SAGA BigJob Manager starts the job (3 in Figure~\ref{fig:bigjob}). For each new sub-job(4 in Figure~\ref{fig:bigjob}) -- which is just an individual replica, an advert entry storing the description of the sub-job is created by the
+SAGA BigJob Manager (5 in Figure~\ref{fig:bigjob}). The BigJob-Agent periodically polls for new jobs (6 in Figure~\ref{fig:bigjob}). If a
+new job is found and resources are available, the BigJob-Agent runs the job (7 in Figure~\ref{fig:bigjob}). \athotanote{improved description}
 If not, the job is queued. It is possible that there are more sub-jobs 
 than the big-job can accommodate. Further, the agent continuously monitors the
 running sub-jobs and updates the sub-job states in the advert
 service. Once a sub-job finishes running, the nodes are freed and
 marked as available.
+%%%%% FIGURE %%%%%
+\begin{figure}[t]
+      \centering
+          \includegraphics[scale=0.65]{../figures/Bigjob_arch.pdf}
+          \caption{\footnotesize RE-Manager and SAGA BigJob Manager
+            framework: The BigJob-Agent is used as place-holder job
+            for all replica sub-jobs under a big-job. The RE-Manager
+            controls both the BigJob-Agent and the replica jobs using
+            the SAGA BigJob Manager.  }
+      \label{fig:bigjob}
+\end{figure}
 
 The various tasks that are carried out using the SAGA APIs include
 file staging, job spawning and conducting the exchange attempts. Here
@@ -627,18 +625,6 @@ replica is managed individually by a {\it replica-agent}.
 
 %The RE-Manager uses the SAGA BigJob-Manager;
 
-
-\begin{figure}%
-\centering
-\subfigure[Centralised]{\includegraphics[width=0.35\textwidth]{../figures/central_AL.pdf}}\qquad
-\subfigure[Decentralised]{\includegraphics[width=0.35\textwidth]{../figures/decentral_AL.pdf}}\\
-\caption{\textbf{Centralised vs. Decentralised Coordination:} 
-  Centralised coordination style is used by both synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
-  the master is only required for initially setting up of all
-  replicas. The later coordination is done peer-to-peer via the Advert
-  Service.}
-\label{fig:coordination}
-\end{figure}
 
 % \jhanote{this is an implementation detail. Abhinav: IIUC we restart in
 %   both cases -- successful and unsuccessful exchanges. Non? ALso don't
@@ -700,6 +686,8 @@ list. It then loops over the list to find a replica that has finished
 running and a partner to exchange with that replica.  If successful,
 the replicas are submitted to be restarted.
 
+
+
 % \alnote{see comment about BJ impl. detail above}.  The RE-Manager
 % counts the successful exchanges. This process is repeated till all
 % the exchanges are made.
@@ -713,6 +701,17 @@ the replicas are submitted to be restarted.
 % are conducted whenever possible and the replicas are restarted.
 
 \subsubsection{Decentralised RE-Manager and the Replica-Agent}
+\begin{figure}%
+\centering
+\subfigure[Centralised]{\includegraphics[width=0.47\textwidth]{../figures/central_AL.pdf}}\qquad
+\subfigure[Decentralised]{\includegraphics[width=0.47\textwidth]{../figures/decentral_AL.pdf}}\\
+\caption{\textbf{Centralised vs. Decentralised Coordination:} 
+  Centralised coordination style is used by both synchronous RE  and asynchronous (centralised) RE.  In the asynchronous (decentralised) RE --
+  the master is only required for initially setting up of all
+  replicas. The later coordination is done peer-to-peer via the Advert
+  Service.}
+\label{fig:coordination}
+\end{figure}
 
 % Thus, after the replica-agents are launched, the RE-Manager and the
 % SAGA BigJob Manager don't have any responsibilities.
@@ -755,6 +754,7 @@ needed to implement and maintain distributed coordination/control.
 %   replica''?}  \jhanote{Please read the
 %   previous sentence carefully: ``... it can restart its replica..''
 %   something is wrong!} \athotanote{modified. any better?}
+
 
 After the exchange is performed (the temperature of both replicas in
 the advert server has been changed), their states are set as
@@ -1655,12 +1655,12 @@ paragraphs. } \athotanote{added preceding sentences}
 In the synchronous RE algorithm, there is an explicit synchronisation of all
 replicas; thus early replicas wait for other replicas to finish. As can be seen
 from Table~\ref{table:repex_perf}, $T_W$ is a major component of the $T$.  As
-$N_R$ increases, the number of exchanges at a given exchange step increases;
+$N_R$ increases, the number of exchanges at a given exchange step increase;
 consequently the total coordination time at each exchange step increases.  
 The cause for the increase in $T_W$ is mainly algorithmic and arises due
-to contentions at the central process that coordinates the exchange. Further,
+to contention at the central process that coordinates the exchange. Further,
 some implementation details, such as the fact that the current implementation
-of the coordinator process is single-threaded, also effect $T_W$.
+of the coordination process is single-threaded, also effect $T_W$.
 %While this is a single threaded implementation, the
 %cost of synchronisation ($T_W$) is unavoidable even in a decentralised
 %implementation. Thus, $T_W$, which is algorithmic, is the major cause for the
@@ -1733,9 +1733,9 @@ $T_{find}$ has a strong $N_R$ dependence.
 The finding operation involves several queries to the advert
 service; $T_{find}$ can be approximated as follows: $2 \times N_R \times 0.1$
 (where $0.1$ is the typical time to set/get a value to/from the advert
-service).  From Equation~\ref{eq:decent} it can be derived
+service).  From  Section~\ref{sec:re_impl}(b) and Equation~\ref{eq:decent}, it can be derived
 that for 64 replicas, $T_{find}$ is approximately $0.7$+ $2 \times 64 \times
-0.1 = 13.5$\,s. \alnote{Where do the 0.7 come from? $T_{file}$?} 
+0.1 = 13.5$\,s. \alnote{Where do the 0.7 come from? $T_{file}$?}  \athotanote{fixed}
 The difference in $T_{EX}$ between $N_R$ is 64 and 32 is 45\,s, which accounts 
 for the bulk of the increase in overall $T$. 
 % The actual difference observed in $T$ from 32 to 64 replicas is 18 s.\jhanote{Abhinav: Please provide value of the
@@ -1744,7 +1744,7 @@ The variation in $T$ for other values of $N_R$ can be accounted for by changing
 values of $T_{find}$.  In summary, the observed performance
 behaviour can mainly be accounted to the specific implementation of the
 find operation. The asynchronous RE algorithm itself possesses no inherent 
-performance limitation. 
+performance limitation, compared to the synchronous algorithm.
 \athotanote{added preceding sentence} \alnote{Is this correct? I mean
 how could one implement a better find operation? There must a minimal overhead
 for finding another replica - and I think this overhead also 
