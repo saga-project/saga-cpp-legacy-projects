@@ -74,10 +74,7 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 \newcommand{\ReplicaAgent}[1]{Replica-Agent }         
 \newcommand{\replicaagent}[1]{replica-agent }         
 \newcommand{\remanager}[1]{RE-Manager }
-
 \begin{document} 
-
-
 \maketitle    
 
 %   The design and development of an application is often influenced and
@@ -152,19 +149,20 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 \section{Introduction}
 
-The Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods have
-been used to understand physical phenomena -- ranging from protein
-folding dynamics to binding affinity calculations.  The design and
-development of most RE runtime implementations (Woods et al. 2005) is
-influenced and constrained by the programming systems used, and the
-specific infrastructure developed for. Interoperability across
+Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods have been
+used to understand physical phenomena -- ranging from protein folding
+dynamics to binding affinity calculations.  The design and development
+of most RE runtime implementations (Woods et al. 2005) is influenced
+by the specific infrastructure they are developed on and constrained
+by the programming systems used. Interoperability across
 infrastructure and extensible functionality are typically not
 first-class considerations. Breaking this coupling between the
-development and the underlying infrastructure is an important design
-objective of distributed applications -- both logically distributed
-and physically distributed ones. %and distributed execution environments. 
-It enables applications to be flexible (across infrastructure), 
-extensible (to new methods of communication and coordination) and 
+development, runtime environment and the underlying infrastructure is
+an important design objective of distributed applications -- both
+logically distributed and physically distributed
+ones. %and distributed execution environments.
+It enables applications to be flexible (across infrastructure),
+extensible (to new methods of communication and coordination) and
 scalable. \athotanote{refined}
 
 Application formulations that are flexible are better suited to using
@@ -278,10 +276,10 @@ temperature of the replica. These replicas are loosely-coupled, in
 that there are infrequent exchanges between pairs of 
 % \jhanote{do we want to say paired?} \athotanote{fixed}
 replicas. In addition to the frequency of communication between the
-replicas being low (relative to within a single replica), the amount
-of information/data exchanged between replicas is small (a couple of bytes) 
-compared to the size of the data model that the simulation is 
-operating on. 
+replicas being low (relative to that within a single replica), the
+amount of information/data exchanged between replicas is small (a
+couple of bytes) compared to the simulation's operating data-set size.
+
 %\alnote{removed the 20MB data model size since this is specific to our RE scenario and has nothing to do with the algorithm}
 % the operating data-set size) - the size of the data exchanged between 
 % stages is in bytes, where as the operating data-set size is approximately 
@@ -303,25 +301,29 @@ operating on.
 
 \subsection{Mathematical Model}
 \label{sec:math-model}
-In this subsection we develop a mathematical model that captures
-the primary components that make up the total runtime of a RE
+In this subsection we develop a mathematical model that captures the
+primary components that make up the total runtime of a RE
 experiment. In an ideal scenario, the total time-to-completion of an
 experiment would be equal to the concurrent runtime of the ensemble of
 replicas and there would be no overhead associated with the
-coordination of the replicas. We also assume homogeneous processors. If the ensemble contains $N_R$
-replicas, the total number of pairwise exchanges is defined to be $N_X$ and the
-runtime of a replica to complete a defined number of time steps is defined to be
-$T_{MD}$, the total time-to-completion of an experiment $T$ would
+coordination of the replicas. We also assume that the resources are
+homogeneous. \jhanote{resources are more than just processors} If an
+ensemble contains $N_R$ replicas, and gthe total number of pairwise
+exchanges is defined to be $N_X$ and the runtime of a replica to
+complete a defined number of time steps which is defined to be
+$T_{MD}$, then the total time-to-completion of an experiment $T$ would
 be:
 \begin{eqnarray}
 T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}}) 
 \label{eq:totaltime1}
 \end{eqnarray}
-where $p$ is defined as the probability of a successful exchange (the
-probability of a successful exchange is not 1). \athotanote{should we talk about typical values of p?} The decision to accept
-an exchange or not is made using the Metropolis
-scheme~\citep{metropolis:1087}, which is a well known way of accepting
-a proposed change of state, even if energetically not favourable.
+where $p$ is defined as the probability of a successful exchange % (the
+% probability of a successful exchange is not 1). \athotanote{should
+%   we talk about typical values of p?}
+The decision to accept an exchange
+or not is made using the Metropolis scheme~\citep{metropolis:1087},
+which is a well known way of accepting a proposed change of state,
+even when energetically not favourable.
 % The term {$N_R \over 2$} denotes the number of exchanges that can
 % occur after each run of the ensemble of replicas.
 
@@ -410,12 +412,16 @@ be lower if exchanges cannot be conducted concurrently.
 
 Traditionally, RE algorithms have been implemented such that the
 exchanges have been synchronous.  If the number of replicas is
-${N_R}$, a {\it fixed} number (${N_R \over 2}$) of replica pairs are created. When \emph{all} the replicas in the ensemble
-reach a pre-determined state (e.g. the Molecular Dynamics (MD)
-simulation completes a pre-determined number of steps), an exchange of
-temperatures between the paired replicas is attempted using the
-Metropolis scheme.  If the exchange attempt is successful, parameters
-such as the temperature are swapped.
+${N_R}$, a {\it fixed} number (${N_R \over 2}$) of replica pairs are
+created. When \emph{all} the replicas in the ensemble reach a
+pre-determined state (e.g. the Molecular Dynamics (MD) simulation
+completes a pre-determined number of steps), an exchange of
+temperatures between the predetermined paired replicas is attempted
+using the Metropolis scheme.  If the exchange attempt is successful,
+parameters such as the temperature are swapped.
+
+\jhanote{It will be good to define and distinguish Replica, sub-job,
+  e.g., A replica is a simulation at well defined temperature.}
 
 % In Equation~\ref{eq:totaltime}, we introduced the various components
 % that make up the total time to complete an RE experiment. Only 
@@ -423,15 +429,16 @@ such as the temperature are swapped.
 %running concurrently
 
 For the synchronous RE formulation, all replicas must reach a
-pre-determined state before exchanges are performed.
-$T_W$ includes the time waiting for all the replicas in the ensemble
-to reach this state, the time spent waiting before the replicas are
-restarted after each exchange and any other miscellaneous costs.  In
-contrast to parameter sweep applications in which coordination
-commonly only occurs at the beginning and end -- a pattern commonly
-referred to as scatter-gather -- RE requires periodic coordination. In
-the synchronous RE formulation coordination occurs at defined
-intervals.
+pre-determined state before exchanges are performed.  $T_W$ includes
+the time waiting for all the replicas in the ensemble to reach this
+state, the time spent waiting before the replicas are restarted after
+each exchange and any other miscellaneous costs. \jhanote{We've
+  redefined $T_W$ in a way that is different from the earlier
+  defintion.} In contrast to parameter sweep applications in which
+coordination commonly only occurs at the beginning and end -- a
+pattern commonly referred to as scatter-gather -- RE requires periodic
+coordination. In the synchronous RE formulation coordination occurs at
+defined intervals.
 %\athotanote{please verify preceding statement} \alnote{Ok} 
 
 A major limitation of this model is that the replicas are paired in fixed
@@ -499,10 +506,11 @@ synchronisation involved. % only includes the time
 
 \section{Replica-Exchange Framework}\label{repexfw}
 
-An important motivation for and contribution of this work is the design
-and implementation of a framework that provides the capability to
-support different RE algorithmic formulations and enables us to compare their
-performance at large-scales.
+An important motivation for and contribution of this work is the
+design and implementation of a framework that provides the capability
+to support different RE algorithmic formulations. 
+%  and enables us to
+% compare their performance at large-scales.
 % and compare the performance of the different RE algorithmic
 % formulations at large-scales. 
 %In addition, it is important that the
@@ -545,7 +553,7 @@ is an API for the basic functionality required to build distributed
 applications, tools and frameworks. SAGA was designed to be independent of the
 details of the underlying infrastructure.  We have previously demonstrated the
 usage of the SAGA-based Pilot-Job
-framework~\citep{saga_bigjob_condor_cloud} -- called the BigJob, to
+framework~\citep{saga_bigjob_condor_cloud} -- called the big-job, to
 run RE simulations across multiple, heterogeneous, distributed grid
 and cloud infrastructure~\citep{Luckow:2008fp}. 
 
@@ -556,16 +564,24 @@ components: (i) the SAGA BigJob Manager, (ii) the BigJob-Agent and
 (iii) the advert service which is a central key/value store used for
 communication between the SAGA BigJob Manager and the BigJob-Agent.
 
-\alnote{please consistently use hyphen in RE-Manager, BigJob-Manager, ... Also,
-SAGA can be removed in front of BigJob Manager.}
-For each BigJob request from the RE Manager (1 in Figure~\ref{fig:bigjob}), the SAGA BigJob Manager submits a request to the resource manager (2 in Figure~\ref{fig:bigjob}). When the BigJob becomes active, the SAGA BigJob Manager starts the job (3 in Figure~\ref{fig:bigjob}). For each new sub-job (4 in Figure~\ref{fig:bigjob}) -- which is just an individual replica, an advert entry storing the description of the sub-job is created by the
-SAGA BigJob Manager (5 in Figure~\ref{fig:bigjob}). The BigJob-Agent periodically polls for new jobs (6 in Figure~\ref{fig:bigjob}). If a
-new job is found and resources are available, the BigJob-Agent runs the job (7 in Figure~\ref{fig:bigjob}). \athotanote{improved description}
-If not, the job is queued. It is possible that there are more sub-jobs 
-than the big-job can accommodate. Further, the agent continuously monitors the
-running sub-jobs and updates the sub-job states in the advert
-service. Once a sub-job finishes running, the nodes are freed and
-marked as available.
+\alnote{please consistently use hyphen in RE-Manager, BigJob-Manager,
+  ... Also, SAGA can be removed in front of BigJob Manager.}  For each
+BigJob request from the RE Manager (1 in Figure~\ref{fig:bigjob}), the
+SAGA BigJob Manager submits a request to the resource manager (2 in
+Figure~\ref{fig:bigjob}). When the BigJob becomes active, the SAGA
+BigJob Manager starts the job (3 in Figure~\ref{fig:bigjob}). For each
+new sub-job (4 in Figure~\ref{fig:bigjob}) -- which is just an
+individual replica, an advert entry storing the description of the
+sub-job is created by the SAGA BigJob Manager (5 in
+Figure~\ref{fig:bigjob}). The BigJob-Agent periodically polls for new
+jobs (6 in Figure~\ref{fig:bigjob}). If a new job is found and
+resources are available, the BigJob-Agent runs the job (7 in
+Figure~\ref{fig:bigjob}). \athotanote{improved description} If not,
+the job is queued. It is possible that there are more sub-jobs than
+the big-job can accommodate. Further, the agent continuously monitors
+the running sub-jobs and updates the sub-job states in the advert
+service. Once a sub-job finishes running, the compute resources are
+freed and marked as available.
 %%%%% FIGURE %%%%%
 \begin{figure}[t]
       \centering
@@ -584,7 +600,7 @@ we use the SAGA BigJob framework to efficiently request and manage
 computational resources for multiple replicas and it enables the use of
 a range of infrastructure.  For example, we can submit multiple
 big-jobs on multiple resources and can start our sub-jobs when any one
-of the big-jobs becomes active.
+of the big-jobs becomes active. \jhanote{last sentence needs attention}
 
 
 % \athotanote{check sentence} \alnote{refined. please refer to the
@@ -654,12 +670,12 @@ The control flow of a centralised RE scheme is shown in
 Figure~\ref{fig:coordination}(a). %\jhanote{Move later: which can be
   %used to understand both the asynchronous and synchronous RE
   %implementations}.  
-A replica can be in one of these three states:
-(i) \texttt{new} (submitted but not started), (ii) \texttt{running}
-and (iii) \texttt{done}.  Once the big-job(s) is active and replicas
-are \texttt{running}, the RE-Manager constantly queries the SAGA
-BigJob Manager for the latest replica states.  When the RE-Manager
-finds a replica that has finished running, it collects the energy and
+A replica can be in one of these three states: (i) \texttt{new}
+(submitted but not started), (ii) \texttt{running} and (iii)
+\texttt{done}.  Once the big-job(s) is active and replicas are
+\texttt{running}, the RE-Manager constantly queries the SAGA BigJob
+Manager for the latest replica states.  When the RE-Manager finds a
+replica that has finished running, it collects the energy and
 temperature of that replica by reading the output file. Once
 \emph{all} the replicas have finished running, the RE-Manager performs
 the exchanges by swapping temperatures and writing new configuration
@@ -1790,17 +1806,19 @@ typically increases, increasing $T$. %\jhanote{What is the implication of this?}
 \subsection{Scale-Out: Asynchronous RE (Centralised)}
 %\alnote{Please reference figures in text.}
 {\it Experiments:} In this section, we scale-out to 2 and 4
-distributed resources to evaluate the performance of the asynchronous
-RE, centralised implementation.  We used the following TeraGrid and/or
-LONI resources: \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The
-experiments are conducted with 8, 16 and 32 replicas that make 32, 64
-and 128 exchanges respectively. These exchanges are repeated on 1, 2
-and 4 machines while distributing equal number of replicas on each
-machine. It is important to note that all experiments are conducted
-using four big-jobs, irrespective of the number of machines used
-because varying the number of big-jobs or the ratio of replicas per
-big-job effects the overall performance.  Another important point to
-note is that only the experimental runs where all the four
+distributed resources to evaluate the performance of the centralised
+implementation of asynchronous RE. \jhanote{Need a consistent and
+  simple way of referring to the three cases/implementation/ etc!?}
+We used the following TeraGrid and/or LONI resources: \emph{QueenBee,
+  Eric, Louie} and \emph{Oliver}. The experiments are conducted with
+8, 16 and 32 replicas that make 32, 64 and 128 exchanges
+respectively. These exchanges are repeated on 1, 2 and 4 machines
+while distributing equal number of replicas on each machine. It is
+important to note that all experiments are conducted using four
+big-jobs, irrespective of the number of machines used because varying
+the number of big-jobs, or the ratio of replicas per big-job effects
+the overall performance.  Another important point to note is that only
+the experimental runs where all the four
 big-jobs %\alnote{when referring to the pilot job, BigJob should be consistently spelled as big-job}
 become active within $30\,s$ of each other on submission to the
 resource manager are considered and included in the results. This is
@@ -1935,33 +1953,45 @@ a second from one machine to another. From {\it QueenBee}, it takes
 0.024 s and from {\it Oliver}, it takes 0.016 s. \alnote{How many repeats?
 Why is Eric faster than QB? Can we reduce the number of decimals to 2?}
 
-The scale-out behaviour can be seen in Figure~\ref{fig:scaleout_cent}. 
-For 8 replicas on 1 machine conducting 32 exchanges, $T$ is 570
-s. When 8 replicas are equally distributed over 2 machines, $T$ is 586
-s (see Figure~\ref{fig:scaleout_cent}). Each remote file-transfer
-takes 0.379 s while a local-transfer takes 0.009 s. The time
-difference between a local-transfer and a remote-transfer is 0.37
-s. In the 8 replicas, 32 exchanges on 2 machines case, for half the
-exchanges, files are transferred to the remote machine. In each
-exchange 2 files are transferred, one for each replica. This for 32
-exchanges, 32 remote-transfers occur. Thus, the cumulative $T_{file}$
-due to remote transfers is $0.37 \times 32=12\,s$. Within error bars,
-this is the difference we see in the Figure~\ref{fig:scaleout_cent}
-when moving from 1 to 2 machines in the 8 replica case. The 16 and 32
-replica cases shown in the graph can be analysed in similar manner.
-Some of the data points on the graph do not behave in the model that
-we predicted. % \alnote{can you give an example?}
+\jhanote{distinguish ``case'' from ``configuration''..}  The scale-out
+behaviour can be seen in Figure~\ref{fig:scaleout_cent}.  For 8
+replicas on 1 machine conducting 32 exchanges, $T$ is 570 s. When 8
+replicas are distributed equally over 2 machines, $T$ is 586 s (see
+Figure~\ref{fig:scaleout_cent}). Each remote file-transfer takes 0.379
+s while a local-transfer takes 0.009 s. The time difference between a
+local-transfer and a remote-transfer is 0.37 s. In the 8 replicas, 32
+exchanges on 2 machines case, for half the exchanges, files are
+transferred to the remote machine. In each exchange 2 files are
+transferred, one for each replica. \jhanote{This needs attention..}
+This for 32 exchanges, 32 remote-transfers occur. Thus, the cumulative
+$T_{file}$ due to remote transfers is $0.37 \times 32=12\,s$. Within
+error bars, this is the difference we see in the
+Figure~\ref{fig:scaleout_cent} when moving from 1 to 2 machines in the
+8 replica case. The 16 and 32 replica cases shown in the graph can be
+analysed in similar manner.  Some of the data points on the graph do
+not behave in the model that we
+predicted. % \alnote{can you give an example?}
 For example, in the 16 replica case, going from 1 to 2 machines, $T$
 only changes by 4 s, when it should have moved by 23 s. But the
 fluctuations are of the same order (seconds), and can easily be
 explained by fluctuations in the performance of remote operations.
 
-As the time-to-completion $T$ increases
-moderately or remains constant with higher number of machines, it
-indicates that the scale-out behaviour is quite good.  %As discussed in section~\ref{sec:re_impl}, the asynchronous (centralised) RE algorithm does not involve any synchronisation cost ($T_W$). 
-Thus, the loose coordination between replicas at the exchange stage helps to 
-provide the flexibility to use multiple resources, which would not be possible if
-there was tighter coordination between replicas at the exchange stage. The data from Figure~\ref{fig:scaleout_cent} might only suggest additional file transfer costs, but in a typical distributed scenario, with machines on different networks, physical locations, cost of distributed exchanges and heterogeneity may also play a role in effecting the performance. We intend to examine these details in the future.
+As the time-to-completion $T$ increases moderately or remains constant
+with higher number of machines, it indicates that the scale-out
+behaviour is quite good.  \jhanote{We are inviting trouble with such a
+  qualititative remark}
+%As discussed in section~\ref{sec:re_impl}, the asynchronous (centralised) RE algorithm does not involve any synchronisation cost ($T_W$).
+Thus, the loose coordination between replicas at the exchange stage
+helps to provide the flexibility to use multiple resources, which
+would not be possible if there was tighter coordination between
+replicas at the exchange stage. The data from
+Figure~\ref{fig:scaleout_cent} might only suggest additional file
+transfer costs, but in a typical distributed scenario, with machines
+on different networks, physical locations, cost of distributed
+exchanges and heterogeneity may also play a role in effecting the
+performance. We intend to examine these factors in the future;
+obviously a comparision with other RE implementations will also be
+performed.
 
 %\alnote{\textbf{small analysis piece from sec 2:}
 %In a distributed scenario, $T_{MD}$ might be different on 
