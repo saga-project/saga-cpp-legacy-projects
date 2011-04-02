@@ -89,27 +89,28 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 %   task yet is an important design objective of both logically and
 %   physically distributed applications. 
 
-\begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}  
+\begin{abstract}{Replica-Exchange, SAGA, Large-Scale, Production}
   Replica-Exchange (RE) algorithms are used to understand physical
   phenomena -- ranging from protein folding dynamics to binding
   affinity calculations.  They represent a class of algorithms that
   involve a large number of loosely-coupled ensembles, and are thus
-  amenable to using distributed resources. We develop a framework
-  for RE which supports different replica pairing (synchronous vs. 
-  asynchronous) and coordination  mechanisms (centralised vs. 
-  decentralised) and which can use a range of production cyberinfrastructure
-  concurrently.  \alnote{\textbf{This sentence is in my opinion redundant to the previous
-  one:}  We use this framework to implement two different RE
-  algorithms in two different ways.}  We characterise the performance 
-  of both RE algorithms at unprecedented scales (when considering the number of replicas and the number of processors per replica in RE mode)\athotanote{check} on production distributed
-  infrastructure. \alnote{Not sure whether this are unprecedented scales - 
-  see Tom's comment...}
-  %We scale-up, increasing the number of replicas and scale-out, 
-  %increasing the number of machines. 
-  We find that the advantages of the asynchronous 
-  formulations help outperform the synchronous formulations, in particular with 
-  higher number of replicas. \athotanote{added preceding sentences}\alnote{refined}
+  amenable to using distributed resources. We develop a framework for
+  RE which supports different replica pairing (synchronous vs.
+  asynchronous) and coordination mechanisms (centralised vs.
+  decentralised) and which can use a range of production
+  cyberinfrastructure concurrently.  We characterise the performance
+  of both RE algorithms at unprecedented numbers of cores employed --
+  the number of replicas and typical number of cores per replica, on
+  production distributed infrastructure.  We find that the
+  asynchronous algorithms outperform the synchronous algorithm, even
+  though details of the specific implementations are important
+  determinants of performance.
 
+% \alnote{Not sure whether this are unprecedented
+%     scales - see Tom's comment...}
+% \alnote{\textbf{This sentence is in my opinion redundant to the previous
+%   one:}  We use this framework to implement two different RE
+%   algorithms in two different ways.}
 
 %  flexible and robust implementation enables the efficient use of a
 %   broad range of infrastructure.
@@ -151,19 +152,18 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 
 Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods have been
 used to understand physical phenomena -- ranging from protein folding
-dynamics to binding affinity calculations. A replica is a simulation at a well defined temperature.\athotanote{check placement.} The design and development
+dynamics to binding affinity calculations. The design and development
 of most RE runtime implementations (Woods et al. 2005) is influenced
 by the specific infrastructure they are developed on and constrained
 by the programming systems used. Interoperability across
 infrastructure and extensible functionality are typically not
 first-class considerations. Breaking this coupling between the
-development, runtime environment and the underlying infrastructure is
-an important design objective of distributed applications -- both
-logically distributed and physically distributed
-ones. %and distributed execution environments.
-It enables applications to be flexible (across infrastructure),
-extensible (to new methods of communication and coordination) and
-scalable. \athotanote{refined}
+development and runtime environments on the one hand, and the runtime
+environment and underlying infrastructure on the other, is an
+important design objective of distributed applications -- both
+logically distributed and physically distributed ones.  It enables
+applications to be flexible (across infrastructure), extensible (to
+new methods of communication and coordination) and scalable.
 
 Application formulations that are flexible are better suited to using
 the diverse range of traditional and hybrid infrastructure (e.g.,
@@ -172,27 +172,25 @@ with application formulations that facilitate the scalable and
 flexible utilisation of a range of infrastructure, it is imperative to
 have the correct runtime abstractions that support flexible deployment
 of these applications. This work brings together advances in
-application algorithms along with sophisticated runtime environments
+application algorithms, along with sophisticated runtime environments
 to support these algorithms. Specifically, in order to support
 flexible and scalable formulations of the RE class of algorithms, we
 develop a RE Framework that supports multiple formulations, is
 extensible to a broad range of infrastructure and as we shall show
-scales-up and scales-out.  Our RE Framework uses a flexible
-pilot-job implementation -- SAGA BigJob~\citep{saga_bigjob_condor_cloud} 
--- to support the efficient execution of batch job ensembles
-without the necessity to queue each individual job. The pilot-job provides 
-a container for a set of sub-jobs, which can then be directly executed via 
-the pilot-job. A major advantage of this approach is
-that  waiting times at the resource manager, which usually
-significantly contribute to the overall time-to-completion, are avoided.
-\athotanote{added pilot job explanation. remove if thought not needed.}
-It supports scalable implementation of RE that can use
-a range of infrastructure concurrently, that supports different replica
+scales-up and scales-out. 
+
+The RE Framework uses a flexible pilot-job implementation -- SAGA
+BigJob~\citep{saga_bigjob_condor_cloud} -- to support the efficient
+execution of ensembles. The pilot-job provides a container for a
+number of replicas, which can then be directly and concurrently
+executed via the pilot-job, and thus circumventing the need for
+replicas to individually wait for resources to become
+available.  % without individually waiting for resources.
+The RE Framework supports scalable implementation of RE that can use a
+range of infrastructure concurrently, that supports different replica
 coordination mechanisms, different exchange coordination mechanisms
 (synchronous versus asynchronous), and thereby different variants of
-the RE algorithm. The physical system that we use as benchmark is the
-Hepatitis-C Virus that was examined in~\cite{Luckow:2008fp}. The
-problem and our motivation are similar as before.
+the RE algorithm. 
 
 % Replica-Exchange (RE)~\citep{hansmann,Sugita:1999rm} methods represent
 % a class of algorithms that involve a large number of loosely-coupled
@@ -243,22 +241,24 @@ problem and our motivation are similar as before.
 % suited for a particular set of resources (distributed, local etc.,)
 
 The paper is organised as follows. Section~\ref{sec:repex-approach}
-sketches out the two different RE algorithms that are investigated;
-we also present an approximate mathematical model for the different
+sketches out the two different RE algorithms that are investigated; we
+also present an approximate mathematical model for the different
 algorithms.  Section~\ref{repexfw} outlines the architecture of the RE
 Framework -- the SAGA BigJob (how it supports the dynamic execution of
 multiple replicas) and other important elements that make the
 framework flexible and extensible.  In section~\ref{sec:re_impl}, we
 present our implementation of the RE algorithms and understand the
 primary determinants of performance and relate it to the mathematical
-model of section~\ref{sec:repex-approach}.  In section~\ref{sec:performance}, we
-describe the experiments performed to assess and understand
-performance when scaling-up (on a single machine) as the number of
-replicas increases.  We compare and analyze the performance of the
-different RE formulations (synchronous and asynchronous) when
-scaled-up to 256 replicas as well as when scaled-out to use more than
-one machine. Section~\ref{sec:conclusion} concludes the paper and
-discusses future work.
+model of section~\ref{sec:repex-approach}.  In
+section~\ref{sec:performance}, we describe the experiments performed
+to assess and understand performance when scaling-up (on a single
+machine) as the number of replicas increases.  We compare and analyze
+the performance of the different RE formulations (synchronous and
+asynchronous) when scaled-up to 256 replicas as well as when
+scaled-out to use more than one machine. The physical system that we
+use as benchmark is the Hepatitis-C Virus that was examined
+in~\cite{Luckow:2008fp}.  Section~\ref{sec:conclusion} concludes the
+paper and discusses future work.
 
 % We also investigate the scaling-out
 % characteristics, namely performance as the number of replicas are
@@ -312,13 +312,13 @@ primary components that make up the total runtime of a RE
 experiment. In an ideal scenario, the total time-to-completion of an
 experiment would be equal to the concurrent runtime of the ensemble of
 replicas and there would be no overhead associated with the
-coordination of the replicas. We also assume that the resources, network and communication times are
-homogeneous. \jhanote{resources are more than just processors} \athotanote{check} If an
-ensemble contains $N_R$ replicas, and the total number of pairwise
-exchanges is defined to be $N_X$ and the runtime of a replica to
-complete a defined number of time steps which is defined to be
-$T_{MD}$, then the total time-to-completion of an experiment $T$ would
-be:
+coordination of the replicas. We also assume that the resources,
+network and communication times are homogeneous. \jhanote{resources
+  are more than just processors} \athotanote{check} If an ensemble
+contains $N_R$ replicas, and the total number of pairwise exchanges is
+defined to be $N_X$ and the runtime of a replica to complete a defined
+number of time steps which is defined to be $T_{MD}$, then the total
+time-to-completion of an experiment $T$ would be:
 \begin{eqnarray}
 T = {1\over p} \times (T_{MD} \times  {N_X \over {N_R \over 2}}) 
 \label{eq:totaltime1}
@@ -334,20 +334,12 @@ even when energetically not favourable.
 % occur after each run of the ensemble of replicas.
 
 %\inlinemath{{N_R}/2}
-
-$N_R \over 2$ is the number of independent exchange events that can
-occur concurrently for $N_R$ replicas. $N_X \over {N_R \over 2}$ is
-the number of ensemble runs needed to complete $N_X$ exchanges.
 % \athotanote{please note that $\eta$ is not always equal to $N_R \over
 %   2$. for example in the centralised implementations all the exchanges
 %   don't occur concurrently. therefore, we cannot replace $N_R \over 2$
 %   in eqn 2.1 and 2.2 with $\eta$. But since the replicas run
 %   concurrently for a majority of their runtimes, we multiply $T_{MD}$
 %   with $N_X \over {N_R \over 2}$ }\alnote{ok}
-For example, if $N_R$ is 4 and $N_X$ is 16, 2 exchanges are possible
-after an ensemble run and 8 such runs are required to complete 16
-exchanges.  After the exchange, the replicas are restarted with the
-new temperatures.
 % =======
 % $\eta$ is the number of independent exchange events that can occur
 % concurrently; for $N_R$ replicas, this is typically $\frac{N_R}{2}$,
@@ -366,10 +358,18 @@ new temperatures.
 % \athotanote{reviewers asked to explain metropolis, its role, why 
 %temperature needs to be exchanged and/or provide reference. 
 %is the explanation we give here sufficient?}  
-However, any RE production run will
-entail some overhead  of job-submission, termination, coordinating the replicas and exchanges
-etc. Thus, the time to complete the RE production run is:
-%\alnote{I would propose to write $\frac{N_X}{\eta}$ to have both terms consistent}
+
+$N_R \over 2$ is the number of independent exchange events that can
+occur concurrently for $N_R$ replicas. $N_X \over {N_R \over 2}$ is
+the number of ensemble runs needed to complete $N_X$ exchanges.
+
+For example, if $N_R$ is 4 and $N_X$ is 16, 2 exchanges are possible
+after an ensemble run and 8 such runs are required to complete 16
+exchanges.  After the exchange, the replicas are restarted with the
+new temperatures.  However, any RE production run will entail some
+overhead of job-submission, termination, coordinating the replicas and
+exchanges etc. Thus, the time to complete a RE simulation of $N_x$
+exchanges successfully is: 
 \begin{eqnarray}
   T = {1\over p} \times [(T_{MD} \times  {N_X \over {N_R \over 2} }) +
   {(T_{EX} + T_{W})} \times {N_X \over \eta}]
@@ -387,47 +387,30 @@ implementation % Not suprisingly, the
 of the different RE algorithms; In summary, $T_{EX} = T_{find} +
 T_{file}+T_{state}$.  The last component $T_W$ is the waiting time
 spent by a replica waiting to synchronise with other replicas that are
-not ready, e.g., maybe still running. $\eta$ describes the number of 
-concurrent exchanges taking place. At maximum $\eta$ is $\frac{N_R}{2}$; it can however
-be lower if exchanges cannot be conducted concurrently. It can be seen from Equation~\ref{eq:totaltime} that as $T_{MD}$ increases the cost of coordination becomes less relevant. \athotanote{check}
-
-% this is typically $\frac{N_R}{2}$,
-% and $N_X \over {N_R \over 2}$ is the number of ensemble runs needed to complete 
-% $N_X$ exchanges.
-
-% The last component $T_W$ is the synchronisation
-% time spent by a replica waiting for other replicas to complete
-% running.
-
-%($T_s$), the time spent waiting to be restarted after each exchange
-%and other associated costs ($T_r$). For example, in the
-%asynchronous-centralised case, $T_r$ arises due to serialisation at
-%the exchanging agent.  
-%\alnote{Shouldn't we explain $T_{state}$ before $T_{W}$?}
- %$N_R \over 2$.
-
-% \alnote{I would discuss the distributed scenario in the experiments section with the resp. scenario. Also, the analysis must be improved! We defined $T_W$ as 0 for the async case e.g.}
-
-% It is worth
-% noting that depending upon the case in consideration, there might be
-% different causes leading to a synchronisation barrier, e.g., for
-% synchronous RE the synchronisation barrier is between replicas waiting
-% to complete; 
+not ready, e.g., maybe still running. $\eta$ describes the number of
+concurrent exchanges taking place. At maximum $\eta$ is
+$\frac{N_R}{2}$; it can however be lower if exchanges cannot be
+conducted concurrently. It can be seen from
+Equation~\ref{eq:totaltime} that as $T_{MD}$ increases the cost of
+coordination becomes less relevant.  For simplicity yet without loss
+of generality, we use a fixed value of p (=1) in this work.
 
 \subsection{Synchronous Replica-Exchange}
 
 Traditionally, RE algorithms have been implemented such that the
 exchanges have been synchronous.  If the number of replicas is
-${N_R}$, a {\it fixed} number (${N_R \over 2}$) of replica pairs are
-created. When \emph{all} the replicas in the ensemble reach a
-pre-determined state (e.g. the Molecular Dynamics (MD) simulation
-completes a pre-determined number of steps), an exchange of
-temperatures between the predetermined paired replicas is attempted
+${N_R}$, a constant number (${N_R \over 2}$) of {\it fixed} replica
+pairs are generated. When \emph{all} the replicas in the ensemble
+reach a defined state (e.g. the Molecular Dynamics (MD)
+simulation completes a defined number of steps), an exchange of
+temperatures between the fixed and pre-determined paired replicas is attempted
 using the Metropolis scheme.  If the exchange attempt is successful,
 parameters such as the temperature are swapped.
 
-\jhanote{It will be good to define and distinguish Replica, sub-job,
-  e.g., A replica is a simulation at well defined temperature.} \athotanote{ i am not sure what to do about this. I defined replica and sub-job in the introduction}
+% \jhanote{It will be good to define and distinguish Replica, sub-job,
+%   e.g., A replica is a simulation at well defined temperature.}
+% \athotanote{ i am not sure what to do about this. I defined replica
+%   and sub-job in the introduction}
 
 % In Equation~\ref{eq:totaltime}, we introduced the various components
 % that make up the total time to complete an RE experiment. Only 
@@ -437,14 +420,14 @@ parameters such as the temperature are swapped.
 For the synchronous RE formulation, all replicas must reach a
 pre-determined state before exchanges are performed.  $T_W$ is
 the time waiting for all the replicas in the ensemble to reach this
-state. \jhanote{We've
-  redefined $T_W$ in a way that is different from the earlier
-  defintion.} \athotanote{fixed} In contrast to parameter sweep applications in which
-coordination commonly only occurs at the beginning and end -- a
-pattern commonly referred to as scatter-gather -- RE requires periodic
-coordination. In the synchronous RE formulation coordination occurs at
-defined intervals.
-%\athotanote{please verify preceding statement} \alnote{Ok} 
+state. % \jhanote{We've
+%   redefined $T_W$ in a way that is different from the earlier
+%   defintion.} \athotanote{fixed}
+In contrast to parameter sweep applications in which coordination
+commonly only occurs at the beginning and end -- a pattern commonly
+referred to as scatter-gather -- RE requires periodic coordination. In
+the synchronous RE formulation coordination occurs at defined
+intervals.
 
 A major limitation of this model is that the replicas are paired in fixed
 groups and thus exchanges take place between pre-determined pairs of
@@ -511,31 +494,35 @@ synchronisation involved. % only includes the time
 
 \section{Replica-Exchange Framework}\label{repexfw}
 
-An important motivation for and contribution of this work is the
-design and implementation of a framework that provides the capability
-to support different RE algorithmic formulations. 
 %  and enables us to
 % compare their performance at large-scales.
 % and compare the performance of the different RE algorithmic
 % formulations at large-scales. 
-%In addition, it is important that the
-The framework is independent of the underlying infrastructure and thus
-supports the use of multiple heterogeneous infrastructure -- which is
-typically made available to the end-users.  It is useful to highlight that
-we differ from other RE implementations (e.g.  \cite{parashar_arepex})
-in that we use {\it production-grade} national and regional
+%In addition, it is important that the 
+
+An important motivation for and contribution of this work is the
+design and implementation of a framework that provides the capability
+to support different RE algorithms and exchange mechanisms. The framework is
+independent of the underlying infrastructure and thus supports the use
+of multiple heterogeneous infrastructure -- which is typically made
+available to the end-users.  It is useful to highlight that we differ
+from other RE implementations (e.g.  \cite{parashar_arepex}) in that
+we use {\it production-grade} national and regional
 cyberinfrastructure, such as the US TeraGrid and
 LONI~\citep{LONI_web}, using general purpose tooling and standard
 capabilities that are available on these production infrastructure.
 Additionally, our framework {\it natively} supports individual
-replicas that are MPI jobs. In this section we outline the architecture,
-implementation and the basic performance of our RE framework when used to
-implement the different formulations. The RE Framework implements synchronous
-and asynchronous RE. The RE Framework consists of the RE-Manager and the SAGA
-BigJob framework, which is used to efficiently execute the ensemble jobs. The
-BigJob framework is common for both synchronous and asynchronous RE. The
-RE-Manager's functionality varies in the different implementations --
-centralised or decentralised. 
+replicas that are MPI jobs.
+
+In this section we outline the architecture, implementation and the
+basic performance of the RE framework when used to implement the
+different RE algorithms (synchronous and asynchronous) and exchange
+mechanisms (centralised and decentralised). The RE Framework consists
+of the RE-Manager and the SAGA BigJob framework, which is used to
+efficiently execute the ensemble jobs. The BigJob framework is common
+for both synchronous and asynchronous RE. The RE-Manager's
+functionality varies in the different implementations -- centralised
+or decentralised.
 %A Replica-Agent is a manager for one replica and
 %every replica has a Replica-Agent in the decentralised
 %implementation.\athotanote{i am helping here?}
@@ -560,21 +547,28 @@ centralised or decentralised.
 % (OGF)~\citep{ogf_web}, an international standards development body
 % concerned primarily with standards for distributed computing. 
 
+Figure~\ref{fig:bigjob} shows the architecture of the RE Framework --
+comprised of the RE-Manager and SAGA BigJob framework. 
+
 SAGA~\citep{saga-url} %\athotanote{2011?}
 is an API for the basic functionality required to build distributed
-applications, tools and frameworks. SAGA was designed to be independent of the
-details of the underlying infrastructure.  We have previously demonstrated the
-usage of the SAGA-based Pilot-Job
+applications, tools and frameworks. SAGA was designed to be
+independent of the details of the underlying infrastructure.  We have
+previously demonstrated the usage of the SAGA-based Pilot-Job
 framework~\citep{saga_bigjob_condor_cloud} -- called the big-job, to
 run RE simulations across multiple, heterogeneous, distributed grid
-and cloud infrastructure~\citep{Luckow:2008fp}. 
+and cloud infrastructure~\citep{Luckow:2008fp}.
 
-
-Figure~\ref{fig:bigjob} shows the architecture of the RE-Manager and
-SAGA BigJob framework. The SAGA BigJob framework consists of three
+The SAGA BigJob framework consists of three
 components: (i) the BigJob-Manager, (ii) the BigJob-Agent and
 (iii) the advert service which is a central key/value store used for
 communication between the BigJob-Manager and the BigJob-Agent.
+The various tasks that are carried out using the SAGA APIs include
+file staging, job spawning and conducting the exchange attempts. Here
+we use the SAGA BigJob framework to efficiently request and manage
+computational resources for multiple replicas and it enables the use of
+a range of infrastructure.  For example, we can submit multiple
+big-jobs on multiple resources and manage them from one location. 
 
 \alnote{please consistently use hyphen in RE-Manager, BigJob-Manager, ...
 Also, SAGA can be removed in front of BigJob Manager.} The RE-Manager requests
@@ -600,13 +594,6 @@ finishes running, the compute resources are freed and marked as available.
       \label{fig:bigjob}
 \end{figure}
 
-The various tasks that are carried out using the SAGA APIs include
-file staging, job spawning and conducting the exchange attempts. Here
-we use the SAGA BigJob framework to efficiently request and manage
-computational resources for multiple replicas and it enables the use of
-a range of infrastructure.  For example, we can submit multiple
-big-jobs on multiple resources and manage them from one location. %when any one of the big-jobs becomes active. 
-\jhanote{last sentence needs attention} \athotanote{not sure what to do.}
 
 
 % \athotanote{check sentence} \alnote{refined. please refer to the
@@ -637,16 +624,19 @@ big-jobs on multiple resources and manage them from one location. %when any one 
 %   AGENT here if not in previous subsection.}  \athotanote{please check if it's ok now}
   
 The RE-Manager is the master process which in addition to controlling
-the different components: the SAGA BigJob framework, the individual
-replicas etc., also defines (and implements) the coordination/exchange
+the different components -- SAGA BigJob framework, the individual
+replicas etc., also defines and implements the coordination/exchange
 mechanism employed.  The actual tasks that the RE-Manager performs
-depends not only on the RE algorithm employed, but also which
-coordination mechanism is being supported.  The RE-Manager supports
-two different replica management mechanisms: centralised and
+depends not only on the RE algorithm employed, but also which exchange
+mechanism is being supported.  The RE-Manager supports two different
+replica management and exchange mechanisms: centralised and
 decentralised. In centralised, the RE-Manager manages all the replicas
-and performs the exchanges, whilst in the decentralised case, each
-replica is managed individually by a {\it replica-agent}.
+and performs the exchanges, whilst in the decentralised case, a {\it
+  replica-agent} manages each replica individually as well
+making and performing exchange decisions.
 
+% each replica is managed individually by a decisions about how to
+% exchange
 %The RE-Manager uses the SAGA BigJob-Manager;
 
 
