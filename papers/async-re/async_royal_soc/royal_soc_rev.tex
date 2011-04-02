@@ -528,10 +528,17 @@ cyberinfrastructure, such as the US TeraGrid and
 LONI~\citep{LONI_web}, using general purpose tooling and standard
 capabilities that are available on these production infrastructure.
 Additionally, our framework {\it natively} supports individual
-replicas that are MPI jobs. In this section we outline the
-architecture, implementation and the basic performance of our RE
-framework when used to implement the different formulations.
-The RE Framework implements synchronous and asynchronous RE. The RE Framework contains the BigJob-Manager, the RE-Manager and the Replica-Agent. The BigJob-Manager is common for both synchronous and asynchronous RE. The RE-Manager's functionality varies according to the implementation - centralised or decentralised. A Replica-Agent is a manager for one replica and every replica has a Replica-Agent in the decentralised implementation.\athotanote{i am helping here?}
+replicas that are MPI jobs. In this section we outline the architecture,
+implementation and the basic performance of our RE framework when used to
+implement the different formulations. The RE Framework implements synchronous
+and asynchronous RE. The RE Framework consists of the RE-Manager and the SAGA
+BigJob framework, which is used to efficiently execute the ensemble jobs. The
+BigJob framework is common for both synchronous and asynchronous RE. The
+RE-Manager's functionality varies in the different implementations --
+centralised or decentralised. 
+%A Replica-Agent is a manager for one replica and
+%every replica has a Replica-Agent in the decentralised
+%implementation.\athotanote{i am helping here?}
 % In following subsections we
 % introduce the different components in the RE Framework.
 
@@ -569,22 +576,19 @@ components: (i) the BigJob-Manager, (ii) the BigJob-Agent and
 (iii) the advert service which is a central key/value store used for
 communication between the BigJob-Manager and the BigJob-Agent.
 
-\alnote{please consistently use hyphen in RE-Manager, BigJob-Manager,
-  ... Also, SAGA can be removed in front of BigJob Manager.}  For each
-BigJob request from the RE-Manager (1 in Figure~\ref{fig:bigjob}), the BigJob-Manager submits a request to the resource manager (2 in
-Figure~\ref{fig:bigjob}). When the BigJob becomes active, the
-BigJob-Manager starts the job (3 in Figure~\ref{fig:bigjob}). For each
-new sub-job, the RE-Manager submits the sub-job description to the BigJob-Manager (4 in Figure~\ref{fig:bigjob}), and an advert entry storing the description of the
-sub-job is created by the BigJob-Manager (5 in
-Figure~\ref{fig:bigjob}). The BigJob-Agent periodically polls for new
-jobs (6 in Figure~\ref{fig:bigjob}). If a new job is found and
-resources are available, the BigJob-Agent runs the job (7 in
-Figure~\ref{fig:bigjob}). \athotanote{improved description} If not,
-the job is queued. It is possible that there are more sub-jobs than
-the big-job can accommodate. Further, the agent continuously monitors
-the running sub-jobs and updates the sub-job states in the advert
-service. Once a sub-job finishes running, the compute resources are
-freed and marked as available.
+\alnote{please consistently use hyphen in RE-Manager, BigJob-Manager, ...
+Also, SAGA can be removed in front of BigJob Manager.} The RE-Manager requests
+a defined number of big-jobs from the BigJob-Manager; for each big-job a
+regular batch job is submitted to the resource manager (step 1-3 in
+Figure~\ref{fig:bigjob}). When the BigJob becomes active, the BigJob-Manager
+can start to process sub-jobs. For each new sub-job an advert entry storing
+the description of the sub-job is created by the BigJob-Manager (step 4-5).
+The BigJob-Agent periodically polls for new jobs (step 6). If a new job is
+found and resources are available, the BigJob-Agent runs the job (step 7). If
+not, the job is queued. It is possible that there are more sub-jobs than the
+big-job can accommodate. Further, the agent continuously monitors the running
+sub-jobs and updates the sub-job states in the advert service. Once a sub-job
+finishes running, the compute resources are freed and marked as available.
 %%%%% FIGURE %%%%%
 \begin{figure}[t]
       \centering
@@ -763,8 +767,9 @@ decentralised implementations. In the centralised implementation, there is no
 is no \texttt{new} state. There is no \texttt{new} state in the
 decentralised implementation because the replica-agent starts running
 only after the processors become available and the replica is
-started and put directly in the \texttt{running} state. The additional states in the decentralised implementation are
-needed to implement and maintain distributed coordination/control.
+started and put directly in the \texttt{running} state. The additional states 
+in the decentralised implementation are needed to implement and maintain
+distributed coordination/control.
 
 % \jhanote{This is a way of addressing ``distributed coordination
 %   and control.'' Need to mention} \athotanote{check sentence}
@@ -805,10 +810,11 @@ exchanges performed; when the desired number of exchanges are done,
 the RE-Manager ends the experiment.
 
 %\alnote{paragraph needs attention} 
-It should be noted that even in the decentralised implementation, the
-advert service is still centralised. Only the replica-management and exchange coordination are decentralised. We did not observe any increase
-in latency with respect to the
-increasing number of connections when accessing the advert service .  % \alnote{we did observe a severe
+It should be noted that even in the decentralised implementation, the advert
+service is still centralised. Only the replica-management and exchange
+coordination are decentralised. We did not observe any increase in latency
+with respect to the increasing number of connections when accessing the advert
+service. % \alnote{we did observe a severe
 %   slowdown!!}
 % \athotanote{at first I though it was due to the large
 %   number of connections. but it was actually because in the
