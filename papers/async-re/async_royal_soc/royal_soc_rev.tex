@@ -1718,52 +1718,69 @@ runtime. Each experiment was repeated 5 times.
 % \alnote{Sounds good for the data we have.}
 
 
-{\it Results:} We want to analyse how
-the performance of the asynchronous (centralised) RE implementation is
-effected as the distribution of resources is increased from 1 to 2 and
-2 to 4, while keeping the number of replicas constant. The model
-developed in Equation~\ref{eq:totaltime} still holds and after factoring in the
-performance advantage due to the additional BigJob-Agents, the
-analysis provided
-in~\ref{sec:re_impl}(c) %\alnote{there is no section 4.3. please use refs}
+{\it Results:} We analyse the performance of the asynchronous (centralised) RE
+implementation using a different number of distributed resources (1, 2 and 4
+respectively) while keeping the ensemble size, i.\,e.\ the number of replicas,
+constant. The model developed in section~\ref{sec:repex-approach} still holds
+and after factoring in the performance advantage due to the additional
+BigJob-Agents, the analysis provided in~\ref{sec:re_impl}(c)
+%\alnote{there is no section 4.3. please use refs} 
 can be used to understand the behaviour. In a distributed scenario,
-$T_{MD}$ might be different on different machines. Also, depending on
+$T_{MD}$ can be different on different machines. Also, depending on
 the physical location and other network related aspects, $T_{EX}$
-can be effected. The resources used in this experiment are mostly homogeneous
+can be effected. 
+
+The resources used in this experiment are mostly homogeneous
 in performance; thus, $T_{MD}$ is not effected. Because $T_W$ is 0\,s in
 asynchronous RE, the main component that influences $T$ is
 $T_{EX}$, which is comprised of $T_{find}$, $T_{file}$ and
 $T_{state}$. Finding exchange partners and bookkeeping involves as described
 several communications via the advert service and some local
-processing.  Although the resources are homogenous and all belong to LONI, they are geographically distributed. % and the advert service,
-%along with the other resources is also on the same network, 
-\alnote{No sure whether I would consider a Grid as LONI as the SAME network} \athotanote{check}
-While this effects the communication times to the advert server, we believe that the component that most effects the performance is $T_{file}$ -- which is
-the time to transfer the configuration file to the replica. The time
-to retrieve a value from the advert server varies by one-hundredth of
-a second from one machine to another. From {\it QueenBee}, it takes
-0.01 s, from {\it Eric}, it takes 0.01 s, from {\it Louie}, it takes
-0.02 s and from {\it Oliver}, it takes 0.01 s. As the variation in communication times to advert server from different machines is small, we don't believe that it significantly effects $T$. \alnote{How many repeats?
-Why is Eric faster than QB? Can we reduce the number of decimals to 2?} \athotanote{reduced to 2 decimals. repeated many times but data collected during a short period of time. my guess is that the performance depend on the distance of the advert server from the machine and load. don't know what else I can say here.}
+processing. Although the resources are homogenous and all belong to LONI, they
+are geographically distributed. This has a minor impact on the latency 
+observed in the communication with the advert service: From {\it
+QueenBee}, {\it Eric} and {\it Oliver} the creation of an advert entry takes
+0.01\,s, from {\it Louie} it requires 0.02\,s. As the variation in these
+times is very small, the impact on $T$ can be neglected. We observed that
+$T_{file}$ -- i.\,e.\ the time to transfer the configuration file to a
+replica -- has a bigger impact on ${T}$.
+% The time to retrieve a value from the advert service varies
+% by one-hundredth of a second from one machine to another.
 \jhanote{distinguish ``case'' from ``configuration''..} \athotanote{changed
 case to configuration when seemed appropriate} 
 
 \alnote{explain high fluctuation for $N_R$=32 and \#machines=1} \athotanote{tried}
 The results obtained from the scale-out experiments are plotted in
- Figure~\ref{fig:scaleout_cent}. In Figure~\ref{fig:scaleout_cent}, it should first be noted that the scale of y-axis is much smaller than in Figure~\ref{fig:scaleup}. The variations in $T$ are small, ranging from 10 to 20 seconds. For 8 replicas on 1 machine conducting
-32 exchanges, $T$ is $570$\,s. When 8 replicas are distributed equally over 2
-machines, $T$ increases slightly to $586$\,s (see 
-Figure~\ref{fig:scaleout_cent}). Each remote file transfer takes 0.38\,s while 
-a local transfer requires only 0.01\,s, i.\,e.\ 0.37\,s less. 
-In the 8 replicas, 32 exchanges and 2 machines configuration, for half the
-exchanges, files must be transferred to a remote machine. In each exchange 2
-files are transferred, one for each replica. \jhanote{This needs attention..}
+Figure~\ref{fig:scaleout_cent} (It should first be noted that the scale of
+y-axis is much smaller than in Figure~\ref{fig:scaleup}). The variations in $T$
+are small, ranging from 10 to 20 seconds. For 8 replicas on 1 machine
+conducting 32 exchanges, $T$ is $570$\,s. When 8 replicas are distributed
+equally over 2 machines, $T$ increases slightly to $586$\,s (see
+Figure~\ref{fig:scaleout_cent}). Each remote file transfer takes 0.38\,s while
+a local transfer requires only 0.01\,s, i.\,e.\ 0.37\,s less. In the 8
+replicas, 32 exchanges and 2 machines configuration, for half the exchanges,
+files must be transferred to a remote machine. In each exchange 2 files are
+transferred, one for each replica. \jhanote{This needs attention..}
 \athotanote{fixed} \alnote{I still don't understand why 1 file per replica
-must be transfered to a remote machine.} In sum, for 32 exchanges, 32 remote
+must be transferred to a remote machine.} In sum, for 32 exchanges, 32 remote
 transfers are necessary. Thus, the cumulative $T_{file}$ due to remote
-transfers is approximately $0.37 \times 32=12\,s$. Within error bars, this is 
-the difference we see in the Figure~\ref{fig:scaleout_cent} when moving from 1 
-to 2 machines in the 8 replica configuration. We do not have an accurate explanation for the behaviour of the 16 and 32 replica configurations. It is possible that managing larger number of replicas effects the performance more than the number of machines used. In the 32 replica configuration, we see larger fluctuation in $T$ on 1 machine than on 2 and 4 machines. But again the experiments were repeated only 5 times and the fluctuations are in the range of 10 to 20 seconds. As we mentioned earlier, the big-jobs became active within 30 seconds of each other. This also adds to the fluctuations. We will need to repeat these experiments more number of time and at larger scales to analyse their behaviour accurately. Nonetheless, from these experiments, we can say that our RE Framework is capable of scaling-out without acutely effecting the performance.       \alnote{can you be a little more precise and explain e.g. why for the 32 replica scenario the time improves going from 2 to 4 machines?} \athotanote{ changed explanation}%Some of the data points on the graph do not behave in the model that we predicted. For example, in the 16 replica configuration, going from 1 to 2 machines, $T$ only changes by 4 s, when it should have moved by 23 s. But the fluctuations are of the same order (seconds), and can easily be explained by fluctuations in the performance of remote operations.
+transfers is approximately $0.37 \times 32=12\,s$. Within error bars, this is
+the difference we see in the Figure~\ref{fig:scaleout_cent} when moving from 1
+to 2 machines in the 8 replica configuration. We do not have an accurate
+explanation for the behaviour of the 16 and 32 replica configurations. It is
+possible that managing larger number of replicas effects the performance more
+than the number of machines used. In the 32 replica configuration, we see
+larger fluctuation in $T$ on 1 machine than on 2 and 4 machines. But again the
+experiments were repeated only 5 times and the fluctuations are in the range
+of 10 to 20 seconds. As we mentioned earlier, the big-jobs became active
+within 30 seconds of each other. This also adds to the fluctuations. We will
+need to repeat these experiments more number of time and at larger scales to
+analyse their behaviour accurately. Nonetheless, from these experiments, we
+can say that our RE Framework is capable of scaling-out without acutely
+effecting the performance. \alnote{can you be a little more precise and
+explain e.g. why for the 32 replica scenario the time improves going from 2 
+to4 machines?} \athotanote{ changed explanation}
+%Some of the data points on the graph do not behave in the model that we predicted. For example, in the 16 replica configuration, going from 1 to 2 machines, $T$ only changes by 4 s, when it should have moved by 23 s. But the fluctuations are of the same order (seconds), and can easily be explained by fluctuations in the performance of remote operations.
 
 The time-to-completion $T$ increases moderately or remains constant
 with higher number of machines. %it indicates that the scale-out
