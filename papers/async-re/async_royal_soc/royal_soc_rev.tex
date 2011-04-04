@@ -55,7 +55,7 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
 }
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
@@ -96,11 +96,11 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
   involve a large number of loosely-coupled ensembles, and are thus
   amenable to using distributed resources. We develop a framework for
   RE which supports different replica pairing (synchronous vs.
-  asynchronous) and coordination mechanisms (centralised vs.
+  asynchronous) and exchange coordination mechanisms (centralised vs.
   decentralised) and which can use a range of production
   cyberinfrastructure concurrently.  We characterise the performance
   of both RE algorithms at unprecedented number of cores employed --
-  the number of replicas and typical number of cores per replica, on
+  the number of replicas and the typical number of cores per replica -- on
   production distributed infrastructure.  We find that the
   asynchronous algorithms outperform the synchronous algorithm, even
   though details of the specific implementations are important
@@ -127,16 +127,16 @@ infrastructure and extensible functionality are typically not
 first-class considerations. Breaking this coupling between the
 development and runtime environments on the one hand, and the runtime
 environment and underlying infrastructure on the other, is an
-important design objective of distributed applications -- both
-logically distributed and physically distributed ones.  It enables
+important design objective of distributed applications -- either
+logically distributed or physically distributed.  It enables
 applications to be flexible (across infrastructure), extensible (to
 new methods of communication and coordination) and scalable.
 
 Application formulations that are flexible are better suited to using
 the diverse range of traditional and hybrid infrastructure (e.g.,
 grid-cloud and heterogeneous resources) in a scalable manner.  Along
-with application formulations that facilitate the scalable and
-flexible utilisation of a range of infrastructure, it is imperative to
+with application formulations that facilitate scalable and
+flexible use of a range of infrastructure, it is imperative to
 have the correct runtime abstractions that support flexible deployment
 of these applications. This work brings together advances in
 application algorithms, along with sophisticated runtime environments
@@ -149,7 +149,7 @@ scales-up and scales-out.
 The RE Framework uses a flexible pilot-job implementation -- SAGA
 BigJob~\citep{saga_bigjob_condor_cloud} -- to support the efficient
 execution of ensembles. The pilot-job provides a container for a
-number of replicas, which can then be directly and concurrently
+number of sub-jobs (replicas), which can then be directly and concurrently
 executed via the pilot-job, and thus circumventing the need for
 replicas to individually wait for resources to become
 available.  % without individually waiting for resources.
@@ -213,11 +213,11 @@ also present an approximate mathematical model for the different
 algorithms.  Section~\ref{repexfw} outlines the architecture of the RE
 Framework -- the SAGA BigJob (how it supports the dynamic execution of
 multiple replicas) and other important elements that make the
-framework flexible and extensible.  In section~\ref{sec:re_impl}, we
+framework flexible and extensible.  In Section~\ref{sec:re_impl}, we
 present our implementation of the RE algorithms and understand the
 primary determinants of performance and relate it to the mathematical
-model of section~\ref{sec:repex-approach}.  In
-section~\ref{sec:performance}, we describe the experiments performed
+model of Section~\ref{sec:repex-approach}.  In
+Section~\ref{sec:performance}, we describe the experiments performed
 to assess and understand performance when scaling-up (on a single
 machine) as the number of replicas increases.  We compare and analyze
 the performance of the different RE formulations (synchronous and
@@ -517,7 +517,7 @@ SAGA~\citep{saga-url} %\athotanote{2011?}
 is an API for the basic functionality required to build distributed
 applications, tools and frameworks. SAGA was designed to be
 independent of the details of the underlying infrastructure.  We have
-previously demonstrated the usage of the SAGA-based Pilot-Job
+previously demonstrated the usage of the SAGA-based pilot-job
 framework~\citep{saga_bigjob_condor_cloud} -- called the big-job, to
 run RE simulations across multiple, heterogeneous, distributed grid
 and cloud infrastructure~\citep{Luckow:2008fp}.
@@ -1018,7 +1018,7 @@ replicas.
 %   all the bookkeepings are now 0.2 s.  thanks for the refinement. }
 \jhanote{Please ``Define'' what this operation is? What part of the equation
 ?} \athotanote{fixed..?}\alnote{refined}
-$T_{find}$ comprises of two components: the pre-exchange management and the actual
+$T_{find}$ comprises of two components: The pre-exchange management and the actual
 search part. As described, in the decentralised implementation of asynchronous
 RE algorithm, the replicas are managed and exchanged by replica-agents. The
 following pre-exchange steps are necessary: After a replica has completed its
@@ -1467,7 +1467,7 @@ the values obtained are in agreement with the empirical data in
 Figure~\ref{fig:scaleup}.
 
 
-For the decentralised asynchronous implementation, $T_W$ is 0.
+For asynchronous (decentralised) RE, $T_W$ is 0.
 $T_{find}$ has a strong $N_R$ dependence.  The finding operation
 involves several queries to the advert service; $T_{find}$ can be
 approximated as follows: $2 \times N_R \times 0.1$ (where $0.1$ is the
@@ -1502,8 +1502,8 @@ as the usage of the central advert service.
 %  \alnote{Next two sentences: How much does this really impact the
 %    decentralised case?  Also, we defined $T_s$ as 0}
 
-In contrast to the decentralised implementation, $T_{find}$ in the
-asynchronous centralised case is only weakly dependent on $N_R$;
+In contrast to asynchronous (decentralised) RE, $T_{find}$ in
+asynchronous (centralised) RE is only weakly dependent on $N_R$;
 however, since the RE-Manager makes the exchanges serially, we still
 see an increase in the time-to-completion with increasing
 $N_R$. % Using
@@ -1540,13 +1540,12 @@ times.
 \subsection{Scale-Out: Asynchronous RE (Centralised)}
 %\alnote{Please reference figures in text.}
 {\it Experiments:} In this section, we scale-out to 2 and 4
-distributed resources to evaluate the performance of the centralised
-implementation of asynchronous RE.  We used the TeraGrid and/or LONI
+distributed resources to evaluate the performance of the asynchronous (centralised) RE.  We used the TeraGrid and/or LONI
 resources, viz., \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The
-experiments are conducted with 8, 16 and 32 replicas that make 32, 64
-and 128 exchanges respectively. These exchanges are repeated on 1, 2
+experiments were conducted with 8, 16 and 32 replicas that make 32, 64
+and 128 exchanges respectively. These exchanges were repeated on 1, 2
 and 4 machines while distributing equal number of replicas on each
-machine. It is important to note that all experiments are conducted
+machine. It is important to note that all experiments were conducted
 using four big-jobs, irrespective of the number of machines used
 because varying the number of big-jobs, or the ratio of replicas per
 big-job effects the overall performance.  Another important point to
@@ -1554,7 +1553,7 @@ note is that only the experimental runs where all the four big-jobs
 become active within $30\,s$ of each other on submission to the
 resource manager are considered and included in the results. This is
 to remove the effect of queue wait time and to get an accurate
-assesement of the runtime. Each experiment was repeated 5 times.
+assessment of the runtime. Each experiment was repeated 5 times.
 
 \begin{figure}%
 \centering
@@ -1570,7 +1569,7 @@ assesement of the runtime. Each experiment was repeated 5 times.
 \end{figure}
 
 {\it Results:} We analyse the performance of the asynchronous
-(centralised) RE implementation using a varying number of distributed
+(centralised) RE using a varying number of distributed
 resources (1, 2 and 4 respectively) while keeping the number of
 replicas constant. After factoring in the performance advantage due to
 the additional big-jobs/BigJob-Agents, the analysis provided
