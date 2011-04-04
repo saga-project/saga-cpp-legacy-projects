@@ -106,39 +106,6 @@ Production Infrastructure]{Efficient Large-Scale Replica-Exchange
   though details of the specific implementations are important
   determinants of performance.
 
-% \alnote{Not sure whether this are unprecedented
-%     scales - see Tom's comment...}
-% \alnote{\textbf{This sentence is in my opinion redundant to the previous
-%   one:}  We use this framework to implement two different RE
-%   algorithms in two different ways.}
-
-%  flexible and robust implementation enables the efficient use of a
-%   broad range of infrastructure.
-%   (publish-subscribe centralised notification),
-
-% Developing applications that are able to orchestrate heterogeneous
-% resources across distributed resources is a complex task. Inevitably,
-% the design and development of an application is influenced and
-% constrained by the programming systems and the infrastructure it is
-% developed against. Breaking this coupling between the development and
-% the underlying infrastructure, to enable applications to be flexible
-% (across infrastructure), extensible (to new methods of communication
-% and coordination) and scalable is an important design objective of
-% distributed applications both logically distributed and physically
-% distributed.  In this work, we focus on the Replica-Exchange (RE)
-% Methods which represent a class of algorithms that involve a large
-% number of loosely-coupled ensembles. RE simulations are used to
-% understand physical phenomena Ð ranging from protein folding dynamics
-% to binding affinity calculations.  In this work, we develop a
-% flexible, extensible and scalable implementation of RE that can
-% utilise a range of infrastructure concurrently (and
-% autonomically/adaptively), that supports different coordination
-% mechanisms (publish/subscribe, centralized notification), different
-% replica pairing mechanisms (synchronous versus asynchronous) and
-% thereby different variants of the RE algorithm. We implement and
-% demonstrate how a flexible and robust implementation enables the
-% efficient use of a broad range of infrastructure.
-
 \end{abstract}
 % \alnote{We are on about 13.5 pages (without comments). 
 % Do we need to shorten it to 12? space-saving? Or is it sufficient
@@ -1574,24 +1541,20 @@ times.
 %\alnote{Please reference figures in text.}
 {\it Experiments:} In this section, we scale-out to 2 and 4
 distributed resources to evaluate the performance of the centralised
-implementation of asynchronous RE. % \jhanote{Need a consistent and
-%   simple way of referring to the three cases/implementation/ etc!?}
-We used the following TeraGrid and/or LONI resources: \emph{QueenBee,
-  Eric, Louie} and \emph{Oliver}. The experiments are conducted with
-8, 16 and 32 replicas that make 32, 64 and 128 exchanges
-respectively. These exchanges are repeated on 1, 2 and 4 machines
-while distributing equal number of replicas on each machine. It is
-important to note that all experiments are conducted using four
-big-jobs, irrespective of the number of machines used because varying
-the number of big-jobs, or the ratio of replicas per big-job effects
-the overall performance.  Another important point to note is that only
-the experimental runs where all the four
-big-jobs %\alnote{when referring to the pilot job, BigJob should be consistently spelled as big-job}
+implementation of asynchronous RE.  We used the TeraGrid and/or LONI
+resources, viz., \emph{QueenBee, Eric, Louie} and \emph{Oliver}. The
+experiments are conducted with 8, 16 and 32 replicas that make 32, 64
+and 128 exchanges respectively. These exchanges are repeated on 1, 2
+and 4 machines while distributing equal number of replicas on each
+machine. It is important to note that all experiments are conducted
+using four big-jobs, irrespective of the number of machines used
+because varying the number of big-jobs, or the ratio of replicas per
+big-job effects the overall performance.  Another important point to
+note is that only the experimental runs where all the four big-jobs
 become active within $30\,s$ of each other on submission to the
 resource manager are considered and included in the results. This is
-to remove the queue wait time from the equation and focus on the
-runtime. Each experiment was repeated 5 times.
-
+to remove the effect of queue wait time and to get an accurate
+assesement of the runtime. Each experiment was repeated 5 times.
 
 \begin{figure}%
 \centering
@@ -1606,71 +1569,56 @@ runtime. Each experiment was repeated 5 times.
 
 \end{figure}
 
-{\it Results:} We analyse the performance of the asynchronous (centralised) RE
-implementation using a different number of distributed resources (1, 2 and 4
-respectively) while keeping the ensemble size, i.\,e.\ the number of replicas,
-constant. The model developed in section~\ref{sec:repex-approach} still holds
-and after factoring in the performance advantage due to the additional
-BigJob-Agents, the analysis provided in~\ref{sec:re_impl}(c)
-%\alnote{there is no section 4.3. please use refs} 
-can be used to understand the behaviour. In a distributed scenario,
-$T_{MD}$ can be different on different machines. Also, depending on
-the physical location and other network related aspects, $T_{EX}$
-can be effected. 
+{\it Results:} We analyse the performance of the asynchronous
+(centralised) RE implementation using a varying number of distributed
+resources (1, 2 and 4 respectively) while keeping the number of
+replicas constant. After factoring in the performance advantage due to
+the additional big-jobs/BigJob-Agents, the analysis provided
+in~\ref{sec:re_impl}(c) can be used to understand the behaviour using
+the model developed in section~\ref{sec:repex-approach}.
 
-The resources used in this experiment are mostly homogeneous
-in performance; thus, $T_{MD}$ is not effected. Because $T_W$ is 0\,s in
-asynchronous RE, the main component that influences $T$ is
-$T_{EX}$, which is comprised of $T_{find}$, $T_{file}$ and
-$T_{state}$. Finding exchange partners and bookkeeping involves as described
-several communications via the advert service and some local
-processing. Although the resources are homogenous and all belong to LONI, they
-are geographically distributed. This has a minor impact on the latency 
-observed in the communication with the advert service: From {\it
-QueenBee}, {\it Eric} and {\it Oliver} the creation of an advert entry takes
-0.01\,s, from {\it Louie} it requires 0.02\,s. As the variation in these
-times is very small, the impact on $T$ can be neglected. We observed that
-$T_{file}$ -- i.\,e.\ the time to transfer the configuration file to a
-replica -- has a bigger impact on ${T}$.
-% The time to retrieve a value from the advert service varies
-% by one-hundredth of a second from one machine to another.
-% \jhanote{distinguish ``case'' from ``configuration''..} \athotanote{changed
-% case to configuration when seemed appropriate} 
+Even though in a distributed scenario, $T_{MD}$ can be different on
+different machines, the resources used in this experiment are mostly
+homogeneous in performance, thus, $T_{MD}$ is not effected.  Also,
+depending on the physical location and other network related aspects,
+$T_{EX}$ can be effected.  Because $T_W$ is 0\,s in asynchronous RE,
+the main component that influences $T$ is $T_{EX}$, which is comprised
+of $T_{find}$, $T_{file}$ and $T_{state}$. Finding exchange partners
+and bookkeeping involves several communications via the advert service
+and some local processing. Although the resources are homogenous and
+all belong to LONI, they are geographically distributed. This has a
+minor impact on the latency observed in the communication with the
+advert service: From {\it QueenBee}, {\it Eric} and {\it Oliver} the
+creation of an advert entry takes 0.01\,s, from {\it Louie} it
+requires 0.02\,s. As the variation in these times is very small, the
+impact on $T$ can be neglected. We observed that $T_{file}$ -- i.\,e.\
+the time to transfer the configuration file to a replica -- has a
+bigger impact on ${T}$.
 
-\alnote{explain high fluctuation for $N_R$=32 and \#machines=1} The
-results obtained from the scale-out experiments are plotted in
-Figure~\ref{fig:scaleout_cent} (It should first be noted that the
-scale of y-axis is much smaller than in Figure~\ref{fig:scaleup}). The
-variations in $T$ are small, ranging from 10 to 20 seconds. For 8
-replicas on 1 machine conducting 32 exchanges, $T$ is $570$\,s. If
-these replicas are distributed equally over 2 machines, $T$ increases
-slightly to $586$\,s. In total the observed overheads are quite small
-and well acceptable (with at worst 5\,\% of the overall experiment
-runtime). As explained earlier, the main source ofthese overhead are
-the necessary remote file transfers. Each remote file transfer takes
-0.38\,s while a local transfer requires only 0.01\,s, i.\,e.\ 0.37\,s
-less. In the 8 replicas, 32 exchanges and 2 machines configuration,
-half of the replicas are located on a different resource than the
-RE-Manager, i.\,e.\ the input file must be transferred to the remote
-resource in theses cases.  On average when 2 machines are used, one of
-the necessary input files for an exchange requires a remote copy; for
-the 8 replica, 32 exchange configuration, therefore 32 remote
-transfers are necessary. Thus, the additional overhead in $T_{file}$
-can be approximated to $0.37 \times 32=12\,s$. In
-Figure~\ref{fig:scaleout_cent}, this accounts for the difference, to
-within error bars, between the $T$ values of 1 and 2 machines (for the
-8 replica configuration).
+The results obtained from the scale-out experiments are plotted in
+Figure~\ref{fig:scaleout_cent}; note that the scale of y-axis is much
+smaller than in Figure~\ref{fig:scaleup}. The variations in $T$ are
+small, ranging from 10 to 20 seconds. The fluctuations are all within
+the 30 second tolerance imposed by the experimental method. 
 
-% On average per exchange involving two replicas, one of the necessary input 
-% file transfers involves a remote copy, i.\,e.\ for 32 exchanges, 32 remote 
-% transfers are necessary. Thus, the additional overhead in $T_{file}$ can be 
-% approximated to $0.37 \times 32=12\,s$. Within error bars, this is the 
-% difference we see in the
-% Figure~\ref{fig:scaleout_cent} when moving from 1 to 2 machines in the 8
-% replica configuration. 
-
-% We do not have an accurate explanation for the behaviour of the 16 and
-% 32 replica configurations. 
+For 8 replicas conducting 32 exchanges on 1 machine, $T$ is $570$\,s;
+if these replicas are distributed equally over 2 machines, $T$
+increases slightly to $586$\,s. In total the observed overhead of
+distribution is quite small and essentially acceptable (with at worst
+5\,\% of the overall runtime). As explained earlier, the main source
+of these overheads are the necessary remote file transfers. Each
+remote file transfer takes 0.38\,s while a local transfer requires
+only 0.01\,s, i.\,e.\ 0.37\,s less. For the 8 replicas, 32 exchanges
+and 2 machines configuration, half of the replicas are located on a
+different resource than the RE-Manager, i.\,e.\ the input file must be
+transferred to the remote resource in these cases.  On average when 2
+machines are used, one of the necessary input files for an exchange
+requires a remote copy; for the 8 replica, 32 exchange configuration,
+therefore 32 remote transfers are necessary. Thus, the additional
+overhead in $T_{file}$ can be approximated to $0.37 \times
+32=12\,s$. In Figure~\ref{fig:scaleout_cent}, this accounts for the
+difference, to within error bars, between the $T$ values of 1 and 2
+machines (for the 8 replica configuration).
 
 As mentioned, we keep the ratio of the number of replicas to the
 number of exchanges a constant, thus as the number of replicas
@@ -1680,9 +1628,6 @@ increase due to distributed exchange. This explains why at low replica
 counts there is a small (5\%) increase in $T$ as the number of
 distributed resources increases from 1 to 4, but effectively there is
 no change in $T$ when going from 1 to 4 machines when $N_R$ is 32.
-
-% It is possible that managing larger number of replicas effects the
-% performance more than the number of machines used.
 
 Note that the fluctuations are in the range of 10 to 20\,s. As
 mentioned earlier, the big-jobs became active within 30\,s of each
@@ -2271,3 +2216,18 @@ specific issues.
 %\alnote{in the centralised as well, doesn't it?} 
 % For the random access case,\alnote{I think in sec 4 we only talk about
 %   the random case now} 
+
+
+% On average per exchange involving two replicas, one of the necessary input 
+% file transfers involves a remote copy, i.\,e.\ for 32 exchanges, 32 remote 
+% transfers are necessary. Thus, the additional overhead in $T_{file}$ can be 
+% approximated to $0.37 \times 32=12\,s$. Within error bars, this is the 
+% difference we see in the
+% Figure~\ref{fig:scaleout_cent} when moving from 1 to 2 machines in the 8
+% replica configuration. 
+
+% We do not have an accurate explanation for the behaviour of the 16 and
+% 32 replica configurations. 
+
+
+
