@@ -37,8 +37,9 @@ def sub_jobs_submit(job_type, subjobs_per_resource, number_of_jobs,jd_executable
 
         for i in range(0, int(number_of_jobs)):
    
-            if (i+1) > (int(subjobs_per_resource)):
-                affinity= 1 
+            if len(machines_used) > 1:
+                if (i+1) > (int(subjobs_per_resource)):
+                    affinity= 1 
             
             if  jd_executable == "bfast":
                  jd_executable_use = bioscope_exe[affinity] + "/bfast"
@@ -92,10 +93,9 @@ def sub_jobs_submit(job_type, subjobs_per_resource, number_of_jobs,jd_executable
             
             jd.environment = ["affinity=affinity%s"%(affinity)]
             print "affinity%s"%(affinity)
-            #print "llll" + str(affinity)
             jd.working_directory = work_dir[affinity]
-            jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(bfast_uuid) + str(i) + ".txt")
-            jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(bfast_uuid) +str(i) + ".txt")
+            jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(bfast_uuid)+"-"+ str(i) + ".txt")
+            jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(bfast_uuid)+ "-"+str(i) + ".txt")
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
@@ -105,7 +105,9 @@ def sub_jobs_submit(job_type, subjobs_per_resource, number_of_jobs,jd_executable
             job_states[subjob] = subjob.get_state()
             logger.info( job_type + "subjob " + str(i))
             logger.info( "jd.number_of_processes " + str(jd.number_of_processes))
-            #logger.info( "jd.arguments" + jd.arguments)
+            for item in jd.arguments:
+                logger.info( "jd.arguments" + item)
+            logger.info("affinity%s"%(affinity))
             logger.info( "jd exec " + jd.executable)
             
         #number_of_jobs = int(end_of_subjobs) - int(start_of_subjobs)
@@ -145,9 +147,9 @@ if __name__ == "__main__":
     #cwd = "/home/cctsg/pylons/DARE-BIOSCOPE/darebioscope/lib/adams/"
     cwd = os.getcwd()
 
-    #bfast_uuid = uuid.uuid1()
+    bfast_uuid = uuid.uuid1()
     
-    bfast_uuid = "6ff33a54-5a27-11e0-b26f-d8d385abb2b0"
+   # bfast_uuid = "6ff33a54-5a27-11e0-b26f-d8d385abb2b0"
     # parse conf files
     parser = optparse.OptionParser()
     
@@ -247,10 +249,11 @@ if __name__ == "__main__":
         mjs = []
         for i in range(0,len(machines_used) ):
             print machine_proxy[i]
-            resource_list.append({"gram_url" : gram_url[i], "walltime": "180" ,
-                                   "number_cores" : str(int(12)*2), "processes_per_node":processors_per_node[i],"allocation" : allocation[i],
+            resource_list.append({"gram_url" : gram_url[i], "walltime": "80" ,
+                                   "number_cores" : str(int(16)*2), "processes_per_node":processors_per_node[i],"allocation" : allocation[i],
                                    "queue" : queue[i], "re_agent": re_agent[i], "userproxy":machine_proxy[i], "working_directory": work_dir[i], "affinity" : "affinity%s"%(i)})
-            print  "\n ++=affinity%s"%(i)
+            logger.info("gram_url" + gram_url[i])
+            logger.info("affinity%s"%(i))
         print "Create manyjob service " 
         mjs = many_job.many_job_service(resource_list, "advert.cct.lsu.edu")
             
@@ -285,8 +288,8 @@ if __name__ == "__main__":
         matches_starttime = time.time()
         
         ### run the matching step
-        #sub_jobs_submit("new", "8","16", "/bin/date", "2") ##dummy job for testing
-        sub_jobs_submit("matches" , "12", "33", "bfast", "2")
+        #sub_jobs_submit("new", "16","32", "/bin/date", "2") ##dummy job for testing
+        sub_jobs_submit("matches" , "16", "32", "bfast", "2")
         
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )
