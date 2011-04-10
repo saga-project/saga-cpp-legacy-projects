@@ -16,7 +16,6 @@ import sys
 import getopt
 import saga
 import time
-import uuid
 import pdb
 import socket
 import os
@@ -27,6 +26,16 @@ import logging
 # import API
 import api.base
 
+def get_uuid():
+    wd_uuid=""
+    if sys.version_info < (2, 5):
+        uuid_str = os.popen("/usr/bin/uuidgen").read()
+        wd_uuid += uuid_str.rstrip("\n")
+    else:
+        import uuid
+        wd_uuid += str(uuid.uuid1())
+    return wd_uuid
+
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
@@ -36,10 +45,10 @@ class bigjob(api.base.bigjob):
     def __init__(self, database_host):        
         self.database_host = database_host
         print "init advert service session at host: " + database_host
-        self.uuid = uuid.uuid1()
+        self.uuid = get_uuid()
         self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
- 	self.state=saga.job.Unknown
+        self.state=saga.job.Unknown
         self.pilot_url=""
         print "created advert directory for application: " + self.app_url.get_string()
     
@@ -175,7 +184,7 @@ class subjob(api.base.subjob):
         """Constructor"""
         self.database_host = database_host
         self.job_url=None
-        self.uuid = uuid.uuid1()
+        self.uuid = get_uuid()
         self.job_url = None
         
     def get_job_url(self, pilot_url):
