@@ -5,8 +5,9 @@
 
 #include <iostream>
 #include <cassert>
-#include <saga/saga.hpp>
 #include <boost/lexical_cast.hpp>
+
+#include <saga/saga.hpp>
 
 ///////////////////////////////////////////////////////////////////////////////
 //

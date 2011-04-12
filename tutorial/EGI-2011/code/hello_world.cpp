@@ -25,7 +25,7 @@
 // you want the 3 childs to be spawned to.
 ///////////////////////////////////////////////////////////////////////////////
 #define URL0 "fork://localhost"
-#define URL1 "any://amerzky@cyder.cct.lsu.edu/"
+#define URL1 "fork://localhost"
 #define URL2 "fork://localhost"
 
 #define NJOBS 3

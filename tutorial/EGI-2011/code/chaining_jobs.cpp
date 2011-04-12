@@ -22,7 +22,7 @@
 // urls you want the 3 childs to be spawned to.
 ///////////////////////////////////////////////////////////////////////////////
 #define URL1 "fork://localhost"
-#define URL2 "ssh://amerzky@cyder.cct.lsu.edu/"
+#define URL2 "fork://localhost"
 #define URL3 "fork://localhost"
 
 ///////////////////////////////////////////////////////////////////////////////
@@ -38,7 +38,7 @@ std::string increment (saga::url url, std::string argument)
     saga::job::istream err;
 
     // run the job
-    saga::job::job j = js.run_job ("/usr/bin/bc -q", "", in, out, err);
+    saga::job::job j = js.run_job ("/tmp/bc -q", "", in, out, err);
 
     // if the job didn't start successfully, print error message
     if ( j.get_state () != saga::job::Running )
