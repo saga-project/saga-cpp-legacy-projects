@@ -75,6 +75,11 @@
 \newcommand{\up}{\vspace*{-1em}}
 \newcommand{\upp}{\vspace*{-0.5em}}
 \newcommand{\ts}{$T_{s}$}
+
+\newcommand{\superscript}[1]{\ensuremath{^{\textrm{#1}}}}
+\newcommand{\subscript}[1]{\ensuremath{_{\textrm{#1}}}}
+
+\newcommand{\lb}[0]{\subscript{LB} }
 % End of users' option
 
 
@@ -474,9 +479,9 @@ The hybrid simulation requires the implementation of hybrid interfaces and schem
   \caption{\small Implementation of Hybrid Interface on CFD and MD Codes. Both codes are equipped with the file-based information exchange routine, to update the hybrid boundary condition. CFD code experiences the global change of its data structure to store the information of the entire fluid system. MD code adopts hybrid equations to impose the macroscopic information on microscopic domain and to ensure numerical stability.}
   \label{table:interface_implementation}
   \centering
-%  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\textwidth}{!} {
 \footnotesize
- \begin{tabular}{>{\centering}p{0.15\linewidth} || p{0.3\linewidth} | p{0.3\linewidth} }
+ \begin{tabular}{>{\centering}p{0.15\textwidth} || p{0.3\textwidth} | p{0.3\textwidth} }
 \hline
   & \centering CFD & \multicolumn{1}{c}{MD} \\
 \hline
@@ -842,7 +847,22 @@ Another change implemented on application codes is the time checking routine. Th
 
 The generation of an application manager and the changes in application codes raise the possible simulation scenarios as given in Fig.~\ref{Fig:OneBJ_Flow}. The first (leftmost) shows the time evolution of a coupled simulation under a conventional job submission (which we define to be scenario S0), and others using a BigJob (denoted as S1). For S0, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$ respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they start at different times on average.
 %except when coincidentally resources for both are available.
-In this case, both tasks wait on the queue when no job is allocated (waiting stage), the first allocated job idles to perform data exchange with its counterpart (idling stage), and the actual simulation starts when both jobs are allocated (running stage). On the other hand, for scenario S1, a BigJob of size $PE_{CFD}+PE_{MD}$ is submitted to the queue, and coupled simulation directly starts when the resource is assigned to this BigJob. Because of co-scheduling of sub-jobs, a BigJob is free from long inactive mode which is frequent in conventional job submission, while total runtime is the same if the resource distribution to sub-jobs is identical. However, eliminating inactive mode in itself does not guarantee a reduction in the total runtime, because a larger single allocation may result in a greater queue waiting time than two simulations requesting smaller number of processors each (but the total being the same). The same situation can arise for the load-balanced case with one BigJob ($S1_{LB}$). From the comparison between S1 and S0, we can estimate the performance gain by concurrent start of distinct coupled codes; $S1_{LB}$ solution compared to other scenarios will demonstrate the benefit of a load-balancing function on coupled simulation.
+In this case, both tasks wait on the queue when no job is allocated (waiting stage), 
+the first allocated job idles to perform data exchange with its counterpart (idling stage), 
+and the actual simulation starts when both jobs are allocated (running stage). 
+On the other hand, for scenario S1, a BigJob of size $PE_{CFD}+PE_{MD}$ is 
+submitted to the queue, and coupled simulation directly starts when the resource is 
+assigned to this BigJob. Because of co-scheduling of sub-jobs, a BigJob is free from 
+long inactive mode which is frequent in conventional job submission, 
+while total runtime is the same if the resource distribution to sub-jobs is identical. 
+However, eliminating inactive mode in itself does not guarantee a reduction 
+in the total runtime, because a larger single allocation may result in 
+a greater queue waiting time than two simulations requesting smaller number of processors 
+each (but the total being the same). The same situation can arise for the load-balanced case 
+with one BigJob (S1\lb). From the comparison between S1 and S0, we can estimate 
+the performance gain by concurrent start of distinct coupled codes; 
+S1\lb solution compared to other scenarios will demonstrate the benefit of 
+a load-balancing function on coupled simulation.
 
 
 %%%%% FIGURE %%%%%
@@ -932,7 +952,7 @@ which directly expresses that 4 times longer sampling duration or 4 times larger
   \caption{\small Statistical Error in Stationary Flow Simulation; Pure MD simulations of 35 $\times$ 52, 70 $\times$ 52 and 140 $\times$ 52 ${\sigma}^2$ are conducted. Liquid is bound in Y-direction by upper and lower walls and able to move in X-direction where periodic boundary condition is imposed. Initial data up to 100 $\tau$ are disregarded to provide enough time for minimization. Velocity of particles around the central layer are accumulated over 512 $\tau$ by using {\it{fix-ave-spatial}} function in LAMMPS package and post-processed to get the average velocity at different layer size and sampling duration conditions. Statistical noise becomes about half at 4 times bigger domain. The unit is 1/1000 of non-dimensional MD velocity (1$\sigma$ / $\tau$).}
   \label{table:MD_Vel0}
   \centering
-%  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\textwidth}{!} {
 \footnotesize
   \begin{tabular}{c || c c c c c c c}
 \hline
@@ -1071,7 +1091,7 @@ Finally, CFD and MD computational domains are generated based on the above exper
 % \caption{\small Statistical Error Measurement on Large System Domain; System is bound by upper and lower walls and has the domain of 140 $\times$ 520 ${\sigma}^2$. Data from 1000 $\tau$ to 3560 $\tau$ are accumulated and post-processed to figure out the variation of statistical noise at different layer size and sampling duration conditions. The unit is 1/1000 of non-dimensional MD velocity (1$\sigma / \tau$).}
 % \label{table:MD_Vel0_L}
 % \centering
-%  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\textwidth}{!} {
 %  \begin{tabular}{c || c c c c c c c}
 %\hline
 %	&	10 $\tau$	&	20 $\tau$	&	40 $\tau$	&	80 $\tau$	&	160 $\tau$	&	320 $\tau$	&	640 $\tau$	\\
@@ -1337,12 +1357,12 @@ for showing the variance of actual queue waiting times.
 10 independent experiments are sampled and expressed in seconds as "mean$\pm$SD".}
   \label{table:WaitTime}
   \centering
-%  \resizebox{0.8\linewidth}{!} {
+%  \resizebox{0.8\textwidth}{!} {
 \footnotesize
   \begin{tabular}{c || c c c}
  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
 \hline
- \multirow{2}{0.15\linewidth}{Number of Processors} &
+ \multirow{2}{0.15\textwidth}{Number of Processors} &
  \multicolumn{3}{c}{Requested Wall-time on Ranger} \\
 \cline{2-4}
 & 6 Hrs & 24 Hrs & 48 Hrs\\
@@ -1390,6 +1410,7 @@ respectively. Conventional job submission mode showed faster time-to-start
 and a BigJob is allocated faster in all other cases.}
 \label{table:BJwaiting}
 \centering
+%  \resizebox{0.8\textwidth}{!} {
 \footnotesize
  \begin{tabular}{c | c | c | c }
  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
@@ -1397,19 +1418,19 @@ and a BigJob is allocated faster in all other cases.}
 px & Wall-time & Scenario & Time-to-start\\
 \hline
 \hline
-\multirow{4}{0.1\linewidth}{256} & \multirow{2}{0.1\linewidth}{6 Hrs} & S0 & 20237.9 + 1045.3\\
+\multirow{4}{0.1\textwidth}{256} & \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 20237.9 + 1045.3\\
 \cline{3-4}
 &  & S1 & 19720.3\\
 \cline{2-4}
-& \multirow{2}{0.1\linewidth}{24 Hrs} & S0 & 5035.8 + 9933.3\\
+& \multirow{2}{0.1\textwidth}{24 Hrs} & S0 & 5035.8 + 9933.3\\
 \cline{3-4}
 &  & S1 & 16165.0\\
 \hline
- \multirow{4}{0.1\linewidth}{512}& \multirow{2}{0.1\linewidth}{6 Hrs} & S0 & 15515.7 + 446.1\\
+ \multirow{4}{0.1\textwidth}{512}& \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 15515.7 + 446.1\\
 \cline{3-4}
 &  & S1 & 15825.4\\
 \cline{2-4}
-& \multirow{2}{0.1\linewidth}{24 Hrs} & S0 & 4182.6 + 11096.3\\
+& \multirow{2}{0.1\textwidth}{24 Hrs} & S0 & 4182.6 + 11096.3\\
 \cline{3-4}
 &  & S1 & 13627.9\\
 \hline
@@ -1420,19 +1441,19 @@ px & Wall-time & Scenario & Time-to-start\\
 %px & wall-time & scenario & queue waiting & inactive mode\\
 %\hline
 %\hline
-%\multirow{4}{0.1\linewidth}{256} & \multirow{2}{0.1\linewidth}{6 Hrs} & S0 & 15770.8 & 1085.9\\
+%\multirow{4}{0.1\textwidth}{256} & \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 15770.8 & 1085.9\\
 %\cline{3-5}
 %&  & S1 & \multicolumn {2}{c}{15200.2}\\
 %\cline{2-5}
-%& \multirow{2}{0.1\linewidth}{24 Hrs} & S0 & 4797.7 & 10363.5\\
+%& \multirow{2}{0.1\textwidth}{24 Hrs} & S0 & 4797.7 & 10363.5\\
 %\cline{3-5}
 %&  & S1 & \multicolumn {2}{c}{11455.3}\\
 %\hline
-% \multirow{4}{0.1\linewidth}{512}& \multirow{2}{0.1\linewidth}{6 Hrs} & S0 & 15514.0 & 449.4\\
+% \multirow{4}{0.1\textwidth}{512}& \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 15514.0 & 449.4\\
 %\cline{3-5}
 %&  & S1 & \multicolumn {2}{c}{15825.4}\\
 %\cline{2-5}
-%& \multirow{2}{0.1\linewidth}{24 Hrs} & S0 & 4181.5 & 11098.5\\
+%& \multirow{2}{0.1\textwidth}{24 Hrs} & S0 & 4181.5 & 11098.5\\
 %\cline{3-5}
 %&  & S1 & \multicolumn {2}{c}{13627.9}\\
 %\hline
@@ -1453,42 +1474,72 @@ It necessitates the capability of the application-level checkpointing
 and generic domain partitioning routine in application codes (both of which are 
 incorporated capacities in most legacy codes).
 
-In a hybrid CFD-MD simulation, load balancing between CFD and MD 
-is not highly required since MD usually requires far more computing power 
-than CFD. Additionally, computational cost for the current application in
-Sec.~\ref{sec:accuracy_conditions} is so small that it is very hard to 
-obtain the reliable data which can quantify the performance gain by a LB.
-%verify the performance gain through the use of LB.
-This leads us to increase computational domain size
-of each simulation, for the purpose of evaluating the load balancing 
-capability in a BigJob framework. In this experiment, CFD domain size
-is increased by 500 times and MD domain is increased by 20 times.
+The benefit of a LB in a BigJob framework is that it can be applied to any types of
+coupled applications. On the other hand, it is not highly required for the current
+application in two reasons: (1) in a hybrid CFD-MD simulation, MD usually requires
+far more computing power that most resources are dedicated to
+molecular dynamic simulation; (2) computational cost for the current application
+in Sec.~\ref{sec:accuracy_conditions} is so small that it is not necessary
+to endeavour to apply the load balancing capability.
+This leads us to increase the computational cost of each simulation, 
+for the purpose of evaluating the LB in a BigJob framework. 
+In this experiment, CFD domain size is increased by 500 times and 
+MD domain is increased by 20 times.
+CFD and MD codes are scheduled to have 10 simulation loops:
+initially start with tne same number of processors and
+experience nine stop-and-restarts with changed resource allocation
+according to the result of a LB.
 
-
-\skonote{Runtime Analysis: Comparison of LB with conventional simulation time: different system size (with different ratio between CFD and MD), different number of simulation loop and different interval of simulation loop. Table 3 with 2 graphs - change of CPU allocation to each subjob with iteration time in 2 simulation cases. Mention the problem size and setting a little more detail.}
-
-Runtimes of the coupled simulation with a single BigJob is given on Table~\ref{table:oneBJ_Test}. For both small and large simulations, a default BigJob task takes about 1 percent longer than the conventional test. This is reasonable because a default BigJob has the same processor distribution between sub-jobs as the conventional job, while BigJob has the minor overhead of sub-jobs' status monitoring and communication with advert server. In cases of load-balanced BigJob simulations, there is a significant reduction in the runtime compared to successful conventional jobs -- 13\% and greater. For larger problem set, a load-balanced BigJob simulation relatively shows higher standard deviation (SD) due to the unexpected instability of a computing resource during one experiment, to be discussed in detail below.
+Runtimes of the coupled simulation with a single BigJob is given on 
+Table~\ref{table:oneBJ_Test}. In all scenarios, the same number of processors 
+are initally assigned to CFD and MD simulations. Processors distribution in S1\lb
+is changing during the simulation according to the result of a LB function. 
+For both simulations, the time difference between S0 and S1 are within 1\%.
+This explains that the possible overhead of a BigJob 
+due to the communication with the advert server 
+(for minitoring the status of subjobs) are negligible.
+In cases of load-balanced BigJob simulations, there is 
+a significant reduction in the runtime compared to 
+successful conventional jobs when 256 processors are used -- 23.5\%. 
+For larger problem set, the performance gain through the application of
+a LB is relatively small (6.1\%), which is more or less related to 
+the scalability of application codes.
 
 \begin{table}
-  \caption{\small Results of runtime for S1, $S1_{LB}$ and conventional submission. All measured times are in seconds and expressed as 'mean$\pm$SD'. 6 distinct experiments were accomplished for each simulation, all with 64 px. In both cases, S1 shows about 1\% overhead due to the communication with advert server. On the other hand, $S1_{LB}$ tests show about 13\% runtime save compared to conventional submission.}
+  \caption{\small Results of simulation runtime for S0 (conventional job submissions), 
+S1 (default BigJob) and S1\lb (a BigJob with load balancing). 256 and 512
+processors are used for the coupled simulation. For both cases, S0 and S1 show
+nearly identical computational cost because the same processor distribution is
+applied for the coupled simulation. With the load balancing capability enabled,
+S1\lb shows about 23.5\% and 6.1\% runtime save compared to S0 
+when 256 and 512 processors are used.
+All measured times are in seconds and 5 distinct experiments are averaged.}
 \label{table:oneBJ_Test}
 \centering
+%  \resizebox{0.6\textwidth}{!} {
 \footnotesize
-\begin{tabular} {>{\centering}p{0.15\linewidth} || p{0.15\linewidth} p{0.15\linewidth} p{0.15\linewidth} }
-  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
-  \hline
-  & \nyc Conventional  & \nyc S1  & \multicolumn{1}{c}{$S1_{LB}$}  \\
-  \hline
-  \nyc Small sim. & \nyc 757$\pm$1.89 & \nyc 764$\pm$1.41 & \multicolumn{1}{c}{661$\pm$4.41} \\
-  \nyc Large sim. & \nyc 39595$\pm$119.2 & \nyc 39906$\pm$206.3 & \multicolumn{1}{c}{34350$\pm$1302.7} \\
-  \hline
+% \begin{tabular*}{0.6\textwidth}{c | c | c | c }
+ \begin{tabular}{c | c | c | c }
+ \multicolumn{4}{c}{\phantom{\tiny 100}}\\
+\hline
+\multirow{2}{0.15\textwidth}{px} & \multicolumn{3}{c}{Scenario} \\
+\cline{2-4} 
+& \multirow{1}{0.15\textwidth}{S0} & 
+\multirow{1}{0.15\textwidth}{S1} & \multirow{1}{0.15\textwidth}{S1\lb} \\
+\hline
+\hline
+256 & 12306.0 & 12248.7 & 9413.7 \\
+512 & 7834.2 & 7910.6 & 7357.6 \\ 
+\hline
 \end{tabular} %}
+%\end{tabular*} %}
 \vspace{-1em}
 \end{table}
 
 The validity of a load-balancing function can be discussed by the change of processor distribution between subtasks throughout the simulation. For the result of a small simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks are assigned with 32 px initially. After two simulation loops, a load balancer converges to the processor distribution of 12 to 52 px between CFD and MD respectively; this processor distribution remains the same until the simulation completes. Runtime per loop is reduced from 153 sec for the first loop to 107 sec after the convergence. Total computation time is 596.19 sec, which is different from 663 sec counted from BigJob application manager. This time difference implies that the BigJob application manager spends about 13 sec per stage in executing its internal commands including the run of a load-balancing function and sub-job re-launch.
 
 
+\skonote{Runtime Analysis: Comparison of LB with conventional simulation time: different system size (with different ratio between CFD and MD), different number of simulation loop and different interval of simulation loop. Table 3 with 2 graphs - change of CPU allocation to each subjob with iteration time in 2 simulation cases. Mention the problem size and setting a little more detail.}
 %%%%% FIGURE %%%%%
 \begin{figure}
 %\vspace{-1em}
