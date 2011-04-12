@@ -267,7 +267,7 @@ We begin the next section with the numerical details of individual CFD and MD co
 \Nkimnote{
 \\=========== Modified version from ME ===========\\
 The focus of this paper is to investigate numerical issues associated with the implementation of a typical hybrid CFD-MD methodology applied to investigate the flow in a nano/micro-fluidic system as well as with designing and developing of an efficient runtime framework for coupled multi-scale simulations. We present our implementation of a ?eneric?hybrid CFD-MD interface which can be easily put together from various ?ff the shelf?incompressible CFD and MD packages, as well as our model of a ?ortable?framework that can be ported easily on most present day computer architectures. 
-We present the development of our hybrid simulation framework, based on constrained Lagrangian dynamics, and apply it to two prototype classical flow problems: the impulsively started Couette flow and an oscillating boundary Stokes flow. Using the Couette flow simulations we elaborate on our strategy for determining the optimized set of coupling parameters that minimize the level of the statistical noise characterizing the flow field obtained by the hybrid solver. In addition we extend our investigation into the moderate-speed flow regime (flow velocities of the order of 10 m/s), which is challenging and novel.  The inherent large fluctuations of the solution in the overlap region associated with relatively low flow speed are reduced by a synchronous multiple replica averaging methodology. For the oscillating boundary Stokes flow simulation, we demonstrate a novel temporal coupling scheme, called ?rediction-correction approach?which provides improved accuracy by eliminating the overshoot/undershoot phenomena and diminishes the time-lagging pattern. In terms of computational science, our study introduces a novel approach to coupled multi-physics simulations by utilizing the virtually unified simulation package, called ?ilot-Job? We argue that using the Pilot-Job approach has distinct advantages, such as: (i) elimination of the need for a co-scheduler while preserving performance, and (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. 
+We present the development of our hybrid simulation framework, based on constrained Lagrangian dynamics, and apply it to two prototype classical flow problems: the impulsively started Couette flow and an oscillating boundary Stokes flow. Using the Couette flow simulations we elaborate on our strategy for determining the optimized set of coupling parameters that minimize the level of the statistical noise characterizing the flow field obtained by the hybrid solver. In addition we extend our investigation into the moderate-speed flow regime (flow velocities of the order of 10 m/s), which is challenging and novel.  The inherent large fluctuations of the solution in the overlap region associated with relatively low flow speed are reduced by a synchronous multiple replica averaging methodology. For the oscillating boundary Stokes flow simulation, we demonstrate a novel temporal coupling scheme, called ?rediction-correction approach?which provides improved accuracy by eliminating the overshoot/undershoot phenomena and diminishes the time-lagging pattern. In terms of computational science, our study introduces a novel approach to coupled multi-physics simulations by utilizing the virtually unified simulation package, called "Pilot-Job". We argue that using the Pilot-Job approach has distinct advantages, such as: (i) elimination of the need for a co-scheduler while preserving performance, and (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. 
 The paper is organized as follows. In section 2 we give a brief description of the fundamental equations describing the CFD and MD formulations as well as details of the hybrid CFD-MD coupling scheme and its implementation. Technical details related to the implementation of an efficient CFD-MD simulation framework are presented in Section 3. In Section 4, we present the solutions to the two test problems (impulsively started Couette flow and oscillating boundary Stokes problem) obtained with our hybrid methodology. The performance and the optimization issues related to the solutions of the two test problems are described in Section 5. Recommendation for future work and conclusions are presented in Sections 6 and 7. 
 \\}
 
@@ -746,7 +746,14 @@ The Simple API for Grid Applications (SAGA) is an API standardization effort wit
 
 %\skonote{Exclude the mention about the multiple BigJobs. Also, focus on explaining BigJob's advert service module in detail, including referring to Andre's paper}
 
-The BigJob~\cite{saga_royalsoc} is a SAGA-based Pilot-Job, where a number of sub-tasks can run in a pre-defined schedule with the specified number of processors whether or not they are coupled. We basically devise this solution to overcome the concurrent scheduling requirement of coupled CFD and MD jobs and to dynamically allocate resources for load-balancing of these codes. The advantage of a BigJob over other Pilot-Job implementations is that this is infrastructure-neutral, thanks to various adaptors in SAGA.
+The BigJob~\cite{saga_royalsoc} is a SAGA-based Pilot-Job, where a number of sub-tasks 
+(called as "sub-jobs") can run in a pre-defined schedule with 
+the specified number of cores (or processors; we use the term 
+"core" to represent a single processing element) whether or not they are coupled. 
+We basically devise this solution to overcome the concurrent scheduling requirement of 
+coupled CFD and MD sub-jobs and to dynamically allocate resources for load-balancing of 
+these codes. The advantage of a BigJob over other Pilot-Job implementations is that 
+this is infrastructure-neutral, thanks to various adaptors in SAGA.
 
 
 Fig.~\ref{Fig:BigJob_Structure} shows the structure of BigJob and its operation flow. When a BigJob is submitted to the remote resource, the application manager monitors the status of this Pilot-Job through the advert service. When resources are allocated to the BigJob, the application manager allots the obtained resources to its sub-jobs and a coupled simulation starts under the control of a multi-physics agent in the remote resource. Advert service keeps on getting the status of a Pilot-Job from the queuing system and the status of sub-jobs from multi-physics agent. It also delivers this information to the application manager by a push-pull mechanism. The application manager watches the status of sub-jobs and decides the next event when the coupled simulation is finished. If an individual simulation is of interest, the manager closes a BigJob allocation when the simulation is finished: In cases of multiple replica simulations or load-balanced coupled simulation, the manager relaunches sub-jobs on the same BigJob allocation until all replicas or simulation loops are completed.
@@ -765,33 +772,36 @@ Fig.~\ref{Fig:BigJob_Structure} shows the structure of BigJob and its operation 
 
 
 \subsection{Load-Balancing of Coupled Multi-Physics Simulation}
-Load-balancing of a coupled simulation implies the flexibility to re-distribute resources to the individual task according to the performance of individual job. We will discuss the implementation and algorithm of a simple load balancer (LB)~\cite{Ko}; it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
+Load-balancing of a coupled simulation implies the flexibility to re-distribute resources 
+to the individual job according to each performance. We will discuss 
+the implementation and algorithm of a simple load balancer (LB)~\cite{Ko}; 
+it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
 
 The idea is to assign more resources to heavier sub-jobs 
 under the fixed resource allocation, until all sub-jobs elapse the same execution time.
 As it is impossible to predict the performance of each code in advance, we let 
 the LB monitor the wall-clock time between information exchange points of 
-coupled tasks and iteratively change the processor distribution 
+coupled sub-jobs and iteratively change the resource distribution 
 until the load-balancing is achieved. As the individual solver is considered as black-box, 
 each application code is assumed to have the ideal parallel efficiency: 
 In case application codes are highly scalable, the LB can find the best condition 
-after a few dynamic re-distributions. Also, all processors in one node are assigned to 
+after a few dynamic re-distributions. Also, all cores in one node are assigned to 
 one single task to prevent the interference (and performance degradation)
 observed when multiple MPI tasks share the node.
 %\skonote{I found that the performances of MPI jobs decrease if more than 
-%two codes share a single node. For example, two 4-px jobs run at the same node of 
-%queenbee, performance of each code is half of one 4-px job: two codes share 
-%the same 4 processors and another 4 processors are idling. That's the same on Ranger.
+%two codes share a single node. For example, two 4-core jobs run at the same node of 
+%queenbee, performance of each code is half of one 4-core job: two codes share 
+%the same 4 cores and another 4 cores are idling. That's the same on Ranger.
 %Looks as if the problem of default MVAPICH configuration, as I saw the same problem 
 %in KISTI.}
 
 
-%Each application's load is determined by its elapsed time to run the evolution loop. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time events or irrelevant to application's performance. The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively.  Also, application codes should be equipped with generalized domain partitioning routine to run a simulation with any number of processors, without harming their parallel efficiency a lot. If above conditions are satisfied, it makes sense to load the LB within the Pilot-Job, to implement dynamic resource allocation between tasks.  Conceptually, the load-balancing algorithm assigns more processors to a sub-task with greater runtime, until the two codes take the same wall-clock time between points when they communicate. Interestingly, our approach is very simple and the algorithm is independent of applications upon the predications of,
+%Each application's load is determined by its elapsed time to run the evolution loop. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time events or irrelevant to application's performance. The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively.  Also, application codes should be equipped with generalized domain partitioning routine to run a simulation with any number of cores, without harming their parallel efficiency a lot. If above conditions are satisfied, it makes sense to load the LB within the Pilot-Job, to implement dynamic resource allocation between sub-jobs.  Conceptually, the load-balancing algorithm assigns more cores to a sub-job with greater runtime, until the two codes take the same wall-clock time between points when they communicate. Interestingly, our approach is very simple and the algorithm is independent of applications upon the predications of,
 %(1) each application code follows the ideal parallel efficiency.
-%(2) all processors in one node are assigned to one single task.
+%(2) all cores in one node are assigned to one single sub-job.
 
 
-Let the computation time (between exchanges) of the two sub-jobs be $t_{CFD}$ and $t_{MD}$, and the number of processors assigned to each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts C and N denotes current and next states. Assuming ideal parallel efficiency, total load of each application remains the same after resource re-allocation,
+Let the computation time (between exchanges) of the two sub-jobs be $t_{CFD}$ and $t_{MD}$, and the number of cores assigned to each domain be $PE_{CFD}$ and $PE_{MD}$, respectively. Subscripts C and N denotes current and next states. Assuming ideal parallel efficiency, total load of each application remains the same after resource re-allocation,
 
 \vspace{-.2em}
 \footnotesize
@@ -802,7 +812,7 @@ W_{MD}&=&PE_{MD,C}\times t_{MD,C}=PE_{MD,N}\times t_{MD,N}
 \end{eqnarray}
 \normalsize
 
-In spite of the re-allocation, the total number of processors utilized remains the same:
+In spite of the re-allocation, the total number of cores utilized remains the same:
 
 \vspace{-.2em}
 \footnotesize
@@ -812,7 +822,7 @@ PE_{TOT}=PE_{CFD,C}+PE_{MD,C}=PE_{CFD,N}+PE_{MD,N}
 \end{equation}
 \normalsize
 
-Our objective is to reduce the computation time of a sub-job to the point until the two application components show the same computation between the exchange points, i.e., $t_{CFD,N} = t_{MD,N}$. From Eqn.~\ref{eq:SimTime_EachTask} and Eqn.~\ref{eq:PECondition} an optimal number of processors distributed for the CFD subtask would be:
+Our objective is to reduce the computation time of a sub-job to the point until the two application components show the same computation between the exchange points, i.e., $t_{CFD,N} = t_{MD,N}$. From Eqn.~\ref{eq:SimTime_EachTask} and Eqn.~\ref{eq:PECondition} an optimal number of cores distributed for the CFD sub-job would be:
 
 \vspace{-.2em}
 \footnotesize
@@ -822,9 +832,9 @@ PE_{CFD,F} & = & \frac {W_{CFD}} {(W_{CFD} + W_{MD})} \times PE_{TOT}
 \normalsize
 
 The MD simulation (sub-job) will follow a similar expression.
-%The optimal processor distribution from above equation will return a non-integer value. Also, under the second assumption (which is the policy of many supercomputing centers), any load-balancing determined as above, will proceed in discrete values expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load-balancing as the optimal number of processor on each application.
+%The optimal distribution of cores from above equation will return a non-integer value. Also, under the second assumption (which is the policy of many supercomputing centers), any load-balancing determined as above, will proceed in discrete values expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load-balancing as the optimal number of core on each application.
 
-The above non-integer value proceed in discrete values expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load-balancing as the optimal number of processor on each application.
+The above non-integer value proceed in discrete values expressed as the multiples of the number of CPU cores in a node. We choose the nearest discrete number to our load-balancing as the optimal number of core on each application.
 
 
 %\skonote{Based on Section 4 in CCGrid 2010: Refine LB, include motivation etc. (e.g., Not touching application codes)\\
@@ -832,32 +842,42 @@ The above non-integer value proceed in discrete values expressed as the multiple
 %\begin{equation}
 %c_{2} \times PE^{2} + c_{1} \times PE^{1} + c_{0} \times PE^{0} + c_{-1} \times PE^{-1}
 %\end{equation} \\
-%Where $c_{0}$ is serial term, $c_{-1}$ would be related to pure computation, communication is somewhat influencing $c_{0}$ and $c_{1}$ if communication size is small enough that it is only the latency-related value (thus would be constant) and global communication time is proportional to the number of processor, also considering the waiting time affecting $c_{1}$ and $c_{2}$, which is proportional to the total number of processors and additional overhead is considered as the second order term\\
+%Where $c_{0}$ is serial term, $c_{-1}$ would be related to pure computation, communication is somewhat influencing $c_{0}$ and $c_{1}$ if communication size is small enough that it is only the latency-related value (thus would be constant) and global communication time is proportional to the number of core, also considering the waiting time affecting $c_{1}$ and $c_{2}$, which is proportional to the total number of cores and additional overhead is considered as the second order term\\
 %In cases more refinements are needed, use the following:\\
 %1. Total Time for One Simulation = f(serial) + f(pure computation) + f(inter-proc.comm) + f(global.comm) + f(waiting)\\
 %2. Serial part of the code as $c_{serial}$\\
-%3. Pure computation part is $c_{comp} \times PE^{-1}$ - Total computation size remains the same regardless of number of processors\\
+%3. Pure computation part is $c_{comp} \times PE^{-1}$ - Total computation size remains the same regardless of number of cores\\
 %4. Communication pattern 1: inter-processor BC communication, it depends on whether the problem is 1-D, 2-D or 3-D: \\
 %in 1-D, it is $c_{comm1D}$ as only point vales exchange\\
 %in 2-D, it is $c_{comm2D} \times PE^{-1/2}$\\
 %in 3-D, it is $c_{comm3D} \times PE^{-2/3}$\\
-%5. Communication pattern 2: global communication, 0th processor will communicate with all processors, usually communication size is the same (maybe an integer value is communicated), so the time is $c_{global.comm} \times PE^{1}$ \\
-%6. Waiting time: unclear, but would likely be proportional to inter-processor communication time multiplied by the total number of processors, so\\
+%5. Communication pattern 2: global communication, 0th core will communicate with all cores, usually communication size is the same (maybe an integer value is communicated), so the time is $c_{global.comm} \times PE^{1}$ \\
+%6. Waiting time: unclear, but would likely be proportional to inter-processor communication time multiplied by the total number of cores, so\\
 %$c_{wait} \times f(inter-proc.comm) \times PE^{1}$ \\
 %\newline
 %After the modeling, apply it on CFD and MD simulations (separate simulations on three different system sizes) and include the graph. Also needs some comment like \\
-%'there's no general LB for any programs 'cause it's usually based on the programming skills, e.g., how to use optimal compilation option for the system, how low the cache miss takes place, etc. Thus, regarding the pure computation, it is not inversely proportional to the number of processors as the reference to cache memory dramatically increases if problem size to each processor becomes sufficiently small.'\\
+%'there's no general LB for any programs 'cause it's usually based on the programming skills, e.g., how to use optimal compilation option for the system, how low the cache miss takes place, etc. Thus, regarding the pure computation, it is not inversely proportional to the number of cores as the reference to cache memory dramatically increases if problem size to each core becomes sufficiently small.'\\
 %Also mention that this needs numbers of evolution loops to go to the final solution. In the first case, 4 for finding all coefficient values and 5 for %next one.}
 
 
 
 \subsection{Implementation of an Execution Framework and Application-level Corrections}
 
-A hybrid CFD-MD framework is evaluated by implementing an application manager in Fig.~\ref{Fig:BigJob_Structure}, which is written in PYTHON script language. By default, an application manager calls a number of SAGA functions in sequence, to get allocated a vacant job, to run individual MPI simulation, to monitor its status, and to finalize the BigJob allocation.
+A hybrid CFD-MD framework is evaluated by implementing an application manager 
+in Fig.~\ref{Fig:BigJob_Structure}, which is written in PYTHON script language. 
+By default, an application manager calls a number of SAGA functions in sequence, 
+to get allocated a vacant job, to run individual MPI simulation, 
+to monitor its status, and to finalize the BigJob allocation.
 
-In case the load-balancing capability is turned on, the situation becomes complicated. A single MPI job is not able to change its number of processors during the simulation. This implies that coupled codes should stop-and-restart to get assigned with changed number of processors. Thus, sub-jobs are scheduled to have multiple restarts from the previous checkpointing solution, which we denote 'simulation loop'. A LB is provided as a separate function in an application manager and is scheduled to run in between each restart of sub-jobs.
+In case the load-balancing capability is turned on, the situation becomes complicated. 
+A single MPI job is not able to change its number of cores during the simulation. 
+This implies that coupled codes should stop-and-restart to get assigned with 
+changed number of cores. Thus, sub-jobs are scheduled to have multiple restarts 
+from the previous checkpointing solution, which we denote 'simulation loop'. 
+A LB is serviced as a separate function in an application manager and 
+is scheduled to run in between each restart of sub-jobs.
 
-The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively. Application codes should also be equipped with generalized domain partitioning routine to run a simulation with any number of processors, without harming their parallel efficiency a lot. 
+The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively. Application codes should also be equipped with generalized domain partitioning routine to run a simulation with any number of cores, without harming their parallel efficiency a lot. 
 Another change implemented on application codes is the time checking routine. 
 The runtime of each application is meaningless in running a LB since 
 this runtime contains idle waiting on inter-domain information exchange as well as 
@@ -865,7 +885,15 @@ the individual simulation  time. This actual runtime can be counted
 by putting two wall-time functions before and after the information exchange routine.
 
 
-The generation of an application manager and the changes in application codes raise the possible simulation scenarios as given in Fig.~\ref{Fig:OneBJ_Flow}. The first (leftmost) shows the time evolution of a coupled simulation under a conventional job submission (which we define to be scenario S0), and others using a BigJob (denoted as S1). For S0, individual tasks with resource requirements of $PE_{CFD}$ and $PE_{MD}$ respectively, are independently submitted to the conventional queuing system and job scheduler recognizes these coupled tasks as two distinct jobs. Thus, they start at different times on average.
+The generation of an application manager and the changes in application codes raise 
+the possible simulation scenarios as given in Fig.~\ref{Fig:OneBJ_Flow}. 
+The first (leftmost) shows the time evolution of a coupled simulation 
+under a conventional job submission (which we define to be scenario S0), 
+and others using a BigJob (denoted as S1). For S0, individual tasks 
+with resource requirements of $PE_{CFD}$ and $PE_{MD}$ respectively, 
+are independently submitted to the conventional queuing system and 
+job scheduler recognizes these coupled tasks as two distinct jobs. 
+Thus, they start at different times on average.
 %except when coincidentally resources for both are available.
 In this case, both tasks wait on the queue when no job is allocated (waiting stage), 
 the first allocated job idles to perform data exchange with its counterpart (idling stage), 
@@ -877,7 +905,7 @@ long inactive mode which is frequent in conventional job submission,
 while total runtime is the same if the resource distribution to sub-jobs is identical. 
 However, eliminating inactive mode in itself does not guarantee a reduction 
 in the total runtime, because a larger single allocation may result in 
-a greater queue waiting time than two simulations requesting smaller number of processors 
+a greater queue waiting time than two simulations requesting smaller number of cores 
 each (but the total being the same). The same situation can arise for the load-balanced case 
 with one BigJob (S1\lb). From the comparison between S1 and S0, we can estimate 
 the performance gain by concurrent start of distinct coupled codes; 
@@ -1223,7 +1251,13 @@ The solution by multiple sampling is compared with the solution in increased sys
 \end{figure}
 
 
-Collectively, results by multiple samples show the same order of accuracy compared to the increase of the system size. Especially in cases the physical system is large, multiple sampling is more effective than directly increasing the system size, because excessively large-scaled jobs (in view of wall-time limit or number of resources requested) are very hard to get allocated. In addition, the labor of manually submitting multiple independent runs and managing data sets can be relieved by adopting a BigJob framework.
+Collectively, results by multiple samples show the same order of accuracy 
+compared to the increase of the system size. Especially in cases the physical system is large, 
+multiple sampling is more effective than directly increasing the system size, 
+because excessively large-scaled jobs (in view of wall-time limit or 
+number of resources requested) are very hard to get allocated. In addition, 
+the labor of manually submitting multiple independent runs and 
+managing data sets can be relieved by adopting a BigJob framework.
 
 
 \subsection{A Physically Unsteady Flow Field: Oscillating Boundary Problem}
@@ -1313,11 +1347,11 @@ In this section, we present our numerical experiments to verify the above logics
 
 Many factors effect the waiting times, arguably the most important of them are
 the existing job requests on the resource at the instant of submission,
-requested wall-time limit and also the number of processors requested.
+requested wall-time limit and also the number of cores requested.
 Two other factors that effect this are the backfilling capability (which allows 
 the running of a small job in between higher priority jobs 
 with larger and longer resource requests) and the changes
-in the priority of the test job when a particular higher priority job
+in the priority of submitted job when a particular higher priority job
 joins the queue. Of these factors, number of requested resources and
 wall-time limits are what can be handled by users and
 can be systematically accounted for.
@@ -1326,8 +1360,8 @@ We designed experiments to determine if running larger and/or longer simulations
 the actual waiting time on the queue. 
 We submitted jobs of different sizes and different wall-time limits at the same time.
 Each time we submitted a job, we gathered the actual waiting time on the queue.
-We performed our experiments
-on a sufficiently large and crowded system -- around 65000 px.
+We performed our experiments on a sufficiently large and 
+crowded system -- around i400 nodes each with 16 cores.
 We argue that the use of this large and crowded system increases 
 the credibility of our experiments: it reduces the possibility of
 self-interference between our job submissions 
@@ -1345,7 +1379,7 @@ Results from 10 independent experiments are averaged for measurement.
 Table~\ref{table:WaitTime} demonstrates the queue waiting time
 according to the size and wall-time limit of the job.
 Regarding the influence of job sizes on waiting time,
-jobs with larger processor counts have typically lower wait times,
+jobs with larger core counts have typically lower wait times,
 with the exception at 128 cores which is presumably affected by
 the backfilling capability. Waiting time with 1000+ cores shows
 the stiff decrease particularly because it is granted with
@@ -1364,13 +1398,13 @@ even when small jobs are "ideally" allocated
 \begin{table}
   \caption{\small Effect of Job Configurations on Waiting Time; 
 The tables show the queue waiting times 
-depending on the number of processors and requested wall-time limits.
+depending on the number of cores and requested wall-time limits.
 Measurements are made on Ranger system,
 which is a TeraGrid resource located at Texas Advanced Computing Center.
 Analyzing the actual waiting time as a function of 
-the number of processors at different wall-time limits, 
+the number of cores at different wall-time limits, 
 it can be said that better more often than not, 
-the waiting time decrease as the requested number of processors increases. 
+the waiting time decrease as the requested number of cores increases. 
 The relationship between the waiting time and wall-time limit is harder 
 to quantify. However, obtained numbers provide a good case study 
 for showing the variance of actual queue waiting times. 
@@ -1401,16 +1435,16 @@ for showing the variance of actual queue waiting times.
 \subsection{Waiting Time for a Coupled Simulation}
 Looking back on the scenario maps in Fig.~\ref{Fig:BigJob_Structure},
 the result at Sec.~\ref{sec:preliminary} provides the waiting time 
-between a BigJob and a first-allocated conventional task.
+between a BigJob and a first-allocated conventional job.
 We expect more performance gain by eliminating the inactive idling time
 (i.e., the difference between the waiting time of the two jobs)
 through the use of a BigJob. 
 
 Table \ref{table:BJwaiting} presents the waiting time of a BigJob with size 2X and 
 two conventional job submissions with size X each. We experimented on two different 
-wall-time limits (6 and 24 hours) and two different processor requests 
+wall-time limits (6 and 24 hours) and two different core requests 
 (256 and 512 cores in total). A BigJob submission shows faster allocation 
-except the small number of processors are requested for a long time,
+except the small number of cores are requested for a long time,
 although the waiting time for the first-to-start job was smaller 
 in the conventional job submission mode (S0) than the BigJob (S1).
 Interestingly, the inactive mode in conventional job submission
@@ -1423,10 +1457,10 @@ general phenomenon because individual experiment has been performed at different
 \begin{table}
   \caption{\small Waiting and inactive time for conventional job submissions, 
 and a single BigJob submission. Average of 10 independent runs are presented in seconds. 
-In the first two cases, conventional job is submitted to use 2$\times$128 px and 
-a BigJob requests 256 px: latter two cases use 2$\times$256 and 512 px, 
+In the first two cases, conventional job is submitted to use 2$\times$128 cores and 
+a BigJob requests 256 cores: latter two cases use 2$\times$256 and 512 cores, 
 respectively. Conventional job submission mode showed faster time-to-start 
-(i.e., waiting time of the first job + inactive mode) with 24 hr - 256 px case,
+(i.e., waiting time of the first job + inactive mode) with 24 hr - 256 core request,
 and a BigJob is allocated faster in all other cases.}
 \label{table:BJwaiting}
 \centering
@@ -1435,7 +1469,7 @@ and a BigJob is allocated faster in all other cases.}
  \begin{tabular}{c | c | c | c }
  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
 \hline
-px & Wall-time & Scenario & Time-to-start\\
+Number of Cores & Wall-time & Scenario & Time-to-start\\
 \hline
 \hline
 \multirow{4}{0.1\textwidth}{256} & \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 20237.9 + 1045.3\\
@@ -1458,7 +1492,7 @@ px & Wall-time & Scenario & Time-to-start\\
 %\begin{tabular}{c | c | c | c c}
 % \multicolumn{5}{c}{\phantom{\tiny 100}}\\
 %\hline
-%px & wall-time & scenario & queue waiting & inactive mode\\
+%Number of Cores & wall-time & scenario & queue waiting & inactive mode\\
 %\hline
 %\hline
 %\multirow{4}{0.1\textwidth}{256} & \multirow{2}{0.1\textwidth}{6 Hrs} & S0 & 15770.8 & 1085.9\\
@@ -1485,10 +1519,10 @@ px & Wall-time & Scenario & Time-to-start\\
 \subsection{Performance Gain through Load Balancing}
 A BigJob framework in itself does not provide any performance gain 
 during the simulation: a load balancer (LB) in a BigJob framework provides 
-the better parallel performance by redistributing processors 
-to individual task within a context of packaged job. 
-LB measures the performance of individual task during the temporary stop 
-and evolves application codes with changed number of processors. So, each code
+the better parallel performance by redistributing cores 
+to individual sub-job within a context of packaged job. 
+LB measures the performance of individual sub-job during the temporary stop 
+and evolves application codes with changed number of cores. So, each code
 is scheduled to stop-and-restart several times for the complete simulation.
 It necessitates the capability of the application-level checkpointing 
 and generic domain partitioning routine in application codes (both of which are 
@@ -1506,32 +1540,32 @@ for the purpose of evaluating the LB in a BigJob framework.
 In this experiment, CFD domain size is increased by 500 times and 
 MD domain is increased by 20 times.
 CFD and MD codes are scheduled to have 10 simulation loops:
-initially start with tne same number of processors and
+initially start with tne same number of cores and
 experience nine stop-and-restarts with changed resource allocation
 according to the result of a LB.
 
 Runtimes of the coupled simulation with a single BigJob is given on 
-Table~\ref{table:oneBJ_Test}. In all scenarios, the same number of processors 
+Table~\ref{table:oneBJ_Test}. In all scenarios, the same number of cores 
 are initally assigned to CFD and MD simulations. Processors distribution in S1\lb
 is changing during the simulation according to the result of a LB function. 
 For both simulations, the time difference between S0 and S1 are within 1\%.
 This explains that the possible overhead of a BigJob 
 due to the communication with the advert server 
-(for minitoring the status of subjobs) are negligible.
+(for minitoring the status of sub-jobs) are negligible.
 In cases of load-balanced BigJob simulations, there is 
 a significant reduction in the runtime compared to the 
-default BigJob application when 256 processors are used -- 23.1\%. 
+default BigJob application when 256 cores are used -- 23.1\%. 
 For larger problem set, the performance gain through the application of
 a LB is relatively small (7.0\%), whose reason is discussed below.
 
 \begin{table}
   \caption{\small Results of simulation runtime for S0 (conventional job submissions), 
 S1 (default BigJob) and S1\lb (a BigJob with load-balancing). 256 and 512
-processors are used for the coupled simulation. For both cases, S0 and S1 show
-nearly identical computational cost because the same processor distribution is
+cores are used for the coupled simulation. For both cases, S0 and S1 show
+nearly identical computational cost because the same resource distribution is
 applied for the coupled simulation. With the load-balancing capability enabled,
 S1\lb shows about 23.5\% and 6.1\% runtime save compared to S0 
-when 256 and 512 processors are used.
+when 256 and 512 cores are used.
 All measured times are in seconds and 5 distinct experiments are averaged.}
 \label{table:oneBJ_Test}
 \centering
@@ -1541,7 +1575,7 @@ All measured times are in seconds and 5 distinct experiments are averaged.}
  \begin{tabular}{c | c | c | c }
  \multicolumn{4}{c}{\phantom{\tiny 100}}\\
 \hline
-\multirow{2}{0.15\textwidth}{px} & \multicolumn{3}{c}{Scenario} \\
+\multirow{2}{0.15\textwidth}{Number of Cores} & \multicolumn{3}{c}{Scenario} \\
 \cline{2-4} 
 & \multirow{1}{0.15\textwidth}{S0} & 
 \multirow{1}{0.15\textwidth}{S1} & \multirow{1}{0.15\textwidth}{S1\lb} \\
@@ -1555,11 +1589,11 @@ All measured times are in seconds and 5 distinct experiments are averaged.}
 \vspace{-1em}
 \end{table}
 
-The validity of a LB can be discussed by the change of processor distribution 
-between sub-jobs throughout the simulation. For the result of a
-256 px (=16 nodes) simulation in Fig.~\ref{Fig:LBSmall}, 
-both CFD and MD subtasks are assigned with 8 nodes initially. 
-From the next simulation loops, the processor distribution converges to
+The validity of a LB can be discussed from the variation of 
+the resource distribution between sub-jobs during the simulation.
+For the result of a 256 core (=16 nodes) simulation in Fig.~\ref{Fig:LBSmall}, 
+both CFD and MD sub-jobs are assigned with 8 nodes initially. 
+From the next simulation loop, the resource distribution converges to
 3 to 13 nodes between CFD and MD respectively and this ratio is maintained 
 throughout the simulation. CFD and MD computation times change 
 from 260 -- 1235 seconds at initial loop to 705 -- 850 seconds after load-balancing.
@@ -1575,22 +1609,22 @@ communication between coupled applications.
 \includegraphics[width=0.3\linewidth]{256_Node.jpg}
 %\linebreak
 \includegraphics[width=0.3\linewidth]{256_Time.jpg}
-\caption{\small Change of processor distribution between CFD and MD
-  jobs and resultant computation time using 256 px (=16 nodes); A LB detects
-3 to 13 nodes between CFD and MD tasks as the optimal solution. In view of
+\caption{\small Change of Resource Distribution and Computation Time
+between CFD and MD Sub-jobs using 256 Cores (=16 Nodes); A LB detects
+the distribution of 3 -- 13 nodes to CFD and MD sub-jobs as the optimal solution. In view of
  simulation runtime, 1270 seconds for the initial simulation loop reduces to
 885 seconds after load-balancing is achieved. Note that each node
-(which contains 16 px in the current system) is dedicated to a single
+(which contains 16 cores in the current system) is dedicated to a single
 application. Triangle and circle symbols denote averaged values from CFD
-and MD tasks. Dashed lines are solutions from the individual experiment.
+and MD sub-jobs. Dashed lines are solutions from the individual experiment.
 }
 \label{Fig:LBSmall}
 \vspace{-1em}
 \end{figure}
 %%%%% FIGURE %%%%%
 
-The result of computation time evolution in 512 px (=32 nodes) case is presented 
-in Fig.~\ref{Fig:LBLarge}. Compared to the above experiment when smaller px are used, 
+The result of computation time evolution in 512 cores (=32 nodes) case is presented 
+in Fig.~\ref{Fig:LBLarge}. Compared to the above experiment when smaller cores are used, 
 the load-balancing solution shows noisier pattern. In detail, a LB fails to find 
 the optimal solution at the first simulation loop, and the node allocation after
 load-balancing fluctuates between 3 -- 29 and 4 -- 28 nodes to each application.
@@ -1616,10 +1650,10 @@ in response to the instability of a system.
 \includegraphics[width=0.3\linewidth]{512_Node.jpg}
 %\linebreak
 \includegraphics[width=0.3\linewidth]{512_Time.jpg}
-\caption{\small Change of processor distribution between 
-CFD and MD jobs and resultant computation time using 256 px (=16 nodes); 
+\caption{\small Change of Resource Distribution between 
+CFD and MD Sub-jobs and Resultant Computation Time using 512 Cores (=32 Nodes);
 A LB solution fluctuates between 3 -- 29 and 4 -- 28 nodes assigned to
-CFD and MD tasks, because of temporary internal overhead of a system.
+CFD and MD sub-jobs, because of temporary internal overhead of a system.
 Initial simulation runtime around 815 seconds is reduced to be 725 seconds
 after the load-balancing is achieved, because of the poor scalability of 
 application codes for this problem set. 
@@ -1631,7 +1665,7 @@ The same caption is used as in Fig.~\ref{Fig:LBSmall}.
 %%%%% FIGURE %%%%%
 
 Two things remained for open discussions are how to effectively measure 
-the actual simulation time of individual task and how to determine
+the actual simulation time of individual sub-job and how to determine
 the number of simulation loops. We put time checking routines in between 
 inter-domain communication routine and accumulate the time for 
 running iteration loop of each code. Based on our knowledge, 
