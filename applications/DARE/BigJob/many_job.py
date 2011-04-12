@@ -85,7 +85,7 @@ class many_job_service(object):
                                     i["working_directory"], 
                                     i["userproxy"],
                                     i["walltime"],
-                                    ppn)
+                                    i["processes_per_node"])
             i["bigjob"]=bj # store bigjob for later reference in dict
             i["free_cores"]=int(i["number_cores"])
             # lock for modifying the number of free nodes
