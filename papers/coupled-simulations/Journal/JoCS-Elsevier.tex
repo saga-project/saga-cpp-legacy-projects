@@ -145,15 +145,15 @@ Hence, in this study we propose two strategies for minimizing
 \cand{the influence of spatial/temporal locality in the MD solution:}
 (1) optimization of coupling parameters through the molecular dynamic simulation of a stationary flow field, and (2) averaging over multiple independent replicas of the simulation system.
 In addition, we introduce a new temporal coupling scheme based on a 'prediction-correction' approach together with interpolation in time, which provides a more time-accurate hybrid constraint/boundary condition.
-With respect to computational performance, co-scheduling and load balancing of logically distributed tasks are two important considerations in CFD-MD coupled simulations.
-We employ a BigJob computational framework, similar to a Pilot-job, and incorporate a load balancing function for the computing efficiency of coupled simulation.
+With respect to computational performance, co-scheduling and load-balancing of logically distributed tasks are two important considerations in CFD-MD coupled simulations.
+We employ a BigJob computational framework, similar to a Pilot-job, and incorporate a load-balancing function for the computing efficiency of coupled simulation.
 \fixme{The optimized hybrid framework is utilized, and tested by solving two classical flow problems under Stokes (no interial effects) conditions. One is the impulsively started Couette flow which is transient, and the other is a flow induced between two flat plates when one of them is oscillating periodically while the other remains at rest.}
 \cand{The optimized hybrid framework is applied to solving two classical flow problems under Stokes (no interial effects) conditions, which are the impulsively started Couette flow and the channel flow induced by the periodic oscillation of one flat plate.}
 We emphasize that
 (1) the determination of coupling parameters through the molecular dynamic simulation of a stationary flow and the averaging of multiple independent replicas contribute much on suppressing the statistical noise
 in relatively low-speed flow fields of O(10) m/s velocity,
 (2) the accuracy of unsteady flow solution is increased by applying a 'prediction-correction' temporal coupling scheme,
-and (3) efficient coupled simulation is conducted by employing a BigJob computational framework along with the load balancing capability.
+and (3) efficient coupled simulation is conducted by employing a BigJob computational framework along with the load-balancing capability.
 \end{abstract}
 
 \begin{keyword}
@@ -657,9 +657,9 @@ Along with the advantage in computing capability, sampling multiple experiments 
 \label{sec:numerical_temporal}
 
 
-%Two conventionally used coupling approaches of synchronized and sequential coupling strategies are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at each sampling interval (denoted by ${\Delta}t$) and independently evolve to the next exchange time step. In contrast, one domain advances to the next exchange timestep and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling clearly have a far better parallel efficiency compared to sequential coupling.~\cite{Time_Mechanism} Parallel performance in synchronized coupling can ideally reach the single code running in case an appropriate load-balancing between two domains is applied. Large overhead on waiting is inevitable in sequential way unless CFD and MD application components run in a single MPI communicator, which implies that two codes are unified. On the other hand, sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicitly imposed.
+%Two conventionally used coupling approaches of synchronized and sequential coupling strategies are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at each sampling interval (denoted by ${\Delta}t$) and independently evolve to the next exchange time step. In contrast, one domain advances to the next exchange time step and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling clearly have a far better parallel efficiency compared to sequential coupling.~\cite{Time_Mechanism} Parallel performance in synchronized coupling can ideally reach the single code running in case an appropriate load-balancing between two domains is applied. Large overhead on waiting is inevitable in sequential way unless CFD and MD application components run in a single MPI communicator, which implies that two codes are unified. On the other hand, sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicitly imposed.
 %Time-lagging phenomenon in CFD boundary region is observed in both strategies, because averaged molecular dynamic properties over backward sampling duration (from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) are used to impose the CFD boundary condition at that instance ($n{\Delta}t$). Thus, the extrapolation from previous MD solutions is necessary to eliminate the time-lagging by half of sampling duration (${\Delta}t_{S}/{2}$) in the CFD boundary zone.
-Two conventionally used coupling approaches of synchronized and sequential coupling strategies are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at each sampling interval (denoted by ${\Delta}t$) and independently evolve to the next exchange timestep. In contrast, one domain advances to the next exchange timestep and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling has a far better parallel efficiency because both codes independently evolve to the next sampling interval, while sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicitly imposed. Unfortunately, both strategies contain the time-lagging phenomenon in CFD boundary region, because averaged molecular dynamic properties over backward sampling duration (from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) represents the CFD boundary condition at that instance ($n{\Delta}t$). Extrapolation from previous MD solutions is necessary to eliminate the time-lagging by half of sampling duration (${\Delta}t_{S}/{2}$) in the CFD boundary zone.
+Two conventionally used coupling approaches of synchronized and sequential coupling strategies are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange the information in the overlapping region at each sampling interval (denoted by ${\Delta}t$) and independently evolve to the next exchange time step. In contrast, one domain advances to the next exchange time step and leads its counterpart to approach this point in sequential coupling. Comparing these two mechanisms, synchronized coupling has a far better parallel efficiency because both codes independently evolve to the next sampling interval, while sequential approach is expected to produce more time-accurate solution because the boundary condition on following domain (CFD domain in the figure) is implicitly imposed. Unfortunately, both strategies contain the time-lagging phenomenon in CFD boundary region, because averaged molecular dynamic properties over backward sampling duration (from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) represents the CFD boundary condition at that instance ($n{\Delta}t$). Extrapolation from previous MD solutions is necessary to eliminate the time-lagging by half of sampling duration (${\Delta}t_{S}/{2}$) in the CFD boundary zone.
 
 %\begin{figure}[htbp]
 \begin{figure}
@@ -765,14 +765,14 @@ Fig.~\ref{Fig:BigJob_Structure} shows the structure of BigJob and its operation 
 
 
 \subsection{Load-Balancing of Coupled Multi-Physics Simulation}
-Load balancing of a coupled simulation implies the flexibility to re-distribute resources to the individual task according to the performance of individual job. We will discuss the implementation and algorithm of a simple load balancer (LB)~\cite{Ko}; it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
+Load-balancing of a coupled simulation implies the flexibility to re-distribute resources to the individual task according to the performance of individual job. We will discuss the implementation and algorithm of a simple load balancer (LB)~\cite{Ko}; it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
 
 The idea is to assign more resources to heavier sub-jobs 
 under the fixed resource allocation, until all sub-jobs elapse the same execution time.
 As it is impossible to predict the performance of each code in advance, we let 
 the LB monitor the wall-clock time between information exchange points of 
 coupled tasks and iteratively change the processor distribution 
-until the load balancing is achieved. As the individual solver is considered as black-box, 
+until the load-balancing is achieved. As the individual solver is considered as black-box, 
 each application code is assumed to have the ideal parallel efficiency: 
 In case application codes are highly scalable, the LB can find the best condition 
 after a few dynamic re-distributions. Also, all processors in one node are assigned to 
@@ -783,7 +783,7 @@ observed when multiple MPI tasks share the node.
 %queenbee, performance of each code is half of one 4-px job: two codes share 
 %the same 4 processors and another 4 processors are idling. That's the same on Ranger.
 %Looks as if the problem of default MVAPICH configuration, as I saw the same problem 
-in KISTI.}
+%in KISTI.}
 
 
 %Each application's load is determined by its elapsed time to run the evolution loop. Here, time for initialization or inter-domain data exchange are excluded from the counting, because they are one-time events or irrelevant to application's performance. The efficient functioning of the LB is predicated on application codes being able to restart from their checkpointing data effectively.  Also, application codes should be equipped with generalized domain partitioning routine to run a simulation with any number of processors, without harming their parallel efficiency a lot. If above conditions are satisfied, it makes sense to load the LB within the Pilot-Job, to implement dynamic resource allocation between tasks.  Conceptually, the load-balancing algorithm assigns more processors to a sub-task with greater runtime, until the two codes take the same wall-clock time between points when they communicate. Interestingly, our approach is very simple and the algorithm is independent of applications upon the predications of,
@@ -1296,7 +1296,7 @@ So, requested wall-time limit should be sufficiently large to cover
 both maximal waiting time and computation time in case of coupled simulations.
 On the other hand, co-scheduling of coupled tasks is inherently guaranteed
 in a packaged job. So wall-time limit can be determined according to the actual computation time.
-\item Load balancing among multiple tasks can be dynamically achieved by
+\item Load-balancing among multiple tasks can be dynamically achieved by
 changing the resource allocation to individual task during the simulation.
 It can be possible only when coupled yet distributed tasks are scheduled
 in the umbrella of a packaged job.
@@ -1500,7 +1500,7 @@ application in two reasons: (1) in a hybrid CFD-MD simulation, MD usually requir
 far more computing power that most resources are dedicated to
 molecular dynamic simulation; (2) computational cost for the current application
 in Sec.~\ref{sec:accuracy_conditions} is so small that it is not necessary
-to endeavour to apply the load balancing capability.
+to endeavour to apply the load-balancing capability.
 This leads us to increase the computational cost of each simulation, 
 for the purpose of evaluating the LB in a BigJob framework. 
 In this experiment, CFD domain size is increased by 500 times and 
@@ -1526,10 +1526,10 @@ a LB is relatively small (7.0\%), whose reason is discussed below.
 
 \begin{table}
   \caption{\small Results of simulation runtime for S0 (conventional job submissions), 
-S1 (default BigJob) and S1\lb (a BigJob with load balancing). 256 and 512
+S1 (default BigJob) and S1\lb (a BigJob with load-balancing). 256 and 512
 processors are used for the coupled simulation. For both cases, S0 and S1 show
 nearly identical computational cost because the same processor distribution is
-applied for the coupled simulation. With the load balancing capability enabled,
+applied for the coupled simulation. With the load-balancing capability enabled,
 S1\lb shows about 23.5\% and 6.1\% runtime save compared to S0 
 when 256 and 512 processors are used.
 All measured times are in seconds and 5 distinct experiments are averaged.}
@@ -1589,8 +1589,9 @@ and MD tasks. Dashed lines are solutions from the individual experiment.
 \end{figure}
 %%%%% FIGURE %%%%%
 
-The result of computation time evolution in 512 px (=32 nodes) case is presented in Fig.~\ref{Fig:LBLarge}. Compared to the above experiment when smaller px are used, 
-the load balancing solution shows noisier pattern. In detail, a LB fails to find 
+The result of computation time evolution in 512 px (=32 nodes) case is presented 
+in Fig.~\ref{Fig:LBLarge}. Compared to the above experiment when smaller px are used, 
+the load-balancing solution shows noisier pattern. In detail, a LB fails to find 
 the optimal solution at the first simulation loop, and the node allocation after
 load-balancing fluctuates between 3 -- 29 and 4 -- 28 nodes to each application.
 This is caused by two reasons. First, individual code has poor scalability.
@@ -1620,10 +1621,14 @@ CFD and MD jobs and resultant computation time using 256 px (=16 nodes);
 A LB solution fluctuates between 3 -- 29 and 4 -- 28 nodes assigned to
 CFD and MD tasks, because of temporary internal overhead of a system.
 Initial simulation runtime around 815 seconds is reduced to be 725 seconds
-after the load balancing is achieved, because of the poor scalability of 
+after the load-balancing is achieved, because of the poor scalability of 
 application codes for this problem set. 
 The same caption is used as in Fig.~\ref{Fig:LBSmall}.
 }
+\label{Fig:LBLarge}
+\vspace{-1em}
+\end{figure}
+%%%%% FIGURE %%%%%
 
 Two things remained for open discussions are how to effectively measure 
 the actual simulation time of individual task and how to determine
@@ -1672,7 +1677,7 @@ Moreover, the empirical equation derived from the stationary flow simulation des
 Second, sampling multiple independent replicas has been introduced to refine the sampling noise of an individual solution and to explore to the low-speed flow regimes. This approach is superior to simulating a single large-scale problem set which is technically bound by computing capacity. The application to a Couette flow simulation in O(10) m/s velocity field is the first successful report of a moderate-speed flow simulation using a hybrid CFD-MD approach.
 Last, a prediction-correction approach has been designed for the accurate unsteady simulation. This approach acquires better solution by enabling the imposition of interpolated hybrid boundary conditions. The application to the oscillating boundary problem expresses that the current approach diminishes the overshoot/undershoot phenomena in the conventional methods.
 
-Along with numerical issues, computational issues for the efficient coupled simulations have been also discussed. We introduced a BigJob framework and this directly solves the co-scheduling problem among logically separated sub-tasks. A simple load balancing function is also implemented on a BigJob framework, to achieve the load balancing among those separated-yet-coupled codes. From numerical experiments, we evaluate that a BigJob is very powerful in reducing the waiting time of the coupled simulation. Also, a simple load balancing function employed in a BigJob is effective in reducing the simulation runtime.
+Along with numerical issues, computational issues for the efficient coupled simulations have been also discussed. We introduced a BigJob framework and this directly solves the co-scheduling problem among logically separated sub-tasks. A simple load-balancing function is also implemented on a BigJob framework, to achieve the load-balancing among those separated-yet-coupled codes. From numerical experiments, we evaluate that a BigJob is very powerful in reducing the waiting time of the coupled simulation. Also, a simple load-balancing function employed in a BigJob is effective in reducing the simulation runtime.
 
 We emphasize that above numerical investigations ease the challenge to the hybrid simulation and broaden the application area. Also, our computational experiments contribute on how to efficiently conduct coupled simulations.
 \skonote{Plz fill this last paragraph!}
