@@ -67,6 +67,7 @@ $(shell echo "make info: gcc  version : $(CC_VERSION)"   1>&2 )
 SED        = sed
 ENV        = env
 WGET       = wget --no-check-certificate
+CHMOD      = chmod
 
 
 SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/bin/svn')
@@ -398,5 +399,8 @@ $(CSA_README_CHECK):
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;'   $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;' $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'       $(CSA_README_CHECK)
+	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
+	@$(CHMOD) -R a+rX $(EXTDIR)
+	-@$(CHMOD)   a+rX $(CSA_LOCATION)
 	
 
