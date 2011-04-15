@@ -55,7 +55,6 @@ if __name__ == "__main__":
     jd.working_directory = os.getcwd() 
     jd.output = "stdout.txt"
     jd.error = "stderr.txt"
-    
     sj = subjob(advert_host)
     sj.submit_job(bj.pilot_url, jd)
     
@@ -67,6 +66,8 @@ if __name__ == "__main__":
             break
         time.sleep(10)
 
+    #time.sleep(30)
     ##########################################################################################
     # Cleanup - stop BigJob
     bj.cancel()
+    #time.sleep(30)

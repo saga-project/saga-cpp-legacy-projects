@@ -177,6 +177,12 @@ class bigjob_agent:
                 if (job_dir.attribute_exists("Arguments") == True):
                     for i in job_dir.get_vector_attribute("Arguments"):
                         arguments = arguments + " " + i
+                        
+                environment = {}
+                if (job_dir.attribute_exists("Environment") == True):
+                    for i in job_dir.get_vector_attribute("Environment"):
+                        env = i.split("=")
+                        environment[env[0]]=env[1]                        
                  
                 executable = job_dir.get_attribute("Executable")
                 
@@ -198,7 +204,7 @@ class bigjob_agent:
                 # create stdout/stderr file descriptors
                 output_file = os.path.abspath(output)
                 error_file = os.path.abspath(error)
-                print "stdout: " + output_file + " stderr: " + error_file
+                print "stdout: " + output_file + " stderr: " + error_file + " env: " + str(environment)
                 stdout = open(output_file, "w")
                 stderr = open(error_file, "w")
                 command = executable + " " + arguments
@@ -226,7 +232,9 @@ class bigjob_agent:
                 shell = self.SHELL 
                 print "execute: " + command + " in " + workingdirectory + " from: " + str(socket.gethostname()) + " (Shell: " + shell +")"
                 # bash works fine for launching on QB but fails for Abe :-(
-                p = subprocess.Popen(args=command, executable=shell, stderr=stderr,stdout=stdout,cwd=workingdirectory,shell=True)
+                p = subprocess.Popen(args=command, executable=shell, stderr=stderr,
+                                     stdout=stdout, cwd=workingdirectory, 
+                                     env=environment, shell=True)
                 print "started " + command
                 self.processes[job_dir] = p
                 job_dir.set_attribute("state", str(saga.job.Running))
