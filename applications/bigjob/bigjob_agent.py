@@ -178,7 +178,7 @@ class bigjob_agent:
                     for i in job_dir.get_vector_attribute("Arguments"):
                         arguments = arguments + " " + i
                         
-                environment = {}
+                environment = os.environ
                 if (job_dir.attribute_exists("Environment") == True):
                     for i in job_dir.get_vector_attribute("Environment"):
                         env = i.split("=")
@@ -224,7 +224,7 @@ class bigjob_agent:
                      if(machinefile==None):
                          print "Not enough resources to run: " + job_dir.get_url().get_string() 
                          return # job cannot be run at the moment
-                     command = self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
+                     command = "cd " + workingdirectory + "; " + self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                      #if (host != socket.gethostname()):
                      #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
                 else:
@@ -389,7 +389,7 @@ class bigjob_agent:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
                 p_state = p.poll()
-                print self.print_job(i) + " state: " + str(p_state)
+                print self.print_job(i) + " state: " + str(p_state) + " return code: " + str(p.returncode)
                 if (p_state != None and (p_state==0 or p_state==255)):
                     print self.print_job(i)  + " finished. "
                     i.set_attribute("state", str(saga.job.Done))
