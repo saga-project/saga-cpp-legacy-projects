@@ -91,7 +91,23 @@
 
 \section{Pilot-Jobs}
 
-Vectors:
+The uptake of distributed infrastructures by scientific applications has been
+limited by the availability of extensible, pervasive and simple-to-use
+abstractions which are required at multiple levels – development, deployment
+and execution stages of scientific applications. The Pilot-Job abstraction has
+been shown to be an effective abstraction to address many requirements of
+scientific applications. Specifically, Pilot-Jobs support the decoupling of
+workload submission from resource assignment; this results in a flexible
+execution model, which in turn enables the distributed scale-out of
+applications on multiple and possibly heterogeneous resources. Most Pilot-Job
+implementations however, are tied to a specific infrastructure. In this paper,
+we describe the design and implementation of a SAGA-based Pilot-Job, which
+supports a wide range of application types, and is usable over a broad range
+of infrastructures, i.e., it is general-purpose and extensible, and as we will
+argue is also interoperable with Clouds.
+
+\noindent
+\textbf{Characteristics:}
 \begin{itemize}
 	\item Task binding to a resource
 	\item Number of concurrent sub-jobs per BigJob
@@ -99,32 +115,46 @@ Vectors:
 	\item Sub-Job description pull vs. push
 	\item Communication with BigJob agents or storing task info
 	\item Decision making (central vs. decentral) - should we support a pull-based BJ (Diane?)
+	\item data management
+	\item failure handling
+	\item task scheduling and prioritization
+	\item supported middlewares and infrastructures
+	\item security
 \end{itemize}
 
+\begin{table}[t]
 \begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
 	\hline
-	&Task Binding &\# of Concurrent Sub-Jobs &Pull/Push & Communica\-tion with BigJob agents &Dynamic VOs\\
+	&\textbf{Task Binding} &\textbf{Cluster Support} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} &\textbf{Dynamic VOs}\\
 	\hline
 	SAGA BigJob & &&&&\\
 	\hline
-	\hspace{4mm} Globus/PBS adaptor  &At sub-job submission  &n &Push/Pull &SAGA Advert service  &no\\  
+	\hspace{4mm} Globus/PBS adaptor  &late binding (at sub-job submission)  
+									 &yes &push/pull &SAGA Advert &no\\  
 	\hline
-	\hspace{4mm} Cloud adaptor (EC2) &At sub-job submission  &n \alnote{Are you sure? Without ManyJob this should be difficult to do?}   \smnote{I think it depends on size of  subjobs and size of VM we are using?}  &Push/Pull&SAGA Advert service  &no\\ 
+	\hspace{4mm} Cloud adaptor (EC2) &late binding (at sub-job submission)  
+									 &no &push/pull&SAGA Advert &no\\ 
 	\hline
- 	BigJob-Cloud &At sub-job submission &n &Push&Local Python Queue &no\\ 
+ 	BigJob-Cloud &late binding (at sub-job submission) &yes &Push 
+				 &local python-based queue &no\\ 
 	\hline
-	BigJob-Azure & At sub-job submission
-	             &n &Push/Pull &Azure Storage &no\\ 
+	BigJob-Azure &late binding (at sub-job submission)
+	             &no &push/pull &Azure Storage &no\\ 
 	\hline
-    BigJob-Diane &late &n &Pull &yes &CORBA\\ 
+    BigJob-Diane &late binding \alnote{not sure whether at submission time or after} &n &pull &yes &CORBA\\ 
 	\hline
-    ManyJob &   while BigJob Agent search for the new subjobs \alnote{What do you mean with that?} \smnote{sorry it was in wrong place. With many job all the tasks will be stored in the advert service and the bigjob agent pulls the tasks right? which ever starts first. So I think this is a pull appraoch because binding occurs randomly which ever bigjob agent starts first}  &n &Push/Pull &SAGA Advert service&no\\
+    ManyJob &late binding (after job submission) &yes &Push/Pull &SAGA Advert service&no\\
 	\hline
- 	ManyJob-Cloud &At sub-job submission &n &Push/Pull & &no\\
+ 	ManyJob-Cloud &late binding (after job submission) &no &Push/Pull & &no\\
 	\hline 
-	ManyJob Affinity & At sub-job submission &n &Push &SAGA Advert service &no\\
+	ManyJob Affinity &late binding (after job submission) &yes &Push &SAGA Advert service &no\\
 	\hline
 \end{tabular}
+\caption{Characteristics of Pilot-Job Implementations According 
+		to Defined Vectors}
+\end{table}		
+		
+		
 \vspace{10 mm}
 
 \textbf{Backends}
@@ -176,7 +206,10 @@ API for Agent Submission &yes &no\\
 
 
 \textbf{SAGA-ManyJob}:
-It uses SAGA BigJob approach to start multiple BigJobs agents whether on a single resource or on multiple resources. And these agents are responsible for pulling the tasks from advert service and run the possible subjobs concurrently or in generations.
+It uses SAGA BigJob approach to start multiple BigJobs agents 
+whether on a single resource or on multiple resources. And 
+these agents are responsible for pulling the tasks from advert 
+service and run the possible subjobs concurrently or in generations.
 
 
 
