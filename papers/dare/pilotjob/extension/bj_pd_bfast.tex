@@ -68,28 +68,56 @@ Vectors
 	\item Number of concurrent sub-jobs per BigJob
 	\item Number of resources per BigJob
 	\item Sub-Job description pull vs. push
+	\item  Communication with BigJob agents or storing task info
 	\item Decision making (central vs. decentral) - should we support a pull-based BJ (Diane?)
 \end{itemize}
 
-\begin{tabular}{|l|p{2.5cm}|p{2.5cm}|p{2.5cm}|}
+\begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2.5cm}|p{3.3cm}|}
 	\hline
-	&Task Binding &\# Concurrent Sub-Jobs &Pull/Push\\
+	&Task Binding &\# of Concurrent Sub-Jobs &Pull/Push & Communication with BigJob agents \\
 	\hline
-	SAGA BigJob & &&\\
+	SAGA BigJob & &&&\\
 	\hline
-	\hspace{4mm} Globus/PBS adaptor  &At sub-job submission  &n &Push/Pull\\ 
+	\hspace{4mm} Globus/PBS adaptor  &At sub-job submission  & n &Push/Pull& SAGA Advert service\\ 
 	\hline
-	\hspace{4mm} Cloud adaptor (EC2) &At sub-job submission  &1 &Push/Pull\\
+	\hspace{4mm} Cloud adaptor (EC2) &At sub-job submission  & n &Push/Pull&SAGA Advert service\\
 	\hline
- 	BigJob-Cloud &At sub-job submission &n &Push\\
+ 	BigJob-Cloud &At sub-job submission &n &Push&Local Python Queue\\
 	\hline
-	BigJob-Azure &At sub-job submission &n &Push/Pull\\ 
+	BigJob-Azure &while BigJob Agent searching for the new subjobs &n &Push/Pull&\\ 
 	\hline
-	ManyJob &At sub-job submission &n &Push/Pull\\
+	ManyJob &At sub-job submission &n &Push/Pull&SAGA Advert service\\
 	\hline
- 	ManyJob-Cloud &At sub-job submission &n &Push/Pull\\
-	\hline 
+	ManyJob Affinity & At sub-job submission &n &Push&SAGA Advert service \\
+	\hline
+ %	ManyJob-Cloud &At sub-job submission &n &Push/Pull&\\
+%	\hline 
 \end{tabular}
+\vspace{10 mm}
+
+\textbf{Difference between Bigjob and Bigjob Cloud:} 
+
+\begin{itemize}
+	\item ManyJob is required to manage the set of VMs. The BigJob-Cloud can manage a set of VMs without the need of ManyJob.
+	\item Bigjob uses advert server for communication between BigJob-agent and BigJob whereas BigJob-Cloud does not use an advert server.
+	\item Bigjob-cloud does not require SAGA-AWS adaptors as opposed to requirement in original Bigjob. 
+\end{itemize}	
+
+
+
+
+\textbf{SAGA-ManyJob}:
+It uses SAGA BigJob approach to start multiple BigJobs agents whether on a single resource or on multiple resources. And these agents are responsible for pulling the tasks from advert service and run the possible subjobs concurrently or in generations.
+
+
+
+\textbf{SAGA-ManyJob-Affinity}:
+This implementation is similar to SAGA-ManyJob except that we define affinity for each resource and also define affinity for the tasks. Therefor binding between tasks and resource occur while submitting the jobs.
+
+This approach is well suited when utilizing wide variety of infrastructure/resources where parameters for the application will change according to the file paths/environment variables etc.. for each resource
+
+
+
 
 \section{Pilot Data / Store}
 \noindent
