@@ -44,10 +44,39 @@
 \else
 \usepackage{graphicx}
 \fi
+
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
+
+\newif\ifdraft
+\drafttrue
+\ifdraft
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
+\newcommand{\smnote}[1]{ {\textcolor{green} { ***athota: #1 }}}
+\else
+\newcommand{\alnote}[1]{}
+\newcommand{\athotanote}[1]{}
+\newcommand{\smnote}[1]{}
+\fi
+
+
+
+
 \title{BigJob, ManyJob, Pilot-Store, ... -- Abstractions for dynamic ...}
 \author{  }
 
 \date{2011-04-02}
+
+
+
+
 
 \begin{document}
 
@@ -62,38 +91,78 @@
 
 \section{Pilot-Jobs}
 
-Vectors
+Vectors:
 \begin{itemize}
 	\item Task binding to a resource
 	\item Number of concurrent sub-jobs per BigJob
 	\item Number of resources per BigJob
 	\item Sub-Job description pull vs. push
-	\item  Communication with BigJob agents or storing task info
+	\item Communication with BigJob agents or storing task info
 	\item Decision making (central vs. decentral) - should we support a pull-based BJ (Diane?)
 \end{itemize}
 
-\begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2.5cm}|p{3.3cm}|}
+\begin{tabular}{|l|p{2cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
 	\hline
-	&Task Binding &\# of Concurrent Sub-Jobs &Pull/Push & Communication with BigJob agents \\
+	&Task Binding &\# of Concurrent Sub-Jobs &Pull/Push & Communica\-tion with BigJob agents &Dynamic VOs\\
 	\hline
-	SAGA BigJob & &&&\\
+	SAGA BigJob & &&&&\\
 	\hline
-	\hspace{4mm} Globus/PBS adaptor  &At sub-job submission  & n &Push/Pull& SAGA Advert service\\ 
+	\hspace{4mm} Globus/PBS adaptor  &At sub-job submission  &n &Push/Pull &SAGA Advert service  &no\\  
 	\hline
-	\hspace{4mm} Cloud adaptor (EC2) &At sub-job submission  & n &Push/Pull&SAGA Advert service\\
+	\hspace{4mm} Cloud adaptor (EC2) &At sub-job submission  &n \alnote{Are you sure? Without ManyJob this should be difficult to do?} &Push/Pull &SAGA Advert service  &no\\ 
 	\hline
- 	BigJob-Cloud &At sub-job submission &n &Push&Local Python Queue\\
+ 	BigJob-Cloud &At sub-job submission &n &Push&Local Python Queue &no\\ 
 	\hline
-	BigJob-Azure &while BigJob Agent searching for the new subjobs &n &Push/Pull&\\ 
+	BigJob-Azure &while BigJob Agent searching for the new subjobs \alnote{What do you mean with that?} 
+	             &n &Push/Pull &Azure Storage &no\\ 
 	\hline
-	ManyJob &At sub-job submission &n &Push/Pull&SAGA Advert service\\
+    BigJob-Diane &late &n &Pull &yes &CORBA\\ 
 	\hline
-	ManyJob Affinity & At sub-job submission &n &Push&SAGA Advert service \\
+    ManyJob &At sub-job submission &n &Push/Pull &SAGA Advert service&no\\
 	\hline
- %	ManyJob-Cloud &At sub-job submission &n &Push/Pull&\\
-%	\hline 
+ 	ManyJob-Cloud &At sub-job submission &n &Push/Pull & &no\\
+	\hline 
+	ManyJob Affinity & At sub-job submission &n &Push &SAGA Advert service &no\\
+	\hline
 \end{tabular}
 \vspace{10 mm}
+
+\textbf{Backends}
+\begin{itemize}
+    \item SAGA/Grid: Globus, PBS, Local, 
+    \item EC2-style Clouds (FutureGrid, EC2, Eucalyptus)
+    \item Azure
+    \item Condor
+    \item Diane
+\end{itemize}
+
+
+\textbf{BigJob vs. Diane}
+
+\begin{tabular}{|l|l|l|}
+\hline
+ &BigJob &Diane\\
+\hline
+MPI &yes &yes\\
+\hline
+Advanced Scheduling &no &yes\\
+\hline
+Dynamic VOs &no &yes\\
+\hline
+API for Agent Submission &yes &no\\
+\hline
+\end{tabular}
+
+
+
+
+
+\textbf{Extensions}
+\begin{itemize}
+    \item Dynamic VOs: adding new BigJobs to a ManyJob at runtime
+    \item new backends
+\end{itemize}
+
 
 \textbf{Difference between Bigjob and Bigjob Cloud:} 
 
@@ -115,7 +184,6 @@ It uses SAGA BigJob approach to start multiple BigJobs agents whether on a singl
 This implementation is similar to SAGA-ManyJob except that we define affinity for each resource and also define affinity for the tasks. Therefor binding between tasks and resource occur while submitting the jobs.
 
 This approach is well suited when utilizing wide variety of infrastructure/resources where parameters for the application will change according to the file paths/environment variables etc.. for each resource
-
 
 
 
@@ -145,6 +213,42 @@ Analogies with Pilot-Job:
 
 	\item $g^{1} (D_i) \rightarrow PS_i$
 	\item $g^{2} (PS_i) \rightarrow R_i$
+\end{itemize}
+
+\subsection{BitDew}
+
+Random Nodes
+\begin{itemize}
+	\item Focus on Desktop Grid
+	\item Java-based implementation (ie difficult to interface with Python-based PS/SAGA)
+	\item highly distributed: stable and volatile nodes
+	\item pull model, i.e. a node pulls for new data
+\end{itemize}
+
+
+Mapping to BitDew:
+\begin{itemize}
+	\item Pilot Store in its current implementation covers Bitdew Data Catalog and Repository
+	\item For data management and placement the Active Data API and the Bitdew data scheduler could be used
+	\item Transfer Management is done via SAGA File API	
+\end{itemize}
+
+How to evolve pilot data/store?
+\begin{itemize}
+	\item Active management of data (e.g. replication, automatic affinity management) requires an active component:
+	\begin{itemize}
+		\item Manager/Agent model as in BigJob?
+		\item Who runs active components? Started as part of batch job or separate install/start?
+	\end{itemize}
+\end{itemize}
+
+questions:
+\begin{itemize}
+    \item How should
+    we store data in order to effectively cope with non-uniform demand for
+    data? 
+    \item How many copies of popular data objects do we need? 
+    \item Where should we store them for effective load balancing?
 \end{itemize}
 
 \section{Pilot-Jobs as Runtime Environment for MR}
