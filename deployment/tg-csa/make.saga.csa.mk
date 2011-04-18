@@ -29,8 +29,10 @@ SRCDIR         = $(CSA_LOCATION)/src/
 EXTDIR         = $(CSA_LOCATION)/external/
 
 HOSTNAME       = $(shell hostname)
-HOSTNAME_SHORT = $(shell hostname)
 
+ifdef CSA_HOST
+  HOSTNAME     = $(CSA_HOST)
+endif
 
 ########################################################################
 #
@@ -91,10 +93,17 @@ saga-core::     externals
 .PHONY: saga-adaptors
 saga-adaptors:: saga-adaptor-x509
 saga-adaptors:: saga-adaptor-globus 
-saga-adaptors:: saga-adaptor-bes 
 saga-adaptors:: saga-adaptor-ssh 
+
+# some adaptors are only build for trunk
+ifeq "$(SAGA_VERSION)" "trunk"
+saga-adaptors:: saga-adaptor-bes 
 saga-adaptors:: saga-adaptor-aws 
-# saga-adaptors:: saga-adaptor-drmaa
+saga-adaptors:: saga-adaptor-drmaa
+saga-adaptors:: saga-adaptor-torque
+saga-adaptors:: saga-adaptor-pbspro
+saga-adaptors:: saga-adaptor-condor
+endif
 
 .PHONY: saga-bindings
 saga-bindings:: saga-bindings-python
@@ -309,6 +318,70 @@ $(SA_AWS_CHECK):
 
 
 ########################################################################
+# saga-adaptor-drmaa
+SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
+SA_DRMAA_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/drmaa/trunk saga-adaptor-drmaa-trunk
+
+.PHONY: saga-adaptor-drmaa
+saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
+	@echo "saga-adaptor-drmaa        ok"
+
+$(SA_DRMAA_CHECK):
+	@echo "saga-adaptor-drmaa        installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk && $(SVNUP) saga-adaptor-drmaa-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk || $(SVNCO) $(SA_DRMAA_SRC)
+	@cd $(SRCDIR)/saga-adaptor-drmaa-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+
+
+########################################################################
+# saga-adaptor-condor
+SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_condor_job.ini
+SA_CONDOR_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/condor/trunk saga-adaptor-condor-trunk
+
+.PHONY: saga-adaptor-condor
+saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
+	@echo "saga-adaptor-condor        ok"
+
+$(SA_CONDOR_CHECK):
+	@echo "saga-adaptor-condor        installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk && $(SVNUP) saga-adaptor-condor-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk || $(SVNCO) $(SA_CONDOR_SRC)
+	@cd $(SRCDIR)/saga-adaptor-condor-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+
+
+########################################################################
+# saga-adaptor-pbspro
+SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_pbspro_job.ini
+SA_PBSPRO_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/pbspro/trunk saga-adaptor-pbspro-trunk
+
+.PHONY: saga-adaptor-pbspro
+saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
+	@echo "saga-adaptor-pbspro        ok"
+
+$(SA_PBSPRO_CHECK):
+	@echo "saga-adaptor-pbspro        installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk && $(SVNUP) saga-adaptor-pbspro-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk || $(SVNCO) $(SA_PBSPRO_SRC)
+	@cd $(SRCDIR)/saga-adaptor-pbspro-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+
+
+########################################################################
+# saga-adaptor-torque
+SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_torque.ini
+SA_TORQUE_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/torque/trunk saga-adaptor-torque-trunk
+
+.PHONY: saga-adaptor-torque
+saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
+	@echo "saga-adaptor-torque        ok"
+
+$(SA_TORQUE_CHECK):
+	@echo "saga-adaptor-torque        installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk && $(SVNUP) saga-adaptor-torque-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk || $(SVNCO) $(SA_TORQUE_SRC)
+	@cd $(SRCDIR)/saga-adaptor-torque-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+
+
+########################################################################
 # saga-adaptor-bes
 SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_hpcbp_job.ini
 SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk saga-adaptor-ogf-trunk
@@ -383,7 +456,7 @@ $(SC_MANDELBROT_CHECK):
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(HOSTNAME_SHORT)
+CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_VERSION).$(HOSTNAME)
 
 PYTHONPATH=$(SAGA_LOCATION)/$(shell cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Package Path' configure.log | cut -f 2 -d ':' | cut -f 2 -d ' ')
 
