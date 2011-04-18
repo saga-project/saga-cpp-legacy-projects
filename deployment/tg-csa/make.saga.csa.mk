@@ -101,7 +101,9 @@ ifeq "$(SAGA_VERSION)" "trunk"
   saga-adaptors:: saga-adaptor-bes 
   saga-adaptors:: saga-adaptor-aws 
   saga-adaptors:: saga-adaptor-drmaa
-# saga-adaptors:: saga-adaptor-torque
+ifneq "$(HOSTNAME)" "abe"
+  saga-adaptors:: saga-adaptor-torque
+endif
   saga-adaptors:: saga-adaptor-pbspro
   saga-adaptors:: saga-adaptor-condor
 endif
