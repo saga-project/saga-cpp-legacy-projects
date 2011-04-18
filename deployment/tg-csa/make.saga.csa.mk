@@ -51,15 +51,16 @@ CXX        = g++
 # via gcc compiler macros:
 #
 CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
+CC_NAME    = $(notdir $(CC))-$(CC_VERSION)
 
 
 ########################################################################
 # 
 # report setup
 #
-$(shell echo "make info: csa  location: $(CSA_LOCATION)" 1>&2 )
-$(shell echo "make info: saga version : $(SAGA_VERSION)" 1>&2 )
-$(shell echo "make info: gcc  version : $(CC_VERSION)"   1>&2 )
+$(shell echo "make info: csa      location: $(CSA_LOCATION)" 1>&2 )
+$(shell echo "make info: saga     version : $(SAGA_VERSION)" 1>&2 )
+$(shell echo "make info: compiler version : $(CC_NAME)"      1>&2 )
 
 
 ########################################################################
@@ -72,7 +73,7 @@ WGET       = wget --no-check-certificate
 CHMOD      = chmod
 
 
-SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/bin/svn')
+SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_NAME)/bin/svn')
 SVNCO      = $(SVN) co
 SVNUP      = $(SVN) up
 
@@ -136,7 +137,7 @@ $(CSA_LOCATION)/external/:
 
 ########################################################################
 # boost
-BOOST_LOCATION = $(CSA_LOCATION)/external/boost/1.44.0/gcc-$(CC_VERSION)/
+BOOST_LOCATION = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK    = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC      = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 
@@ -165,7 +166,7 @@ $(BOOST_CHECK):
 svn: $(SVN)
 
 SVN_SRC  = http://cyder.cct.lsu.edu/saga-interop/mandelbrot/csa/repos/subversion-1.6.16.tgz
-SVNLOC   = $(CSA_LOCATION)/external/subversion/1.6.16/$(CC_VERSION)/
+SVNLOC   = $(CSA_LOCATION)/external/subversion/1.6.16/$(CC_NAME)/
 
 $(SVN):
 	@echo "svn                       installing"
@@ -184,7 +185,7 @@ $(SVN):
 
 ########################################################################
 # postgresql
-POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/gcc-$(CC_VERSION)/
+POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/$(CC_NAME)/
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v9.0.2/postgresql-9.0.2.tar.bz2
 
@@ -201,7 +202,7 @@ $(POSTGRESQL_CHECK):
 
 ########################################################################
 # sqlite3
-SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/gcc-$(CC_VERSION)/
+SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/$(CC_NAME)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
 
@@ -220,7 +221,7 @@ $(SQLITE3_CHECK):
 #
 # saga-core
 #
-SAGA_LOCATION = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/gcc-$(CC_VERSION)/
+SAGA_LOCATION = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/$(CC_NAME)/
 SAGA_CHECK    = $(SAGA_LOCATION)/include/saga/saga.hpp
 
 SAGA_LDLIBPATH=$(SAGA_LOCATION)/lib:$(BOOST_LOCATION)/lib:$(POSTGRESQL_LOCATION)/lib:$(SQLITE3_LOCATION)/lib:$(LD_LIBRARY_PATH)
@@ -418,7 +419,7 @@ $(SAGA_PYTHON_CHECK):
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) | tee configure.log
 	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Found .* yes' configure.log || ( \
-    export PYTHON_LOCATION=$(CSA_LOCATION)/external/python/2.7.1/gcc-$(CC_VERSION)/ ; \
+    export PYTHON_LOCATION=$(CSA_LOCATION)/external/python/2.7.1/$(CC_NAME)/ ; \
     export LD_LIBRARY_PATH=$(PYTHON_LOCATION)/lib:$(LD_LIBRARY_PATH) ; \
     cd $(CSA_LOCATION)/external/ ; \
     $(WGET) $(SAGA_PYTHON_PSRC) ; \
@@ -456,7 +457,7 @@ $(SC_MANDELBROT_CHECK):
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_VERSION).$(HOSTNAME)
+CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 PYTHONPATH=$(SAGA_LOCATION)/$(shell cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Package Path' configure.log | cut -f 2 -d ':' | cut -f 2 -d ' ')
 
