@@ -50,8 +50,9 @@ CXX        = g++
 # different distrubution channels.  Thus this detour to get the version directly
 # via gcc compiler macros:
 #
-CC_VERSION = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
-CC_NAME    = $(notdir $(CC))-$(CC_VERSION)
+CC_VERSION   = $(shell (make cpp_version ; ./cpp_version) | tail -n 1)
+CC_NAME      = $(notdir $(CC))-$(CC_VERSION)
+MAKE_VERSION = $(shell make --version | head -1)
 
 
 ########################################################################
@@ -61,6 +62,7 @@ CC_NAME    = $(notdir $(CC))-$(CC_VERSION)
 $(shell echo "make info: csa      location: $(CSA_LOCATION)" 1>&2 )
 $(shell echo "make info: saga     version : $(SAGA_VERSION)" 1>&2 )
 $(shell echo "make info: compiler version : $(CC_NAME)"      1>&2 )
+$(shell echo "make info: make     version : $(MAKE_VERSION)" 1>&2 )
 
 
 ########################################################################
