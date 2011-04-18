@@ -98,12 +98,12 @@ saga-adaptors:: saga-adaptor-ssh
 
 # some adaptors are only build for trunk
 ifeq "$(SAGA_VERSION)" "trunk"
-saga-adaptors:: saga-adaptor-bes 
-saga-adaptors:: saga-adaptor-aws 
-saga-adaptors:: saga-adaptor-drmaa
-saga-adaptors:: saga-adaptor-torque
-saga-adaptors:: saga-adaptor-pbspro
-saga-adaptors:: saga-adaptor-condor
+  saga-adaptors:: saga-adaptor-bes 
+  saga-adaptors:: saga-adaptor-aws 
+# saga-adaptors:: saga-adaptor-drmaa
+  saga-adaptors:: saga-adaptor-torque
+  saga-adaptors:: saga-adaptor-pbspro
+  saga-adaptors:: saga-adaptor-condor
 endif
 
 .PHONY: saga-bindings
