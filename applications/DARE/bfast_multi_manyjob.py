@@ -15,6 +15,11 @@ import ConfigParser
 import optparse
 import uuid
 
+global jobs, job_start_times, job_states
+jobs = []
+job_start_times = {}
+job_states = {}
+
 
 def initialize(conf_filename):
     adams_config = ConfigParser.ConfigParser()
@@ -40,21 +45,24 @@ def globus_file_stage(source_url, dest_url):
         error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
     return None
 
+def cloud_file_stage(source_url, dest_url):
 
-def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable, jd_number_of_processes ):
-  
-        jobs = []
-        job_start_times = {}
-        job_states = {}
+    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
+
+    try:
+        cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+        os.system(cmd)
+    except saga.exception, e:
+        error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+    return None
+
+
+def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number_of_jobs, jd_number_of_processes):
+                                 
         jd = saga.job.description()
-        affinity = 0
+        
+        for i in range(subjobs_start, int(number_of_jobs) + int(subjobs_start) ):
 
-        for i in range(0, int(number_of_jobs)):
-            
-            ##check if multiple machines were used and pick the affinity
-            if len(machines_used) > 1:
-                if (i+1) > (int(subjobs_per_resource)):
-                    affinity= 1 
             ##pick the executble 
             if  jd_executable == "bfast":
                  jd_executable_use = bfast_exe[affinity] + "/bfast"
@@ -68,27 +76,28 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             jd = saga.job.description()
             print jd_executable_use
             jd.executable = jd_executable_use
-            jd.number_of_processes = jd_number_of_processes
+            
+            jd.number_of_processes = str(jd_number_of_processes)
             jd.spmd_variation = "single"
             
             # choose the job description based on type of job
 
             if job_type == "reads":
                 jd.arguments = ["-n",  "%s" %(bfast_reads_num[affinity]),  
-                                "-o", "%s/reads.%s" %(bfast_reads_dir[affinity], bfast_uuid),
+                                "-o", "%s/%s.%s" %(bfast_reads_dir[affinity],shortreads_name ,bfast_uuid),
                                  "%s/*.csfasta"%(bfast_raw_reads_dir[affinity]),
                                  "%s/*.qual" %(bfast_raw_reads_dir[affinity])]
                                   
             elif job_type == "count":
-                jd.arguments = [" -altr" , "%s/reads.%s.*" %(bfast_reads_dir[affinity], bfast_uuid), 
+                jd.arguments = [" -altr" , "%s/%s.%s.*" %(bfast_reads_dir[affinity],shortreads_name ,bfast_uuid), 
                                 "|",  "/usr/bin/wc", "-l" , 
                                 ">", "%s/out.%s.txt"%(bfast_raw_reads_dir[affinity], bfast_uuid)]
                                 
             elif job_type == "matches":
                 jd.arguments = ["match",  
                                 "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgnome) , 
-                                "-A",  "1",
-                                "-r",  "%s/reads.%s.fastq"%(bfast_reads_dir[affinity], i+1),
+                                #"-A",  "1",
+                                "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
                                 #"-r",  "%s/reads.%s.%s.fastq"%(bfast_reads_dir[affinity], bfast_uuid, i+1),
                                 "-n" ,"8" ,
                                 "-T" , "%s" %(bfast_tmp_dir[affinity]),
@@ -116,12 +125,12 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             else:
                 jd.arguments = [""]
             
-            jd.environment = ["affinity=affinity%s"%(affinity)]
+            #jd.environment = ["affinity=affinity%s"%(affinity)]
             print "affinity%s"%(affinity)
             jd.working_directory = work_dir[affinity]
             jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(bfast_uuid)+"-"+ str(i) + ".txt")
             jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(bfast_uuid)+ "-"+str(i) + ".txt")
-            subjob = mjs[affinity].create_job(jd)
+            subjob = mjs[int(affinity)].create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
          
@@ -137,12 +146,15 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             logger.info("affinity%s"%(affinity))
             logger.info( "jd exec " + jd.executable)
             
-        #number_of_jobs = int(end_of_subjobs) - int(start_of_subjobs)
+ 
+        
+def wait_for_jobs(number_of_jobs):               
+
         print "************************ All Jobs submitted ************************" +  str(number_of_jobs)
         while 1:
             finish_counter=0
             result_map = {}
-            for i in range(0, int(number_of_jobs)):
+            for i in range(0, number_of_jobs):
                 old_state = job_states[jobs[i]]
                 state = jobs[i].get_state()
                 if result_map.has_key(state) == False:
@@ -160,7 +172,7 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             print "Current states: " + str(result_map)
             time.sleep(5)
             logger.info("Current states: " + str(result_map))
-            if finish_counter == int(number_of_jobs):
+            if finish_counter == number_of_jobs:
                 break
                   
 
@@ -179,24 +191,31 @@ if __name__ == "__main__":
     parser.add_option("-j", "--job-conf", dest="job_conf", help="job configuration file")
     (options, args) = parser.parse_args()
     
-    machines_used = []
+    resources_used = []
+    global shortreads_name
+
     #parse job conf file
     job_conf = options.job_conf
     config = initialize(job_conf)
-
+    
     refgnome = config.get('Bfast', 'refgnome')
     job_id = config.get('Bfast', 'job_id')
-    confss = config.get('Bfast', 'machine_use')
-    #print confss.replace(' ','').split(',')
-    machines_used = confss.replace(' ','').split(',')
-    #print machines_used
+    machu = config.get('Bfast', 'resources_use')
+    resources_used = machu.replace(' ','').split(',')    
+    machs = config.get('Bfast', 'resources_job_count')
+    resources_job_count = machs.replace(' ','').split(',')
     refgnome = config.get('Bfast', 'refgnome')
     source_refgnome =config.get('Bfast', 'source_refgnome')
     source_raw_reads =config.get('Bfast', 'source_raw_reads')
     source_shortreads =config.get('Bfast', 'source_shortreads')
     ##to check whether to run the prepare_read files step?
     prepare_shortreads = config.get('Bfast', 'prepare_shortreads')
+    resource_list = config.get('Bfast', 'resource_list')
+    resource_app_list = config.get('Bfast', 'resource_app_list')
+    shortreads_name = config.get('Bfast', 'shortreads_name')
+    walltime = config.get('Bfast', 'walltime')
 
+    
     work_dir = []
     gram_url= []
     re_agent= []
@@ -206,13 +225,16 @@ if __name__ == "__main__":
     machine_proxy = []
     ft_name= []
     #parse dare_resource conf file
-    resource_conf = os.path.join(cwd, "dare_files/resource.conf")
-    config = initialize(resource_conf)
     
-    for machine in machines_used:
+    config = initialize(resource_list)
+    
+    for machine in resources_used:
         print machine
         work_dir.append(config.get(machine, 'work_dir'))
-        machine_proxy.append(config.get(machine, 'machine_proxy'))
+        if (config.get(machine, 'RESOURCE_proxy') == "NA") :
+           machine_proxy.append(None)
+        else:
+           machine_proxy.append(config.get(machine, 'RESOURCE_proxy'))
         gram_url.append(config.get(machine, 'gram_url')) 
         re_agent.append(config.get(machine, 're_agent'))
         allocation.append(config.get(machine, 'allocation'))
@@ -236,10 +258,10 @@ if __name__ == "__main__":
     jd_executable_solid2fastq = []
 
     
-    bfast_conf = os.path.join(cwd, "dare_files/bglumae_resource.conf")
-    config = initialize(bfast_conf)
-
-    for machine in machines_used:
+    
+    config = initialize(resource_app_list)
+    
+    for machine in ['fgeuca']:
         print machine
         
         bfast_exe.append(config.get(machine, 'bfast_exe'))
@@ -252,7 +274,7 @@ if __name__ == "__main__":
         bfast_num_cores.append(config.getint(machine, 'bfast_num_cores_threads'))
         bfast_localalign_dir.append(config.get(machine, 'bfast_localalign_dir'))
         bfast_postprocess_dir.append(config.get(machine, 'bfast_postprocess_dir'))        
-    
+        
     
     LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
 
@@ -265,7 +287,7 @@ if __name__ == "__main__":
 
 
     logger.info("Job id  is "  + str(job_id) )
-    logger.info("Machine used is " + machines_used[0] )
+    logger.info("Machine used is " + resources_used[0] )
     logger.info("Reference GNOME " + refgnome)
     
     
@@ -278,33 +300,52 @@ if __name__ == "__main__":
         ## start the big job agents
         resource_list = []
         mjs = []
-        for i in range(0,len(machines_used) ):
+        
+        for i in range(0,len(resources_used) ):
             
             resource_list.append([])
-            resource_list[i].append({"gram_url" : gram_url[i], "walltime": "300" ,
-                                   "number_cores" : str(int(32)*8), "processes_per_node":processors_per_node[i],"allocation" : allocation[i],
-                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy":machine_proxy[i], "working_directory": work_dir[i]})
+                       
+            resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
+                                   "number_cores" : str(int(resources_job_count[i])*int(bfast_num_cores[i])), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
+                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy": machine_proxy[i], "working_directory": work_dir[i]})
+
             logger.info("gram_url" + gram_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
             mjs.append(many_job.many_job_service(resource_list[i], None))
        
+        """
         ### transfer the needed files
         if not (source_refgnome == "NONE"):       
-            for i in range(0,len(machines_used) ):
+            for i in range(0,len(resources_used) ):
                 globus_file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
         
         if not (source_refgnome == "NONE"):       
-            for i in range(0,len(machines_used) ):
+            for i in range(0,len(resources_used) ):
                 globus_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
                         
         if not (reads_refgnome == "NONE"):       
-            for i in range(0,len(machines_used) ):
+            for i in range(0,len(resources_used) ):
                 globus_file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])     
-       
+
+        ### transfer the needed files
+        if not (source_refgnome == "NONE"):       
+            for i in range(0,len(resources_used) ):
+                cloud_file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
+        
+        if not (source_refgnome == "NONE"):       
+            for i in range(0,len(resources_used) ):
+                cloud_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
+                       
+        if not (source_shortreads == "NONE"):       
+            for i in range(0,len(resources_used) ):
+                for k in range(i+1,i+5):
+                    cloud_file_stage(source_shortreads+"readss.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
+        """ 
+
         ####file tramfer step
         #globus_file_stage(,)
-       
+        """
         if (prepare_shortreads == "true"):
             
             prep_reads_starttime = time.time
@@ -326,25 +367,43 @@ if __name__ == "__main__":
             num_reads=f.readline()
             f.close()
             
-            ### tranfer the prepared read files to other machines
-            for i in range(1,len(machines_used) ):
+            ### tranfer the prepared read files to other resources
+            for i in range(1,len(resources_used) ):
                 globus_file_stage( ft_name[0] +bfast_reads_dir[0] , ft_name[i]+bfast_reads_dir[i])     
-        
+      
+        """  
         
         matches_starttime = time.time()
         
         ### run the matching step
         #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        sub_jobs_submit("matches" , "16", "32", "bfast", "8")
+        #sub_jobs_submit(0, "matches" , "15", "30", "bfast", "2")
+        
+        total_number_of_jobs=0
+        
+        #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
+
+        for i in range (0, len(resources_used)):
+            
+            sub_jobs_submit("bfast","matches", i , total_number_of_jobs , resources_job_count[i],int(bfast_num_cores[i]))
+            logger.info( " machine " + str(i))
+            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
+            logger.info( "resources_job_count " + str(resources_job_count[i]))
+            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))
+            
+            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])     
+
+        wait_for_jobs(total_number_of_jobs)
         
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )
         
+        """
         ### run the local-alignment step
         localalign_starttime = time.time()
         
         #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        sub_jobs_submit("localalign" , "16", "32", "bfast", "8")
+        sub_jobs_submit("localalign" , "15", "30", "bfast", "2")
 
         localalign_runtime = time.time() - localalign_starttime
         logger.info("localalign Runtime: " + str( localalign_runtime) )
@@ -353,17 +412,18 @@ if __name__ == "__main__":
 
         ### run the postprocess step        
         #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        sub_jobs_submit("postprocess" , "16", "32", "bfast", "8")
+        sub_jobs_submit("postprocess" , "15", "30", "bfast", "2")
 
         postprocess_runtime = time.time() - postprocess_starttime
         logger.info("Postporcess Runtime: " + str( postprocess_runtime) )
-        for i in range(0,len(machines_used) ):
+        """
+        for i in range(0,len(resources_used) ):
             mjs[i].cancel()
 
     except:
         traceback.print_exc(file=sys.stdout)
         try:
-            for i in range(0,len(machines_used) ):
+            for i in range(0,len(resources_used) ):
                 mjs[i].cancel()
             
         except:
