@@ -44,7 +44,7 @@ if __name__ == "__main__":
         #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "32", "processes_per_node":"4", "allocation" : "loni_jhabig10", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), 
         #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
-        resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "1", "processes_per_node":"1", "allocation" : None, "queue" : None, "re_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+        resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "re_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
                                "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
 #                           {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "8", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"}  )

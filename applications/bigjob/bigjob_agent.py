@@ -81,7 +81,9 @@ class bigjob_agent:
 
     def init_local(self):
         """ initialize free nodes list with dummy (for fork jobs)"""
-        self.freenodes.append("localhost")
+        num_cpus = self.get_num_cpus()
+        for i in range(0, num_cpus): 
+            self.freenodes.append("localhost")
 
     def init_sge(self):
         """ initialize free nodes list from SGE environment """
@@ -219,11 +221,14 @@ class bigjob_agent:
                     host = node[0].strip()
                 except:
                     pass
+
+
+                if(machinefile==None):
+                    print "Not enough resources to run: " + job_dir.get_url().get_string() 
+                    return # job cannot be run at the moment
+
                 # start application process
                 if (spmdvariation.lower( )=="mpi"):
-                     if(machinefile==None):
-                         print "Not enough resources to run: " + job_dir.get_url().get_string() 
-                         return # job cannot be run at the moment
                      command = "cd " + workingdirectory + "; " + self.MPIRUN + " -np " + numberofprocesses + " -machinefile " + machinefile + " " + command
                      #if (host != socket.gethostname()):
                      #    command ="ssh  " + host + " \"cd " + workingdirectory + "; " + command +"\""     
@@ -251,7 +256,7 @@ class bigjob_agent:
             unique_nodes=set(self.freenodes)
             for i in unique_nodes:
                 number = self.freenodes.count(i)
-                print "allocate: " + i + " number nodes: " + str(number)
+                print "allocate: " + i + " number nodes: " + str(number) + " current busy nodes: " + str(self.busynodes) + " free nodes: " + str(self.freenodes)
                 for j in range(0, number):
                     if(number_nodes > 0):
                         nodes.append(i)
@@ -328,7 +333,7 @@ class bigjob_agent:
          except:
              pass
          for i in allocated_nodes:
-             print "free node: " + str(i)
+             print "free node: " + str(i) + " current busy nodes: " + str(self.busynodes) + " free nodes: " + str(self.freenodes)
              self.busynodes.remove(i)
              self.freenodes.append(i)
          print "Delete " + machine_file_name
