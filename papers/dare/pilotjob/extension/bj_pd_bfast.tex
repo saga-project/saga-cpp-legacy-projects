@@ -106,26 +106,74 @@ supports a wide range of application types, and is usable over a broad range
 of infrastructures, i.e., it is general-purpose and extensible, and as we will
 argue is also interoperable with Clouds.
 
-\noindent
-\textbf{Characteristics:}
+\subsection{Definitions}
+
 \begin{itemize}
-	\item Task binding: early vs. late binding
+	\item Pilot-Job
+	\item Sub-Job
+	\item Placeholder-Job
+	\item Resource-Agent
+\end{itemize}
+
+\subsection{Characteristics:}
+\begin{itemize}
+	\item \textbf{Task binding:~\cite{}} 
+		\begin{itemize}
+			\item In the traditional early binding approach a job carries
+			 exactly one task which is specified at a time of job submission.
+			\item Late binding is a scheduling and coordination
+			 method, where work is assigned to a job at runtime rather than at
+			 submission time.
+			\begin{itemize}
+				\item At sub-job submission 
+				\item After sub-job submission
+			\end{itemize}
+		\end{itemize} 
 	\item \textbf{Resource Types:}
 	\begin{itemize}
 		\item Cluster support, i.e. Number of resources per BigJob
 		\item Number of concurrent sub-jobs per BigJob agent
 	\end{itemize}
-	\item \textbf{Coordination:} 
+	\item \textbf{Coordination} describes how the various components of 
+	the Pilot-Job framework are	coordinated. Possible values for this vector include data
+	flow, control flow, SPMD (where the control flow is implicit in all copies of the single program), master-worker
+	(the work done by the workers is controlled by the master),
 	\begin{itemize}
-		\item Sub-Job pull vs. push applies to control and data flow (different objects that are pushed/pulled)
-		\item Central vs. decentral decision making
-		\item Should we support a pull-based BJ (e.g. Diane)? 
+		\item The data flow describes the flow of messages between the components of the framework, e.\,g.\ point-to-point messaging or publish-subscribe (see Communication).
+		\item The control flow describes how the various components of the
+		 framework are managed. In the context of pilot-jobs this particularly means how the resource on which a sub-job is executed is determined. Generally, it can be differentiated between the two kinds of decision makings:
+			\begin{itemize}
+				\item Central: Decisions are centrally made by a master
+				 process, i.\,e.\ a central manager decides which sub-job is
+				 executed on what resource.
+				\item Decentral: Control is distributed among the 
+				different components. Pilot-Jobs with decentralized decision 
+				making often utilize agents that accepts respectively pull 
+				sub-jobs according to a set of defined criteria.
+			\end{itemize}
+			
+			\begin{tabular}{|l|c|c|}
+				\hline
+				&central &decentral\\
+				\hline
+			Simplicity  &++			&o \\ \hline
+			Decision Quality &+ 	&++ \\ \hline
+			Flexibility &+			&++ \\ \hline
+			Adaptivity  &+ 			&++ \\ \hline
+			Failure Resilience &+   &++\\ \hline
+			
+			\end{tabular}
+		% \item Sub-Job pull vs. push applies to control and data flow (different objects that are pushed/pulled)
+
 	\end{itemize}	
-	\item \textbf{Communication:}
+	\item \textbf{Communication:} Data can be exchanged by messages
+(point-to-point, all-to-all, one-to-all, all-to-one, or group-to-group),
+stream (potentially unicast or multicast), publish/subscribe or through shared
+data.
 	\begin{itemize}
-		\item remote procedure style communication, e.g. CORBA
-		\item messaging
-		\item shared tuple space: BigJob e.g. uses the Advert service to share data between the manager and the agent (such as task information)
+		\item Remote procedure calls: CORBA, RMI
+		\item Messaging: point-to-point, collective operations
+		\item Shared data space (e.\,g.\ tuple space): BigJob e.g. uses the Advert service to share data between the manager and the agent (such as task information). In general, this is associated with a push/pull coordination schema, i.e. the manager pushes something to the shared data space and the agents periodically check for new data.
 	\end{itemize} 
 	\item \textbf{Dynamic Resources:}
 		\begin{itemize}
@@ -134,11 +182,10 @@ argue is also interoperable with Clouds.
 		\end{itemize}
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
 	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic and inherently prone to failures and thus unreliable. To deal with failures, systems can deploy strategies, such as automatic resubmission etc.
-	\item Resource abstraction: SAGA vs. GANGA
-	\item End-user abstraction: BigJob API
+	\item \textbf{Resource abstraction:} SAGA vs. GANGA
+	\item \textbf{End-user abstraction:} BigJob API
 	\item Task scheduling and prioritization
-	\item Supported middleware types and infrastructures
-	
+	\item Supported middleware types and infrastructures	
 	\item Security
 \end{itemize}
 
@@ -153,28 +200,27 @@ argue is also interoperable with Clouds.
 	SAGA BigJob & &&&&\\
 	\hline
 	\hspace{4mm} Globus/PBS adaptor  &late binding (at sub-job submission)  
-									 &yes &push/pull \alnote{no local decision making at agent: push and pull in control and data} &SAGA Advert &no\\  
+									 &yes &central decision making &SAGA Advert (pull/push) &no\\  
 	\hline
 	\hspace{4mm} Cloud adaptor (EC2) &late binding (at sub-job submission)  
-									 &no &push/pull&SAGA Advert &no\\ 
+									 &no &central decision making &SAGA Advert (pull/push) &no\\ 
 	\hline
- 	BigJob-Cloud &late binding (at sub-job submission) &yes &Push 
-				 &local python-based queue &no\\ 
+ 	BigJob-Cloud &late binding (at sub-job submission) &yes &central decision making 
+				 &local python-based queue / SAGA Job (SSH adaptor) &no\\ 
 	\hline
 	BigJob-Azure &late binding (at sub-job submission)
-	             &no &push/pull &Azure Storage &no\\ 
+	             &no &central decision making &Azure Storage (push/pull) &no\\ 
 	\hline
-    BigJob-Diane &late binding \alnote{not sure whether at submission time or after} &yes &pull &CORBA &yes\\ 
+    BigJob-Diane &late binding  &yes &decentral decision making &CORBA (pull from master) &yes\\ 
 	\hline	
 	\textbf{Dynamic BigJob} & &&&&\\
 	\hline
-    ManyJob &late binding (after job submission) &yes &push/pull &SAGA Advert service&no\\
+    ManyJob &late binding (after job submission) &yes &central decision making &SAGA Advert (push/pull) &no\\
 	\hline
- 	ManyJob-Cloud &late binding (after job submission) &no &push/pull &SAGA Job (SSH) &no\\
+ 	ManyJob-Cloud &late binding (after job submission) &no &central decision making &SAGA Job (SSH) (push) &no\\
 	\hline 
 	ManyJob-Affinity &late binding (after job submission)
-	\smnote{Andre: I think
-here binding occurs before job submission?} \alnote{I think not: affinity are just a constraint that is put on a subjob. However, there can be e.g. multiple bigjob in a manyjob that satisfy a constraint} &yes &push/pull &SAGA Advert service &no\\
+	&yes &central decision making &SAGA Advert (push/pull) &no\\
 	\hline
 \end{tabular}
 \caption{Characteristics of Pilot-Job Implementations According 
