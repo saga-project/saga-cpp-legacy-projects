@@ -50,7 +50,7 @@ def cloud_file_stage(source_url, dest_url):
     print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
 
     try:
-        cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+        cmd = "scp  -r -i /path/to/unam.private %s %s"%(source_url, dest_url)
         os.system(cmd)
     except saga.exception, e:
         error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
@@ -222,25 +222,26 @@ if __name__ == "__main__":
     allocation= []
     queue = []
     processors_per_node = []
-    machine_proxy = []
+    resource_proxy = []
     ft_name= []
     #parse dare_resource conf file
     
     config = initialize(resource_list)
     
-    for machine in resources_used:
-        print machine
-        work_dir.append(config.get(machine, 'work_dir'))
-        if (config.get(machine, 'RESOURCE_proxy') == "NA") :
-           machine_proxy.append(None)
+    for resource in resources_used:
+        print resource
+        
+        work_dir.append(config.get(resource, 'work_dir'))
+        if (config.get(resource, 'RESOURCE_proxy') == "NA") :
+           resource_proxy.append(None)
         else:
-           machine_proxy.append(config.get(machine, 'RESOURCE_proxy'))
-        gram_url.append(config.get(machine, 'gram_url')) 
-        re_agent.append(config.get(machine, 're_agent'))
-        allocation.append(config.get(machine, 'allocation'))
-        queue.append( config.get(machine, 'queue'))
-        processors_per_node.append(config.get(machine, 'processors_per_node'))
-        ft_name.append(config.get(machine, 'ft_name'))
+           resource_proxy.append(config.get(resource, 'RESOURCE_proxy'))
+        gram_url.append(config.get(resource, 'gram_url')) 
+        re_agent.append(config.get(resource, 're_agent'))
+        allocation.append(config.get(resource, 'allocation'))
+        queue.append( config.get(resource, 'queue'))
+        processors_per_node.append(config.get(resource, 'processors_per_node'))
+        ft_name.append(config.get(resource, 'ft_name'))
         
     #dare_bfast conf file applicatio specific config file
     
@@ -261,19 +262,22 @@ if __name__ == "__main__":
     
     config = initialize(resource_app_list)
     
-    for machine in ['fgeuca']:
-        print machine
+    for resource in resources_used:
+        if resource.startswith("fgeuca"):
+           resource = "fgeuca"
+
+        print resource
         
-        bfast_exe.append(config.get(machine, 'bfast_exe'))
-        bfast_raw_reads_dir.append(config.get(machine, 'bfast_raw_reads_dir'))
-        bfast_reads_num.append(config.get(machine, 'bfast_reads_num') )
-        bfast_reads_dir.append(config.get(machine, 'bfast_reads_dir') )
-        bfast_ref_genome_dir.append(config.get(machine, 'bfast_ref_genome_dir') )
-        bfast_tmp_dir.append(config.get(machine, 'bfast_tmp_dir') )
-        bfast_matches_dir.append(config.get(machine, 'bfast_matches_dir'))
-        bfast_num_cores.append(config.getint(machine, 'bfast_num_cores_threads'))
-        bfast_localalign_dir.append(config.get(machine, 'bfast_localalign_dir'))
-        bfast_postprocess_dir.append(config.get(machine, 'bfast_postprocess_dir'))        
+        bfast_exe.append(config.get(resource, 'bfast_exe'))
+        bfast_raw_reads_dir.append(config.get(resource, 'bfast_raw_reads_dir'))
+        bfast_reads_num.append(config.get(resource, 'bfast_reads_num') )
+        bfast_reads_dir.append(config.get(resource, 'bfast_reads_dir') )
+        bfast_ref_genome_dir.append(config.get(resource, 'bfast_ref_genome_dir') )
+        bfast_tmp_dir.append(config.get(resource, 'bfast_tmp_dir') )
+        bfast_matches_dir.append(config.get(resource, 'bfast_matches_dir'))
+        bfast_num_cores.append(config.getint(resource, 'bfast_num_cores_threads'))
+        bfast_localalign_dir.append(config.get(resource, 'bfast_localalign_dir'))
+        bfast_postprocess_dir.append(config.get(resource, 'bfast_postprocess_dir'))        
         
     
     LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
@@ -304,15 +308,15 @@ if __name__ == "__main__":
         for i in range(0,len(resources_used) ):
             
             resource_list.append([])
-                       
+            print bfast_num_cores[i],"vhjghjm", resources_job_count[i]           
             resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
                                    "number_cores" : str(int(resources_job_count[i])*int(bfast_num_cores[i])), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
-                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy": machine_proxy[i], "working_directory": work_dir[i]})
+                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy": resource_proxy[i], "working_directory": work_dir[i]})
 
             logger.info("gram_url" + gram_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
-            mjs.append(many_job.many_job_service(resource_list[i], None))
+            #mjs.append(many_job.many_job_service(resource_list[i], None))
        
         """
         ### transfer the needed files
@@ -336,7 +340,7 @@ if __name__ == "__main__":
         if not (source_refgnome == "NONE"):       
             for i in range(0,len(resources_used) ):
                 cloud_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
-                       
+        """               
         if not (source_shortreads == "NONE"):       
             for i in range(0,len(resources_used) ):
                 for k in range(i+1,i+5):
@@ -345,7 +349,6 @@ if __name__ == "__main__":
 
         ####file tramfer step
         #globus_file_stage(,)
-        """
         if (prepare_shortreads == "true"):
             
             prep_reads_starttime = time.time
@@ -371,7 +374,6 @@ if __name__ == "__main__":
             for i in range(1,len(resources_used) ):
                 globus_file_stage( ft_name[0] +bfast_reads_dir[0] , ft_name[i]+bfast_reads_dir[i])     
       
-        """  
         
         matches_starttime = time.time()
         
@@ -386,7 +388,7 @@ if __name__ == "__main__":
         for i in range (0, len(resources_used)):
             
             sub_jobs_submit("bfast","matches", i , total_number_of_jobs , resources_job_count[i],int(bfast_num_cores[i]))
-            logger.info( " machine " + str(i))
+            logger.info( " resource " + str(i))
             logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
             logger.info( "resources_job_count " + str(resources_job_count[i]))
             logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))
@@ -398,7 +400,6 @@ if __name__ == "__main__":
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )
         
-        """
         ### run the local-alignment step
         localalign_starttime = time.time()
         
