@@ -31,6 +31,10 @@ def get_uuid():
     if sys.version_info < (2, 5):
         uuid_str = os.popen("/usr/bin/uuidgen").read()
         wd_uuid += uuid_str.rstrip("\n")
+        
+        #preparation for fail-safe exit
+        #sys.stderr.write('Incompatible Python version found! Please use Python 2.5 or higher with BigJob!') 
+        #sys.exit(-1)
     else:
         import uuid
         wd_uuid += str(uuid.uuid1())
