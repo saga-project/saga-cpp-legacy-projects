@@ -3,7 +3,6 @@
 import sys
 import os
 import saga
-import subprocess
 import socket
 import threading
 import time
@@ -11,6 +10,18 @@ import pdb
 import traceback
 import signal
 import ConfigParser
+
+if sys.version_info < (2, 5):
+    sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
+    sys.stderr.write("Warning: Using unsupported Python version\n")
+if sys.version_info < (2, 4):
+    sys.path.append(os.path.dirname( __file__ ) + "/ext/subprocess-2.6.4/")
+    sys.stderr.write("Warning: Using unsupported Python version\n")
+if sys.version_info < (2, 3):
+    sys.stderr.write("Warning: Python versions <2.3 not supported\n")
+    sys.exit(-1)
+
+import subprocess
 
 CONFIG_FILE="bigjob_agent.conf"
 class bigjob_agent:

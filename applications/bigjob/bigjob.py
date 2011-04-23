@@ -26,18 +26,29 @@ import logging
 # import API
 import api.base
 
+if sys.version_info < (2, 5):
+    sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
+    sys.stderr.write("Warning: Using unsupported Python version\n")
+if sys.version_info < (2, 4):
+    sys.path.append(os.path.dirname( __file__ ) + "/ext/subprocess-2.6.4/")
+    sys.stderr.write("Warning: Using unsupported Python version\n")
+if sys.version_info < (2, 3):
+    sys.stderr.write("Error: Python versions <2.3 not supported\n")
+    sys.exit(-1)
+
+import uuid
+
 def get_uuid():
     wd_uuid=""
-    if sys.version_info < (2, 5):
-        uuid_str = os.popen("/usr/bin/uuidgen").read()
-        wd_uuid += uuid_str.rstrip("\n")
+    #uuid_str = os.popen("/usr/bin/uuidgen").read()
+    #wd_uuid += uuid_str.rstrip("\n")
         
-        #preparation for fail-safe exit
-        #sys.stderr.write('Incompatible Python version found! Please use Python 2.5 or higher with BigJob!') 
-        #sys.exit(-1)
-    else:
-        import uuid
-        wd_uuid += str(uuid.uuid1())
+    #preparation for fail-safe exit
+    #sys.stderr.write('Incompatible Python version found! Please use Python 2.5 or higher with BigJob!') 
+    #sys.exit(-1)
+    #else:
+    #    import uuid
+    wd_uuid += str(uuid.uuid1())
     return wd_uuid
 
 
