@@ -50,7 +50,7 @@
 %Format\titlenote{(Does NOT produce the permission block, copyright information nor page numbering). For use with ACM\_PROC\_ARTICLE-SP.CLS. Supported by ACM.}}
 
 \newif\ifdraft
-\drafttrue                                                                                                   
+%\drafttrue                                                                                                   
 
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
@@ -210,7 +210,7 @@
 \section*{General Terms}{Design,Measurement,Theory}
 
  \keywords{Science Gateway, Runtime Environment, Distributed Computing, Simple API for Grid
-  Applications (SAGA), Pilot-Job abstraction}
+  Applications (SAGA), Pilot-Job abstraction, Data-intensive Computing}
 
 %\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings 
 %\keywords{RNA conformation energy landscape, Runtime Environment, SAM-I riboswitch,
@@ -255,14 +255,6 @@ allocations.
 \end{figure}
 
 
-\begin{figure}
- \centering
-\includegraphics[scale=0.27]{figures/teragrid-discipline08}
-\caption{\small 2008 Usage statistics for the TeraGrid}
-  \label{tg2008}
-\end{figure}
-
-
 \subsection{Large scale life science applications on the distributed HPC resources}
 Traditionally, life science applications have been regarded as non-HPC
 applications.  Notably, only a few applications were actively pursued with
@@ -273,6 +265,13 @@ synchronous techniques such as MPI is used as a main strategy to deal with
 larger molecular systems, the latter represents the case that massive
 independent tasks should be carried out, representing two different
 application usage modes.
+
+\begin{figure}
+ \centering
+\includegraphics[scale=0.27]{figures/teragrid-discipline08}
+\caption{\small 2008 Usage statistics for the TeraGrid}
+  \label{tg2008}
+\end{figure}
 
 Meanwhile, the need of large-scale distributed parallel executions for
 other life science applications has grown due to the advances of
@@ -496,44 +495,22 @@ The architecture of DARE framework (see Fig.~\ref{fig:dare-arch}) assumes two-ti
 %Level 1: (iii)providing user interface
 
 
-\textit{Access Layer} User interface for Web ,  Authentication, Job Management, Data Management, Remote or Distributed Job Submission these components are the heart of the DARE or any science gateway application further connecting these components to work in tandem is also an important issue.Lets start by understanding each component and worry about connecting them later.  Easily usable web interface for user is the main thing because thats what ultimately matters. So, for users with dare does not have to worry about how data is transferred , how job submissions should be used. So by using Pylons a MVC framework we design mako templates for users to submit their jobs and upload file there it self.
+\textit{Access Layer} The Access Layer contains many components mainly dealing with the interactions with a user.  Therefore, it implements a User interface (UI), authentication process, and database keeping information about users and jobs submitted by users.  In fact, pylons-based web server can be accessed by web pages or a remote client, but at this moment, web UI is the only mode for a user access.  Command Line Interface (CLI) is also supported when two-tier structure is preferred.  
 
-Authentication also plays an important role and prevents us from potential threads. So we utilize pylons authentications forms and provide user login and job management system.
+The MVC architecture constituting pylons web application framework is very effective and advantageous in many ways in spite of its lightweight nature. For example, database management and connection are very useful to facilitate authentication steps and job/data creation and management.     
 
 \textit{Services Layer}
-
-We have all this new jobs submitted from different users how are we going to decide where these jobs need to be run. There is also need for local job scheduler to intelligently decide for jobs that are submitted from the users. Sometimes jobs might be very short runs in this case we run them directly on the server locally.
-
-Further, users may upload files from the web interface then first we need to save them locally and move them to multiple resources depending on the configuration and once the jobs are done we need to provide the users to help download them onto their machine for analyzing.
-
-The meat of this framework is to be able run the jobs remotely this is addressed by utilizing the SAGA BigJob framework which provides an API to run the user submitted jobs remotely.
+This layer is composed of sub category layers such as the application layer, the DARE layer, and the SAGA layer.  The application layer is the only layer requiring a developer to build their own.  As a target application differs in an application usage mode along with the consideration of execution patterns closely associated with different distributed resource characteristics, it is a developer's responsibility for building this layer with their own scientific logics.  However, SAGA and SAGA-BigJob mitigate such efforts required for a developer with simple but powerful ways.  For example, by varying SAGA-BigJob configuration with a minimal effort, different execution usages of target computations suitable for pleasingly parallel, loosely coupled, and strongly coupled applications, are quickly implemented.  As presented in this work with four different gateways of four different life-science applications that vary in application usage modes as well as different parallelization strategies, once a developer figures out computational requirements for a target application, it is trivial to develop a optimized runtime environment for the target application executing in distributed resources in a short development cycle.   
 
 
-The web interface will be connected to remote job submission via a job scheduling and monitoring thread. This thread starts with pylons application and continuously communicates with local database server to find new jobs and it also acts as a scheduler for new jobs. Once this thread finds a new jobs it will start preparing the configuration files for that particular job from the user and afterwords it will start the remote job submission via application specific SAGA-Bigjob.
+%The web interface will be connected to remote job submission via a job scheduling and monitoring thread. This thread starts with pylons application and continuously communicates with local database server to find new jobs and it also acts as a scheduler for new jobs. Once this thread finds a new jobs it will start preparing the configuration files for that particular job from the user and afterwords it will start the remote job submission via application specific SAGA-Bigjob.
 
-The data movement is also integrated into the application specific Bigjob because the movement of number of files, type of file will be changing from application.
+Importantly, the data movement should be considered when the application layer is developed because the movement of data sets including input, output, temporary files, type of file will be changing from application, and as we have shown recently, in the case of data-intensive application, distributed date management is critical for successful gateway development.  At this moment, GridFTP is used as a primary protocol for data transfer, and Table~\ref{table:NGS-Distributed-file} summarizes transfer times that were associated with data analytics for DARE-NGS with a model system, human genome.
 
-
-All the above components are well connected but loosely coupled from each others as well so this provides the development of different kinds applications very simple and fast.
+%
+%All the above components are well connected but loosely coupled from each others as well so this provides the development of different kinds applications very simple and fast.
 
 \textit{Resource/Provision Layer}
-
-
-\section{FOUR DARE-BASED GATEWAYS}
-\subsection{DARE-NGS}
-Our DARE-NGS gateway (http://cyder.cct.lsu.edu/dare-ngs) supports Genome-wide analysis on Teragrid and provides currently the mapping process using BFAST that aligns the large number of short reads sequenced from NGS machines onto a reference genome sequence, which is the first step in scientific discovery utilizing NGS sequencing-based protocols such as the whole genome resequencing, RNA-seq, and ChIP-seq.  De novo assembly without reference genome information is still in early stages.  Note that due to its design strategy, including other analysis tool such as assembly or extending to a pipeline with other tools successively applied after the mapping with DARE-NGS are straightforward and underway at this moment.
-
-It is worth mentioning that the computational complexity
-of the analysis (e.g. mapping) depends, upon other things, the size
-and complexity of the reference genome and the data-size of short reads.
-Given that these can vary significantly, the computational
-requirements of NGS-analytics also varies (even between data-sets of
-similar size).  Thus an efficient, scalable and extensible analytical
-approaches must be supported by any framework supporting
-NGS-analytics.  The current service provided by DARE-NGS focuses mainly on the mapping step among bioinformatics tools with BFAST for single end NGS data or BFAST+BWA for paired-end data, and eventually supports a pipeline including genome variation studies for finding SNPs and small Indels.
-
-Recently, we reported our exploration of NGS analytics using DARE-NGS with the HPC grid such as TeraGrid and
-Cloud environment of FutureGrid\cite{ecmls11}.   
 
  \begin{table}
  \tiny
@@ -588,9 +565,6 @@ HG18 &127& 32   &R1,R2	&	128(16), 128(8)&7582 \\
 
 
 
-DARE-NGS was successfully used in grids and cloud environment. But there were some problems involved,  to start with the problem was  Futuregrid cloud walrus on sierra was unstable. When the data stored on walrus was tried to access by multiple VM's it became unresponsive. Even if it was stable the amount of data that a bucket is limited few 10's of GB. Further another requirement with bfast is to So it was not possible to run the entire human genome on the cloud environment.
-
-
  \begin{table}
  \small
  \begin{tabular}{|c|c|c|c|c|c|c|c|c|} 
@@ -618,7 +592,39 @@ Min Total time(s)    &	7105 &	128&	158.33\\
 \end{table}
 
 
+\section{FOUR DARE-BASED GATEWAYS}
+\subsection{DARE-NGS}
+Our DARE-NGS gateway (http://cyder.cct.lsu.edu/dare-ngs) supports Genome-wide analysis on Teragrid and provides currently the mapping process using BFAST that aligns the large number of short reads sequenced from NGS machines onto a reference genome sequence, which is the first step in scientific discovery utilizing NGS sequencing-based protocols such as the whole genome resequencing, RNA-seq, and ChIP-seq.  De novo assembly without reference genome information is still in early stages.  Note that due to its design strategy, including other analysis tool such as assembly or extending to a pipeline with other tools successively applied after the mapping with DARE-NGS are straightforward and underway at this moment.
+
+It is worth mentioning that the computational complexity
+of the analysis (e.g. mapping) depends, upon other things, the size
+and complexity of the reference genome and the data-size of short reads.
+Given that these can vary significantly, the computational
+requirements of NGS-analytics also varies (even between data-sets of
+similar size).  Thus an efficient, scalable and extensible analytical
+approaches must be supported by any framework supporting
+NGS-analytics.  The current service provided by DARE-NGS focuses mainly on the mapping step among bioinformatics tools with BFAST for single end NGS data or BFAST+BWA for paired-end data, and eventually supports a pipeline including genome variation studies for finding SNPs and small Indels.
+
+Recently, we reported our exploration of NGS analytics using DARE-NGS with the HPC grid such as TeraGrid and
+Cloud environment of FutureGrid\cite{ecmls11}.   
+
+
+
+\begin{figure}
+ \centering
+\includegraphics[scale=0.40]{figures/dare-rfold-result.pdf}
+\caption{\small Massive concurrent calculation capability is presented with the results obtained with DARE-Rfold. The total 2910 SAM-I riboswitch sequences are injected into the DARE-Rfold for sampling of Boltzman-weighted secondary structures.  SAGA-BigJob handles these many tasks by decoupling the resource assignment and execution of each task, collectively allowing an efficient management of many tasks. In (a) and (b), time-to-solutions with different configurations of BigJob are compared in terms of the number of BigJobs (a) and the size of a BigJob (b).  In (c), the distribution of sizes of 2910 input sequences is illustrated.  This distribution is directly associated with the distribution of time-to-solutions of all 2910 tasks.}
+  \label{fig:dare-rfold-result} 
+\end{figure}
+
+DARE-NGS was successfully used in grids and cloud environment. But there were some problems involved,  to start with the problem was  Futuregrid cloud walrus on sierra was unstable. When the data stored on walrus was tried to access by multiple VM's it became unresponsive. Even if it was stable the amount of data that a bucket is limited few 10's of GB. Further another requirement with bfast is to So it was not possible to run the entire human genome on the cloud environment.
+
+
+
+
 The times for the file transfer are very significant for except that of entire human genome index files. These are very large and causes to slow down but these files are need to be transferred only once. The dynamic data is the shortreads data where it comes in time and time again. But the reference genome remains same. 
+
+
 
 
 
@@ -632,19 +638,20 @@ To support nc-RNA research and broadly for the community who is interested in th
 Notably, many challenges in the computational investigation of RNA folding dynamics exist.  For example, the support of high-throughput of highly-parallel tasks on heterogeneous distributed resources is critical.
 We demonstrated the use of DARE-Rfold for the exploration of RNA folding energy landscape and structural characterization of SAM-I riboswitch sequences, which was greatly facilitated by the flexibility of our DARE framework and the capacity for many task computing to deal with 1000 structures from each sequence among 2910 sequences of SAM-I RAN family\cite{ecmls10}. 
 
-\begin{figure}
- \centering
-\includegraphics[scale=0.50]{figures/dare-rfold-result.pdf}
 
-\caption{\small Massive concurrent calculation capability is presented with the results obtained with DARE-Rfold. The total 2910 SAM-I riboswitch sequences are injected into the DARE-Rfold for sampling of Boltzman-weighted secondary structures.  SAGA-BigJob handles these many tasks by decoupling the resource assignment and execution of each task, collectively allowing an efficient management of many tasks. In (a) and (b), time-to-solutions with different configurations of BigJob are compared in terms of the number of BigJobs (a) and the size of a BigJob (b).  In (c), the distribution of sizes of 2910 input sequences is illustrated.  This distribution is directly associated with the distribution of time-to-solutions of all 2910 tasks.}
-  \label{fig:dare-rfold-result} 
-\end{figure}
+
 
 
 
 \subsection{DARE-Dock}
 DARE-Dock was developed to support the basic virtual screening and the target application is Autodock\cite{autodock}.  Autodock-vina is provided as a main tool to utilize its support for fine-grain parallelism with multi-threading multi-core support, whose capability is thus considerably enhanced with task level concurrency implemented with pre-processing that breaks the set of ligands in a given chemical database into many sets\cite{autodock-vina}.  
 
+\begin{figure}
+ \centering
+\includegraphics[scale=0.35]{figures/NAMD1.pdf}
+
+\caption{\small NAMD job submission web page form through DARE-HTHP} 
+\end{figure}
 
 \subsection{DARE-HTHP}
 
@@ -661,6 +668,8 @@ thanks to algorithmic advances, such problems can be transformed into
 the more {\it tractable} problem of solving multiple shorter run
 simulations.
 
+
+
 A ensemble simulation framework is required which has the following
 characteristics: (i) Usable on a range of underlying distributed
 resources and independent of the machine/resource-specific middleware
@@ -673,26 +682,23 @@ the above without being tied to a specific underlying MD kernel, (v)
 Extensible and Interoperable with emerging computational platforms such
 as clouds.
 
-\begin{figure}
- \centering
-\includegraphics[scale=0.50]{figures/NAMD1.pdf}
-
-\caption{\small NAMD job submission through DARE-HTHP} 
-\end{figure}
-\begin{figure}
- \centering
-\includegraphics[scale=0.50]{figures/NAMD2.pdf}
-
-\caption{\small NAMD job submission through DARE-HTHP. Multiple Resources, Multiple input files }
-  \label{fig:NAMD2}
-\end{figure}
 
 When the submits these forms we will see that the webserver creating configuration files and 
 these configuration files will be used to launch to movement the input files across resources and,
 remote job submissions.
 
+\begin{figure}
+ \centering
+\includegraphics[scale=0.35]{figures/NAMD2.pdf}
 
-\subsection{Achieving IDEAS : Interoperability, Distributed
+\caption{\small NAMD job submission web page form through DARE-HTHP. Multiple Resources, Multiple input files }
+  \label{fig:NAMD2}
+\end{figure}
+
+
+\section{Concluding Remakrs}
+
+\textit{Achieving IDEAS : Interoperability, Distributed
   scaled-out, Extensibility, Adaptivity, and Simplicity}
 
 %\smnote{ 1) Lets say we have "n" read files and with DARE it takes
@@ -767,7 +773,7 @@ the coarse-grain parallelization are effectively designed.
 
 
 
-
+\section{Acknowledgments}
 
 
 
