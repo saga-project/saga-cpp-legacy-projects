@@ -104,6 +104,7 @@ class MapReduce:
         self.allocation=''
         self.walltime=0
         self.ppn=''
+        self.optchunk=''
         
     def conf_check(self):
     
@@ -140,7 +141,7 @@ class MapReduce:
                         self.advert_host = value
                         print "\n >>> DATABASE_HOST is " , self.advert_host
                     if par == "chunk_size":
-                        self.__chunksize = int(value)
+                        self.__chunksize = int(value) * 1024 * 1024
                     if par == "input":
                         self.__input_file = value
                     if par == "temp":
@@ -173,6 +174,8 @@ class MapReduce:
                         sys.path.append(value)
                         self.__bigjob = value
                         self.__re_agent = value + "/bigjob_agent_launcher.sh"
+		    if par == "optimum_chunk":
+			self.optchunk = value
                     
                                   
                 self.__resource_list.append( {"processes_per_node":self.ppn, "gram_url" : self.__output_url, "number_cores" : str(self.nbr_workers_jobs),  "allocation" :self.allocation, "queue" : self.queue , "re_agent": self.__re_agent, "working_directory": self.__bigjob+"/agent", "walltime":self.walltime })
@@ -184,16 +187,24 @@ class MapReduce:
 
     def split(self):
         """ Split the file and save chunks to separate files """
-
-        dirList =  saga.filesystem.directory(self.__input_file)
+        list_files=[]
+        is_dir = 0
+        k = saga.filesystem.file(self.__input_file)
+        if ( k.is_dir() ):
+            dirList =  saga.filesystem.directory(self.__input_file)
+            print " Total number of input files in directory " + self.__input_file + " is " + str(len(dirList.list()))
+            list_files =  dirList.list()
+            is_dir = 1
+        else:
+	    fname = self.__input_file
+            list_files.append(fname)
         
-        print " Total number of input files in directory " + self.__input_file + " is " + str(len(dirList.list()))
-        
-        for fname in dirList.list():
+        for fname in list_files:
             dname = os.path.split(self.__input_file)[1]
             bname = os.path.split(self.__input_file)[0]
-            fname = bname + "/" + dname + "/" + fname.get_string()
-            print ' >>> Splitting file - '  + fname + "\n"
+            if is_dir :
+            	fname = bname + "/" + dname + "/" + str(fname)
+            print ' >>> Splitting file - '  + str(fname) + "\n"
             try:
                 f = saga.filesystem.file(fname)
             except:
@@ -208,6 +219,8 @@ class MapReduce:
 
             # Get size of each chunk
             self.__numchunks = int(float(fsize)/float(self.__chunksize))
+            if int(float(fsize)%float(self.__chunksize)) > 0:
+                 self.__numchunks = self.__numchunks + 1
             if self.__numchunks == 0:
                 if fsize > 0:
                     self.__numchunks = 1
@@ -318,7 +331,6 @@ class MapReduce:
         
         print " moving files .... to output location.... " + dest_url
         file_transfer_time = time.time()
- 
         for u in self.__chunk_list:
             for i in range(self.__nbr_reduces):
                 self.__sorted_partition_file_names.append( u + "sorted-part-" + str(i) )
