@@ -409,15 +409,15 @@ Importantly, data movement should be carefully considered for the Services Layer
 The utilization of distributed heterogeneous resources is critical for a science gateway.  Most of gateways relies on the approaches in which multiple resource utilization is limited, presumably, only for supporting a kind of pleasingly parallel multiple tasks.  Owing to SAGA and SAGA-BigJob, implementation with interoperability, distributed scale-out, and adaptivity is effectively built for distributed applications.  Various SAGA adaptors contribute to achieve interoperability for inter-HPC-grids, HPC-cloud, and other hybrid resources.  In SAGA web site (http://saga.cct.lsu.edu), useful information including how to develop a new adaptor can be found.  In addition, SAGA-BigJob adds the capability for supporting various adaptive executions as already shown with scientific applications such as Replica Exchange Molecular Dynamics, hybrid CFD-MD, and NGS data analytics\cite{saga-royalsoc,coupled,ecmls11}.    
 
 \jkimnote{the following paragraph needs to be shorten or moved into the Services Layer?}
-The access layer is connected to service layer with the help of configuration files. The job-sheduling/monitoring thread  which starts along with the web server is responsible for writing the job configuration file which changes for every single job. Apart from this job configuration file there are two other configuration files, first one has the resource list which is common for any application  (DARE-NGS, DARE-HTHP etc. ) and the other one is application specific configuration on each resource containing the paths for executables, input, output directories. once the job-scheduling/monitoring thread creates the job specific configuration file, it invokes another thread which starts reading the configuration files assigned to it and acts as a manager for this particular job. And this thread is responsible for transferring the appropriate input files to different resources, submitting and running the required jobs requested by user and getting back the output files which are inturn zipped and provided to user for download via web. But , we have keep in mind the uploading input files and downloading output file via web browser has not been implemented since the files sizes are too big to handle via browser and we are working on finding ways to handle this kind of situation. SAGA plays an important role with this job manager thread which makes the remote job submission and files/folders movement across different machines very simple and easily usable.
+The access layer is connected to service layer with the help of configuration files. The job-scheduling/monitoring thread  which starts along with the web server is responsible for writing the job configuration file which changes for every single job. Apart from this job configuration file there are two other configuration files, first one has the resource list which is common for any application  (DARE-NGS, DARE-HTHP etc. ) and the other one is application specific configuration on each resource containing the paths for executables, input, output directories. once the job-scheduling/monitoring thread creates the job specific configuration file, it invokes another thread which starts reading the configuration files assigned to it and acts as a manager for this particular job. And this thread is responsible for transferring the appropriate input files to different resources, submitting and running the required jobs requested by user and getting back the output files which are in turn zipped and provided to user for download via web. But , we have keep in mind the uploading input files and downloading output file via web browser has not been implemented since the files sizes are too big to handle via browser and we are working on finding ways to handle this kind of situation. SAGA plays an important role with this job manager thread which makes the remote job submission and files/folders movement across different machines very simple and easily usable.
 
  \begin{table}
 \scriptsize
  \begin{tabular}{|c|c|c|c|c|c|c|} 
  \hline 
-Genome & Index           & Resource    & \# of & \# of &   \# of         &	TTC  \\
-  Type               &  File      & &Cores &   nodes &  VMs&  (sec)\\  
-  & Size(GB)  &   & &&& \\   \hline
+Genome & Index         & Resource    & \# of & \# of &   \# of         &	TTC  \\
+  Type               & File (GB)        & &Cores &   nodes &  VMs&  (sec)\\  
+  \hline
  BG &0.435& R&	64 &4&-	&1067 \\
 \hline                  
 BG &0.435& QB	&	64& 8&-	&719 \\
@@ -426,14 +426,15 @@ BG &0.435& QB	&	64& 8&-	&719 \\
 \hline
  BG &0.435& FG &	64 &-&8	&712 \\
 \hline
- BG &0.435 &  R/QB/FG &	24/24/24& 2/3 & 3 &1022\\
+ BG &0.435 &  R/QB/ &	24/24/& 2/3 & 3 &1022\\
+ & & FG& 24 &&&\\
 \hline
 \hline
 Chr &1.9& R	&	64& 4 &-&1145 \\
 \hline
 Chr &1.9& QB	&	64&8&-	&924 \\
 \hline
-Chr &1.9& R,QB	&	32/32& 4/2&	-&1170 \\
+Chr &1.9& R/QB	&	32/32& 4/2&	-&1170 \\
 %\hline
 %HG18-Chr21 &1.9& FG	&	64	& \\
 %\hline
@@ -445,10 +446,10 @@ HG &127& R	&	256 & 16 &-	&9586\\
 %\hline
 %HG &127& QB	&	256 &32 &-	& \\
 \hline
-HG &127& R,QB	&	128/128&8/16 & -&7582 \\
+HG &127& R/QB	&	128/128&8/16 & -&7582 \\
 \hline
 \end{tabular}
-\caption{Comparison of Time to Completion (TTC) required for the NGS data mapping calculations using BFAST (match step).  Three genome types, HG18 (HG), HG18-Chr21(Chr), B. Glumae(BG) represent a human genome, chromosome 21 of HG18, and the genome of a microbe Buerkerholderia Glumae.  Three compute resources are Ranger (R), QueenBee (QB), and FutureGrid Cloud (FG), respectively.  The number of tasks for carrying out the required mapping calculation is 30(135MB) for B. Glumae and 32(169MB)for HG18 and HG18-Chr21.}
+\caption{Comparison of Time to Completion (TTC) required for the NGS data mapping calculations using BFAST (match step).  Three genome types, HG18 (HG), HG18-Chr21(Chr), B. Glumae(BG) represent a human genome, chromosome 21 of HG18, and the genome of a microbe Buerkerholderia Glumae.  Three compute resources are Ranger (R), QueenBee (QB), and FutureGrid  Eucalyptus Cloud on Sierra (FG), respectively.  The number of tasks for carrying out the required mapping calculation is 30(135MB) for B. Glumae and 32(169MB)for HG18 and HG18-Chr21.}
 
   \label{table:NGS-Distributed} 
 \end{table}
@@ -585,7 +586,7 @@ of tasks                &     &    &&     & (sec) \\
 
 
 \end{tabular}
-\caption{8 tasks of NAMD run over different resources, Three compute resources are Ranger (R), QueenBee (QB), and FutureGrid Cloud (FG), respectively.}
+\caption{8 tasks of NAMD run over different resources, Three compute resources are Ranger (R), QueenBee (QB), and  FutureGrid  Eucalyptus Cloud on Sierra(FG), respectively.}
 
   \label{table:HTHP-Distributed} 
 \end{table}
