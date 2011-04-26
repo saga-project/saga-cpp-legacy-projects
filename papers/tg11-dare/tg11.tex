@@ -117,7 +117,7 @@
 %   sequencing data on a reference genome respectively.
 
 \newif\ifdraft
-\drafttrue                                                                                        \
+%\drafttrue                                                                                        \
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
  \newcommand{\jkimnote}[1]{{\textcolor{green}   { ***Joohyun:   #1 }}}
@@ -794,7 +794,17 @@ HG &127& R	&	256 & 16 &-	&9586\\
 HG &127& R/QB	&	128/128&8/16 & -&7582 \\
 \hline
 \end{tabular}
-\caption{Comparison of Time to Completion (TTC) required for the NGS data mapping calculations using BFAST (match step).  Three genome types, HG18 (HG), HG18-Chr21(Chr), B. Glumae(BG) represent a human genome, chromosome 21 of HG18, and the genome of a microbe Buerkerholderia Glumae.  Three compute resources are Ranger (R), QueenBee (QB), and FutureGrid  Eucalyptus Cloud on Sierra (FG), respectively.  The number of tasks for carrying out the required mapping calculation is 30(135MB) for B. Glumae and 32(169MB)for HG18 and HG18-Chr21.}
+\caption{
+  Comparison of Time to Completion (TTC) required for the NGS data
+  mapping calculations using BFAST (match step) using DARE-NGS.  
+  Three genome types,
+  HG18 (HG), HG18-Chr21(Chr), B. Glumae(BG) represent a human genome,
+  chromosome 21 of HG18, and the genome of a microbe Buerkerholderia
+  Glumae.  Three compute resources are Ranger (R), QueenBee (QB), and
+  FutureGrid  Eucalyptus Cloud on Sierra (FG), respectively.  The
+  number of tasks for carrying out the required mapping calculation is
+  30(135MB) for B. Glumae and 32(169MB)for HG18 and HG18-Chr21.
+}
 
   \label{table:NGS-Distributed} 
 \end{table}
@@ -982,9 +992,13 @@ of tasks                &     &  Cores    &nodes&   VMs  & (sec) \\
 
 
 \end{tabular}
-\caption{8 tasks of NAMD run over different resources, Three compute resources are Ranger (R), QueenBee (QB), and  FutureGrid  Eucalyptus Cloud on Sierra(FG), respectively.}
-
-  \label{table:HTHP-Distributed} 
+\caption{TTC for 8 tasks of NAMD (each running on 8 cores,
+  irrespective of the underlying resources), run over different resources. The three
+  compute resources are Ranger (R), QueenBee (QB), 
+  and  FutureGrid  Eucalyptus Cloud on Sierra(FG), respectively. The
+  data shows that DARE-HTHC has been run successively on Grids and
+  Clouds concurrently.}
+ \label{table:HTHP-Distributed} 
 \end{table}
 
 
@@ -1007,76 +1021,53 @@ of tasks                &     &  Cores    &nodes&   VMs  & (sec) \\
 
 \section{Conclusions}
 
-% \textit{Achieving IDEAS : Interoperability, Distributed
-%   scaled-out, Extensibility, Adaptivity, and Simplicity}
+All of the components in the DARE-framework are independent of each
+other due to its modular structure.  Additionally, the framework
+provides the key functionality of job management and data management
+over heterogeneous distributed resources, in a flexible way, so as to
+support various execution patterns and application usage modes as well
+as the full-fledge access layer with the web server framework.  Along
+with this backbone template, a developer can quickly implement his/her
+own scientific logic in the application layer with python scripts.
 
-%\smnote{ 1) Lets say we have "n" read files and with DARE it takes
-%  around time "t" time for matching step if we run it serially it
-%  would take n*t time. It probably exceeds wall time limit. Therefore
-%  speed up in match step depends how many number of read files we
-%  generate and process concurrently.  2) Yes we were able to process
-%  the complete run with entire Human Genome on QB and Ranger
-%  separately. (**I am currently working this to utilizing QB and
-%  Ranger together.)  4) it should clearly provide the advantage with
-%  multiple resources. If we want to use the cloud resources from India
-%  to complete Human Genome run it is not practically possible because
-%  of the current limited disk size access provided by the FG
-%  Eucalyptus resources. Because whole human genome index files are of
-%  size 129 GB for Bfast matching step as opposed to HG 18 Chromosome
-%  21 with size of 2 GB index files. On the other hand it also requires
-%  the temporary files disk space.  Thus it is important to utilize
-%  large capacity resources like QB and Ranger divide the work load
-%  across machines.}  
-  
-%   Here, we present how the objectives of IDEAS\cite{ideas} are
-% accomplished with the DARE gateway examples. 
-
-All of components in the DARE framework are independent to each other
-due to its modular structure.  Additionally, the framework provides
-the key functionality for job management and data management with
-heterogeneous distributed resources in a flexible mechanism to support
-various execution patterns and application usage modes as well as the
-full-fledge access layer with the web server framework.  Along with
-this backbone template, a developer can quickly implement his/her own
-scientific logic in the application layer with python scripts.
-
-The objective {\it Distributed scale-out} is illustrated in with
-Table~\ref{table:NGS-Distributed}, where, two large TeraGrid systems,
+The objective {\it Distributed scale-out} is illustrated in
+Table~\ref{table:NGS-Distributed}, where two large TeraGrid systems --
 QB and Ranger, were used for the match step in BFAST pipeline.  It is
 noticeable that we compare different usage modes, for example, using
 one resource or two resource altogether with the same configuration
-for the computation.  As we demonstrated in numerous publications,
-having more resources and using those scaled computing power benefits
-to decrease the time-to-completion.  The results of the cases in
-Table~\ref{table:NGS-Distributed} indicate also there are interesting
-aspects due to the complexity of scientific applications.  For
-example, in the NGS data alignment using BFAST, we should consider the
-optimal condition with the task level concurrency considering how the
-reference genome indexes are utilized for chucks of short read
-data\cite{ecmls11}. Not only have we established efficient distributed
-scale-out for data-intensive applications, we have shown the effective
-distributed of multiple MD simulations -- both in loosely-coupled and
-uncouped modes.
+for the computation.  As demonstrated in numerous publications, having
+more resources and using them collectively has multiple benefits, not
+least of which is the decrease in the time-to-completion.  The results
+of the cases in Table~\ref{table:NGS-Distributed} indicate also there
+are interesting aspects due to the complexity of scientific
+applications.  For example, in the NGS data alignment using BFAST, we
+need to consider/determine the optimal task level concurrency
+considering how the reference genome indexes are utilized for chunks
+of short read data\cite{ecmls11}. Not only have we established
+efficient distributed scale-out for data-intensive applications, we
+have shown the effective distribution of multiple MD simulations --
+both in loosely-coupled and uncouped ensemble-MD modes.
 
+% While SAGA via the adaptor mechanism, provides the capabilities to
+% expand the infrastructure it can be utilized on, e.g., t 
 Extensibility is an important objective for DARE-based gateways, and
 indeed, many levels of extensibility are easily provided and utilized.
-While SAGA itself provides the capabilities to expand the
-infrastructure it can be utilized on, via the adaptor mechanism, e.g.,
-the SAGA-based approaches which provide numerous adaptors,
-interoperability across different middleware types is limited only by
-the availability of adaptors, as well as emerging new environment such
-as clouds. SAGA and SAGA-BigJob, combined together, provides great
-flexibility to extend scientific capability of a gateway, e.g.,
-support of ensemble-based simulations as a primitive ``execution
-unit''. With DARE-RFOLD, we made a pipeline for another capability
-beyond RNA secondary structure prediction.  We demonstrated recently
-that the output from the RNA secondary structure prediction could be
-utilized for Riboswitch gene annotation with structural information.
-Furthermore, with the open source pylons framework, incorporation of
-web technologies is efficiently and easily achieved.
+The SAGA-based approach which provide numerous adaptors to different
+middleware, supports interoperability across different middleware
+types; it is limited only by the availability of adaptors SAGA has
+relevant adaptors to existing infrastructure, as well as emerging new
+environment such as clouds. SAGA and SAGA-BigJob, combined together,
+provides great flexibility to extend scientific capability of a
+gateway, e.g., support of ensemble-based simulations as a primitive
+``execution unit''. With DARE-RFOLD, we made a pipeline for another
+capability beyond RNA secondary structure prediction.  We demonstrated
+recently that the output from the RNA secondary structure prediction
+could be utilized for Riboswitch gene annotation with structural
+information.  Furthermore, with the open source pylons framework,
+incorporation of web technologies is efficiently and easily achieved.
 
-Adaptivity is provided h in the design of the DARE framework, as the
-SAGA-based pilot-abstractions, support agile and dynamic execution
+Adaptivity is provided in the design of the DARE framework, as the
+SAGA-based pilot-job abstractions, support agile and dynamic execution
 modes and the change of application usage modes (eg concurrent
 multiple simulations to one large-scale simulation). In
 Fig.~\ref{fig:dare-rfold-result}, the result compares two different
@@ -1117,3 +1108,28 @@ Resources. SJ would like to thank Dave Hart (SDSC) and Dan Katz
 \bibliography{tg11}
 \end{document}
 
+
+
+% \textit{Achieving IDEAS : Interoperability, Distributed
+%   scaled-out, Extensibility, Adaptivity, and Simplicity}
+
+%\smnote{ 1) Lets say we have "n" read files and with DARE it takes
+%  around time "t" time for matching step if we run it serially it
+%  would take n*t time. It probably exceeds wall time limit. Therefore
+%  speed up in match step depends how many number of read files we
+%  generate and process concurrently.  2) Yes we were able to process
+%  the complete run with entire Human Genome on QB and Ranger
+%  separately. (**I am currently working this to utilizing QB and
+%  Ranger together.)  4) it should clearly provide the advantage with
+%  multiple resources. If we want to use the cloud resources from India
+%  to complete Human Genome run it is not practically possible because
+%  of the current limited disk size access provided by the FG
+%  Eucalyptus resources. Because whole human genome index files are of
+%  size 129 GB for Bfast matching step as opposed to HG 18 Chromosome
+%  21 with size of 2 GB index files. On the other hand it also requires
+%  the temporary files disk space.  Thus it is important to utilize
+%  large capacity resources like QB and Ranger divide the work load
+%  across machines.}  
+  
+%   Here, we present how the objectives of IDEAS\cite{ideas} are
+% accomplished with the DARE gateway examples. 
