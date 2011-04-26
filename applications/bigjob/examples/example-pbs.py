@@ -4,7 +4,6 @@
 
 import saga
 import os
-import bigjob
 import time
 import pdb
 
