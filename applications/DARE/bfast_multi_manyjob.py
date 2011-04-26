@@ -37,7 +37,6 @@ def has_finished(state):
 def globus_file_stage(source_url, dest_url):
 
     print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
-
     try:
         cmd = "globus-url-copy  -cd  %s %s"%(source_url, dest_url)
         os.system(cmd)
@@ -50,10 +49,28 @@ def cloud_file_stage(source_url, dest_url):
     print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
 
     try:
-        cmd = "scp  -r -i /path/to/unam.private %s %s"%(source_url, dest_url)
+        cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
         os.system(cmd)
     except saga.exception, e:
         error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+    return None
+def file_stage(source_url, dest_url):
+
+    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
+    if dest_url.startswith("fgeuca"):
+        try:
+            cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+            os.system(cmd)
+        except saga.exception, e:
+            error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+    else:
+        try:
+            cmd = "globus-url-copy  -cd  %s %s"%(source_url, dest_url)
+            os.system(cmd)
+        except saga.exception, e:
+            error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+
+
     return None
 
 
@@ -96,7 +113,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             elif job_type == "matches":
                 jd.arguments = ["match",  
                                 "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgnome) , 
-                                #"-A",  "1",
+                                "-A",  "1",
                                 "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
                                 #"-r",  "%s/reads.%s.%s.fastq"%(bfast_reads_dir[affinity], bfast_uuid, i+1),
                                 "-n" ,"8" ,
@@ -308,15 +325,22 @@ if __name__ == "__main__":
         for i in range(0,len(resources_used) ):
             
             resource_list.append([])
+            cppn= int(processors_per_node[i]) 
+            crjc= int(resources_job_count[i])
+            cnnc= int(bfast_num_cores[i])
+            k=0
+            if (cnnc*crjc%cppn !=0):
+               k =1
+            coress = cppn * (cnnc*crjc/cppn +k ) 
             print bfast_num_cores[i],"vhjghjm", resources_job_count[i]           
             resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
-                                   "number_cores" : str(int(resources_job_count[i])*int(bfast_num_cores[i])), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
+                                   "number_cores" : str(coress), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
                                    "queue" : queue[i], "re_agent": re_agent[i], "userproxy": resource_proxy[i], "working_directory": work_dir[i]})
 
             logger.info("gram_url" + gram_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
-            #mjs.append(many_job.many_job_service(resource_list[i], None))
+            mjs.append(many_job.many_job_service(resource_list[i], None))
        
         """
         ### transfer the needed files
@@ -340,13 +364,15 @@ if __name__ == "__main__":
         if not (source_refgnome == "NONE"):       
             for i in range(0,len(resources_used) ):
                 cloud_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
-        """               
+        """
+        p = 1
         if not (source_shortreads == "NONE"):       
             for i in range(0,len(resources_used) ):
-                for k in range(i+1,i+5):
-                    cloud_file_stage(source_shortreads+"readss.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
-        """ 
+                for k in range(p,p+4):
+                    cloud_file_stage(source_shortreads+"reads.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
+                p = p +4
 
+        """
         ####file tramfer step
         #globus_file_stage(,)
         if (prepare_shortreads == "true"):
@@ -374,7 +400,7 @@ if __name__ == "__main__":
             for i in range(1,len(resources_used) ):
                 globus_file_stage( ft_name[0] +bfast_reads_dir[0] , ft_name[i]+bfast_reads_dir[i])     
       
-        
+        """        
         matches_starttime = time.time()
         
         ### run the matching step
@@ -400,6 +426,7 @@ if __name__ == "__main__":
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )
         
+        """
         ### run the local-alignment step
         localalign_starttime = time.time()
         

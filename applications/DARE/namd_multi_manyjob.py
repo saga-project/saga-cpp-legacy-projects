@@ -15,6 +15,11 @@ import ConfigParser
 import optparse
 import uuid
 
+global jobs, job_start_times, job_states
+jobs = []
+job_start_times = {}
+job_states = {}
+
 
 def initialize(conf_filename):
     adams_config = ConfigParser.ConfigParser()
@@ -40,22 +45,45 @@ def globus_file_stage(source_url, dest_url):
         error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
     return None
 
+def cloud_file_stage(source_url, dest_url):
 
-def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable, jd_number_of_processes ):
-  
-        jobs = []
-        job_start_times = {}
-        job_states = {}
+    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
+
+    try:
+        cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+        os.system(cmd)
+    except saga.exception, e:
+        error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+    return None
+
+def file_stage(source_url, dest_url):
+
+    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
+    if dest_url.startswith("root@"):
+        try:
+            cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+            print cmd
+            os.system(cmd)
+        except saga.exception, e:
+            error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+    else:
+        try:
+            cmd = "globus-url-copy  -cd  %s %s"%("file://"+source_url, dest_url)
+            print "globus :" +cmd
+            os.system(cmd)
+        except saga.exception, e:
+            error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+
+
+    return None
+
+def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number_of_jobs, jd_number_of_processes):
+                                 
         jd = saga.job.description()
-        affinity = 0
+        
+        for i in range(subjobs_start, int(number_of_jobs) + int(subjobs_start) ):
 
-        for i in range(0, int(number_of_jobs)):
-            
-            ##check if multiple RESOURCEs were used and pick the affinity
-            if len(RESOURCES) > 1:
-                if (i+1) > (int(subjobs_per_resource)):
-                    affinity= 1 
-            ##pick the executble 
+                        ##pick the executble 
             if  jd_executable == "namd":
                  jd_executable_use = app_exe[affinity] 
             else:
@@ -65,18 +93,18 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             jd = saga.job.description()
             print jd_executable_use
             jd.executable = jd_executable_use
-            jd.number_of_processes = jd_number_of_processes
+            jd.number_of_processes = str(jd_number_of_processes)
             jd.spmd_variation = "mpi"
             
             # choose the job description based on type of job
             
-            jd.arguments = [NAMD_CONF]
+            jd.arguments = [namd_conf]
             
             jd.environment = ["affinity=affinity%s"%(affinity)]
             print "affinity%s"%(affinity)
-            jd.working_directory = work_dir[affinity]+ NAMD_DIR
-            jd.output =  os.path.join(work_dir[affinity],NAMD_DIR,"stdout_" + job_type + "-"+ str(JOB_UUID)+"-"+ str(i) + ".txt")
-            jd.error = os.path.join(work_dir[affinity], NAMD_DIR,"stderr_"+ job_type + "-"+str(JOB_UUID)+ "-"+str(i) + ".txt")
+            jd.working_directory = work_dir[affinity]+ namd_dir
+            jd.output =  work_dir[affinity] + os.path.join(namd_dir,"stdout_" + job_type + "-"+ str(JOB_UUID)+"-"+ str(i) + ".txt")
+            jd.error = work_dir[affinity] + os.path.join(namd_dir,"stderr_"+ job_type + "-"+str(JOB_UUID)+ "-"+str(i) + ".txt")
             subjob = mjs[affinity].create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
@@ -91,14 +119,16 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
                 logger.info( "jd.arguments" + item)
                 print " ",item
             logger.info("affinity%s"%(affinity))
-            logger.info( "jd exec " + jd.executable)
-            
-        #number_of_jobs = int(end_of_subjobs) - int(start_of_subjobs)
+            logger.info( "jd exec " + jd.executable)            
+ 
+        
+def wait_for_jobs(number_of_jobs):               
+
         print "************************ All Jobs submitted ************************" +  str(number_of_jobs)
         while 1:
             finish_counter=0
             result_map = {}
-            for i in range(0, int(number_of_jobs)):
+            for i in range(0, number_of_jobs):
                 old_state = job_states[jobs[i]]
                 state = jobs[i].get_state()
                 if result_map.has_key(state) == False:
@@ -116,7 +146,7 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
             print "Current states: " + str(result_map)
             time.sleep(5)
             logger.info("Current states: " + str(result_map))
-            if finish_counter == int(number_of_jobs):
+            if finish_counter == number_of_jobs:
                 break
                   
 
@@ -124,73 +154,91 @@ def sub_jobs_submit(job_type, subjobs_per_resource,number_of_jobs,jd_executable,
 if __name__ == "__main__":
     config = {}
 
-    CWD = os.getcwd()
-
-    JOB_UUID = uuid.uuid1()
-    APP_NAME = "NAMD"
-    
+    #cwd = "/home/cctsg/pylons/DARE-BIOSCOPE/darebioscope/lib/adams/"
+    cwd = os.getcwd()
+    APP_NAME="NAMD"
+    bfast_uuid = uuid.uuid1()
+    JOB_UUID = bfast_uuid
+    #bfast_uuid = "371064a4-4e5c-11e0-88e1-d8d385abb2b0"
     # parse conf files
     parser = optparse.OptionParser()    
     parser.add_option("-j", "--job-conf", dest="job_conf", help="job configuration file")
     (options, args) = parser.parse_args()
     
-    RESOURCES = []
+    resources_used = []
+    global shortreads_name
+
     #parse job conf file
     job_conf = options.job_conf
     config = initialize(job_conf)
-
-    JOB_ID = config.get(APP_NAME, 'JOB_ID')
-    RESOURCES = config.get(APP_NAME, 'RESOURCES_USED')
-    RESOURCES = RESOURCES.replace(' ','').split(',')
     #print RESOURCES
-    SOURCE_DIR = config.get(APP_NAME, 'SOURCE_DIR')
-    NAMD_DIR = config.get(APP_NAME, 'NAMD_DIR')
-    NAMD_CONF = config.get(APP_NAME, 'NAMD_CONF')
-    NAMD_JOBS_NUM = config.get(APP_NAME, 'NAMD_JOBS_NUM')
-    NAMD_JOBS_SIZE = config.get(APP_NAME, 'NAMD_JOBS_SIZE') 
     
-        
+    
+    job_id = config.get(APP_NAME, 'job_id')
+    machu = config.get(APP_NAME, 'resources_use')
+    resources_used = machu.replace(' ','').split(',')    
+    machs = config.get(APP_NAME, 'resources_job_count')
+    resources_job_count = machs.replace(' ','').split(',')
+    source_dir =config.get(APP_NAME, 'source_dir')
+    namd_dir = config.get(APP_NAME, 'namd_dir')
+    namd_conf= config.get(APP_NAME, 'namd_conf')
+    jobs_size = config.get(APP_NAME, 'namd_jobs_size')
+    namd_jobs_size = jobs_size.replace(' ','').split(',')
+    ##to check whether to run the prepare_read files step?
+    resource_list = config.get(APP_NAME, 'resource_list')
+    resource_app_list = config.get(APP_NAME, 'resource_app_list')
+    walltime = config.get(APP_NAME, 'walltime')
+
+    
     work_dir = []
     gram_url= []
     re_agent= []
     allocation= []
     queue = []
     processors_per_node = []
-    RESOURCE_proxy = []
+    resource_proxy = []
     ft_name= []
     #parse dare_resource conf file
-    resource_conf = os.path.join(CWD, "dare_files/resource.conf")
-    config = initialize(resource_conf)
     
-    for RESOURCE in RESOURCES:
-        print RESOURCE
-        RESOURCE_proxy.append(config.get(RESOURCE, 'RESOURCE_proxy'))
-        gram_url.append(config.get(RESOURCE, 'gram_url')) 
-        re_agent.append(config.get(RESOURCE, 're_agent'))
-        allocation.append(config.get(RESOURCE, 'allocation'))
-        queue.append( config.get(RESOURCE, 'queue'))
-        processors_per_node.append(config.get(RESOURCE, 'processors_per_node'))
-        ft_name.append(config.get(RESOURCE, 'ft_name'))
+    config = initialize(resource_list)
+    
+    for resource in resources_used:
+        print resource
         
-    #conf file application specific config file
+        work_dir.append(config.get(resource, 'work_dir'))
+        if (config.get(resource, 'RESOURCE_proxy') == "NA") :
+           resource_proxy.append(None)
+        else:
+           resource_proxy.append(config.get(resource, 'RESOURCE_proxy'))
+        gram_url.append(config.get(resource, 'gram_url')) 
+        re_agent.append(config.get(resource, 're_agent'))
+        allocation.append(config.get(resource, 'allocation'))
+        queue.append( config.get(resource, 'queue'))
+        processors_per_node.append(config.get(resource, 'processors_per_node'))
+        ft_name.append(config.get(resource, 'ft_name'))
+        
+    #dare_bfast conf file applicatio specific config file
+    
     
     app_exe = []
-    jd_executable_app = []
-
+    work_dir = []
     
-    app_conf = os.path.join(CWD, "dare_files/namd_resource.conf")
-    config = initialize(app_conf)
+    
+    config = initialize(resource_app_list)
+    
+    for resource in resources_used:
+        if resource.startswith("fgeuca"):
+           resource = "fgeuca"
 
-    for RESOURCE in RESOURCES:
-        print RESOURCE
+        print resource
         
-        work_dir.append(config.get(RESOURCE, 'work_dir'))
-        app_exe.append(config.get(RESOURCE, 'app_exe'))
+        work_dir.append(config.get(resource, 'work_dir'))
+        app_exe.append(config.get(resource, 'app_exe'))       
+        
     
-    
-    LOG_FILENAME = os.path.join(CWD, 'dare_files', 'logfiles/', '%s_%s_log_%s.txt'%(JOB_ID, JOB_UUID, APP_NAME))
+    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
 
-    logger = logging.getLogger('dare_%s_manyjob'%(APP_NAME))
+    logger = logging.getLogger('dare_bfast_manyjob')
     hdlr = logging.FileHandler(LOG_FILENAME)
     formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
     hdlr.setFormatter(formatter)
@@ -198,55 +246,93 @@ if __name__ == "__main__":
     logger.setLevel(logging.INFO)
 
 
-    logger.info("Job id  is "  + str(JOB_ID) )
-    logger.info("Machine used is " + RESOURCES[0] )
+    logger.info("Job id  is "  + str(job_id) )
+    logger.info("Machine used is " + resources_used[0] )
     
     
     try:  
+   
+        
         
         # submit via mj abstraction        
         
         ## start the big job agents
         resource_list = []
         mjs = []
-        for i in range(0,len(RESOURCES) ):
+        
+        for i in range(0,len(resources_used) ):
             
             resource_list.append([])
-            resource_list[i].append({"gram_url" : gram_url[i], "walltime": "30" ,
-                                   "number_cores" : str(int(NAMD_JOBS_NUM)*int(NAMD_JOBS_SIZE)), "processes_per_node":processors_per_node[i],"allocation" : allocation[i],
-                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy":RESOURCE_proxy[i], "working_directory": work_dir[i]+"/output/"})
+            cppn= int(processors_per_node[i]) 
+            crjc= int(resources_job_count[i])
+            cnnc= int(namd_jobs_size[i])
+            k=0
+            if (cnnc*crjc%cppn !=0):
+               k =1
+            coress = cppn * (cnnc*crjc/cppn +k ) 
+            print namd_jobs_size[i],"vhjghjm", resources_job_count[i]           
+            resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
+                                   "number_cores" : str(coress), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
+                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy": resource_proxy[i], "working_directory": work_dir[i]})
+
             logger.info("gram_url" + gram_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
             mjs.append(many_job.many_job_service(resource_list[i], None))
-       
-        ### transfer the needed files
-        if not (SOURCE_DIR== "NONE"):       
-            for i in range(0,len(RESOURCES) ):
-                globus_file_stage("file://%s/%s/"%(SOURCE_DIR,NAMD_DIR), ft_name[i]+work_dir[i]+ "/"+NAMD_DIR +"/" ) 
-                       
-        namd_starttime = time.time()
-        ### run the namd step
-        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
+        """
         
-        sub_jobs_submit(APP_NAME, str(int(NAMD_JOBS_NUM)/2) , str(NAMD_JOBS_NUM),"namd", NAMD_JOBS_SIZE) 
+        ### transfer the needed files
+                               
+        if not (reads_refgnome == "NONE"):       
+            for i in range(0,len(resources_used) ):
+                globus_file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])     
+
+        ### transfer the needed files
+        p = 1
+        if not (source_shortreads == "NONE"):       
+            for i in range(0,len(resources_used) ):
+                for k in range(p,p+4):
+                    cloud_file_stage(source_shortreads+"readss.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
+                p = p +4
+
+        """
+        
+        ### transfer the needed files
+        if not (source_dir== "NONE"):       
+            for i in range(0,len(resources_used) ):
+                file_stage("/%s/%s/"%(source_dir,namd_dir), ft_name[i]+work_dir[i]+ "/"+namd_dir +"/" ) 
+       
+        
+        namd_starttime = time.time()
+        
+        total_number_of_jobs=0
+        
+        #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
+        #sub_jobs_submit(0,APP_NAME, 1 , str(NAMD_JOBS_NUM),"namd", NAMD_JOBS_SIZE)
+
+        for i in range (0, len(resources_used)):
+            
+            sub_jobs_submit("namd","namd", i , total_number_of_jobs, resources_job_count[i],str(namd_jobs_size[i]))
+            logger.info( " resource " + str(i))
+            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
+            logger.info( "resources_job_count " + str(resources_job_count[i]))
+            logger.info( "int(bfast_num_cores" + str(namd_jobs_size[i]))
+            
+            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])     
+
+        wait_for_jobs(total_number_of_jobs)
         
         namd_runtime = time.time()-namd_starttime
         logger.info( APP_NAME + "Runtime: " + str(namd_runtime) )
         
-        ###transfer ouput files from resource to local machine
-        for i in range(0,len(RESOURCES) ):
-                globus_file_stage(ft_name[i]+work_dir[i]+ "/"+NAMD_DIR +"/", "file://%s/%s_output/"%(SOURCE_DIR,NAMD_DIR) ) 
+        #for i in range(0,len(resources_used) ):
+         #   mjs[i].cancel()
         
-        
-        
-        
-        for i in range(0,len(RESOURCES) ):
-            mjs[i].cancel()
     except:
         traceback.print_exc(file=sys.stdout)
         try:
-            for i in range(0,len(RESOURCES) ):
-                mjs[i].cancel()            
+            for i in range(0,len(resources_used) ):
+                mjs[i].cancel()
+            
         except:
             pass
