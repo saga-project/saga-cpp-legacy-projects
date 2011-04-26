@@ -556,7 +556,11 @@ Adaptivity whilst preserving Simplicity (IDEAS)\cite{ideas}, which
 constitutes essential requirement for distributed applications, are
 achieved in a remarkably effective way.
 
-\subsection{Architecture : The Three Layers -- Access/Application Layer, Services/Middleware Layer, and Resource Layer}
+\subsection{Three Layers Architecture of DARE-enabled Science
+  Gateways}
+
+% -- Access/Application Layer, Services/Middleware Layer, and Resource
+% Layer}
 
 \begin{figure}
  \centering
@@ -566,34 +570,129 @@ achieved in a remarkably effective way.
   \label{fig:dare-arch} 
 \end{figure}
 
- 
-
 %Level 2: (i) Computational aspect, (ii) Data management and movement, 
 %
 %Level 1: (iii)providing user interface
 
+\textit{Access/Application Layer:} The combination of the Access Layer
+and the Application Layer is the only component a developer needs to
+implement his/her own scientific logics and user interface (UI)
+design.  The Access Layer is composed of a web server and UI.  UI
+mediates the interactions between a user and a web server, and is
+primarily important for enhancing user experience.  Depending upon
+types of UI, three-tier or two-tier gateway structures are possible.
+For example, if the web server is accessed via web pages or a remote
+client, the overall architecture is regarded as a three-tier
+architecture in which a user desktop, a server, and back-end resources
+are independent to each other and their connection is under control by
+the DARE framework.  Currently, the framework employs the use of web
+UI as a primary means for a user access.  On the other hand, if
+Command Line Interface (CLI) is preferred, the overall architecture
+becomes two-tier since there exist no need of a system for a remote
+user.
 
-\textit{Access/Application Layer}  The combination of the Access Layer and the Application Layer is the only component a developer needs to implement his/her own scientific logics and user interface (UI) design.  The Access Layer is composed of a web server and UI.  UI mediates the interactions between a user and a web server, and is primarily important for enhancing user experience.  Depending upon types of UI, three-tier or two-tier gateway structures are possible.  For example, if the web server is accessed via web pages or a remote client, the overall architecture is regarded as a three-tier architecture in which a user desktop, a server, and back-end resources are independent to each other and their connection is under control by the DARE framework.  Currently, the framework employs the use of web UI as a primary means for a user access.  On the other hand, if Command Line Interface (CLI) is preferred, the overall architecture becomes two-tier since there exist no need of a system for a remote user.  
+The Model-View-Controller (MVC) architecture model that underlies the
+pylons web application framework is very effective and advantageous in
+many ways. For example, database creation, management, and transaction
+are extremely simple and robust to facilitate authentication steps and
+job/data creation and management by storing or retrieving related
+data.  Additionally, UI creation/development and the connection
+between server-side services (provided by the Services Layer) and
+UI-based user interactions are also surprisingly simpler compared to
+other existing approaches, requiring less programming efforts.  For
+example, it is well appreciated that for a science gateway
+development, the utilization of databases and server-side programming
+are non-trivial tasks.
 
-The Model-View-Controller (MVC) architecture model that underlies the pylons web application framework is very effective and advantageous in many ways. For example, database creation, management, and transaction are extremely simple and robust to facilitate authentication steps and job/data creation and management by storing or retrieving related data.  Additionally, UI creation/development and the connection between server-side services (provided by the Services Layer) and UI-based user interactions are also surprisingly simpler compared to other existing approaches, requiring less programming efforts.  For example, it is well appreciated that for a science gateway development, the utilization of databases and server-side programming are non-trivial tasks.         
+The Application Layer is the core part for the gateway development,
+since as target scientific applications differ in optimal application
+usage modes along with favorable execution patterns implemented
+differently with heterogeneous distributed resources, it is a
+developer's responsibility to find a better science logics and
+implementation, which is often non-trivial if distributed resources
+and distributed data management are needed.  However, the underlying
+Services and Middleware Layer mitigates such developmental hassles
+owing to SAGA-based technology.
 
-The Application Layer is the core part for the gateway development, since as target scientific applications differ in optimal application usage modes along with favorable execution patterns implemented differently with heterogeneous distributed resources, it is a developer's responsibility to find a better science logics and implementation, which is often non-trivial if distributed resources and distributed data management are needed.  However, the underlying Services and Middleware Layer mitigates such developmental hassles owing to SAGA-based technology.
-
-\textit{Services/Middleware Layer}
-The challenges to build a scalable distributed gateway is greatly facilitated by SAGA and SAGA-BigJob.  For example, by varying SAGA-BigJob configuration with a minimal developmental effort, it is easily accomplished to optimize execution usages of target computations at the same time properly considering their application characteristics such as pleasingly parallel, loosely coupled, or in a certain case, strongly coupled applications.  As demonstrated in this work presenting four different gateways for four different life-science applications, once figuring out preferable application usage modes as well as parallelization strategies, a gateway developer easily constructs an optimized runtime environment for a target application with distributed resources in a relatively short development cycle.
+\textit{Services/Middleware Layer:} The challenges to build a scalable
+distributed gateway is greatly facilitated by SAGA and SAGA-BigJob.
+For example, by varying SAGA-BigJob configuration with a minimal
+developmental effort, it is easily accomplished to optimize execution
+usages of target computations at the same time properly considering
+their application characteristics such as pleasingly parallel, loosely
+coupled, or in a certain case, strongly coupled applications.  As
+demonstrated in this work presenting four different gateways for four
+different life-science applications, once figuring out preferable
+application usage modes as well as parallelization strategies, a
+gateway developer easily constructs an optimized runtime environment
+for a target application with distributed resources in a relatively
+short development cycle.
 
 %The web interface will be connected to remote job submission via a job scheduling and monitoring thread. This thread starts with pylons application and continuously communicates with local database server to find new jobs and it also acts as a scheduler for new jobs. Once this thread finds a new jobs it will start preparing the configuration files for that particular job from the user and afterwords it will start the remote job submission via application specific SAGA-Bigjob.
 
-Importantly, data movement should be carefully considered when a gateway is developed, since implementation of movement of data sets such as input, output, temporary files is increasingly becoming a major challenge, as we have shown recently, in the case of data-intensive application\cite{ecmls11}. At this moment, GridFTP is used as a primary protocol for data transfer for Grids and SCP for clouds, and Table~\ref{table:NGS-Distributed-file} highlights the significance of data transfer with data analytics for DARE-NGS with a model system, human genome.  It is noted that in the SAGA level, the emerging programming model for distributed data management such as MapReduce and cloud utilization are already developed and utilized\cite{abstractions-azure,saga-ccgrid10}.
+Importantly, data movement should be carefully considered when a
+gateway is developed, since the movement of large data sets such as
+input, output, temporary files is increasingly becoming a major
+challenge. We have shown recently analyzed the volumes that need to be
+shipped, and demonstrated some of the challenges and solutions in the
+case of a next-generation sequencing application --
+BFAST~\cite{ecmls11}. At this moment, GridFTP is and scp are used as a
+primary protocol for data transfer for Grids;
+Table~\ref{table:NGS-Distributed-file} highlights the significance of
+data transfer with data analytics for DARE-NGS with a model system,
+human genome.  It is worth noting that with SAGA, not only can
+different transfter protocols be supported, but also data-intensive
+emerging programming models for distributed data management, such as
+MapReduce and cloud utilization are already developed and
+utilized\cite{abstractions-azure,saga-ccgrid10}; the DARE-framework
+enables the simple utilization of these additional frameworks --
+either as execution patterns or actual functional capabilties.
 
 %
-%All the above components are well connected but loosely coupled from each others as well so this provides the development of different kinds applications very simple and fast.
+% All the above components are well connected but loosely coupled from
+% each others as well so this provides the development of different
+% kinds applications very simple and fast.
 
-\textit{Resource Layer}
-While the utilization of distributed heterogeneous resources should be one of important motivations for a science gateway development, most of gateways rely on the approaches in which multiple resource utilization is limited, presumably, only for supporting a kind of pleasingly parallel multiple tasks.  Owing to SAGA and SAGA-BigJob, implementation with interoperability, distributed scale-out, and adaptivity is effectively built for distributed applications.  Various SAGA adaptors contribute to achieve interoperability for inter-HPC-grids, HPC-cloud, and other hybrid resources.  In SAGA web site (http://saga.cct.lsu.edu), useful information including how to develop a new adaptor can be found.  In addition, SAGA-BigJob adds the capability for supporting various adaptive executions as already shown with scientific applications such as Replica Exchange Molecular Dynamics, hybrid CFD-MD, and NGS data analytics\cite{saga-royalsoc,coupled,ecmls11}.    
+\textit{Resource Layer:} While the utilization of distributed
+heterogeneous resources should be one of important motivations for a
+science gateway development, most gateways currently rely on the
+approaches in which multiple resource utilization is limited,
+presumably, only for supporting pleasingly-parallel multiple tasks.
+As we will see in \S4, SAGA and SAGA-BigJob enable distributed
+scale-out across multiple production grade resources. Various SAGA
+adaptors contribute to achieve interoperability for inter-HPC-grids,
+HPC-cloud, and other hybrid resources.  There exist information on how
+to develop a new adaptor (See SAGA web site
+(http://saga.cct.lsu.edu)). In addition, SAGA-BigJob adds the
+capability for supporting various adaptive executions as already shown
+with scientific applications such as Replica Exchange Molecular
+Dynamics, hybrid CFD-MD, and NGS data
+analytics\cite{saga-royalsoc,coupled,ecmls11}.
 
-\jkimnote{the following paragraph needs to be shorten or moved into the Services Layer?}
-The access layer is connected to service layer with the help of configuration files. The job-scheduling/monitoring thread  which starts along with the web server is responsible for writing the job configuration file which changes for every single job. Apart from this job configuration file there are two other configuration files, first one has the resource list which is common for any application  (DARE-NGS, DARE-HTHP etc. ) and the other one is application specific configuration on each resource containing the paths for executables, input, output directories. once the job-scheduling/monitoring thread creates the job specific configuration file, it invokes another thread which starts reading the configuration files assigned to it and acts as a manager for this particular job. And this thread is responsible for transferring the appropriate input files to different resources, submitting and running the required jobs requested by user and getting back the output files which are in turn zipped and provided to user for download via web. But , we have keep in mind the uploading input files and downloading output file via web browser has not been implemented since the files sizes are too big to handle via browser and we are working on finding ways to handle this kind of situation. SAGA plays an important role with this job manager thread which makes the remote job submission and files/folders movement across different machines very simple and easily usable.
+% \jkimnote{the following paragraph needs to be shorten or moved into
+%   the Services Layer?}  The access layer is connected to service layer
+% with the help of configuration files. The job-scheduling/monitoring
+% thread which starts along with the web server is responsible for
+% writing the job configuration file which changes for every single
+% job. Apart from this job configuration file there are two other
+% configuration files, first one has the resource list which is common
+% for any application (DARE-NGS, DARE-HTHP etc. ) and the other one is
+% application specific configuration on each resource containing the
+% paths for executables, input, output directories. once the
+% job-scheduling/monitoring thread creates the job specific
+% configuration file, it invokes another thread which starts reading the
+% configuration files assigned to it and acts as a manager for this
+% particular job. And this thread is responsible for transferring the
+% appropriate input files to different resources, submitting and running
+% the required jobs requested by user and getting back the output files
+% which are in turn zipped and provided to user for download via
+% web. But , we have keep in mind the uploading input files and
+% downloading output file via web browser has not been implemented since
+% the files sizes are too big to handle via browser and we are working
+% on finding ways to handle this kind of situation. SAGA plays an
+% important role with this job manager thread which makes the remote job
+% submission and files/folders movement across different machines very
+% simple and easily usable.
 
  \begin{table}
 \scriptsize
