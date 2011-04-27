@@ -32,8 +32,8 @@ class many_job_service(object):
 
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
-            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
-              {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
+            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
+              {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
         """        
         self.uuid = uuid.uuid1()
         
@@ -72,14 +72,14 @@ class many_job_service(object):
             gram_url = i["gram_url"]
             logging.debug("start bigjob at: " + gram_url)
             bj = bigjob.bigjob(self.advert_host)
-            ppn=0
+            ppn="1"
             if ("processes_per_node" in i):
                 ppn=i["processes_per_node"]
             else:
-                ppn=1
+                i["processes_per_node"]="1"
             bj.start_pilot_job(gram_url,
                                     i["re_agent"],
-                                    i["number_cores"],
+                                    i["number_nodes"],
                                     i["queue"],
                                     i["allocation"],
                                     i["working_directory"], 
@@ -87,7 +87,7 @@ class many_job_service(object):
                                     i["walltime"],
                                     ppn)
             i["bigjob"]=bj # store bigjob for later reference in dict
-            i["free_cores"]=int(i["number_cores"])
+            i["free_cores"]=int(i["number_nodes"])*int(ppn)
             # lock for modifying the number of free nodes
             i["lock"] = threading.Lock()
 
@@ -139,7 +139,7 @@ class many_job_service(object):
             free_cores = i["free_cores"]
             bigjob_url = bigjob.pilot_url
             state = bigjob.get_state_detail()
-            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + i["number_cores"] + " State: " + state)
+            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + str(int(i["processes_per_node"])*int(i["number_nodes"])) + " State: " + state)
             if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes):
                 free_cores = i["free_cores"]
                 free_cores = free_cores - int(subjob.job_description.number_of_processes)
@@ -166,7 +166,7 @@ class many_job_service(object):
             bigjob["free_cores"]=free_cores
             del(self.subjob_bigjob_dict[subjob])
             lock.release()
-            print "Freed resource - new state: Big Job: " +  bigjob["bigjob"].pilot_url + " Cores: " + "%s"%free_cores + "/" + bigjob["number_cores"]
+            print "Freed resource - new state: Big Job: " +  bigjob["bigjob"].pilot_url + " Cores: " + "%s"%free_cores + "/" + str(int(bigjob["processes_per_node"])*int(bigjob["number_nodes"])) 
     
     def reschedule_subjobs_thread(self):
         """ periodically checks subjob_queue for unscheduled subjobs
@@ -298,10 +298,10 @@ if __name__ == "__main__":
         jd.output = "output.txt"
         jd.error = "error.txt"
         # submit via mj abstraction
-        #resource_list =  ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "128", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
-        #                   {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
+        #resource_list =  ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "128", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
+        #                   {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
         resource_list = []
-        resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "16", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
+        resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "16", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
         print "Create manyjob service " 
         mjs = many_job_service(resource_list, None)
         print "Create sub-job using manyjob " + str(mjs) 
