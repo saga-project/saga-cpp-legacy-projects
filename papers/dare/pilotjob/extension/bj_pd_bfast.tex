@@ -60,6 +60,7 @@
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
 \newcommand{\smnote}[1]{ {\textcolor{green} { ***sharath: #1 }}}
+\newcommand{\msnote}[1]{ {\textcolor{cyan} { ***mark: #1 }}}
 \else
 \newcommand{\alnote}[1]{}
 \newcommand{\athotanote}[1]{}
@@ -72,7 +73,7 @@
 \title{BigJob, ManyJob, Pilot-Store, ... -- Abstractions for dynamic ...}
 \author{  }
 
-\date{2011-04-02}
+\date{2011-04-26}
 
 
 
@@ -106,6 +107,9 @@ supports a wide range of application types, and is usable over a broad range
 of infrastructures, i.e., it is general-purpose and extensible, and as we will
 argue is also interoperable with Clouds.
 
+\msnote{regarding SAGA-based, is it really SAGA based, or rather an extension?}
+
+\msnote{why the explicit mentioning of clouds while in the same sentence there is referred to a "broad range of infrastructures"}
 
 \subsection{Motivation}
 
@@ -123,14 +127,18 @@ implementations that provide applications with an agile execution model,
 and thus the ability to use resources dynamically as opposed to a static execution
 model inherited from parallel and cluster computing
 
+\msnote{What paper is this referring to? I disagree btw, the real power does not arise from adaptive algorithms and implementations, instead, the power can only be fully exploited by using those.}
+
 \subsection{Definitions}
 
 \begin{itemize}
 	\item Pilot-Job
 	\item Sub-Job
+	\msnote{I'm not that fond of the "sub-job", is it a task?}
 	\item Placeholder-Job
 	\item Resource-Agent
 \end{itemize}
+
 
 Related terms:
 \begin{itemize}
@@ -206,6 +214,7 @@ data.
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
 	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic and inherently prone to failures and thus unreliable. To deal with failures, systems can deploy strategies, such as automatic resubmission etc.
 	\item \textbf{Resource abstraction:} SAGA vs. GANGA
+	\msnote{Whats this comparison aiming at?}
 	\item \textbf{End-user abstraction:} BigJob API
 	\item Task scheduling and prioritization
 
@@ -269,6 +278,7 @@ manyjobs binds sub-jobs to bigjobs - we must discuss this in text.}
     \item EC2-style Clouds (FutureGrid, EC2, Eucalyptus)
     \item Azure
     \item Condor
+    \msnote{Glide-In I assume, and not normal condor?}
     \item Diane
 \end{itemize}
 
@@ -289,6 +299,8 @@ API for Agent Submission &yes &no\\
 \hline
 \end{tabular}
 
+\msnote{Whats VO in this context?}
+
 
 
 
@@ -304,6 +316,7 @@ API for Agent Submission &yes &no\\
 
 \begin{itemize}
 	\item ManyJob is required to manage the set of VMs. The BigJob-Cloud can manage a set of VMs without the need of ManyJob.
+	\msnote{If BigJob is the atomic unit, it should not differ per backend}
 	\item Bigjob uses advert server for communication between BigJob-agent and BigJob whereas BigJob-Cloud does not use an advert server.
 	\item Bigjob-cloud does not require SAGA-AWS adaptors as opposed to requirement in original Bigjob. 
 \end{itemize}	
@@ -321,6 +334,7 @@ service and run the possible subjobs concurrently or in generations.
 
 \textbf{SAGA-ManyJob-Affinity}:
 This implementation is similar to SAGA-ManyJob except that we define affinity for each resource and also define affinity for the tasks. Therefor binding between tasks and resource occur while submitting the jobs.
+\msnote{How do we define that affinity?}
 
 This approach is well suited when utilizing wide variety of infrastructure/resources where parameters for the application will change according to the file paths/environment variables etc.. for each resource
 
@@ -355,6 +369,7 @@ Analogies with Pilot-Job:
 \end{itemize}
 
 \subsection{BitDew}
+\msnote{Interesting, didn't know it, does our group has experience with it?}
 
 Random Notes
 \begin{itemize}
@@ -426,6 +441,50 @@ other parameters:
 
 	\item re-partition of tasks to a larger number of available cores (dynamic data that needs to re-generated as a consequence that there are new compute elements available)
 
+\end{itemize}
+
+\section{API}
+
+\subsection{class: bigjob}
+
+
+\begin{itemize}
+	\item \_\_init\_\_
+		\begin{itemize}
+			\item database\_host
+		\end{itemize}
+	\item start\_pilot\_job
+	\begin{itemize}
+		\item lrms\_url
+		\item bigjob\_agent\_executable
+		\item number\_nodes
+		\item queue
+		\item project
+		\item working\_directory
+		\item userproxy
+		\item walltime
+		\item processes\_per\_node
+	\end{itemize}
+	\item get\_state	
+	\item get\_state\_detail
+	\item cancel
+\end{itemize}
+
+\subsection{class: subjob}
+\begin{itemize}
+\item \_\_init\_\_
+		\begin{itemize}
+			\item database\_host
+		\end{itemize}
+	\item submit\_job
+	\begin{itemize}
+		\item pilot\_url
+		\item jd
+	\end{itemize}
+
+	\item get\_state
+
+	\item delete\_job
 \end{itemize}
 
 \bibliographystyle{plain}
