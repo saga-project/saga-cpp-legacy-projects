@@ -32,8 +32,8 @@ class many_job_service(object):
 
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
-            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
-              {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
+            ( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "bigjob_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh",  "walltime":1000},
+              {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "32", "allocation" : "loni_stopgap2", "queue" : "workq", "bigjob_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh", "walltime":1000})
         """        
         self.uuid = uuid.uuid1()
         
@@ -69,7 +69,7 @@ class many_job_service(object):
         """ start on specified resources a bigjob """
         self.bigjob_list = self.schedule_bigjobs()
         for i in self.bigjob_list:
-            gram_url = i["gram_url"]
+            gram_url = i["resource_url"]
             logging.debug("start bigjob at: " + gram_url)
             bj = bigjob.bigjob(self.advert_host)
             ppn="1"
@@ -78,7 +78,7 @@ class many_job_service(object):
             else:
                 i["processes_per_node"]="1"
             bj.start_pilot_job(gram_url,
-                                    i["re_agent"],
+                                    i["bigjob_agent"],
                                     i["number_nodes"],
                                     i["queue"],
                                     i["allocation"],
@@ -91,6 +91,12 @@ class many_job_service(object):
             # lock for modifying the number of free nodes
             i["lock"] = threading.Lock()
 
+
+    def add_bigjob(self, resource_dictionary):
+        pass
+    
+    def remove_bigjob(self, bigjob):
+        pass
 
     def schedule_bigjobs(self):
         """ prioritizes bigjob_list (bigjob with shortest expected delay will have index 0) """
@@ -298,10 +304,10 @@ if __name__ == "__main__":
         jd.output = "output.txt"
         jd.error = "error.txt"
         # submit via mj abstraction
-        #resource_list =  ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "128", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
-        #                   {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
+        #resource_list =  ( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "128", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"},
+        #                   {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": "$(HOME)/src/REMDgManager/bigjob/advert_launcher.sh"})
         resource_list = []
-        resource_list.append({"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "16", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
+        resource_list.append({"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "16", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": os.getcwd() + "/bigjob_agent_launcher.sh"})
         print "Create manyjob service " 
         mjs = many_job_service(resource_list, None)
         print "Create sub-job using manyjob " + str(mjs) 

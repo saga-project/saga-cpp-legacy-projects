@@ -92,9 +92,12 @@ class bigjob_agent:
 
     def init_local(self):
         """ initialize free nodes list with dummy (for fork jobs)"""
-        num_cpus = self.get_num_cpus()
-        for i in range(0, num_cpus): 
-            self.freenodes.append("localhost\n")
+        try:
+            num_cpus = self.get_num_cpus()
+            for i in range(0, num_cpus): 
+                self.freenodes.append("localhost\n")
+        except IOError:
+            self.freenodes=["localhost\n"]
 
     def init_sge(self):
         """ initialize free nodes list from SGE environment """

@@ -40,13 +40,13 @@ if __name__ == "__main__":
 
         # submit via mj abstraction
         resource_list = []
-        #resource_list.append( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "re_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
+        #resource_list.append( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
         #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
-        #resource_list.append( {"gram_url" : "fork://localhost/", "number_nodes" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "re_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
-        #                       "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
-        resource_list.append( {"gram_url" : "pbspro://localhost/", "number_nodes" : "2", "processes_per_node":"4", "allocation" : "loni_jhabig12", "queue" : None, "re_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+        resource_list.append( {"resource_url" : "fork://localhost/", "number_nodes" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
                                "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
+        #resource_list.append( {"resource_url" : "pbspro://localhost/", "number_nodes" : "2", "processes_per_node":"4", "allocation" : "loni_jhabig12", "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+        #                       "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
 
         print "Create manyjob service "
