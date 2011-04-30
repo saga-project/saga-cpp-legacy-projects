@@ -31,6 +31,8 @@
 % This is now the recommended way for checking for PDFLaTeX:
 \usepackage{ifpdf}
 
+\usepackage{url}
+
 %\newif\ifpdf
 %\ifx\pdfoutput\undefined
 %\pdffalse % we are not running PDFLaTeX
@@ -107,7 +109,9 @@ supports a wide range of application types, and is usable over a broad range
 of infrastructures, i.e., it is general-purpose and extensible, and as we will
 argue is also interoperable with Clouds.
 
-\msnote{regarding SAGA-based, is it really SAGA based, or rather an extension?}
+\msnote{regarding SAGA-based, is it really SAGA based, or rather an 
+extension?}\alnote{The implementation utilizes SAGA, but it is not a really a 
+SAGA extension yet - there is not even a draft for a spec extension yet}
 
 \msnote{why the explicit mentioning of clouds while in the same sentence there is referred to a "broad range of infrastructures"}
 
@@ -117,17 +121,32 @@ Distributed systems are inherently dynamic: resources can suddenly fail or
 new resources can become available at any time. Generally there are two types
 of dynamism.
 \begin{itemize}
-	\item Resource Dynamics
-	\item Application Dynamics
+    \item \textbf{Resource dynamism:} Distributed systems are inherently dynamic
+     -- resources can become available or fail at any time. The same holds for
+      network connections.
+	\item \textbf{Application dynamism} describes the requirement of many
+applications to support dynamic resource requirements. An example are
+applications whose execution time resource requirements cannot be determined
+exactly in advance (either due to changes in runtime requirements) or those that
+are dependent on dynamic data (e. g. sensor, in-transit or variable source/sink
+of data).
 \end{itemize}
 
-\alnote{from Adaptive Repex paper}
-The real power of distributed systems, however, arises from adaptive algorithms and
-implementations that provide applications with an agile execution model,
-and thus the ability to use resources dynamically as opposed to a static execution
+Further things to consider:
+\begin{itemize}
+    \item dynamic scheduling
+    \item dynamic task placement
+    \item autonomic behaviors: Monitoring of the system/application state and 
+    adaptations of the application and/or resources to respond to changing 
+    requirements or environment.
+\end{itemize}
+
+The real power of distributed systems, however, arises from adaptive algorithms
+and implementations that provide applications with an agile execution model, and
+thus the ability to use resources dynamically as opposed to a static execution
 model inherited from parallel and cluster computing
 
-\msnote{What paper is this referring to? I disagree btw, the real power does not arise from adaptive algorithms and implementations, instead, the power can only be fully exploited by using those.}
+\msnote{What paper is this referring to? I disagree btw, the real power does not arise from adaptive algorithms and implementations, instead, the power can only be fully exploited by using those.}\alnote{\url{http://www.cct.lsu.edu/~sjha/select_publications/adaptive_repex_ptrsa.pdf}}
 
 \subsection{Definitions}
 
@@ -214,10 +233,11 @@ data.
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
 	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic and inherently prone to failures and thus unreliable. To deal with failures, systems can deploy strategies, such as automatic resubmission etc.
 	\item \textbf{Resource abstraction:} SAGA vs. GANGA
-	\msnote{Whats this comparison aiming at?}
+	\msnote{Whats this comparison aiming at?} \alnote{This is not a really 
+	defining characteristic. But, since we are talking about abstractions, I 
+	thought it might be useful to describe how resources are accessed.}
 	\item \textbf{End-user abstraction:} BigJob API
 	\item Task scheduling and prioritization
-
 	\begin{itemize}
 	 			\item Policies and Algorithms
 	 			\item What attributes are required?
@@ -230,6 +250,28 @@ data.
 	\item Security
 \end{itemize}
 
+\alnote{Comments from call (24/04/2011):
+\begin{itemize}
+	\item Decision on the resources where the BigJob is submitted to
+	\item HTC it is quite common that you no knowledge about resources
+	\item push/pull for task not for agent
+	\item ManyJob: agent being pushed, task being pulled (agent notify master when active)
+	\item Marc: Data intensive also become more memory intensive - decoupling of core and worker needed
+	\item Further defining task binding: late binding vs. early vs. partial binding	
+	\item Sharath: Establish cloud vs. grid BigJob
+	\item Affinity does not arise in the static BigJob - should remain just in dynamic
+	\item Multiple BigJob instead of ManyJob?
+\end{itemize}
+Call (27/04/2011)
+\begin{itemize}
+	\item module for adaptive data, adaptive scheduling    
+\end{itemize}
+}
+
+\section{PilotJob Implementations}
+
+Table~\ref{tab:pilotjob_overview} gives an overview of different pilot-job
+implementations and their characteristics.
 
 \begin{table}[t]
 \begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
@@ -265,10 +307,9 @@ data.
 	\hline
 \end{tabular}
 \caption{Characteristics of Pilot-Job Implementations According 
-		to Defined Vectors}
+		to Defined Vectors} \label{tab:pilotjob_overview}
 \end{table}		
-\alnote{Sharath: I removed some of the details from the table e.g. how the 
-manyjobs binds sub-jobs to bigjobs - we must discuss this in text.}
+
 		
 \vspace{10 mm}
 
@@ -293,24 +334,37 @@ MPI &yes &yes\\
 \hline
 Advanced Scheduling &no &yes\\
 \hline
-Dynamic VOs &no &yes\\
+Dynamic Resources &no &yes\\
 \hline
 API for Agent Submission &yes &no\\
 \hline
 \end{tabular}
 
-\msnote{Whats VO in this context?}
+\msnote{Whats VO in this context?}\alnote{Suppose to describes the capability to dynamically add/remove resource from/to a BigJob}
 
 
+\subsection{SAGA BigJob}
+
+\begin{figure}[t]
+    \centering
+        \includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{BigJob API and Implementation}
+    \label{fig:figures_distributed_pilot_job}
+\end{figure}
+
+BigJob comprises of an API (see Figure~\ref{fig:figures_distributed_pilot_job}
+and section~\ref{sec:api}) and various resource-specific implementations of the
+API. The SAGA-based Pilot-Job is the reference implementation of the BigJob API.
+It supports a wide range of application types, and is usable over a broad range
+of infrastructures, i.\,e.\ it is general-purpose and extensible.
 
 
+\subsection{BigJob for Cloud Computing}
 
-\textbf{Extensions}
-\begin{itemize}
-    \item Dynamic VOs: adding new BigJobs to a ManyJob at runtime
-    \item new backends
-\end{itemize}
-
+BigJob provides support for various cloud computing environment. The SAGA BigJob
+implementation can be used in conjunction with the AWS adaptor for SAGA to run
+on EC2-based cloud infrastructures, such as FutureGrid. However, there are some 
+limitations:...
 
 \textbf{Difference between Bigjob and Bigjob Cloud:} 
 
@@ -322,7 +376,7 @@ API for Agent Submission &yes &no\\
 \end{itemize}	
 
 
-
+\subsection{Dynamic BigJob}
 
 \textbf{SAGA-ManyJob}:
 It uses SAGA BigJob approach to start multiple BigJobs agents 
@@ -332,22 +386,98 @@ service and run the possible subjobs concurrently or in generations.
 
 
 
-\textbf{SAGA-ManyJob-Affinity}:
+\textbf{Dynamic BigJob with Affinity Support}:
 This implementation is similar to SAGA-ManyJob except that we define affinity for each resource and also define affinity for the tasks. Therefor binding between tasks and resource occur while submitting the jobs.
 \msnote{How do we define that affinity?}
 
 This approach is well suited when utilizing wide variety of infrastructure/resources where parameters for the application will change according to the file paths/environment variables etc.. for each resource
 
+\subsection{Extensions}
 
+\subsubsection{Dynamically Resource Management}
 
-\section{Pilot Data / Store}
-\noindent
-Scenarios:
+To address to the dynamic resource requirements of applications the ability to
+dynamically add and remove resources to a BigJob. The proposed API consists of
+two parts, the resource management and the resource introspection part:
 \begin{itemize}
-	\item Acquire data sources (advanced reservation, place holder)
-	\item Virtual destination: dynamically mapping of data to pilot stores
+    \item \texttt{add\_resource()}: New resources are added by starting a new
+    big-job.
+    \item \texttt{remove\_resource(bigjob)}: Removes the big-job from the
+    resources.
+\end{itemize}
+
+Higher-level wrappers that encapsulate e.\,g.\ the specific resource
+descriptions can be implement. Further, to implement this dynamic resource
+capabilities it is necessary to provide different dynamic resource introspection
+in the dynamic big-job layer:
+\begin{itemize}
+    \item \texttt{get\_bigjobs}: returns a list of managed big-job objects. Each
+big-job object can be queried for it's allocated resources (number nodes, number
+cores).
+\end{itemize}
+
+
+\subsubsection{Dynamic Scheduling}
+
+describe the benefits of de-central decision making 
+
+autonomic capabilities
+
+
+\subsubsection{Data-/Compute-Affinities}
+
+
+
+
+\section{Pilot Data and Store}
+
+Pilot Data is a set of abstractions for expressing data localities and
+affinities. Pilot Data can be used to create groups of file that are always used
+together. This concept originates in
+Filecules~\cite{Doraimani:2008:FGS:1383422.1383429} Pilot Data provides a set of
+basic operations on top of these file groups Pilot Store: A container that
+represents a logical group of physical files that share the same affinity.
+
+Pilot Store Containers can be used to express data-data abstractions. 
+Abstraction supports basic management tasks (create, delete, update,
+move, list). 
+
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.8\textwidth]{figures/pilotstore.pdf}
+    \caption{Pilot Data and Store Overview}
+    \label{fig:figures_pilotstore}
+\end{figure}
+
+
+
+\subsection{Overview}
+
+The Pilot Data abstraction serves the following needs:
+\begin{itemize}
+	\item Reservation of physical disk space: acquisition of data storage (advanced reservation, place holder)
+	\item Virtual destination: dynamically mapping of data to pilot stores.
 	\item Runtime environment for $\alpha$ based data
 \end{itemize}
+
+The pilot data abstraction provides two kinds of abstractions (see Figure~\ref{fig:figures_ps-instantiation}):
+\begin{itemize}
+    \item Pilot Data: Allows the logical grouping of files and the expression of data-data affinities.
+    
+    \item Pilot Store: Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
+\end{itemize}
+
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.6\textwidth]{figures/ps-instantiation.pdf}
+    \caption{Level of Abstractions - Resource Binding}
+    \label{fig:figures_ps-instantiation}
+\end{figure}
+
+
+
 	
 \noindent	
 Dynamic data:
@@ -368,7 +498,7 @@ Analogies with Pilot-Job:
 	\item $g^{2} (PS_i) \rightarrow R_i$
 \end{itemize}
 
-\subsection{BitDew}
+\subsection{Related Work: BitDew}
 \msnote{Interesting, didn't know it, does our group has experience with it?}
 
 Random Notes
@@ -396,13 +526,31 @@ How to evolve pilot data/store?
 	\end{itemize}
 \end{itemize}
 
-questions:
+Questions:
 \begin{itemize}
     \item How should
     we store data in order to effectively cope with non-uniform demand for
     data? 
     \item How many copies of popular data objects do we need? 
     \item Where should we store them for effective load balancing?
+\end{itemize}
+
+\subsection{TODO/Future Work}
+The current framework provides building blocks for expressing data localities and operation on file groups (similar to filecules).
+
+Limitations:
+\begin{itemize}
+    \item No active agent that monitors state of files
+    \item No placement policy support or autonomic behavior
+    \item Infrastructures generally expose insufficient locality/topology information
+    \item Compute – Data Affinity: Dynamic BigJob with affinity only provides a very coarse-grained affinity
+    \item No policy for what’s happening if data is not available in right location:
+    \begin{itemize}
+        \item Run anyways – affinity is just an hint
+    \end{itemize}
+    \item When to move pilot stores? Move or copy?
+    \item Move data to compute or visa versa?
+    \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
 \end{itemize}
 
 \section{Pilot-Job and Pilot-Store as Runtime Environment for MR}
@@ -443,7 +591,24 @@ other parameters:
 
 \end{itemize}
 
-\section{API}
+\section{BigJob API}
+\label{sec:api}
+\subsection{Resource Specification}
+
+
+\begin{verbatim}
+{
+    "resource_url" : "pbspro://localhost/", 
+    "number_nodes" : "2", 
+    "processes_per_node":"4", 
+    "allocation" : "loni_xyz", 
+    "queue" : None, 
+    "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+    "working_directory": (os.getcwd() + "/agent"), 
+    "walltime":3600 
+}
+\end{verbatim}
+
 
 \subsection{class: bigjob}
 
