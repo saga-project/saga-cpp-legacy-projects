@@ -23,7 +23,7 @@ sys.path.append("..")
 import many_job
 
 BIGJOB_HOME= os.getcwd() + "/../"
-NUMBER_JOBS=64
+NUMBER_JOBS=8
 
 def has_finished(state):
         state = state.lower()
@@ -39,15 +39,20 @@ if __name__ == "__main__":
         starttime=time.time()
 
         # submit via mj abstraction
+        resource_dictionary = {"resource_url" : "fork://localhost/", "number_nodes" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+                               "working_directory": (os.getcwd() + "/agent"), "walltime":3600 }
         resource_list = []
         #resource_list.append( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
         #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
-        resource_list.append( {"resource_url" : "fork://localhost/", "number_nodes" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
-                               "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
+        resource_list.append(resource_dictionary)
         #resource_list.append( {"resource_url" : "pbspro://localhost/", "number_nodes" : "2", "processes_per_node":"4", "allocation" : "loni_jhabig12", "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
         #                       "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
+        #Flags for controlling dynamic BigJob
+        add_additional_resources=True
+        remove_additional_resources=True
+        
 
         print "Create manyjob service "
         mjs = many_job.many_job_service(resource_list, "localhost")
@@ -90,7 +95,22 @@ if __name__ == "__main__":
                 if has_finished(state)==True:
                      finish_counter = finish_counter + 1
                 job_states[jobs[i]]=state
-
+                
+            # Dynamic BigJob add resources at runtime
+            # if more than 30 s - add additional resource
+            if time.time()-starttime > 10 and add_additional_resources==True:
+                print "***add additional resources***"
+                mjs.add_resource(resource_dictionary)
+                add_additional_resources=False  
+                
+            # remove resources from dynamic bigjob
+            if (time.time()-starttime > 15 and remove_additional_resources==True):
+                bj_list = mjs.get_resources()
+                if len(bj_list)>0:
+                    print "***remove resources: " + str(bj_list[0])
+                    mjs.remove_resource(bj_list[0])
+                remove_additional_resources=False
+                
             print "Current states: " + str(result_map) 
             time.sleep(5)
             if finish_counter == NUMBER_JOBS:

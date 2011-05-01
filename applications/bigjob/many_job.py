@@ -22,6 +22,7 @@ import logging
 import time
 import math
 import operator
+import copy
 
 # Log everything, and send it to stderr.
 logging.basicConfig(level=logging.DEBUG)
@@ -44,7 +45,7 @@ class many_job_service(object):
 
         # list of resource dicts (1 dict per resource) 
         # will also store state of bigjob
-        self.bigjob_list=bigjob_list 
+        self.bigjob_list=copy.deepcopy(bigjob_list) 
        
         # state variable storing state of sub-jobs 
         self.active_subjob_list = []
@@ -69,34 +70,72 @@ class many_job_service(object):
         """ start on specified resources a bigjob """
         self.bigjob_list = self.schedule_bigjobs()
         for i in self.bigjob_list:
-            gram_url = i["resource_url"]
-            logging.debug("start bigjob at: " + gram_url)
-            bj = bigjob.bigjob(self.advert_host)
-            ppn="1"
-            if ("processes_per_node" in i):
-                ppn=i["processes_per_node"]
-            else:
-                i["processes_per_node"]="1"
-            bj.start_pilot_job(gram_url,
-                                    i["bigjob_agent"],
-                                    i["number_nodes"],
-                                    i["queue"],
-                                    i["allocation"],
-                                    i["working_directory"], 
-                                    None,
-                                    i["walltime"],
-                                    ppn)
-            i["bigjob"]=bj # store bigjob for later reference in dict
-            i["free_cores"]=int(i["number_nodes"])*int(ppn)
-            # lock for modifying the number of free nodes
-            i["lock"] = threading.Lock()
+            self.start_bigjob(i)
 
 
-    def add_bigjob(self, resource_dictionary):
-        pass
+    def start_bigjob(self, bj_dict):
+        """ private method - starts a bigjob on the defined resource """
+        gram_url = bj_dict["resource_url"]
+        logging.debug("start bigjob at: " + gram_url)
+        bj = bigjob.bigjob(self.advert_host)
+        ppn="1"
+        if ("processes_per_node" in bj_dict):
+            ppn=bj_dict["processes_per_node"]
+        else:
+            bj_dict["processes_per_node"]="1"
+        bj.start_pilot_job(gram_url,
+                           bj_dict["bigjob_agent"],
+                           bj_dict["number_nodes"],
+                           bj_dict["queue"],
+                           bj_dict["allocation"],
+                           bj_dict["working_directory"], 
+                           None,
+                           bj_dict["walltime"],
+                           ppn)
+        bj_dict["bigjob"]=bj # store bigjob for later reference in dict
+        bj_dict["free_cores"]=int(bj_dict["number_nodes"])*int(ppn)
+        bj_dict["to_be_terminated"]=False
+        # lock for modifying the number of free nodes
+        bj_dict["lock"] = threading.Lock()
+
+    def add_resource(self, resource_dictionary):
+        """ adds bigjob described in resource_dictionary to resources """
+        dict = copy.deepcopy(resource_dictionary);
+        self.start_bigjob(dict)
+        self.bigjob_list.append(dict)
+        
     
-    def remove_bigjob(self, bigjob):
-        pass
+    def remove_resource(self, bigjob):
+        """ remove bigjob from resource list of manyjob """
+        # mark bigjob for termination (after all sub-jobs in bj are 
+        # finished        
+        bigjob["to_be_terminated"]=True
+        
+ 
+    def cleanup_resources(self):
+        """ called periodically from scheduling thread
+            terminates big-jobs which are marked and don't have 
+            any running sub-jobs
+        """
+        # iterate over copy of list, but remove from orig list
+        for i in self.bigjob_list[:]:
+            if i["to_be_terminated"]==True:
+                bj = i["bigjob"]
+                total_cores = int(i["processes_per_node"])*int(i["number_nodes"])
+                if  i["free_cores"]==total_cores and not i.has_key("bj_stopped"):
+                    logging.debug("***Stop BigJob: " + str(bj.pilot_url))
+                    # release resources of pilot job
+                    bj.stop_pilot_job()
+                    i["bj_stopped"]=True
+                    #self.bigjob_list.remove(i)
+
+    
+    def get_resources(self):
+        """ returns list with bigjob dictionaries
+            for each managed bigjob 1 dictionary exists 
+        """
+        return self.bigjob_list
+
 
     def schedule_bigjobs(self):
         """ prioritizes bigjob_list (bigjob with shortest expected delay will have index 0) """
@@ -145,8 +184,11 @@ class many_job_service(object):
             free_cores = i["free_cores"]
             bigjob_url = bigjob.pilot_url
             state = bigjob.get_state_detail()
-            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" + str(int(i["processes_per_node"])*int(i["number_nodes"])) + " State: " + state)
-            if state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes):
+            logging.debug("Big Job: " + bigjob_url + " Cores: " + "%s"%free_cores + "/" 
+                          + str(int(i["processes_per_node"])*int(i["number_nodes"])) 
+                          + " State: " + state + " Terminated: " + str(i["to_be_terminated"]))
+            if (state.lower() == "running" and free_cores >= int(subjob.job_description.number_of_processes) 
+                and i["to_be_terminated"]==False):
                 free_cores = i["free_cores"]
                 free_cores = free_cores - int(subjob.job_description.number_of_processes)
                 i["free_cores"]=free_cores
@@ -159,6 +201,8 @@ class many_job_service(object):
         self.subjob_queue.put(subjob)
         logging.debug("found no active resource for sub-job => (re-) queue it")
         return None        
+
+    
 
     def free_resources(self, subjob):
         """free resources taken by subjob"""
@@ -178,8 +222,10 @@ class many_job_service(object):
         """ periodically checks subjob_queue for unscheduled subjobs
             if a unscheduled job exists it is scheduled
         """
+        
         while True and self.stop.isSet()==False:
             logging.debug("Reschedule Thread")
+            self.cleanup_resources()
             subjob = self.subjob_queue.get()  
             # check whether this is a real subjob object  
             if isinstance(subjob, sub_job):
@@ -193,7 +239,8 @@ class many_job_service(object):
     def get_free_cores(self, bigjob):
         """ return number of free cores if bigjob is active """
         #pdb.set_trace()
-        if bigjob["bigjob"].get_state_detail().lower()=="running":
+        if (bigjob["bigjob"].get_state_detail().lower()=="running" 
+            and bigjob["to_be_terminated"]==False):
             return bigjob["free_cores"]
 
         return 0            
@@ -201,9 +248,12 @@ class many_job_service(object):
     def get_total_free_cores(self):
         """ get's the total number of free cores from all active  bigjobs """
         free_cores = map(self.get_free_cores, self.bigjob_list)
-        total_free_cores = reduce(lambda x, y: x + y, free_cores)
-        logging.debug("free_cores: " + str(free_cores) + " total_free_cores: " + str(total_free_cores))
-        return total_free_cores
+        #print "Free cores: " + str(free_cores)
+        if len(free_cores)>0:
+            total_free_cores = reduce(lambda x, y: x + y, free_cores)
+            logging.debug("free_cores: " + str(free_cores) + " total_free_cores: " + str(total_free_cores))
+            return total_free_cores
+        return 0
 
     def cancel(self):
         logging.debug("Cancel re-scheduler thread")

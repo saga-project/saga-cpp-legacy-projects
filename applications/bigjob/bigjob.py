@@ -88,6 +88,7 @@ class bigjob(api.base.bigjob):
         self.pilot_dir = saga.advert.directory(saga.url(self.pilot_url), saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         # application level state since globus adaptor does not support state detail
         self.pilot_dir.set_attribute("state", str(saga.job.Unknown)) 
+        self.pilot_dir.set_attribute("stopped", "false")
         logging.debug("set pilot state to: " + self.pilot_dir.get_attribute("state"))
         self.number_nodes=int(number_nodes)        
  
@@ -120,7 +121,7 @@ class bigjob(api.base.bigjob):
         jd.error = "stderr-bigjob_agent-" + str(self.uuid) + ".txt"
            
         # Submit job
-	js = None	
+        js = None	
         if userproxy != None and userproxy != '':
       	    s = saga.session()
             os.environ["X509_USER_PROXY"]=userproxy
@@ -169,6 +170,16 @@ class bigjob(api.base.bigjob):
                 number_used_nodes=number_used_nodes + int(job_np)
         return (self.number_nodes - number_used_nodes)
 
+    
+    def stop_pilot_job(self):
+        """ mark in advert directory of pilot-job as stopped """
+        try:
+            #self.app_dir.change_dir("..")
+            print "stop pilot job: " + str(self.app_url)
+            self.pilot_dir.set_attribute("stopped", "true")
+        except:
+            pass
+    
     def cancel(self):        
         """ duck typing for cancel of saga.cpr.job and saga.job.job  """
         print "Cancel Pilot Job"

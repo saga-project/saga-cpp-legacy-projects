@@ -428,7 +428,9 @@ class bigjob_agent:
                         i.set_attribute("state", str(saga.job.Failed))
     
     def print_job(self, job_dir):
-        return  "Job: " + job_dir.get_url().get_string() + " Working Dir: " + job_dir.get_attribute("WorkingDirectory") + " Excutable: " + job_dir.get_attribute("Executable")
+        return  ("Job: " + job_dir.get_url().get_string() + " Working Dir: " 
+                 + job_dir.get_attribute("WorkingDirectory") 
+                 + " Excutable: " + job_dir.get_attribute("Executable"))
                                 
     def monitor_checkpoints(self):
         """ parses all job working directories and registers files with Migol via SAGA/CPR """
@@ -466,7 +468,7 @@ class bigjob_agent:
         print "##################################### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
         while True and self.stop==False:
-            if self.base_dir.exists(self.base_url) == False:
+            if self.base_dir.exists(self.base_url) == False or self.base_dir.get_attribute("stopped")=="true":
                 print "Job dir deleted - terminate agent"
                 break
             else:
