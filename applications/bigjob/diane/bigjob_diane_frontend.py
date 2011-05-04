@@ -78,9 +78,6 @@ class subjob(api.base.subjob):
         p2.stdout.close()  # Allow p2 to receive a SIGPIPE if p2 exits.
         p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
         self.rundir = p3.communicate()[0].strip()
-        p3.close()
-        p2.close()
-        p1.close()
 
         print 'Rundir:', self.rundir
     
