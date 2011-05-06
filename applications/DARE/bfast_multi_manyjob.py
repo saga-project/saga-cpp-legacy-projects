@@ -8,7 +8,6 @@ import time
 import pdb
 import os
 import traceback
-import bigjob
 import logging
 import many_job
 import ConfigParser
