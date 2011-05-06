@@ -112,7 +112,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             elif job_type == "matches":
                 jd.arguments = ["match",  
                                 "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgnome) , 
-                                "-A",  "1",
+                                "-A", encoding_space, 
                                 "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
                                 #"-r",  "%s/reads.%s.%s.fastq"%(bfast_reads_dir[affinity], bfast_uuid, i+1),
                                 "-n" ,"8" ,
@@ -124,7 +124,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             elif job_type == "localalign":
                 jd.arguments = ["localalign", 
                                 "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgnome),
-                                "-A", "1",
+                                "-A", encoding_space,
                                 #"-m", "%s/bfast.matches.file.%s.%s.bmf"%(bfast_matches_dir[affinity],refgnome,i+1),
                                 "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],bfast_uuid,refgnome,i+1),
                                 #">", "%s/bfast.aligned.file.%s.%s.baf" %(bfast_localalign_dir[affinity],refgnome,i+1)]
@@ -133,7 +133,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             elif job_type == "postprocess":
                 jd.arguments = ["postprocess",
                                 "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgnome),
-                                "-A",  "1" ,
+                                "-A",  encoding_space,
                                 #"-i", "%s/bfast.aligned.file.%s.%s.baf" %(bfast_localalign_dir[affinity],refgnome,i+1), 
                                 "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],bfast_uuid,refgnome,i+1),
                                 #">", "%s/bfast.postprocess.file.%s.%s.sam" %(bfast_postprocess_dir[affinity],refgnome,i+1)]
@@ -215,6 +215,7 @@ if __name__ == "__main__":
     config = initialize(job_conf)
     
     refgnome = config.get('Bfast', 'refgnome')
+    encoding_space = config.get('Bfast', 'encoding_space')
     job_id = config.get('Bfast', 'job_id')
     machu = config.get('Bfast', 'resources_use')
     resources_used = machu.replace(' ','').split(',')    
