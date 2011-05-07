@@ -27,7 +27,7 @@ def get_uuid():
     return wd_uuid
 
 
-class bigjob_diane(api.base.bigjob):
+class bigjob(api.base.bigjob):
        
     def __init__(self, database_host=None):  
         self.pilot_url = "diane://"
@@ -38,7 +38,7 @@ class bigjob_diane(api.base.bigjob):
         os.system("~/proj/bigjob/diane/run_master.sh")
     
     def start_pilot_job(self, 
-                 lrms_url, 
+                 resource_url, 
                  bigjob_agent_executable,
                  number_nodes,
                  queue,
@@ -54,7 +54,8 @@ class bigjob_diane(api.base.bigjob):
         if bigjob_agent_executable is not None:
             print "Agent Executable is specified, but ignoring it!"
 
-        os.system("~/proj/bigjob/diane/submit_worker.sh")
+        os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s" % \
+                (resource_url, working_directory, number_nodes))
                  
          
     def get_state(self):        
