@@ -1,7 +1,5 @@
 #!/usr/bin/env python
 import sys
-sys.path.append("BigJob")
-
 import getopt
 import saga
 import time
