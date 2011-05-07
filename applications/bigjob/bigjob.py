@@ -107,10 +107,10 @@ class bigjob(api.base.bigjob):
         if walltime!=None:
             jd.wall_time_limit=str(walltime)
 
+        # XXX Isn't the working directory about the remote site?
         if working_directory != None:
-            if not os.path.isdir(working_directory):
-                os.mkdir(working_directory)
-            jd.working_directory = working_directory
+        #    if not os.path.isdir(working_directory):
+        #        os.mkdir(working_directory)
             jd.working_directory = working_directory
         else:
             jd.working_directory = "$(HOME)"
