@@ -234,8 +234,8 @@ if __name__ == "__main__":
 
     
     work_dir = []
-    gram_url= []
-    re_agent= []
+    resource_url= []
+    bigjob_agent= []
     allocation= []
     queue = []
     processors_per_node = []
@@ -253,8 +253,8 @@ if __name__ == "__main__":
            resource_proxy.append(None)
         else:
            resource_proxy.append(config.get(resource, 'RESOURCE_proxy'))
-        gram_url.append(config.get(resource, 'gram_url')) 
-        re_agent.append(config.get(resource, 're_agent'))
+        resource_url.append(config.get(resource, 'resource_url')) 
+        bigjob_agent.append(config.get(resource, 'bigjob_agent'))
         allocation.append(config.get(resource, 'allocation'))
         queue.append( config.get(resource, 'queue'))
         processors_per_node.append(config.get(resource, 'processors_per_node'))
@@ -331,13 +331,20 @@ if __name__ == "__main__":
             k=0
             if (cnnc*crjc%cppn !=0):
                k =1
-            coress = cppn * (cnnc*crjc/cppn +k ) 
+            number_nodes = cppn * (cnnc*crjc/cppn +k ) 
             print bfast_num_cores[i],"vhjghjm", resources_job_count[i]           
-            resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
-                                   "number_cores" : str(coress), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
-                                   "queue" : queue[i], "re_agent": re_agent[i], "userproxy": resource_proxy[i], "working_directory": work_dir[i]})
+            resource_list[i].append({ \
+                    "resource_url" : resource_url[i], \
+                    "walltime": walltime , \
+                    "number_nodes" : str(number_nodes), \
+                    "processes_per_node" : processors_per_node[i], \
+                    "allocation" : allocation[i], \
+                    "queue" : queue[i], \
+                    "bigjob_agent": bigjob_agent[i], \
+                    "userproxy": resource_proxy[i], \
+                    "working_directory": work_dir[i]})
 
-            logger.info("gram_url" + gram_url[i])
+            logger.info("resource_url" + resource_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
             mjs.append(many_job.many_job_service(resource_list[i], None))
