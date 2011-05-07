@@ -185,7 +185,7 @@ if __name__ == "__main__":
     bfast_reported_dir = []
     jd_executable_bfast = []
     jd_executable_solid2fastq = []
-    processors_per_node = []
+    processes_per_node = []
     machine_proxy = []
     
     #parse adams conf file
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         bfast_num_cores.append(config.getint(machine, 'bfast_num_cores_threads'))
         bfast_localalign_dir.append(config.get(machine, 'bfast_localalign_dir'))
         bfast_reported_dir.append(config.get(machine, 'bfast_reported_dir'))
-        processors_per_node.append(config.get(machine, 'processors_per_node'))
+        processes_per_node.append(config.get(machine, 'processes_per_node'))
     
     
    #parse dare conf file
@@ -250,7 +250,8 @@ if __name__ == "__main__":
         for i in range(0,len(machines_used) ):
             print machine_proxy[i]
             resource_list.append({"gram_url" : gram_url[i], "walltime": "80" ,
-                                   "number_cores" : str(int(16)*2), "processes_per_node":processors_per_node[i],"allocation" : allocation[i],
+                                   "number_cores" : str(int(16)*2),
+                                   "processes_per_node":processes_per_node[i],"allocation" : allocation[i],
                                    "queue" : queue[i], "re_agent": re_agent[i], "userproxy":machine_proxy[i], "working_directory": work_dir[i], "affinity" : "affinity%s"%(i)})
             logger.info("gram_url" + gram_url[i])
             logger.info("affinity%s"%(i))

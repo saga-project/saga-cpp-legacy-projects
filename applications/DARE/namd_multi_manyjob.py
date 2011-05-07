@@ -195,7 +195,7 @@ if __name__ == "__main__":
     re_agent= []
     allocation= []
     queue = []
-    processors_per_node = []
+    processess_per_node = []
     resource_proxy = []
     ft_name= []
     #parse dare_resource conf file
@@ -214,7 +214,7 @@ if __name__ == "__main__":
         re_agent.append(config.get(resource, 're_agent'))
         allocation.append(config.get(resource, 'allocation'))
         queue.append( config.get(resource, 'queue'))
-        processors_per_node.append(config.get(resource, 'processors_per_node'))
+        processess_per_node.append(config.get(resource, 'processess_per_node'))
         ft_name.append(config.get(resource, 'ft_name'))
         
     #dare_bfast conf file applicatio specific config file
@@ -263,7 +263,7 @@ if __name__ == "__main__":
         for i in range(0,len(resources_used) ):
             
             resource_list.append([])
-            cppn= int(processors_per_node[i]) 
+            cppn= int(processess_per_node[i]) 
             crjc= int(resources_job_count[i])
             cnnc= int(namd_jobs_size[i])
             k=0
@@ -272,7 +272,8 @@ if __name__ == "__main__":
             coress = cppn * (cnnc*crjc/cppn +k ) 
             print namd_jobs_size[i],"vhjghjm", resources_job_count[i]           
             resource_list[i].append({"gram_url" : gram_url[i], "walltime": walltime ,
-                                   "number_cores" : str(coress), "processes_per_node":processors_per_node[i], "allocation" : allocation[i],
+                                   "number_cores" : str(coress),
+                                   "processes_per_node":processess_per_node[i], "allocation" : allocation[i],
                                    "queue" : queue[i], "re_agent": re_agent[i], "userproxy": resource_proxy[i], "working_directory": work_dir[i]})
 
             logger.info("gram_url" + gram_url[i])

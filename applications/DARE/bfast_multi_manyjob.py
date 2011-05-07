@@ -236,7 +236,7 @@ if __name__ == "__main__":
     bigjob_agent= []
     allocation= []
     queue = []
-    processors_per_node = []
+    processes_per_node = []
     resource_proxy = []
     ft_name= []
     #parse dare_resource conf file
@@ -255,7 +255,7 @@ if __name__ == "__main__":
         bigjob_agent.append(config.get(resource, 'bigjob_agent'))
         allocation.append(config.get(resource, 'allocation'))
         queue.append( config.get(resource, 'queue'))
-        processors_per_node.append(config.get(resource, 'processors_per_node'))
+        processes_per_node.append(config.get(resource, 'processes_per_node'))
         ft_name.append(config.get(resource, 'ft_name'))
         
     #dare_bfast conf file applicatio specific config file
@@ -323,7 +323,7 @@ if __name__ == "__main__":
         for i in range(0,len(resources_used) ):
             
             resource_list.append([])
-            cppn= int(processors_per_node[i]) 
+            cppn= int(processes_per_node[i]) 
             crjc= int(resources_job_count[i])
             cnnc= int(bfast_num_cores[i])
             k=0
@@ -335,7 +335,7 @@ if __name__ == "__main__":
                     "resource_url" : resource_url[i], \
                     "walltime": walltime , \
                     "number_nodes" : str(number_nodes), \
-                    "processes_per_node" : processors_per_node[i], \
+                    "processes_per_node" : processes_per_node[i], \
                     "allocation" : allocation[i], \
                     "queue" : queue[i], \
                     "bigjob_agent": bigjob_agent[i], \
