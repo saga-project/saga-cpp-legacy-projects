@@ -180,7 +180,6 @@ if __name__ == "__main__":
 
     dare_uuid = uuid.uuid1()
     
-    #dare_uuid = "371064a4-4e5c-11e0-88e1-d8d385abb2b0"
     # parse conf files
     parser = optparse.OptionParser()    
     parser.add_option("-j", "--job-conf", dest="job_conf", help="job configuration file")
@@ -265,7 +264,7 @@ if __name__ == "__main__":
         if resource.startswith("fgeuca"):
            resource = "fgeuca"        
         bfast_exe.append(config.get(resource, 'bfast_exe'))
-        encoding_space = config.get('Bfast', 'encoding_space')
+        encoding_space = config.get(resource , 'encoding_space')
         bfast_raw_reads_dir.append(config.get(resource, 'bfast_raw_reads_dir'))
         bfast_reads_num.append(config.get(resource, 'bfast_reads_num') )
         bfast_reads_dir.append(config.get(resource, 'bfast_reads_dir') )
@@ -413,7 +412,6 @@ if __name__ == "__main__":
 
         ### run the postprocess step        
         postprocess_starttime = time.time()
-        sub_jobs_submit("postprocess" , "15", "30", "bfast", "2")
         for i in range (0, len(resources_used)):         
             sub_jobs_submit("bfast","postprocess", i , total_number_of_jobs
                            , resources_job_count[i],int(bfast_num_cores[i]))
