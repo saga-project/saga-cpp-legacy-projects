@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 import sys
-import getopt
 import saga
+import getopt
 import time
 import pdb
 import os
@@ -97,26 +97,26 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                                 
             elif job_type == "matches":
                 jd.arguments = ["match",  
-                                "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgnome) , 
+                                "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgenome) , 
                                 "-A", encoding_space, 
                                 "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
                                 "-n" ,"8" ,
                                 "-T" , "%s" %(bfast_tmp_dir[affinity]),
-                                ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgnome,i+1)]  
+                                ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1)]  
 
             elif job_type == "localalign":
                 jd.arguments = ["localalign", 
-                                "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgnome),
+                                "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgenome),
                                 "-A", encoding_space,
-                                "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],dare_uuid,refgnome,i+1),
-                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgnome,i+1)]
+                                "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1),
+                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1)]
                                 
             elif job_type == "postprocess":
                 jd.arguments = ["postprocess",
-                                "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgnome),
+                                "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgenome),
                                 "-A",  encoding_space,
-                                "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgnome,i+1),
-                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgnome,i+1)]     
+                                "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1),
+                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgenome,i+1)]     
             else:
                 jd.arguments = [""]
             
@@ -192,7 +192,7 @@ if __name__ == "__main__":
     job_conf = options.job_conf
     config = initialize(job_conf)
     
-    refgnome = config.get('Bfast', 'refgnome')
+    refgenome = config.get('Bfast', 'refgenome')
     job_id = config.get('Bfast', 'job_id')
     machu = config.get('Bfast', 'resources_use')
     resources_used = machu.replace(' ','').split(',')    
@@ -203,9 +203,9 @@ if __name__ == "__main__":
     machs = config.get('Bfast', 'resources_job_count')
     resources_job_count = machs.replace(' ','').split(',')
     #type of reference genome
-    refgnome = config.get('Bfast', 'refgnome')
+    refgenome = config.get('Bfast', 'refgenome')
     #location of reference genome
-    source_refgnome =config.get('Bfast', 'source_refgnome')
+    source_refgenome =config.get('Bfast', 'source_refgenome')
     source_raw_reads =config.get('Bfast', 'source_raw_reads')
     source_shortreads =config.get('Bfast', 'source_shortreads')
     ##to check whether to run the prepare_read files step?
@@ -243,7 +243,7 @@ if __name__ == "__main__":
         cores_per_node.append(config.get(resource, 'cores_per_node'))
         ft_name.append(config.get(resource, 'ft_name'))
         
-    #dare_bfast conf file applicatio specific config file 
+    #dare_bfast conf file application specific config file 
     bfast_exe = []
     bfast_raw_reads_dir = [] 
     bfast_reads_num = [] 
@@ -286,7 +286,7 @@ if __name__ == "__main__":
 
     logger.info("Job id  is "  + str(job_id) )
     logger.info("Machine used is " + resources_used[0] )
-    logger.info("Reference GNOME " + refgnome)
+    logger.info("Reference GNOME " + refgenome)
        
     try:  
            
@@ -327,22 +327,12 @@ if __name__ == "__main__":
         
         #file transfer step, check if prepare_shortreads parameter is set from job-conf file 
         ### transfer the files index files
-        if not (source_refgnome == "NONE"):       
+        if not (source_refgenome == "NONE"):       
             for i in range(0,len(resources_used) ):
-                file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
-        #tarnsfer raw shortread files
-        if not (reads_refgnome == "NONE"):       
-            for i in range(0,len(resources_used) ):
-                file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])
-                
-        # distribute the prepared files
-        p = 1        
-        if not (source_shortreads == "NONE"):       
-            for i in range(0,len(resources_used) ):
-                for k in range(p,p+resources_job_count[i]):
-                    file_stage(source_shortreads+"%s.%s.fastq"%(shortreads_name,k)
-                               , ft_name[i]+bfast_reads_dir[i])     
-                p = p + resources_job_count[i]        
+                file_stage("file://%s"%(source_refgenome), ft_name[i]+bfast_ref_genome_dir[i])        
+        #tarnsfer raw shortread files to first resource mentioned since it is enough to prepare short reads on resource
+        if not (source_raw_reads == "NONE"):       
+            file_stage("file://" + source_shortreads, ft_name[0]+bfast_reads_dir[0])                    
           
         if (prepare_shortreads == "true"):          
             prep_reads_starttime = time.time
@@ -364,17 +354,21 @@ if __name__ == "__main__":
             f = open(r'%s/logfiles/out.%s.txt'%(cwd, dare_uuid))
             num_reads=f.readline()
             f.close()
-            
-            ### tranfer the prepared read files to other resources
-            if not (source_shortreads == "NONE"):       
+            #assign shortreads directory
+            source_shortreads = ft_name[0]+bfast_reads_dir[affinity] 
+        
+        ### transfer the prepared read files to other resources
+        p=1    
+        if not (source_shortreads == "NONE"):       
                 for i in range(0,len(resources_used) ):
-                    for k in range(p,p+resources_job_count[i]):
+                    for k in range(p,p+int(resources_job_count[i])):
                         file_stage(source_shortreads+"%s.%s.fastq"%(shortreads_name,k)
                                    , ft_name[i]+bfast_reads_dir[i])     
-                    p = p + resources_job_count[i]   
-        
-        ### run the matching step      
+                    p = p + int(resources_job_count[i])
         total_number_of_jobs=0
+        ### run the matching step      
+        
+        #sample sub_jobs_submit for reference
         #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 
         #                 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
         matches_starttime = time.time()
@@ -394,6 +388,7 @@ if __name__ == "__main__":
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )       
         
+        total_number_of_jobs=0
         ### run the local-alignment step
         localalign_starttime = time.time()     
         for i in range (0, len(resources_used)):         
@@ -409,7 +404,7 @@ if __name__ == "__main__":
         
         localalign_runtime = time.time() - localalign_starttime
         logger.info("localalign Runtime: " + str( localalign_runtime) )
-
+        total_number_of_jobs=0
         ### run the postprocess step        
         postprocess_starttime = time.time()
         for i in range (0, len(resources_used)):         
