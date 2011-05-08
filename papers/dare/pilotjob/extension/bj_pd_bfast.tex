@@ -70,15 +70,10 @@
 \fi
 
 
-
-
 \title{BigJob, ManyJob, Pilot-Store, ... -- Abstractions for dynamic ...}
 \author{  }
 
 \date{2011-04-26}
-
-
-
 
 
 \begin{document}
@@ -538,10 +533,6 @@ Pilot Store Containers can be used to express data-data abstractions.
 Abstraction supports basic management tasks (create, delete, update,
 move, list). 
 
-
-
-
-
 \subsection{Overview}
 
 The Pilot Data abstraction serves the following needs:
@@ -549,15 +540,24 @@ The Pilot Data abstraction serves the following needs:
 	\item Reservation of physical disk space: acquisition of data storage (advanced reservation, place holder)
 	\item Virtual destination: dynamically mapping of data to pilot stores.
 	\item Runtime environment for $\alpha$ based data
+	\item Automatic data partitioning and distribution
 \end{itemize}
+
 
 The pilot data abstraction provides two kinds of abstractions (see Figure~\ref{fig:figures_ps-instantiation}):
 \begin{itemize}
-    \item Pilot Data: Allows the logical grouping of files and the expression of data-data affinities.
+    \item Pilot Data: Allows the logical grouping of files and the expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.
     
     \item Pilot Store: Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
 \end{itemize}
 
+
+Figure~\ref{fig:figures_ps-instantiation} describes the differences between
+pilot data object (abstract pilot stores) and pilot stores. A pilot data object
+is a logical container and describes the properties of a group of files. A pilot
+store is a placeholder reserving a certain amount of storage. By associating a
+pilot data object to a pilot store the data is actually moved to the physically
+location managed by the pilot store.
 
 \begin{figure}[htbp]
     \centering
@@ -588,7 +588,69 @@ Analogies with Pilot-Job:
 	\item $g^{2} (PS_i) \rightarrow R_i$
 \end{itemize}
 
-\subsection{Related Work: BitDew}
+\subsection{Pilot Data Architecture}
+
+
+Data placement and locality is the key for a optimal performance of 
+data-intensive applications. The Pilot Data Manager is responsible for 
+optimizing the overall data distributions with respect to the application 
+requirements. The architecture is designed as a \textbf{user-level overlay} on 
+top of existing storage resources.
+
+Figure~\ref{fig:figures_distributed_pilot_job} gives an overview of the
+architecture. The system consists of two components: the pilot data manager and
+the agents deployed on a specific physical storage resource. The manager is
+responsible for 1) meta-data management, i.\,e.\ it keeps track of the pilot
+stores that a pilot data object is associated with and 2) it schedules data
+movements and data replications.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[height=3in]{figures/pilot-data-manager.pdf}
+    \caption{Pilot Data Architecture}
+    \label{fig:figures_distributed_pilot_job}
+\end{figure}
+
+Each pilot store is managed by an agent. The agent can be started manually or 
+using the Pilot Data API. A possible implementation option would be the 
+integration of the PD and BigJob agent, which is particularly useful for 
+managing data-/compute-affinities.
+
+A core part of the data manager is the data scheduler. The scheduler aims for a 
+optimum of data and compute locality for an applications.
+\begin{itemize}
+	\item Move data to compute
+	\item Move computer to data
+	\item Streaming of data
+	\item Data prefetching 
+	\item Replication
+\end{itemize}
+
+
+
+\subsection{Data Movement}
+
+The Pilot Data implementation is based on SAGA and thus, is infrastructure
+independent. It supports all underlying SAGA adaptors (SSHFS, GridFTP) and
+future adaptors such as Globus Online.
+
+Work on optimizing file transfers: Kosar[2011]
+
+Work on reliable file transfer: RFT, Globus Online
+
+\subsection{Client API}
+
+API for applications to distributively access data stored in pilot data groups.
+
+\subsection{Related Work}
+
+\subsubsection{iRods}
+
+
+\subsubsection{Stork}
+
+
+\subsubsection{BitDew}
 \msnote{Interesting, didn't know it, does our group has experience with it?}
 
 Random Notes
@@ -644,7 +706,25 @@ Limitations:
 \end{itemize}
 
 \section{Pilot-Job and Pilot-Store as Runtime Environment for MR}
-...
+
+MapReduce applications can be classified as follows~\cite{weissman2011,ramakrishnan2011}:
+\begin{itemize}
+    \item Data-intensive applications show a significant higher I/O rate in proportion to the used CPU cycles. Such applications can be well described using Amdahl's number~\cite{gray2000}. Another characteristic particular useful for MapReduce is the data aggregation and flow through the system:
+        \begin{itemize}
+            \item High aggregation: The output of the MapReduce job is significant smaller than the input.
+            \item Zero Aggregation: The MapReduce output is the same as the 
+            input.
+            \item Ballooning data: The output is larger than the input.
+        \end{itemize}
+    \item Compute-intensive applications are dominated by CPU cycles. Input 
+    files are usually small and thus, I/O is not an issue.
+    \item Memory-intensive require that a significant amount of data is load
+    into the memory, which is usually the case for computer- and data-intensive 
+    applications.
+\end{itemize}
+Further characteristics of data-intensive applications refer to~\cite{jha2011}.
+
+
 Scenarios:
 \begin{itemize}
 	\item 1 BJ 16 core 1 machine
@@ -652,13 +732,24 @@ Scenarios:
 	\item 2 BJ 8 cores - 2 machines
 \end{itemize}
 
-other parameters:
+
+
+Other parameters:
 \begin{itemize}
 	\item placement of data
 	\item cloud
 \end{itemize}
 
 \section{BFast Scenario for Dynamic Data}
+
+According to this defined characteristics for data-intensive applications, BFAST can be classified as follows:
+\begin{itemize}
+    \item Data-Intensive: see ECLMS paper
+    \item Compute-intensive: A significant amount of computing is required.
+    \item Memory-intensive: The management of the memory is critical since BFAST 
+    is doing a significant amount of computing on data in the main memory.
+\end{itemize}
+
 
 \textbf{Types of Input Files:}
 \begin{itemize}
@@ -673,11 +764,19 @@ other parameters:
 \noindent
 \textbf{Dynamic Scenarios:}
 \begin{itemize}
-	\item moving generated short-read data to available resources
+	\item Moving generated short-read data to available resources. Transfer only 
+	read file for resource 1 to resource 1.
+	\begin{itemize}
+	   \item group read files and transfer read files to vm. e.g. 4 read files for a 4 core VM
+	   \item use replication?
+	\end{itemize}
 	
-	\item support processing of n experiments 
+	
+	\item Support processing of n experiments 
 
-	\item re-partition of tasks to a larger number of available cores (dynamic data that needs to re-generated as a consequence that there are new compute elements available)
+	\item re-partition of tasks to a larger number of available cores (dynamic 
+	data that needs to re-generated as a consequence that there are new compute 
+	elements available)
 
 \end{itemize}
 
