@@ -30,33 +30,14 @@ def has_finished(state):
             return True
         else:
             return False
-
-def globus_file_stage(source_url, dest_url):
-
-    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
-    try:
-        cmd = "globus-url-copy  -cd  %s %s"%(source_url, dest_url)
-        os.system(cmd)
-    except saga.exception, e:
-        error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
-    return None
-
-def cloud_file_stage(source_url, dest_url):
-
-    print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
-
-    try:
-        cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
-        os.system(cmd)
-    except saga.exception, e:
-        error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
-    return None
+#transfer files for grids and clouds
 def file_stage(source_url, dest_url):
 
     print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
     if dest_url.startswith("fgeuca"):
         try:
-            cmd = "scp  -r -i /home/cctsg/install/euca/smaddi2.private %s %s"%(source_url, dest_url)
+            #for cloud files
+            cmd = "scp  -r -i /path/to/smaddi2.private %s %s"%(source_url, dest_url)
             os.system(cmd)
         except saga.exception, e:
             error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
@@ -77,7 +58,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
         
         for i in range(subjobs_start, int(number_of_jobs) + int(subjobs_start) ):
 
-            ##pick the executble 
+            ##pick the executble different for preparing read files
             if  jd_executable == "bfast":
                  jd_executable_use = bfast_exe[affinity] + "/bfast"
             elif jd_executable == "solid2fastq":   
@@ -123,18 +104,14 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                 jd.arguments = ["localalign", 
                                 "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgnome),
                                 "-A", encoding_space,
-                                #"-m", "%s/bfast.matches.file.%s.%s.bmf"%(bfast_matches_dir[affinity],refgnome,i+1),
                                 "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],bfast_uuid,refgnome,i+1),
-                                #">", "%s/bfast.aligned.file.%s.%s.baf" %(bfast_localalign_dir[affinity],refgnome,i+1)]
                                 ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],bfast_uuid,refgnome,i+1)]
                                 
             elif job_type == "postprocess":
                 jd.arguments = ["postprocess",
                                 "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgnome),
                                 "-A",  encoding_space,
-                                #"-i", "%s/bfast.aligned.file.%s.%s.baf" %(bfast_localalign_dir[affinity],refgnome,i+1), 
                                 "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],bfast_uuid,refgnome,i+1),
-                                #">", "%s/bfast.postprocess.file.%s.%s.sam" %(bfast_postprocess_dir[affinity],refgnome,i+1)]
                                 ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],bfast_uuid,refgnome,i+1)]     
             else:
                 jd.arguments = [""]
@@ -223,8 +200,9 @@ if __name__ == "__main__":
     # number of simulations to run
     machs = config.get('Bfast', 'resources_job_count')
     resources_job_count = machs.replace(' ','').split(',')
-
+    #type of reference genome
     refgnome = config.get('Bfast', 'refgnome')
+    #location of reference genome
     source_refgnome =config.get('Bfast', 'source_refgnome')
     source_raw_reads =config.get('Bfast', 'source_raw_reads')
     source_shortreads =config.get('Bfast', 'source_shortreads')
@@ -350,10 +328,11 @@ if __name__ == "__main__":
             logger.info("resource_url" + resource_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
+            #create multiple manyjobs should be changed by bfast affinity implementation
             mjs.append(many_job.many_job_service(resource_list[i], None))
        
         """
-        ### transfer the needed files
+        ### transfer the files input files
         if not (source_refgnome == "NONE"):       
             for i in range(0,len(resources_used) ):
                 globus_file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
