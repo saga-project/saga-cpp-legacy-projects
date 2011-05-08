@@ -17,12 +17,12 @@ jobs = []
 job_start_times = {}
 job_states = {}
 
-
+#initialize the conf files
 def initialize(conf_filename):
-    adams_config = ConfigParser.ConfigParser()
-    adams_config.read(conf_filename)
-    sections = adams_config.sections()
-    return adams_config
+    dare_config = ConfigParser.ConfigParser()
+    dare_config.read(conf_filename)
+    sections = dare_config.sections()
+    return dare_config
 
 def has_finished(state):
         state = state.lower()
@@ -30,10 +30,13 @@ def has_finished(state):
             return True
         else:
             return False
-#transfer files for grids and clouds
+            
+# file stager for grids and clouds
+#TODO: should be SAGA based and pilot store
 def file_stage(source_url, dest_url):
 
     print "(DEBUG) Now I am tranferring the files from %s to %s"%(source_url, dest_url)
+    #fgeuca for clouds
     if dest_url.startswith("fgeuca"):
         try:
             #for cloud files
@@ -47,10 +50,15 @@ def file_stage(source_url, dest_url):
             os.system(cmd)
         except saga.exception, e:
             error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
-
-
     return None
 
+# method to submit tasks to based of affinity
+#jd_executable-which executable should be used
+#job_type - of job reads step, matching step etc, to determine the parameters
+#affinity -- the tasks affinity to make sure which one it should bind
+#subjobs_start # the task number which will different for multiple resources/affinities
+#number_of_jobs # number of tasks for particular affinity
+#jd_number_of_processes #processes per task
 
 def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number_of_jobs, jd_number_of_processes):
                                  
@@ -58,7 +66,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
         
         for i in range(subjobs_start, int(number_of_jobs) + int(subjobs_start) ):
 
-            ##pick the executble different for preparing read files
+            #pick the executble different for preparing read files
             if  jd_executable == "bfast":
                  jd_executable_use = bfast_exe[affinity] + "/bfast"
             elif jd_executable == "solid2fastq":   
@@ -75,52 +83,49 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             jd.number_of_processes = str(jd_number_of_processes)
             jd.spmd_variation = "single"
             
-            # choose the job description based on type of job
-
+            # choose the job arguments based on type of job
             if job_type == "reads":
                 jd.arguments = ["-n",  "%s" %(bfast_reads_num[affinity]),  
-                                "-o", "%s/%s.%s" %(bfast_reads_dir[affinity],shortreads_name ,bfast_uuid),
+                                "-o", "%s/%s.%s" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid),
                                  "%s/*.csfasta"%(bfast_raw_reads_dir[affinity]),
                                  "%s/*.qual" %(bfast_raw_reads_dir[affinity])]
                                   
             elif job_type == "count":
-                jd.arguments = [" -altr" , "%s/%s.%s.*" %(bfast_reads_dir[affinity],shortreads_name ,bfast_uuid), 
+                jd.arguments = [" -altr" , "%s/%s.%s.*" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid), 
                                 "|",  "/usr/bin/wc", "-l" , 
-                                ">", "%s/out.%s.txt"%(bfast_raw_reads_dir[affinity], bfast_uuid)]
+                                ">", "%s/out.%s.txt"%(bfast_raw_reads_dir[affinity], dare_uuid)]
                                 
             elif job_type == "matches":
                 jd.arguments = ["match",  
                                 "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgnome) , 
                                 "-A", encoding_space, 
                                 "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
-                                #"-r",  "%s/reads.%s.%s.fastq"%(bfast_reads_dir[affinity], bfast_uuid, i+1),
                                 "-n" ,"8" ,
                                 "-T" , "%s" %(bfast_tmp_dir[affinity]),
-                               # ">" , "%s/bfast.matches.file.%s.%s.bmf" %(bfast_matches_dir[affinity],refgnome,i+1)] 
-                                ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],bfast_uuid,refgnome,i+1)]  
+                                ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgnome,i+1)]  
 
-                                
+                                `
             elif job_type == "localalign":
                 jd.arguments = ["localalign", 
                                 "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgnome),
                                 "-A", encoding_space,
-                                "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],bfast_uuid,refgnome,i+1),
-                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],bfast_uuid,refgnome,i+1)]
+                                "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],dare_uuid,refgnome,i+1),
+                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgnome,i+1)]
                                 
             elif job_type == "postprocess":
                 jd.arguments = ["postprocess",
                                 "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgnome),
                                 "-A",  encoding_space,
-                                "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],bfast_uuid,refgnome,i+1),
-                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],bfast_uuid,refgnome,i+1)]     
+                                "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgnome,i+1),
+                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgnome,i+1)]     
             else:
                 jd.arguments = [""]
             
             #jd.environment = ["affinity=affinity%s"%(affinity)]
             print "affinity%s"%(affinity)
             jd.working_directory = work_dir[affinity]
-            jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(bfast_uuid)+"-"+ str(i) + ".txt")
-            jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(bfast_uuid)+ "-"+str(i) + ".txt")
+            jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(dare_uuid)+"-"+ str(i) + ".txt")
+            jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(dare_uuid)+ "-"+str(i) + ".txt")
             subjob = mjs[int(affinity)].create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."
@@ -171,12 +176,12 @@ def wait_for_jobs(number_of_jobs):
 if __name__ == "__main__":
     config = {}
 
-    #cwd = "/home/cctsg/pylons/DARE-BIOSCOPE/darebioscope/lib/adams/"
+    #get the current working directory
     cwd = os.getcwd()
 
-    bfast_uuid = uuid.uuid1()
+    dare_uuid = uuid.uuid1()
     
-    #bfast_uuid = "371064a4-4e5c-11e0-88e1-d8d385abb2b0"
+    #dare_uuid = "371064a4-4e5c-11e0-88e1-d8d385abb2b0"
     # parse conf files
     parser = optparse.OptionParser()    
     parser.add_option("-j", "--job-conf", dest="job_conf", help="job configuration file")
@@ -278,7 +283,7 @@ if __name__ == "__main__":
         bfast_postprocess_dir.append(config.get(resource, 'bfast_postprocess_dir'))        
         
     
-    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
+    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, dare_uuid))
 
     logger = logging.getLogger('dare_bfast_manyjob')
     hdlr = logging.FileHandler(LOG_FILENAME)
@@ -330,72 +335,56 @@ if __name__ == "__main__":
             print "Create manyjob service "
             #create multiple manyjobs should be changed by bfast affinity implementation
             mjs.append(many_job.many_job_service(resource_list[i], None))
-       
-        """
-        ### transfer the files input files
-        if not (source_refgnome == "NONE"):       
-            for i in range(0,len(resources_used) ):
-                globus_file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
         
+        
+        #file transfer step, check if prepare_shortreads parameter is set from job-conf file 
+        ### transfer the files index files
         if not (source_refgnome == "NONE"):       
             for i in range(0,len(resources_used) ):
-                globus_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
-                        
+                file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
+        #tarnsfer raw shortread files
         if not (reads_refgnome == "NONE"):       
             for i in range(0,len(resources_used) ):
-                globus_file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])     
-
-        ### transfer the needed files
-        if not (source_refgnome == "NONE"):       
-            for i in range(0,len(resources_used) ):
-                cloud_file_stage("file://%s"%(source_refgnome), ft_name[i]+bfast_ref_genome_dir[i])        
-        
-        if not (source_refgnome == "NONE"):       
-            for i in range(0,len(resources_used) ):
-                cloud_file_stage("file://" + source_raw_reads, ft_name[i]+bfast_raw_reads_dir[i])
-        """
+                file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])
+                
+        # distribute the prepared files
         p = 1
         if not (source_shortreads == "NONE"):       
             for i in range(0,len(resources_used) ):
                 for k in range(p,p+4):
-                    cloud_file_stage(source_shortreads+"reads.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
-                p = p +4
+                    file_stage(source_shortreads+"reads.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
+                p = p + 4
 
-        """
-        ####file tramfer step
-        #globus_file_stage(,)
-        if (prepare_shortreads == "true"):
-            
+        
+          
+        if (prepare_shortreads == "true"):          
             prep_reads_starttime = time.time
             ### run the preparing read files step
-            #sub_jobs_submit("new", "2" ,"4","/bin/date", "2") ##dummy job for testing
-            sub_jobs_submit("reads" , "10" ,"1", "solid2fastq", "4")
-            prep_reads_runtime = time.time()-prep_reads_starttime
-            
+            sub_jobs_submit("solid2fastq","reads", 0 , 1 , 1,int(bfast_num_cores[i]))
+            wait_for_jobs(1)
+            prep_reads_runtime = time.time()-prep_reads_starttime          
             logger.info("prepare reads Runtime: " + str( prep_reads_runtime))
               
             # job to get the count of number of read files
-            sub_jobs_submit("count",  "10","1", "/bin/ls", "8")
-       
-            # transfer the files
-            output = saga.filesystem.file("gridftp://eric1.loni.org//%s/out.%s.txt"%(bfast_raw_reads_dir, bfast_uuid))
+            #sub_jobs_submit("count",  "10","1", "/bin/ls", "8")
+            sub_jobs_submit("count","count", 0 , 1 , 1,int(bfast_num_cores[i]))
+            wait_for_jobs(1)
+            
+            # transfer the read file count file
+            output = saga.filesystem.file("gridftp://eric1.loni.org//%s/out.%s.txt"%(bfast_raw_reads_dir, dare_uuid))
             output.copy("file://localhost//%s/dare_files/"%(cwd))        
         
-            f = open(r'%s/logfiles/out.%s.txt'%(cwd, bfast_uuid))
+            f = open(r'%s/logfiles/out.%s.txt'%(cwd, dare_uuid))
             num_reads=f.readline()
             f.close()
             
             ### tranfer the prepared read files to other resources
             for i in range(1,len(resources_used) ):
                 globus_file_stage( ft_name[0] +bfast_reads_dir[0] , ft_name[i]+bfast_reads_dir[i])     
-      
-        """        
+                     
         matches_starttime = time.time()
         
-        ### run the matching step
-        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        #sub_jobs_submit(0, "matches" , "15", "30", "bfast", "2")
-        
+        ### run the matching step      
         total_number_of_jobs=0
         
         #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
