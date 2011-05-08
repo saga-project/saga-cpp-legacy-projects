@@ -235,10 +235,10 @@ if __name__ == "__main__":
         print resource
         
         work_dir.append(config.get(resource, 'work_dir'))
-        if (config.get(resource, 'RESOURCE_proxy') == "NA") :
+        if (config.get(resource, 'resource_proxy') == "NA") :
            resource_proxy.append(None)
         else:
-           resource_proxy.append(config.get(resource, 'RESOURCE_proxy'))
+           resource_proxy.append(config.get(resource, 'resource_proxy'))
         resource_url.append(config.get(resource, 'resource_url')) 
         bigjob_agent.append(config.get(resource, 'bigjob_agent'))
         allocation.append(config.get(resource, 'allocation'))
@@ -246,8 +246,7 @@ if __name__ == "__main__":
         cores_per_node.append(config.get(resource, 'cores_per_node'))
         ft_name.append(config.get(resource, 'ft_name'))
         
-    #dare_bfast conf file applicatio specific config file
-    
+    #dare_bfast conf file applicatio specific config file 
     bfast_exe = []
     bfast_raw_reads_dir = [] 
     bfast_reads_num = [] 
@@ -260,17 +259,13 @@ if __name__ == "__main__":
     bfast_postprocess_dir = []
     jd_executable_bfast = []
     jd_executable_solid2fastq = []
-
-    
     
     config = initialize(resource_app_list)
     
     for resource in resources_used:
+        #affinity based, might be same for group resource, should add more cases(define affinity variable)
         if resource.startswith("fgeuca"):
-           resource = "fgeuca"
-
-        print resource
-        
+           resource = "fgeuca"        
         bfast_exe.append(config.get(resource, 'bfast_exe'))
         bfast_raw_reads_dir.append(config.get(resource, 'bfast_raw_reads_dir'))
         bfast_reads_num.append(config.get(resource, 'bfast_reads_num') )
@@ -280,8 +275,7 @@ if __name__ == "__main__":
         bfast_matches_dir.append(config.get(resource, 'bfast_matches_dir'))
         bfast_num_cores.append(config.getint(resource, 'bfast_num_cores_threads'))
         bfast_localalign_dir.append(config.get(resource, 'bfast_localalign_dir'))
-        bfast_postprocess_dir.append(config.get(resource, 'bfast_postprocess_dir'))        
-        
+        bfast_postprocess_dir.append(config.get(resource, 'bfast_postprocess_dir'))                
     
     LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, dare_uuid))
 
@@ -292,16 +286,12 @@ if __name__ == "__main__":
     logger.addHandler(hdlr)
     logger.setLevel(logging.INFO)
 
-
     logger.info("Job id  is "  + str(job_id) )
     logger.info("Machine used is " + resources_used[0] )
     logger.info("Reference GNOME " + refgnome)
-    
-    
+       
     try:  
-   
-        
-        
+           
         # submit via mj abstraction        
         
         ## start the big job agents
@@ -311,6 +301,7 @@ if __name__ == "__main__":
         for i in range(0,len(resources_used) ):
             
             resource_list.append([])
+            #calculate exact number of cores to request
             ccpn= int(cores_per_node[i]) 
             crjc= int(resources_job_count[i])
             cbnc= int(bfast_num_cores[i])
@@ -318,7 +309,6 @@ if __name__ == "__main__":
             if (cbnc*crjc%ccpn !=0):
                k =1
             number_nodes = ccpn * (cbnc*crjc/ccpn +k ) 
-            print bfast_num_cores[i],"vhjghjm", resources_job_count[i]           
             resource_list[i].append({ \
                     "resource_url" : resource_url[i], \
                     "walltime": walltime , \
@@ -348,30 +338,29 @@ if __name__ == "__main__":
                 file_stage("file://" + source_shortreads, ft_name[i]+bfast_reads_dir[i])
                 
         # distribute the prepared files
-        p = 1
+        p = 1        
         if not (source_shortreads == "NONE"):       
             for i in range(0,len(resources_used) ):
-                for k in range(p,p+4):
-                    file_stage(source_shortreads+"reads.%s.fastq"%(k), ft_name[i]+bfast_reads_dir[i])     
-                p = p + 4
-
-        
+                for k in range(p,p+resources_job_count[i]):
+                    file_stage(source_shortreads+"%s.%s.fastq"%(shortreads_name,k)
+                               , ft_name[i]+bfast_reads_dir[i])     
+                p = p + resources_job_count[i]        
           
         if (prepare_shortreads == "true"):          
             prep_reads_starttime = time.time
-            ### run the preparing read files step
+            #run the preparing read files step
             sub_jobs_submit("solid2fastq","reads", 0 , 1 , 1,int(bfast_num_cores[i]))
             wait_for_jobs(1)
             prep_reads_runtime = time.time()-prep_reads_starttime          
             logger.info("prepare reads Runtime: " + str( prep_reads_runtime))
               
-            # job to get the count of number of read files
-            #sub_jobs_submit("count",  "10","1", "/bin/ls", "8")
+            # job to get the count of number of read files should be used to launch resources
             sub_jobs_submit("count","count", 0 , 1 , 1,int(bfast_num_cores[i]))
             wait_for_jobs(1)
             
-            # transfer the read file count file
-            output = saga.filesystem.file("gridftp://eric1.loni.org//%s/out.%s.txt"%(bfast_raw_reads_dir, dare_uuid))
+            # transfer the read file count file, might not work should debug it first
+            output = saga.filesystem.file("%s/%s/out.%s.txt"%(ft_name[0],bfast_raw_reads_dir[i]
+                                         , dare_uuid))
             output.copy("file://localhost//%s/dare_files/"%(cwd))        
         
             f = open(r'%s/logfiles/out.%s.txt'%(cwd, dare_uuid))
@@ -379,19 +368,22 @@ if __name__ == "__main__":
             f.close()
             
             ### tranfer the prepared read files to other resources
-            for i in range(1,len(resources_used) ):
-                globus_file_stage( ft_name[0] +bfast_reads_dir[0] , ft_name[i]+bfast_reads_dir[i])     
-                     
-        matches_starttime = time.time()
+            if not (source_shortreads == "NONE"):       
+                for i in range(0,len(resources_used) ):
+                    for k in range(p,p+resources_job_count[i]):
+                        file_stage(source_shortreads+"%s.%s.fastq"%(shortreads_name,k)
+                                   , ft_name[i]+bfast_reads_dir[i])     
+                    p = p + resources_job_count[i]   
         
         ### run the matching step      
         total_number_of_jobs=0
-        
-        #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
+        #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 
+        #                 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
+        matches_starttime = time.time()
 
-        for i in range (0, len(resources_used)):
-            
-            sub_jobs_submit("bfast","matches", i , total_number_of_jobs , resources_job_count[i],int(bfast_num_cores[i]))
+        for i in range (0, len(resources_used)):         
+            sub_jobs_submit("bfast","matches", i , total_number_of_jobs 
+                           , resources_job_count[i],int(bfast_num_cores[i]))
             logger.info( " resource " + str(i))
             logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
             logger.info( "resources_job_count " + str(resources_job_count[i]))
@@ -402,27 +394,39 @@ if __name__ == "__main__":
         wait_for_jobs(total_number_of_jobs)
         
         matches_runtime = time.time()-matches_starttime
-        logger.info("Matches Runtime: " + str( matches_runtime) )
+        logger.info("Matches Runtime: " + str( matches_runtime) )       
         
-        """
         ### run the local-alignment step
-        localalign_starttime = time.time()
-        
-        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
-        sub_jobs_submit("localalign" , "15", "30", "bfast", "2")
+        localalign_starttime = time.time()     
+        for i in range (0, len(resources_used)):         
+            sub_jobs_submit("bfast","localalign", i , total_number_of_jobs 
+                           , resources_job_count[i],int(bfast_num_cores[i]))
+            logger.info( "localalign resource " + str(i))
+            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
+            logger.info( "resources_job_count " + str(resources_job_count[i]))
+            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))            
+            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])
 
+        wait_for_jobs(total_number_of_jobs)
+        
         localalign_runtime = time.time() - localalign_starttime
         logger.info("localalign Runtime: " + str( localalign_runtime) )
 
-        postprocess_starttime = time.time()
-
         ### run the postprocess step        
-        #sub_jobs_submit("new", "4", "/bin/date", "2") ##dummy job for testing
+        postprocess_starttime = time.time()
         sub_jobs_submit("postprocess" , "15", "30", "bfast", "2")
-
+        for i in range (0, len(resources_used)):         
+            sub_jobs_submit("bfast","postprocess", i , total_number_of_jobs
+                           , resources_job_count[i],int(bfast_num_cores[i]))
+            logger.info( "postprocess resource " + str(i))
+            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
+            logger.info( "resources_job_count " + str(resources_job_count[i]))
+            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))            
+            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])
+        wait_for_jobs(total_number_of_jobs)
         postprocess_runtime = time.time() - postprocess_starttime
         logger.info("Postporcess Runtime: " + str( postprocess_runtime) )
-        """
+        
         for i in range(0,len(resources_used) ):
             mjs[i].cancel()
 
