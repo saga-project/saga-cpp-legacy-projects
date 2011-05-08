@@ -104,7 +104,6 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                                 "-T" , "%s" %(bfast_tmp_dir[affinity]),
                                 ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgnome,i+1)]  
 
-                                `
             elif job_type == "localalign":
                 jd.arguments = ["localalign", 
                                 "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgnome),
@@ -143,7 +142,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
             logger.info( "jd exec " + jd.executable)
             
  
-        
+#get the number of tasks and wait till they finish 
 def wait_for_jobs(number_of_jobs):               
 
         print "************************ All Jobs submitted ************************" +  str(number_of_jobs)
@@ -195,7 +194,6 @@ if __name__ == "__main__":
     config = initialize(job_conf)
     
     refgnome = config.get('Bfast', 'refgnome')
-    encoding_space = config.get('Bfast', 'encoding_space')
     job_id = config.get('Bfast', 'job_id')
     machu = config.get('Bfast', 'resources_use')
     resources_used = machu.replace(' ','').split(',')    
@@ -267,6 +265,7 @@ if __name__ == "__main__":
         if resource.startswith("fgeuca"):
            resource = "fgeuca"        
         bfast_exe.append(config.get(resource, 'bfast_exe'))
+        encoding_space = config.get('Bfast', 'encoding_space')
         bfast_raw_reads_dir.append(config.get(resource, 'bfast_raw_reads_dir'))
         bfast_reads_num.append(config.get(resource, 'bfast_reads_num') )
         bfast_reads_dir.append(config.get(resource, 'bfast_reads_dir') )
