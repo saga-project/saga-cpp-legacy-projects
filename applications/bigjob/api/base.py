@@ -44,5 +44,5 @@ class subjob(object):
     def get_state(self):        
         pass
     
-    def delete_job(self):
+    def cancel(self):
         pass

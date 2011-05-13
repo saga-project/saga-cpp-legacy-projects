@@ -55,6 +55,13 @@ def get_uuid():
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
 
+class BigJobError(Exception):
+    def __init__(self, value):
+        self.value = value
+    
+    def __str__(self):
+        return repr(self.value)
+
 class bigjob(api.base.bigjob):
     
     def __init__(self, database_host):        
@@ -65,6 +72,7 @@ class bigjob(api.base.bigjob):
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         self.state=saga.job.Unknown
         self.pilot_url=""
+        self.job = None
         print "created advert directory for application: " + self.app_url.get_string()
     
     def start_pilot_job(self, 
@@ -78,7 +86,10 @@ class bigjob(api.base.bigjob):
                  walltime,
                  processes_per_node=1):
         
-
+        
+        if self.job != None:
+            raise BigJobError("One BigJob already active. Please stop BigJob first.") 
+            return
 
 
         #register advert entry
@@ -137,7 +148,7 @@ class bigjob(api.base.bigjob):
         self.job = js.create_job(jd)
         print "Submit pilot job to: " + str(lrms_saga_url)
         self.job.run()
-        return self.job
+        #return self.job
      
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
@@ -177,6 +188,7 @@ class bigjob(api.base.bigjob):
             #self.app_dir.change_dir("..")
             print "stop pilot job: " + str(self.app_url)
             self.pilot_dir.set_attribute("stopped", "true")
+            self.job=None
         except:
             pass
     
@@ -275,7 +287,7 @@ class subjob(api.base.subjob):
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
     
-    def delete_job(self):
+    def cancel(self):
         print "delete job and close dirs: " + self.job_url
         try:
             self.job_dir.change_dir("..")
@@ -285,7 +297,7 @@ class subjob(api.base.subjob):
             pass
 
     def __del__(self):
-        self.delete_job()
+        self.cancel()
     
     def __repr__(self):        
         if(self.job_url==None):

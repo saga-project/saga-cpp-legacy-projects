@@ -43,6 +43,16 @@ if __name__ == "__main__":
                             workingdirectory, 
                             userproxy,
                             None)
+    
+    #bj.start_pilot_job(lrms_url,
+    #                        bigjob_agent,
+    #                        nodes,
+    #                        None,
+    #                        None,
+    #                        workingdirectory, 
+    #                        userproxy,
+    #                        None)
+    
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 
     ##########################################################################################
