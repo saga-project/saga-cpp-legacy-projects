@@ -160,13 +160,13 @@ class subjob():
     def get_state(self):
         return self.bigjob.get_state_of_subjob(self.job_id)
 
-    def delete_job(self):
+    def cancel(self):
         print "delete subjob: " + self.job_url
         return self.bigjob.cancel_subjob(self.job_id)
 
     def __del__(self):
         if self.bigjob.get_state_of_subjob(self.job_id)!="Done":
-            self.delete_job()
+            self.cancel()
 
     def __repr__(self):
         if self.job_url==None:
