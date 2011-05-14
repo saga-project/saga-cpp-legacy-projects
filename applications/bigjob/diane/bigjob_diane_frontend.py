@@ -44,6 +44,7 @@ import sys
 from stat import *
 from subprocess import *
 import shutil
+from multiprocessing.connection import Client
 
 def get_rundir():
     p1 = Popen(["diane-ls"], stdout=PIPE)
@@ -72,16 +73,23 @@ def get_uuid():
     return wd_uuid
 
 
-class bigjob_diane(api.base.bigjob):
+class bigjob(api.base.bigjob):
        
     def __init__(self, database_host=None):  
         self.pilot_url = "diane://"
         self.uuid = get_uuid()
-        self.state = saga.job.Unknown
+        print 'uuid of bigjob:', self.uuid
+        self.state = 'Unknown'
 
         # TODO: create DIANE master object
         print "Launching Diane Master"
         os.system("~/proj/bigjob/diane/run_master.sh")
+
+    def __del__(self):
+        # TODO: kill the right master, not the most recent
+        print 'Killing the master'
+        os.system("diane-master-ping kill")
+        self.conn.close()
     
     def start_pilot_job(self, 
                  resource_url, 
@@ -103,14 +111,36 @@ class bigjob_diane(api.base.bigjob):
         print 'submitting worker, resource url: %s workdir: %s number of nodes: %s' % (resource_url, working_directory, number_nodes)
         os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s" % \
                 (resource_url, working_directory, number_nodes))
+
         self.rundir = get_rundir()
         print 'Rundir:', self.rundir
 
+        self.state = 'New'
 
+        self.__setup_connection()
+
+    def __setup_connection(self):
+
+        address = (self.rundir + '/socket')
+        print 'connecting to', address
+        self.conn = Client(address, authkey='D I A N E !')
+        
 
     def get_state(self):        
         # TODO
 
+        print 'get_state:', self.state
+        req = "status?"
+
+        #self.sock_conn.send(req)
+        self.conn.send(req)
+
+        if self.conn.poll():
+            rep = self.conn.recv()
+            print 'received answer from socket:', rep
+            self.state = rep
+        else:
+            print 'no data received'
                  
         print 'Bigjob get_state:', self.state
         return self.state
@@ -118,6 +148,7 @@ class bigjob_diane(api.base.bigjob):
     
     def get_state_detail(self): 
         # TODO
+        print 'get_state_detail'
         return "running"
     
     def cancel(self):        
@@ -125,11 +156,13 @@ class bigjob_diane(api.base.bigjob):
         pass
                     
                     
-class subjob_diane(api.base.subjob):
+class subjob(api.base.subjob):
     
     def __init__(self, database_host=None):
-        self.state = saga.job.Unknown
+        print 'constructor of subjob'
+        self.state = 'Unknown'
         self.uuid = get_uuid()
+        print 'uuid of subjob:', self.uuid
 
         # TODO: this incorrectly assumes that we use the most recent rundir
         self.rundir = get_rundir()
@@ -155,25 +188,21 @@ class subjob_diane(api.base.subjob):
         scriptname = self.uuid + '.sh'
 
         if os.path.isfile(self.rundir + '/submitted/' + scriptname ):
-            print 'DEBUG: subjob state:', self.state
+            pass
         if os.path.isfile(self.rundir + '/scheduled/' + scriptname ):
-            self.state = saga.job.New
-            print 'DEBUG: subjob state:', self.state
+            self.state = 'New'
         if os.path.isfile(self.rundir + '/running/' + scriptname):
-            self.state = saga.job.Running
-            print 'DEBUG: subjob state:', self.state
+            self.state = 'Running'
         if os.path.isfile(self.rundir + '/done/' + scriptname):
-            self.state = saga.job.Done
-            print 'DEBUG: subjob state:', self.state
+            self.state = 'Done'
         if os.path.isfile(self.rundir + '/cancelled/' + scriptname):
-            self.state = saga.job.Canceled
-            print 'DEBUG: subjob state:', self.state
+            self.state = 'Canceled'
         if os.path.isfile(self.rundir + '/failed/' + scriptname):
-            self.state = saga.job.Failed
-            print 'DEBUG: subjob state:', self.state
+            self.state = 'Failed'
             
+        print 'DEBUG: subjob state:', self.state
         return self.state
     
-    def delete_job(self):
+    def cancel(self):
         # TODO: move and remove in directory structure
         pass
