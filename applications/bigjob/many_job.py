@@ -150,11 +150,7 @@ class many_job_service(object):
         # select appropriate bigjob
         bigjob_info = self.__schedule_subjob(subjob)
         job = subjob.job 
-        #if job == None:
-            #create new subjob
-            #bj = bigjob_info["bigjob"]
-        #    job = bigjob.subjob(self.advert_host)
-
+        
         if bigjob_info == None:
             return job
 
@@ -231,10 +227,6 @@ class many_job_service(object):
         """ periodically checks subjob_queue for unscheduled subjobs
             if a unscheduled job exists it is scheduled
         """
-
-        # XXX Hack to prevent multiple subjobs
-        # Need real solution (and understanding)
-        time.sleep(5)
 
         while True and self.stop.isSet()==False:
             logging.debug("Reschedule Thread")
