@@ -55,25 +55,25 @@ class many_job_service(object):
         self.subjob_queue = Queue.Queue()
         
         # submit bigjobs to resources
-        self.init_bigjobs()
+        self.__init_bigjobs()
         
         # thread which tries to resubmit jobs
         self.stop=threading.Event()
-        self.rescheduler_thread=threading.Thread(target=self.reschedule_subjobs_thread)
+        self.rescheduler_thread=threading.Thread(target=self.__reschedule_subjobs_thread)
         self.rescheduler_thread.start()
         
         # last queue Size
         self.last_queue_size = 0
         self.submisssion_times=[]
 
-    def init_bigjobs(self):
+    def __init_bigjobs(self):
         """ start on specified resources a bigjob """
-        self.bigjob_list = self.schedule_bigjobs()
+        self.bigjob_list = self.__schedule_bigjobs()
         for i in self.bigjob_list:
-            self.start_bigjob(i)
+            self.__start_bigjob(i)
 
 
-    def start_bigjob(self, bj_dict):
+    def __start_bigjob(self, bj_dict):
         """ private method - starts a bigjob on the defined resource """
         gram_url = bj_dict["resource_url"]
         logging.debug("start bigjob at: " + gram_url)
@@ -101,7 +101,7 @@ class many_job_service(object):
     def add_resource(self, resource_dictionary):
         """ adds bigjob described in resource_dictionary to resources """
         dict = copy.deepcopy(resource_dictionary);
-        self.start_bigjob(dict)
+        self.__start_bigjob(dict)
         self.bigjob_list.append(dict)
         
     
@@ -112,7 +112,7 @@ class many_job_service(object):
         bigjob["to_be_terminated"]=True
         
  
-    def cleanup_resources(self):
+    def __cleanup_resources(self):
         """ called periodically from scheduling thread
             terminates big-jobs which are marked and don't have 
             any running sub-jobs
@@ -137,7 +137,7 @@ class many_job_service(object):
         return self.bigjob_list
 
 
-    def schedule_bigjobs(self):
+    def __schedule_bigjobs(self):
         """ prioritizes bigjob_list (bigjob with shortest expected delay will have index 0) """
         # no scheduling for now (start bigjob in the user specified order)
         return self.bigjob_list
@@ -146,9 +146,9 @@ class many_job_service(object):
         subjob = sub_job(self, job_description, self.advert_host)        
         return subjob
 
-    def run_subjob(self, subjob):
+    def __run_subjob(self, subjob):
         # select appropriate bigjob
-        bigjob_info = self.schedule_subjob(subjob)
+        bigjob_info = self.__schedule_subjob(subjob)
         job = subjob.job 
         if job == None:
             #create new subjob
@@ -174,7 +174,7 @@ class many_job_service(object):
         job = bigjob.subjob(self.advert_host)
         return job
 
-    def schedule_subjob (self, subjob):
+    def __schedule_subjob (self, subjob):
         """ find resource (bigjob) for subjob
             returns bigjob object """
         for i in self.bigjob_list:
@@ -204,7 +204,7 @@ class many_job_service(object):
 
     
 
-    def free_resources(self, subjob):
+    def __free_resources(self, subjob):
         """free resources taken by subjob"""
         if(self.subjob_bigjob_dict.has_key(subjob)):
             logging.debug("job: " + str(subjob) + " done - free resources")
@@ -218,25 +218,25 @@ class many_job_service(object):
             lock.release()
             print "Freed resource - new state: Big Job: " +  bigjob["bigjob"].pilot_url + " Cores: " + "%s"%free_cores + "/" + str(int(bigjob["processes_per_node"])*int(bigjob["number_nodes"])) 
     
-    def reschedule_subjobs_thread(self):
+    def __reschedule_subjobs_thread(self):
         """ periodically checks subjob_queue for unscheduled subjobs
             if a unscheduled job exists it is scheduled
         """
         
         while True and self.stop.isSet()==False:
             logging.debug("Reschedule Thread")
-            self.cleanup_resources()
+            self.__cleanup_resources()
             subjob = self.subjob_queue.get()  
             # check whether this is a real subjob object  
             if isinstance(subjob, sub_job):
-                self.run_subjob(subjob)
-                if self.last_queue_size == self.subjob_queue.qsize() or self.get_total_free_cores()==0:
+                self.__run_subjob(subjob)
+                if self.last_queue_size == self.subjob_queue.qsize() or self.__get_total_free_cores()==0:
                     time.sleep(2) # sleep 30 s        
 
         logging.debug("Re-Scheduler terminated")
 
 
-    def get_free_cores(self, bigjob):
+    def __get_free_cores(self, bigjob):
         """ return number of free cores if bigjob is active """
         #pdb.set_trace()
         if (bigjob["bigjob"].get_state_detail().lower()=="running" 
@@ -245,9 +245,9 @@ class many_job_service(object):
 
         return 0            
 
-    def get_total_free_cores(self):
+    def __get_total_free_cores(self):
         """ get's the total number of free cores from all active  bigjobs """
-        free_cores = map(self.get_free_cores, self.bigjob_list)
+        free_cores = map(self.__get_free_cores, self.bigjob_list)
         #print "Free cores: " + str(free_cores)
         if len(free_cores)>0:
             total_free_cores = reduce(lambda x, y: x + y, free_cores)
@@ -304,8 +304,8 @@ class sub_job():
     def get_state(self):     
         try:
             state = self.job.get_state()
-            if self.has_finished(state) == True:
-                self.manyjob.free_resources(self)
+            if self.__has_finished(state) == True:
+                self.manyjob.__free_resources(self)
             return state
         except:
             pass
@@ -319,7 +319,7 @@ class sub_job():
             try:
                 state = self.get_state()
                 logging.debug("wait: state: " + state)
-                if self.has_finished(state) == True:
+                if self.__has_finished(state) == True:
                     break
                 time.sleep(2)
             except (KeyboardInterrupt, SystemExit):
@@ -327,7 +327,7 @@ class sub_job():
             except:
                 pass
 
-    def has_finished(self, state):
+    def __has_finished(self, state):
         state = state.lower()
         if state=="done" or state=="failed" or state=="canceled":
             return True
