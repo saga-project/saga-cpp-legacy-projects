@@ -13,8 +13,7 @@ BIGJOB_HOME= "/home/marksant/proj/bigjob"
 sys.path.append(BIGJOB_HOME)
 import api.base
 
-sys.path.append(BIGJOB_HOME+"/diane")
-from bigjob_diane_frontend import bigjob_diane as bigjob, subjob
+import diane.bigjob_diane_frontend as bigjob
 
 # configurationg
 #advert_host = "localhost"
@@ -27,24 +26,30 @@ if __name__ == "__main__":
 
     # Start BigJob
     # Parameter for BigJob
-    bigjob_agent = BIGJOB_HOME + "diane/bigjob_agent_launcher.sh"
-    nodes = 1 # number nodes for agent
-    lrms_url = "fork://localhost" # resource url
-    workingdirectory=os.getcwd() +"/agent"  # working directory for agent
+    #resource_url = "gram://eric1.loni.org/jobmanager-pbs"
+    resource_url = "gram://oliver1.loni.org/jobmanager-pbs"
+    bigjob_agent = None
+    number_nodes = 1 # number nodes for agent
+    queue = None
+    project = None
+    workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
     userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
+    walltime = None
+    processes_per_node = 1
 
     # start pilot job (bigjob_agent)
-    print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
-    bj = bigjob()
-    bj.start_pilot_job(lrms_url,
+    print "Start BigJob/Diane Pilot Job at: " + resource_url
+    bj = bigjob.bigjob()
+    bj.start_pilot_job(resource_url,
                             bigjob_agent,
-                            nodes,
-                            None,
-                            None,
+                            number_nodes,
+                            queue,
+                            project,
                             workingdirectory, 
                             userproxy,
-                            None,
-                            1)
+                            walltime,
+                            processes_per_node)
+
     print "Pilot Job/BigJob URL: " + bj.pilot_url + \
             " State: " + str(bj.get_state())
 
@@ -58,14 +63,16 @@ if __name__ == "__main__":
     jd.working_directory = os.getcwd() 
     jd.output = "stdout.txt"
     jd.error = "stderr.txt"
-    sj = subjob()
+    sj = bigjob.subjob()
     sj.submit_job(bj.pilot_url, jd)
     
     # busy wait for completion
     while 1:
-        state = str(sj.get_state())
-        print "Subjob state: " + state
-        if(state=="Failed" or state=="Done"):
+        sj_state = str(sj.get_state())
+        bj_state = str(bj.get_state())
+        print "Subjob state: " + sj_state
+        print "Bigjob state: " + bj_state
+        if(sj_state=="Failed" or sj_state=="Done"):
             break
         time.sleep(10)
 
