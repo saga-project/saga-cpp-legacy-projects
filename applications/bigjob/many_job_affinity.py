@@ -7,14 +7,14 @@ class many_job_affinity_service(many_job_service):
     
     def __init__(self, bigjob_list, advert_host):
         """ accepts resource list as key/value pair:
-            ( {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "<allocaton>", "queue" : "workq", 
+            ( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "<allocaton>", "queue" : "workq", 
                "re_agent":  os.getcwd() + "/bigjob_agent_launcher.sh"  "walltime":1000, "affinity": "affinity1"},
-              {"gram_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "<allocation", "queue" : "workq", 
+              {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_cores" : "32", "allocation" : "<allocation", "queue" : "workq", 
                "re_agent": "os.getcwd() + "/bigjob_agent_launcher.sh", "walltime":1000, "affinity": "affinity1"})
         """   
         super(many_job_affinity_service, self).__init__(bigjob_list, advert_host)
         
-    def schedule_subjob (self, subjob):
+    def __schedule_subjob (self, subjob):
         """ find resource (bigjob) with the same affinity for subjob 
             returns bigjob object """
         for i in self.bigjob_list:

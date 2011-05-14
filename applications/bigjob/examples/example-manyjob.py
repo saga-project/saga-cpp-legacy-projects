@@ -50,8 +50,8 @@ if __name__ == "__main__":
         #                       "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
         #Flags for controlling dynamic BigJob
-        add_additional_resources=True
-        remove_additional_resources=True
+        add_additional_resources=False
+        remove_additional_resources=False
         
 
         print "Create manyjob service "

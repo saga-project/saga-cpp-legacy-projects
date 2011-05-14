@@ -12,7 +12,6 @@ import time
 import pdb
 import os
 import traceback
-import bigjob
 import logging
 
 import sys
@@ -37,12 +36,13 @@ if __name__ == "__main__":
 
         # submit via mj abstraction
         resource_list = []
-        #resource_list.append( {"resource_url" : "fork://localhost/", "number_nodes" : "64", "allocation" : "<your allocation>", 
-        #                       "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh"), "affinity" : "affinity1"})
+        resource_list.append( {"resource_url" : "fork://localhost/", "number_nodes" : "2", "allocation" : "myAllocation", 
+                               "queue" : "workq", "bigjob_agent":  (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+                               "working_directory": (os.getcwd() + "/agent"), "walltime": 10, "affinity" : "affinity1"})
 
-        resource_list.append( {"resource_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_nodes" : "4", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "bigjob_agent": (BIGJOB_HOME+"/bigjob_agent_launcher.sh"), 
-                               "working_directory": (os.getcwd() + "/agent"), "walltime":10, "affinity" : "affinity1"})
+        #resource_list.append( {"resource_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_nodes" : "4", "allocation" : "<your allocation>", 
+        #                       "queue" : "workq", "bigjob_agent": (BIGJOB_HOME+"/bigjob_agent_launcher.sh"), 
+        #                       "working_directory": (os.getcwd() + "/agent"), "walltime":10, "affinity" : "affinity1"})
 
         print "Create manyjob service "
         mjs = many_job_affinity.many_job_affinity_service(resource_list, "localhost")

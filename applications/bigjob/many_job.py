@@ -150,10 +150,10 @@ class many_job_service(object):
         # select appropriate bigjob
         bigjob_info = self.__schedule_subjob(subjob)
         job = subjob.job 
-        if job == None:
+        #if job == None:
             #create new subjob
             #bj = bigjob_info["bigjob"]
-            job = bigjob.subjob(self.advert_host)
+        #    job = bigjob.subjob(self.advert_host)
 
         if bigjob_info == None:
             return job
@@ -170,9 +170,9 @@ class many_job_service(object):
         return job
 
     def queue_subjob(self, subjob):
+        subjob.job = bigjob.subjob(self.advert_host) 
         self.subjob_queue.put(subjob)
-        job = bigjob.subjob(self.advert_host)
-        return job
+        return subjob.job
 
     def __schedule_subjob (self, subjob):
         """ find resource (bigjob) for subjob
@@ -204,7 +204,7 @@ class many_job_service(object):
 
     
 
-    def __free_resources(self, subjob):
+    def free_resources(self, subjob):
         """free resources taken by subjob"""
         if(self.subjob_bigjob_dict.has_key(subjob)):
             logging.debug("job: " + str(subjob) + " done - free resources")
@@ -309,9 +309,10 @@ class sub_job():
         try:
             state = self.job.get_state()
             if self.__has_finished(state) == True:
-                self.manyjob.__free_resources(self)
+                self.manyjob.free_resources(self)
             return state
         except:
+            #traceback.print_stack()
             pass
         return "Unknown"
 

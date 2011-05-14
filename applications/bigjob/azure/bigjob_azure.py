@@ -302,7 +302,7 @@ class subjob():
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.bigjob.get_subjob_state(self.job_id)
     
-    def delete_job(self):
+    def cancel(self):
         print "delete job: " + self.job_url
         try:
             self.bigjob.delete_subjob(self.job_id)
