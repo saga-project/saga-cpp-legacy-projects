@@ -25,7 +25,12 @@ class WorkerData:
 
 
 class BigJobDianeManager(SimpleApplicationManager, BaseThread):
+    "This is the main application loop"
+
+
     def __init__(self,name=None,auto_register=True):
+
+
         print "Initializing Manager"
         self.basedir = '.'
         BaseThread.__init__(self,name=name)
@@ -35,12 +40,29 @@ class BigJobDianeManager(SimpleApplicationManager, BaseThread):
         return [os.path.join(dir,os.path.basename(f)) for f in
                 glob.glob(os.path.join(self.basedir,dir,pattern))]
 
-    
+    def __setup_listener(self):
+        # TODO: tear down listener
+
+        from multiprocessing.connection import Listener as mplistener
+        
+        address = (self.basedir + '/socket')
+        print 'Listening on', address
+        self.listener = mplistener(address, authkey='D I A N E !')
+        self.conn = self.listener.accept()
+        print 'connection accepted'
+
+        #self.conn.send([2.25, None, 'junk', float])
+        #self.conn.send_bytes('hello')
+        #self.conn.send_bytes(array('i', [42, 1729]))
+
+
     def initialize(self, run_data):
         print "Initializing Diane Application Manager"
         w = WorkerData()
         w.basedir = self.basedir
         self.worker_init = w
+
+        self.__setup_listener()
 
         # create dirs and clean up garbage
         for d in ['submitted','scheduled','running','done','failed','exit_codes','cancelled','cancel-request','err','out','in']:
@@ -59,6 +81,13 @@ class BigJobDianeManager(SimpleApplicationManager, BaseThread):
     def run(self):
         while self.scheduler.has_more_work():
             print "Application loop ..."
+
+            if self.conn.poll():
+                req = self.conn.recv()
+                print 'request received:', req
+
+                self.conn.send('Running')
+
             new_jobs = self.list_files('submitted/*')
             for f in new_jobs:
                 print "Found new task, scheduling it"
@@ -99,6 +128,35 @@ class BigJobDianeScheduler(SimpleTaskScheduler):
             #in case the task has been put in the running dir
             os.remove(os.path.join('running',
                     os.path.basename(f.task_input.exe)))
+
+#    def worker_initialized(self, w_entry):
+#        """This method is called by RunMaster when the worker agent
+#        sucessfully initialized and optionally returned initialization output
+#        (w_entry.init_output).  Until this method returns the worker will not
+#        be fully initialized (so the framework will not mark it as a ready
+#        worker)."""
+#
+#        print 'Worker Initialized'
+#        SimpleTaskScheduler.worker_initialized(self, w_entry)
+#        pass
+
+#    def worker_removed(self, w_entry):
+#        """This method is called when the worker has been removed (either
+#        lost or terminated due to some reason)."""
+#
+#        print 'Worker Removed'
+#        SimpleTaskScheduler.worker_removed(self, w_entry)
+#        pass
+
+#    def worker_added(self, w_entry):
+#        """This method is called by RunMaster when the new worker agent is
+#        added.  The w_entry parameter is an instance of WorkerEntry class.
+#        Application specific initialization data may be assigned to
+#        w_entry.init_input at this point."""
+#
+#        print 'Worker Added'
+#        SimpleTaskScheduler.worker_added(self, w_entry)
+#        pass
 
 
 class BigJobDianeWorker(IApplicationWorker):
