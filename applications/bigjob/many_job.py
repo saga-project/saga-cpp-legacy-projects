@@ -165,7 +165,7 @@ class many_job_service(object):
         self.submisssion_times.append(time.time()-st)
 
         # store reference of subjob for further bookkeeping    
-        self.active_subjob_list.append(job)
+        self.active_subjob_list.append(subjob)
         self.subjob_bigjob_dict[subjob] = bigjob_info
         return job
 
@@ -202,9 +202,18 @@ class many_job_service(object):
         logging.debug("found no active resource for sub-job => (re-) queue it")
         return None        
 
-    
-
-    def free_resources(self, subjob):
+    def __check_subjobs_states(self):    
+        """iterate through all sub-jobs and check state"""
+        for i in self.active_subjob_list:
+            #pdb.set_trace()
+            try:
+                state = i.job.get_state()
+                if self.__has_finished(state) == True:
+                    self.__free_resources(i)
+            except:
+                traceback.print_stack()
+        
+    def __free_resources(self, subjob):
         """free resources taken by subjob"""
         if(self.subjob_bigjob_dict.has_key(subjob)):
             logging.debug("job: " + str(subjob) + " done - free resources")
@@ -229,6 +238,9 @@ class many_job_service(object):
 
         while True and self.stop.isSet()==False:
             logging.debug("Reschedule Thread")
+            # check sub-job state
+            self.__check_subjobs_states()
+            # remove unneeded big-jobs
             self.__cleanup_resources()
             subjob = self.subjob_queue.get()  
             # check whether this is a real subjob object  
@@ -282,12 +294,21 @@ class many_job_service(object):
             variance /= (n-1)
             variance = math.sqrt(variance)
         print description + " Average: " + str(mean) + " Stdev: " + str(variance)
+        
+    def __has_finished(self, state):
+        state = state.lower()
+        if state=="done" or state=="failed" or state=="canceled":
+            return True
+        else:
+            return False
 
     def __repr__(self):
         return str(self.uuid)
 
     def __del__(self):
         self.cancel()
+        
+        
                     
 
 class sub_job():
@@ -308,8 +329,6 @@ class sub_job():
     def get_state(self):     
         try:
             state = self.job.get_state()
-            if self.__has_finished(state) == True:
-                self.manyjob.free_resources(self)
             return state
         except:
             #traceback.print_stack()
@@ -331,14 +350,7 @@ class sub_job():
                 raise
             except:
                 pass
-
-    def __has_finished(self, state):
-        state = state.lower()
-        if state=="done" or state=="failed" or state=="canceled":
-            return True
-        else:
-            return False
-
+   
     def __del__(self):
         pass
 
