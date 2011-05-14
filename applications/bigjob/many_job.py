@@ -222,7 +222,11 @@ class many_job_service(object):
         """ periodically checks subjob_queue for unscheduled subjobs
             if a unscheduled job exists it is scheduled
         """
-        
+
+        # XXX Hack to prevent multiple subjobs
+        # Need real solution (and understanding)
+        time.sleep(5)
+
         while True and self.stop.isSet()==False:
             logging.debug("Reschedule Thread")
             self.__cleanup_resources()
