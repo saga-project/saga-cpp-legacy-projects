@@ -47,15 +47,20 @@ import shutil
 from multiprocessing.connection import Client
 
 def get_rundir():
-    p1 = Popen(["diane-ls"], stdout=PIPE)
-    p2 = Popen(["head", "-n1"], stdin=p1.stdout, stdout=PIPE)
-    p3 = Popen(["cut", "-f1", "-d "], stdin=p2.stdout, stdout=PIPE)
-    p2.stdout.close()  # Allow p2 to receive a SIGPIPE if p2 exits.
-    p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
-    rundir = p3.communicate()[0].strip()
+    #p1 = Popen(["diane-ls"], stdout=PIPE)
+    #p2 = Popen(["head", "-n1"], stdin=p1.stdout, stdout=PIPE)
+    #p3 = Popen(["cut", "-f1", "-d "], stdin=p2.stdout, stdout=PIPE)
+    #p2.stdout.close()  # Allow p2 to receive a SIGPIPE if p2 exits.
+    #p1.stdout.close()  # Allow p1 to receive a SIGPIPE if p2 exits.
+    #rundir = p3.communicate()[0].strip()
+
+    RUNDIR_BASE=('/home/marksant/proj/diane/runs/')
+    f = open(RUNDIR_BASE + 'index')
+    index = f.readline().strip()
+    f.close()
+    rundir = RUNDIR_BASE + index.lstrip('I').zfill(4)
 
     return rundir
-
 
 
 def get_uuid():
@@ -93,7 +98,7 @@ class bigjob(api.base.bigjob):
     
     def start_pilot_job(self, 
                  resource_url, 
-                 bigjob_agent_executable,
+                 diane_agent_staging,
                  number_nodes,
                  queue,
                  project,
@@ -105,12 +110,12 @@ class bigjob(api.base.bigjob):
         print "Submit Diane Worker"
 
         # Layer violation!
-        if bigjob_agent_executable is not None:
-            print "Agent Executable is specified, but ignoring it!"
+        #if bigjob_agent_executable is not None:
+        #    print "Agent Executable is specified, but ignoring it!"
 
         print 'submitting worker, resource url: %s workdir: %s number of nodes: %s' % (resource_url, working_directory, number_nodes)
         os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s" % \
-                (resource_url, working_directory, number_nodes))
+                (resource_url, diane_agent_staging, number_nodes))
 
         self.rundir = get_rundir()
         print 'Rundir:', self.rundir
