@@ -29,7 +29,7 @@ class bigjob(api.base.bigjob):
         else:
             return False
 
-    def calculate_nodes(c_cores_per_node,c_resources_job_count, task_num_cores):
+    def calculate_nodes(c_cores_per_node,c_resources_job_count, task_num_cores):               
         #calculate exact number of cores to request
         k=0
         if (cbnc*crjc%ccpn !=0):
@@ -182,12 +182,9 @@ class bigjob(api.base.bigjob):
 
 if __name__ == "__main__":
     config = {}
-
-    #get the current working directory
-    cwd = os.getcwd()
+  
     #define app name
-    DARE_APP_NAME="BFAST"
-    
+    DARE_APP_NAME="BFAST"   
     dare_uuid = uuid.uuid1()
     
     # parse conf files
@@ -207,11 +204,16 @@ if __name__ == "__main__":
     resources_used_walltime = job_info['resources_walltime'].replace(' ','').split(',')
             
     #read resource_info conf file
-    resources_used_info = read_conf(job_info['resources_info'],resources_used)
+    resources_used_info = read_conf(job_info['resources_info_filename'],resources_used)
     
     #read resource_app_info conf file
-    resources_used_app_info = read_conf(job_info['resources_app_info'],resources_used)
-        
+    resources_used_app_info = read_conf(job_info['resources_app_info_filename'],resources_used)
+      
+    
+    #get the current working directory
+    cwd = os.getcwd()
+    
+    #define log filename  
     LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_%s.txt'%(job_id, \
                                dare_uuid,DARE_APP_NAME))
 
@@ -221,19 +223,25 @@ if __name__ == "__main__":
     hdlr.setFormatter(formatter)
     logger.addHandler(hdlr)
     logger.setLevel(logging.INFO)
-
+    
+    logger.info("Reading conf files is done "  + str(job_id) )
     logger.info("Job id  is "  + str(job_id) )
     logger.info("Machine used is " + resources_used[0] )
     logger.info("Reference GNOME " + refgenome)
     
-    launch_manyjob(self,resource_list):
+    #launch manyjob affinity    
+    mjs_affinity = launch_manyjob(self,resource_list):
     
-    try:                
+    try:    
+        #sample subjob
         subjob_submit("/bin/date" , 1, "single", [""], "LONI", \
                     "/work/smaddi2/", "/work/smaddi2/stdout-1-now.out",  \
                     "/work/smaddi2/stderr-1-now.out") 
+                    
+        # wait for submitted subjobs to get to state done
         wait_for_subjobs(1) 
-              
+        
+        #cancel the manyjob after done
         mjs_affinity.cancel()
 
     except:
