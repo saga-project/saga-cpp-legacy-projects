@@ -6,25 +6,29 @@ class dare(object):
 
     def __init__():
          pass
-
-    def launch_resources_job(self,resource_list)
-        pass
-
+                    
+class resource_handler(object):
+    def __init__():
+         pass
+    
+    #launch the bigjobs on various resources
+    def launch_resources_agents(self,resource_list)
+        pass        
+        
+    #calculate number of nodes for gram
     def calculate_nodes(self):
         pass
-
-    def file_stage(self,source_url, dest_url):
-        pass
-
-    def subjob_submit(self, jd_executable, jd_number_of_processes, jd_spmd_variation,\
-                     jd_arguments, affinity, jd_work_dir, jd_output, jd_error):
+        
+#task handler        
+class subjob_handler(object):        
+    
+    def __init__():
+         pass
+         
+    #get the number of tasks and wait till they finish 
+    def wait_for_subjobs(self, number_of_jobs)
         pass
         
-    def read_conf(self, filename):       
-        pass
-    
-    def wait_for_subjobs()
-    
     #for subjob state
     def has_finished(state):
         state = state.lower()
@@ -32,3 +36,11 @@ class dare(object):
             return True
         else:
             return False
+            
+class file_handler(object):
+    
+    def __init__():
+        pass
+        
+    def file_stager(source_url, dest_url):
+        pass
