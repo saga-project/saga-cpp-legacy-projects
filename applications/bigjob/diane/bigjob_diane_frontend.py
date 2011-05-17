@@ -105,7 +105,7 @@ class bigjob(api.base.bigjob):
                  working_directory,
                  userproxy,
                  walltime,
-                 processes_per_node):
+                 workers_per_node):
         
         print "Submit Diane Worker"
 
@@ -114,8 +114,8 @@ class bigjob(api.base.bigjob):
         #    print "Agent Executable is specified, but ignoring it!"
 
         print 'submitting worker, resource url: %s workdir: %s number of nodes: %s' % (resource_url, working_directory, number_nodes)
-        os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s" % \
-                (resource_url, diane_agent_staging, number_nodes))
+        os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s %s" % \
+                (resource_url, diane_agent_staging, number_nodes, workers_per_node))
 
         self.rundir = get_rundir()
         print 'Rundir:', self.rundir
