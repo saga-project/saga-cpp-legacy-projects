@@ -37,6 +37,10 @@ use LWP::Simple;
 use File::Basename;
 use Term::ANSIColor;
 
+##############################################################################
+## Variables used for input and flags
+##############################################################################
+
 $meph_version     = "latest";
 $meph_repository  = "http://static.saga.cct.lsu.edu/mephisto";
 $meph_tmp_dir     = "/tmp/meph_tmp." . $<;
@@ -54,6 +58,8 @@ $enab_post	  = 0;
 $enab_saga 	  = 0;
 $test_enab        = 0;
 $adaptors	  = 0;
+$dev_sagatemp     = 0;
+$enab_devsaga     = 0;
 ##############################################################################
 ##
 sub print_mephisto_logo {
@@ -145,28 +151,32 @@ sub print_red_failed_and_die {
 ##
 sub pull_package {
     my (@package) = @_;
-	my @no = split(/\./,  $boost_check);	  ##boost split up into individual numbers				                  ###added##
-	my @no1 = split(/\./, $globus);  ##globus split up into individual numbers
-	my @no2 = split(/\./, $py_v);
-	my @no3 = split(/\./, $post_gre);
-	my @no4 = split(/\./, $saga_v);
-
+	my @no = split(/\./,  $boost_check);	  	##boost split up into individual numbers
+	my @no1 = split(/\./, $globus);  		##globus split up into individual numbers
+	my @no2 = split(/\./, $py_v);			##python version number split here
+	my @no3 = split(/\./, $post_gre);		##postgresql version number split here
+	my @no4 = split(/\./, $saga_v);			##saga version number
+	my @dev = split(/\./, $dev_sagatemp[0]);	## check to verify for development saga version number
                 if (@no eq 2)
                    { 
-                   	$no[2] = 0;
+                   	$no[2] = 0;			##boost version if provided as 1.40 or 1.44 or something similar (missing third part)
 			$boost_check .= ".$no[2]"; 
 		   }
-
-    
-
     my $meph_rep_full    = $meph_repository . "/repository/" . $meph_version ;
     my $package_bin_path = "$meph_rep_full/$package[2]";
     
      my $package_store_path = "$meph_tmp_dir";
     
-    if (($package[0] eq "SVN") && ($enab_saga eq 1) && ($package[1] eq "SAGA")) {
-        $package_store_path .= "/$package[1]";
-        $package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
+    if (($package[0] eq "SVN") && ($enab_saga eq 1) && ($package[1] eq "SAGA")) {     ## SAGA packages link to different choice of option 
+        $package_store_path .= "/SVN_$package[1]";
+  	
+	if ($enab_devsaga eq 1) {
+        $package[2] = "https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $dev[0] . "." . $dev[1] . "." . $dev[2] . "-" . $dev_sagatemp[1] . "/";
+        }
+
+	else {
+	$package[2] ="https://svn.cct.lsu.edu/repos/saga/core/tags/releases/saga-core-" . $no4[0] . "." . $no4[1] . "." . $no4[2] . "/";
+	}
 #       print "\n\n $package_bin_path\n\n";
     }
     elsif($package[0] eq "SVN") {
@@ -491,9 +501,9 @@ sub print_usage () {
 	#print "      Recommended: complete install      \n\n"; 
 
 }
-##############################################################################
-
-##############################################################################
+##########################################################################################
+###Test function added to perform the test after installations. Log file is created ater that 
+##########################################################################################
 sub test_perform()
 {
     my @test_cmd = ("make check");
@@ -503,7 +513,8 @@ sub test_perform()
 #print "\n\n $test_dir \n\n";
     	chdir "$test_dir";
     my $test_logfile = "$test_dir/SVN_TEST.log";
-    
+   
+    print "\n Logfile :  $test_logfile "; 
     redirect_console($test_logfile);
     $retval = system(@test_cmd);
     restore_console();
@@ -565,21 +576,34 @@ sub check_options () {
 						   'with-adaptors=s'            => \$adaptors ) ; 
                                                                          
 		@delitems = split(",",$dellist);	
-	
+		@dev_sagatemp = split("-",$saga_v);
+	#	print "\n @dev_sagatemp\n";		
 		if(!$retval)
 		{
 			print_usage();
 			exit();	
 		}
+
 		if ($saga_v ne 0)
                 {
                         $enab_saga= 1;
                 }
+
+		if (@dev_sagatemp eq "2")
+		{
+			if (($saga_v ne 0) && (($dev_sagatemp[1] eq "pre") || ($dev_sagatemp[1] eq "pre2")))
+			{
+				$enab_saga= 1;
+				$enab_devsaga = 1;
+			}
+		}
+		
 		if ($saga_v eq "svn" || $saga_v eq "svn_trunk")
 		{
 		        $enab_saga= 1;
 			$saga_v= "1.5.3";
 		}
+	
 		if ($globus ne 0)
 		{
 			$enab= 1;
@@ -640,11 +664,12 @@ sub check_options () {
                                                    'with-globus-version=s'      => \$globus,
                                                    'with-postgresql-version=s'  => \$post_gre,
                                                    'with-saga-version=s'        => \$saga_v,
-                                                   'exclude=s'                  => \$dellist) ;
+                                                   'exclude=s'                  => \$dellist,
+					           'with-adaptors=s'            => \$adaptors) ;
 
                 @delitems = split(",",$dellist);
+		@dev_sagatemp = split("-",$saga_v);
 		$test_enab=1;
-##        	print "\n $test_enab \n";
 	        if(!$retval)
                 {
                         print_usage();
@@ -655,10 +680,31 @@ sub check_options () {
                         $enab_saga= 1;
                 }
 
+		if (@dev_sagatemp eq "2")
+		{ 
+			if (($saga_v ne 0) && (($dev_sagatemp[1] eq "pre") || ($dev_sagatemp[1] eq "pre2")))
+                	{
+                        	$enab_saga= 1;
+                        	$enab_devsaga = 1;
+                	}
+		}
+
+                if ($saga_v eq "svn" || $saga_v eq "svn_trunk")
+                {
+                        $enab_saga= 1;
+                        $saga_v= "1.5.3";
+                }
+
                 if ($globus ne 0)
                 {
                         $enab= 1;
                 }
+		if (($adaptors ne 0) && ($adaptors eq "globus"))
+                {
+                        $globus = 5.0.2;
+                        $enab =1;
+                }
+
                 if ($post_gre ne 0)
                 {       $enab_post =1;
                 }
@@ -702,12 +748,12 @@ sub check_options () {
 	
 	if ( $help ) {
 	    print_usage();
-		exit()
+		exit();
 	}
+   	
  }
 ##
 ##############################################################################
-
 ##############################################################################
 ## "MAIN"
 ##
@@ -809,9 +855,6 @@ foreach my $line (@index2) {
 	}
      $count = $count + 1;
      pull_package(@packages);
-##		if ($packages[1] eq "SAGA" && $test_enab eq 1) {
-##		test_perform();
-##		}
 	}
 	else {
 	if ($count eq 4 && $enab eq 1) {
@@ -821,6 +864,8 @@ foreach my $line (@index2) {
 	$flag = 0;
 	}
 }
+
+######## Globus adaptors will be pulled and installed if option chosen ##########
 if ($enab eq 1) {
 pull_package(@midpack1);
 pull_package(@midpack2);
@@ -828,11 +873,12 @@ pull_package(@midpack2);
 #after the for loop, here packages  will store all the values as an array as was the case above
 write_setenv();
 
+####### Calling testing function after environment is written  ######  
 if ($test_enab eq 1)
 { test_perform();
 }
 
 print "\n\n \t Done installations or testing (check logs for outputs and other information) :) \n\n";
 
-#
+
 ##############################################################################
