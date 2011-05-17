@@ -20,23 +20,11 @@ jobs = []
 job_start_times = {}
 job_states = {}
 
-class bigjob(api.base.bigjob):
-
-    def has_finished(state):
-        state = state.lower()
-        if state=="done" or state=="failed" or state=="canceled":
-            return True
-        else:
-            return False
-
-    def calculate_nodes(c_cores_per_node,c_resources_job_count, task_num_cores):               
-        #calculate exact number of cores to request
-        k=0
-        if (cbnc*crjc%ccpn !=0):
-           k =1
-        number_nodes = ccpn * (cbnc*crjc/ccpn +k ) 
-
-        
+class dare(api.base.dare):
+    
+    def __init__():
+        pass
+    
     def read_job_conf(filename):
     
         conf_options = {}
@@ -61,28 +49,76 @@ class bigjob(api.base.bigjob):
                 resources_info[option]=(config_ri.get(resource, option) )
                 
            resources_used_info[resource]=resources_info
-        
-    def file_stage(source_url, dest_url):
+class resource_handler(api.base.resource_handler):
+      
+    def __init__():
+         pass
+       
+    def calculate_nodes(c_cores_per_node,c_resources_job_count, task_num_cores):               
+        #calculate exact number of cores to request
+        k=0
+        if (cbnc*crjc%ccpn !=0):
+           k =1
+        number_nodes = ccpn * (cbnc*crjc/ccpn +k )
+    
+    def launch_manyjob(self,resource_list):
+        try:  
+               
+            # submit via mj abstraction        
+            
+            ## start the big job agents
+            resource_list = []
+            i =0
+            print all_resources_used[resource]["resource_url"]                
+            
+            for resource in resources_used:
+                
+                num_nodes= calculate_nodes(resources_used_info[resource]["cores_per_node"],\
+                                           resources_job_count[i],\
+                                           resources_app[resource][cores])
+            
+                resource_list.append({ \
+                        "resource_url" :  resources_used_info[resource]["resource_url"] , \
+                        "walltime": resources_used_info[resource]["walltime"] , \
+                        "number_nodes" : str(1), \
+                        "cores_per_node" : resources_used_info[resource]["cores_per_node"], \
+                        "allocation" : resources_used_info[resource]["allocation"], \
+                        "queue" : resources_used_info[resource]["queue"], \
+                        "bigjob_agent":  resources_used_info[resource]["bigjob_agent"], \
+                        "userproxy": resources_used_info[resource]["proxy"], \
+                        "working_directory":  resources_used_info[resource]["work_dir"],\
+                        "affinity" :  resources_used_info[resource]["affinity"} \
+                        )
 
-        logger.info("Now I am tranferring the files from %s to %s"%(source_url, dest_url))
-        #fgeuca for clouds
-        if dest_url.startswith("fgeuca"):
+                logger.info("resource_url" + resources_url[i])
+                logger.info("affinity%s"%(i))            
+                print "Create manyjob service "
+                #create multiple manyjobs should be changed by bfast affinity implementation
+                i = i+1
+            mjs_affinity = many_job_affinity.many_job_service(resource_list, "advert.cct.lsu.edu")
+        except:
+            traceback.print_exc(file=sys.stdout)
             try:
-                #for cloud files
-                cmd = "scp  -r -i /path/to/smaddi2.private %s %s"%(source_url, dest_url)
-                os.system(cmd)
-            except saga.exception, e:
-                error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+                 mjs_affinity.cancel()           
+            except:
+                pass
+        return mjs_affinity     
+         
+         
+class subjob_handler(api.base.subjob_handler):
+      
+    def __init__():
+         pass
+      
+    def has_finished(state):
+        state = state.lower()
+        if state=="done" or state=="failed" or state=="canceled":
+            return True
         else:
-            try:
-                cmd = "globus-url-copy  -cd  %s %s"%(source_url, dest_url)
-                os.system(cmd)
-            except saga.exception, e:
-                error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
-        return None
-
-    def subjob_submit( jd_executable, jd_number_of_processes, jd_spmd_variation, jd_arguments, affinity,
-                jd_work_dir, jd_output, jd_error):
+            return False
+            
+    def subjob_submit( jd_executable, jd_number_of_processes, jd_spmd_variation, \
+                       jd_arguments, affinity, jd_work_dir, jd_output, jd_error):
                                  
             # create job description
             jd = saga.job.description()
@@ -136,49 +172,31 @@ class bigjob(api.base.bigjob):
             logger.info("Current states: " + str(result_map))
             if finish_counter == number_of_jobs:
                 break
-                  
-     def launch_manyjob(self,resource_list):
-        try:  
-               
-            # submit via mj abstraction        
-            
-            ## start the big job agents
-            resource_list = []
-            i =0
-            print all_resources_used[resource]["resource_url"]                
-            
-            for resource in resources_used:
-                
-                num_nodes= calculate_nodes(resources_used_info[resource]["cores_per_node"],\
-                                           resources_job_count[i],\
-                                           resources_app[resource][cores])
-            
-                resource_list.append({ \
-                        "resource_url" :  resources_used_info[resource]["resource_url"] , \
-                        "walltime": resources_used_info[resource]["walltime"] , \
-                        "number_nodes" : str(1), \
-                        "cores_per_node" : resources_used_info[resource]["cores_per_node"], \
-                        "allocation" : resources_used_info[resource]["allocation"], \
-                        "queue" : resources_used_info[resource]["queue"], \
-                        "bigjob_agent":  resources_used_info[resource]["bigjob_agent"], \
-                        "userproxy": resources_used_info[resource]["proxy"], \
-                        "working_directory":  resources_used_info[resource]["work_dir"],\
-                        "affinity" :  resources_used_info[resource]["affinity"} \
-                        )
+                              
+class file_handler(api.base.file_handler)
 
-                logger.info("resource_url" + resources_url[i])
-                logger.info("affinity%s"%(i))            
-                print "Create manyjob service "
-                #create multiple manyjobs should be changed by bfast affinity implementation
-                i = i+1
-            mjs_affinity = many_job_affinity.many_job_service(resource_list, "advert.cct.lsu.edu")
-        except:
-            traceback.print_exc(file=sys.stdout)
+
+    def file_stage(source_url, dest_url):
+
+        logger.info("Now I am tranferring the files from %s to %s"%(source_url, dest_url))
+        #fgeuca for clouds
+        if dest_url.startswith("fgeuca"):
             try:
-                 mjs_affinity.cancel()           
-            except:
-                pass
-        return mjs_affinity        
+                #for cloud files
+                cmd = "scp  -r -i /path/to/smaddi2.private %s %s"%(source_url, dest_url)
+                os.system(cmd)
+            except saga.exception, e:
+                error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+        else:
+            try:
+                cmd = "globus-url-copy  -cd  %s %s"%(source_url, dest_url)
+                os.system(cmd)
+            except saga.exception, e:
+                error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
+        return None
+
+
+   
 
 if __name__ == "__main__":
     config = {}
