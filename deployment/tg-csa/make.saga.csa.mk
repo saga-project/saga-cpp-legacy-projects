@@ -35,6 +35,14 @@ ifdef CSA_HOST
 endif
 
 ########################################################################
+# 
+# make helper to remove white space from vars
+#
+empty   = 
+space   = $(empty) $(empty)
+nospace = $(subst $(space),$(empty),$1)
+
+########################################################################
 #
 # compiler to be used for *everything*
 #
@@ -151,7 +159,7 @@ BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV       += BOOST_LOCATION=$(BOOST_LOCATION)
-SAGA_LDLIBPATH +=:$(BOOST_LOCATION)/lib
+SAGA_LDLIBPATH += :$(BOOST_LOCATION)/lib
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
@@ -201,7 +209,7 @@ POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/$(CC_NAME)/
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v9.0.2/postgresql-9.0.2.tar.bz2
 SAGA_ENV           += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
-SAGA_LDLIBPATH     +=:$(POSTGRESQL_LOCATION)/lib
+SAGA_LDLIBPATH     += :$(POSTGRESQL_LOCATION)/lib
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
@@ -220,7 +228,7 @@ SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/$(CC_NAME)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
 SAGA_ENV        += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
-SAGA_LDLIBPATH  +=:$(SQLITE3_LOCATION)/lib
+SAGA_LDLIBPATH  += :$(SQLITE3_LOCATION)/lib
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
@@ -240,7 +248,7 @@ PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VER
 PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
 PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 SAGA_ENV       += PYTHON_LOCATION=$(PYTHON_LOCATION)
-SAGA_LDLIBPATH +=:$(PYTHON_LOCATION)/lib
+SAGA_LDLIBPATH += :$(PYTHON_LOCATION)/lib
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)
@@ -261,7 +269,7 @@ SAGA_LOCATION = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/$(CC_NAME)/
 SAGA_CHECK    = $(SAGA_LOCATION)/include/saga/saga.hpp
 
 SAGA_ENV     += SAGA_LOCATION=$(SAGA_LOCATION)
-SAGA_ENV     += LD_LIBRARY_PATH=$(SAGA_LDLIBPATH)
+SAGA_ENV     += LD_LIBRARY_PATH=$(call nospace, $(SAGA_LDLIBPATH))
 SAGA_ENV     += CPPFLAGS="-D__NR_eventfd=323"
 
 ifeq "$(SAGA_VERSION)" "trunk"
@@ -502,12 +510,12 @@ readme:: saga-core $(CSA_README_CHECK)
 $(CSA_README_CHECK):
 	@echo "README                    creating"
 	@$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'              $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_LDLIBPATH)|ig;'          $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'                      $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'                    $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(call nospace, $(SAGA_LDLIBPATH))|ig;' $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;'         $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'                $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'                      $(CSA_README_CHECK)
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	@$(CHMOD) -R a+rX $(EXTDIR)
 	-@$(CHMOD)   a+rX $(CSA_LOCATION)
