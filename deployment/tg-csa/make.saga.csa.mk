@@ -376,7 +376,7 @@ $(SA_DRMAA_CHECK):
 
 ########################################################################
 # saga-adaptor-condor
-SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_condor_job.ini
+SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 SA_CONDOR_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/condor/trunk saga-adaptor-condor-trunk
 
 .PHONY: saga-adaptor-condor
@@ -408,7 +408,7 @@ $(SA_PBSPRO_CHECK):
 
 ########################################################################
 # saga-adaptor-torque
-SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_torque.ini
+SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque.ini
 SA_TORQUE_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/torque/trunk saga-adaptor-torque-trunk
 
 .PHONY: saga-adaptor-torque
