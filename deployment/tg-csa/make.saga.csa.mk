@@ -85,36 +85,41 @@ SVNUP      = $(SVN) up
 # target dependencies
 #
 .PHONY: all
-all::           saga-core saga-adaptors saga-bindings saga-clients readme
+all::                      saga-core saga-adaptors saga-bindings saga-clients readme
 
 .PHONY: externals
-externals::     boost postgresql sqlite3
+externals::                boost postgresql sqlite3
 
 .PHONY: saga-core
-saga-core::     externals
+saga-core::                externals
 
 .PHONY: saga-adaptors
-saga-adaptors:: saga-adaptor-x509
-saga-adaptors:: saga-adaptor-globus 
-saga-adaptors:: saga-adaptor-ssh 
+saga-adaptors::            saga-adaptor-x509
+saga-adaptors::            saga-adaptor-globus 
+saga-adaptors::            saga-adaptor-ssh 
 
 # some adaptors are only build for trunk
 ifeq "$(SAGA_VERSION)" "trunk"
-  saga-adaptors:: saga-adaptor-bes 
-  saga-adaptors:: saga-adaptor-aws 
-  saga-adaptors:: saga-adaptor-drmaa
+  saga-adaptors::          saga-adaptor-bes 
+  saga-adaptors::          saga-adaptor-aws 
+  saga-adaptors::          saga-adaptor-drmaa
 ifneq "$(HOSTNAME)" "abe"
-  saga-adaptors:: saga-adaptor-torque
+  saga-adaptors::          saga-adaptor-torque
 endif
-  saga-adaptors:: saga-adaptor-pbspro
-  saga-adaptors:: saga-adaptor-condor
+  saga-adaptors::          saga-adaptor-pbspro
+  saga-adaptors::          saga-adaptor-condor
 endif
+
 
 .PHONY: saga-bindings
-saga-bindings:: saga-bindings-python
+saga-bindings::            saga-core
+saga-bindings::            saga-bindings-python
+
+saga-bindings-python::     python
 
 .PHONY: saga-clients
-saga-clients::  saga-client-mandelbrot
+saga-clients::             saga-client-mandelbrot
+saga-clients-mandelbrot::  saga-core
 
 
 ########################################################################
@@ -219,6 +224,23 @@ $(SQLITE3_CHECK):
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
 	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION) && make && make install
+
+
+########################################################################
+# python
+PYTHON_LOCATION = $(CSA_LOCATION)/external/python/2.7.1/gcc-$(CC_VERSION)/
+PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
+PYTHON_SRC      = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
+
+.PHONY: python
+python:: base $(PYTHON_CHECK)
+	@echo "python                    ok"
+
+$(PYTHON_CHECK):
+	@echo "python                    installing"
+	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
+	@cd $(SRCDIR) ; tar jxvf Python-2.7.1.tar.bz2
+	@cd $(SRCDIR)/Python-2.7.1/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared && make && make install
 
 
 ########################################################################
@@ -409,31 +431,18 @@ $(SA_BES_CHECK):
 SAGA_PYTHON_LOCATION = 
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
 SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0
-SAGA_PYTHON_PSRC     = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
 SAGA_PYTHON_VERSION  = $(shell python -c "import sys; print(sys.version)"  | head -1 | cut -f 1 -d ' ')
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(SAGA_PYTHON_VERSION)/site-packages
 
 .PHONY: saga-bindings-python
-saga-bindings-python:: base $(SAGA_PYTHON_CHECK)
+saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
 	@echo "saga-bindings-python      ok"
 
 $(SAGA_PYTHON_CHECK):
 	@echo "saga-bindings-python      installing"
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0 ; true
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) | tee configure.log
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Found .* yes' configure.log || ( \
-    export PYTHON_LOCATION=$(CSA_LOCATION)/external/python/2.7.1/$(CC_NAME)/ ; \
-    export LD_LIBRARY_PATH=$(PYTHON_LOCATION)/lib:$(LD_LIBRARY_PATH) ; \
-    cd $(CSA_LOCATION)/external/ ; \
-    $(WGET) $(SAGA_PYTHON_PSRC) ; \
-    tar jxvf Python-2.7.1.tar.bz2 ; \
-    cd Python-2.7.1 ; \
-    ./configure --enable-shared --prefix=$(PYTHON_LOCATION) | tee configure.log && make && make install ; \
-    cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; \
-	  $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) ; \
-  )	
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; make clean && make && make install
+	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make && make install
 
 
 ########################################################################
