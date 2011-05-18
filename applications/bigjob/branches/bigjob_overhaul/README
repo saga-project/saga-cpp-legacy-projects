@@ -1,0 +1,77 @@
+SAGA BigJob/Glide-In framework
+
+Prerequisites:
+- Python 2.5 or higher
+- Python 2.4 is NOT supported. It was reported to work, but requires the manual installation of UUID package: http://pypi.python.org/pypi/uuid/
+- Python 2.3 is NOT supported. It was reported to work, if the UUID and Subprocess package are manually installed. 
+There is no official backport of the subprocess package. The subprocess.py can however be manually 
+copied from a Python 2.4 or higher installation.
+
+
+- SAGA with File, Job and Advert package
+- Supported adaptors:
+	- default local adaptors
+	- Globus
+	- AWS (exp.)
+	
+- SAGA Python bindings (PYTHONPATH must be set accordingly)
+- SAGA/Boost must be compiled with a supported Python version. To find out which Python-bindings you have in your SAGA installation, check the 
+
+$SAGA_LOCATION/lib directory.
+
+The python bindings are in a directory python<version>, e.g.
+
+python2.6.2
+
+==================================================================================================================================
+Setup
+
+0.) Setup SAGA
+- install SAGA/Globus on all resources that supposed to run tasks 
+- Make sure the advert service is configured to use PostgreSQL by checking $SAGA_LOCATION/share/saga/saga_adaptor_default_advert.ini:
+        [saga.adaptors.default_advert]
+          name      = default_advert
+        
+        [saga.adaptors.default_advert.preferences]
+          dbtype    = postgresql
+        
+        [saga.adaptors.default_advert.preferences.postgresql]
+          # The set of parameters used in the dbconnect string 
+          # for PostgreSQL is the same as accepted by the PQconnectdb 
+          # function from the libpq library (see here: 
+          # http://www.postgresql.org/docs/8.1/interactive/libpq.html#LIBPQ-CONNECT)
+          dbconnect = dbname=advertdb;host=fortytwo.cct.lsu.edu;port=5432;user=SAGA;password=SAGA_client
+
+
+1) BigJob-Agent (Must run on every resource):
+- bigjob_agent_launcher.sh/bigjob_agent.py
+- poll advert service for jobs
+- executes and monitors jobs
+
+* Configure advert_launcher:
+    $ cp bigjob_agent_launcher.sh.template bigjob_agent_launcher.sh
+    
+    This is the agent, which launches the sub-jobs. It ensures that the environemnt is correctly set (MPI version, application binaries, etc.)
+    If necessary adjust enviornmental settings in this file. 
+
+* Launch Configuration:
+    $cp bigjob_agent.conf.template bigjob_agent_launcher.conf
+
+    Adjust shell, mpi version, if necessary
+
+2.) Run test application:
+Look at example source:
+$ vi example.py
+=> adjust replica_agent location for launching the big_job: 
+re_agent = <PATH_TO_RE_AGENT> + "/bigjob_agent_launcher.sh"
+
+=> adjust working directory
+
+Run example
+$ grid-proxy-init
+$ python example
+
+TODO:
+- cancelation of jobs via Globus adaptor does not work correctly
+
+Last updated: 04/10/2011

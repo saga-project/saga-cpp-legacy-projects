@@ -1,0 +1,285 @@
+<html><head>
+<meta http-equiv="content-type" content="text/html; charset=ISO-8859-1">
+
+<title>The SAGA use case FAQ</title>
+</head><body>
+<h3>The SAGA use case FAQ</h3>
+<ol>
+<li><a href="1">How to run a job on the Purdue Condor pool using the condor adaptor?</a></li>
+<li><a href="2">How to run a job on the TG clusters using Condor-G and the condor adaptor?</a></li>
+<li><a href="3">How to run a Condor-G job on the TG clusters without changing SAGA ini files?</a></li>
+</ol>
+<hr>
+<ol>
+<h3><li>How to run a job on the Purdue Condor pool using the condor adaptor?</li></h3>
+In the moment of writing this FAQ the Purdue Condor pool (tg-condor.purdue.teragrid.org) uses Condor 7.2.3.
+All command line tools required by the SAGA (condor_submit, condor_rm, condor_q)
+are in /opt/condor/bin/. To set your environment variables to use the Condor you
+can use an appropriate softenv key:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">$ soft add +condor-current
+</pre>
+You should be aware that the condor_submit command you execute now in the
+command line is not the original condor_submit. It's a wrapper written in
+the /opt/condor/wrapper/ directory. The wrapper calls the original condor_submit
+adding to command line parameters the "-a" ("-append") option to specify user's
+allocation. The SAGA can use Condor command tools from the only one directory
+which should be written in $SAGA_LOCATION/share/saga/saga_adaptor_condor.ini.
+It means that there is no problem here with the Purdue wrapper but you
+will have to take care of informing the condor_submit about your allocation.
+To do that you can use the mentioned ini file and specify your allocation in
+the [saga.adaptors.condor_job.default_attributes] section, e.g.:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">+TGProject = "TG-STA080000N"
+</pre>
+The SAGA condor adaptor adds two extra parameters in the command line to the
+condor_submit, e.g.:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+-append "log = /tmp/saga-condor-log-qToJzf" -append "log_xml = True"
+</pre>
+Thanks to that both the SAGA and a user can easily track a state of submitted jobs.<br>
+After the above preparations you should be able to submit successfully a simple job:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+# job_condor.py
+
+import saga
+
+try:
+  job_service_url = saga.url("condor://localhost/")
+  job_service = saga.job.service(job_service_url)
+
+  job_description = saga.job.description()
+  job_description.executable = "/bin/hostname"
+  job_description.arguments = ["--fqdn"]
+
+  my_job = job_service.create_job(job_description)
+  my_job.run()
+
+  print my_job.get_job_id()
+
+except saga.exception, e:
+  print "SAGA Error: ", e
+</pre>
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+<font color="red">lacinski@tg-condor ~ $</font> python job_condor.py
+[condor://localhost/]-[2458734]
+</pre>
+When the job is queued you can get information how job conditions meet Condor
+pool requirements and look into the log file in /tmp/ directory.
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+<font color="red">lacinski@tg-condor ~ $</font> condor_q 2458734 -better-analyze
+
+
+-- Submitter: tg-condor.rcac.purdue.edu : <128.211.128.45:53085> : tg-condor.rcac.purdue.edu
+---
+2458734.000:  Run analysis summary.  Of 1828 machines,
+     16 are rejected by your job's requirements
+     89 reject your job because of their own requirements
+    159 match but are serving users with a better priority in the pool
+   1510 match but reject the job for unknown reasons
+     27 match but will not currently preempt their existing job
+     27 are available to run your job
+
+The Requirements expression for your job is:
+
+( ( JobUniverse == 7 || JobUniverse == 9 || JobUniverse == 12 ) || ( TGProject isnt undefined ) ) &&
+( target.Arch == "X86_64" ) && ( target.OpSys == "LINUX" ) &&
+( target.Disk >= DiskUsage ) && ( ( target.Memory * 1024 ) >= ImageSize ) &&
+( ( target.HasFileTransfer ) || ( TARGET.FileSystemDomain == MY.FileSystemDomain ) )
+
+    Condition                         Machines Matched    Suggestion
+    ---------                         ----------------    ----------
+1   ( target.Arch == "X86_64" )       1812                 
+2   ( target.OpSys == "LINUX" )       1828                 
+3   ( target.Disk >= 17 )             1828                 
+4   ( ( 1024 * target.Memory ) >= 17 )1828                 
+5   ( ( target.HasFileTransfer ) || ( TARGET.FileSystemDomain == "rcac.purdue.edu" ) )
+                                      1828                 
+
+The following attributes are missing from the job ClassAd:
+
+CheckpointPlatform
+<font color="red">lacinski@tg-condor ~ $</font> cat /tmp/saga-condor-log-HoWlw6
+&lt;c&gt;
+    &lt;a n="MyType"&gt;&lt;s&gt;SubmitEvent&lt;/s&gt;&lt;/a&gt;
+    &lt;a n="EventTypeNumber"&gt;&lt;i&gt;0&lt;/i&gt;&lt;/a&gt;
+    &lt;a n="MyType"&gt;&lt;s&gt;SubmitEvent&lt;/s&gt;&lt;/a&gt;
+    &lt;a n="EventTime"&gt;&lt;s&gt;2009-10-08T00:48:56&lt;/s&gt;&lt;/a&gt;
+    &lt;a n="Cluster"&gt;&lt;i&gt;2458736&lt;/i&gt;&lt;/a&gt;
+    &lt;a n="Proc"&gt;&lt;i&gt;0&lt;/i&gt;&lt;/a&gt;
+    &lt;a n="Subproc"&gt;&lt;i&gt;0&lt;/i&gt;&lt;/a&gt;
+    &lt;a n="SubmitHost"&gt;&lt;s&gt;&lt;128.211.128.45:53085&gt;&lt;/s&gt;&lt;/a&gt;
+&lt;/c&gt;
+<font color="red">lacinski@tg-condor ~ $</font>
+</pre>
+<h3><li>How to run a job on the TG clusters using Condor-G and the condor adaptor?</li></h3>
+Condor-G, which should be available on all TG cluster, gives an opportunity to
+submit jobs on different clusters in the same way as to a single nodes in
+a traditional Condor pool. All request send to Condor-G are sent by it to
+gatekeepers running on TG clusters. The available pool of gatekeepers can be
+listed using the condor_status command:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+<font color="red">lacinski@qb1 ~$</font> condor_status
+
+Name               OpSys      Arch   State     Activity LoadAv Mem   ActvtyTime
+
+ncsa.cobalt.debug  LINUX      IA64   Unclaimed Idle     0.000  109967  0+00:00:00
+ncsa.cobalt.extend LINUX      IA64   Unclaimed Idle     0.000  109967  0+00:00:00
+ncsa.cobalt.long   LINUX      IA64   Unclaimed Idle     1.230  109967  0+00:00:00
+ncsa.cobalt.standa LINUX      IA64   Unclaimed Idle     1.601  109967  0+00:00:00
+ncsa.cobalt.workq  LINUX      IA64   Unclaimed Idle     0.000  109967  0+00:00:00
+tacc.lonestar.deve LINUX      X86_64 Unclaimed Idle     0.000  1118433  0+00:00:01
+tacc.lonestar.high LINUX      X86_64 Unclaimed Idle     100.000  1118433  0+00:00:01
+tacc.lonestar.norm LINUX      X86_64 Unclaimed Idle     2.377  1118433  0+00:00:01
+tacc.lonestar.seri LINUX      X86_64 Unclaimed Idle     4.500  1118433  0+00:00:01
+tacc.ranger.develo LINUX      X86_64 Unclaimed Idle     1.118  55308288  0+00:00:00
+tacc.ranger.large  LINUX      X86_64 Unclaimed Idle     100.000  55308288  0+00:00:01
+tacc.ranger.long   LINUX      X86_64 Unclaimed Idle     2.596  55308288  0+00:00:00
+tacc.ranger.normal LINUX      X86_64 Unclaimed Idle     6.809  55308288  0+00:00:00
+tacc.ranger.serial LINUX      X86_64 Unclaimed Idle     0.000  55308288  0+00:00:01
+ncsa.abe.cap1      LINUX      X86_64 Unclaimed Idle     0.000  8901860  0+00:00:00
+ncsa.abe.debug     LINUX      X86_64 Unclaimed Idle     0.000  8901860  0+00:00:00
+ncsa.abe.lincoln   LINUX      X86_64 Unclaimed Idle     0.000  8901860  0+00:00:00
+ncsa.abe.long      LINUX      X86_64 Unclaimed Idle     1.721  8901860  0+00:00:00
+ncsa.abe.normal    LINUX      X86_64 Unclaimed Idle     3.982  8901860  0+00:00:00
+ncsa.abe.wide      LINUX      X86_64 Unclaimed Idle     100.000  8901860  0+00:00:00
+loni-lsu.queenbee. LINUX      X86_64 Unclaimed Idle     1.827  502110  0+00:00:00
+loni-lsu.queenbee. LINUX      X86_64 Unclaimed Idle     0.000  502110  0+00:00:00
+loni-lsu.queenbee. LINUX      X86_64 Unclaimed Idle     2.771  502110  0+00:00:00
+
+                     Total Owner Claimed Unclaimed Matched Preempting Backfill
+
+          IA64/LINUX     5     0       0         5       0          0        0
+        X86_64/LINUX    18     0       0        18       0          0        0
+
+               Total    23     0       0        23       0          0        0
+<font color="red">lacinski@qb1 ~$</font>
+</pre>
+A job desctiption file for Condor-G should define "grid" as a universe and
+a gatekeeper if a user wants to submit a job on a chosen cluster. If a user
+doesn't define the "grid_resource" then the Condor-G will sumbit a job to
+the one of the all gatekeepers on the list. Using matchmaking a user can define a
+subset of gatekeeepers, the job will be submitted to. A simple job description
+file can look like the below one:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+executable = /bin/hostname
+arguments = --fqdn
+output = condor7-gt2.$(CLUSTER).$(PROCESS).out
+error = condor7-gt2.$(CLUSTER).$(PROCESS).err
+notification = NEVER
+universe = grid
+grid_resource = gt2 queenbee.loni-lsu.teragrid.org/jobmanager-pbs
+globus_rsl = (project=TG-STA080000N)(maxWallTime=10)(jobType=single)
+x509userproxy = /home/lacinski/.globus/userproxy.pem
+queue
+</pre>
+Not all of these attributes can be set in the SAGA program, but they can be set
+in the saga_adaptor_condor_job.ini file in the
+[saga.adaptors.condor_job.default_attributes] section, e.g.:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+# Universe = Vanilla
+universe = grid
+grid_resource = gt2 queenbee.loni-lsu.teragrid.org/jobmanager-pbs
+globus_rsl = (project=TG-STA080000N)(maxWallTime=10)(jobType=single)
+x509userproxy = /home/lacinski/.globus/userproxy.pem
+</pre>
+You have to be sure that your valid credential is written in the file, that
+name you assigned to the x509userproxy attribute. You can use the
+grid-proxy-info command to check it.
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+# job_condor.py
+
+import saga
+
+try:
+  job_service_url = saga.url("condor://localhost/")
+  job_service = saga.job.service(job_service_url)
+
+  job_description = saga.job.description()
+  job_description.executable = "/bin/hostname"
+  job_description.arguments = ["--fqdn"]
+  job_description.output = "condor7-gt2.$(CLUSTER).$(PROCESS).out"
+  job_description.error = "condor7-gt2.$(CLUSTER).$(PROCESS).err"
+
+  my_job = job_service.create_job(job_description)
+  my_job.run()
+
+  print my_job.get_job_id()
+
+except saga.exception, e:
+  print "SAGA Error: ", e
+</pre>
+A status of a submitted job can be track using the condor_q command and
+/tmp/saga-condor-log-* file, the same like for a regular Condor jobs.
+<h3><li>How to run a Condor-G job on the TG clusters without changing SAGA ini files?</li></h3>
+Both methods presented above have a certain drawback. Setting written in SAGA
+ini files cannot be changed from a program. It would more convenient to have
+a possibility to change dynamically a grid_resource attribbute. There are
+several solutions of that problem. One of them based on wrappers is presented
+below. We need to create a seperated directory where all Condor command line
+tools used by the SAGA will be written
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+<font color="red">lacinski@qb1 ~$</font> mkdir condor
+<font color="red">lacinski@qb1 ~$</font> cd condor
+<font color="red">lacinski@qb1 ~$</font> ln -s /usr/local/packages/condor-7.2.1-r1/bin/condor_q .
+<font color="red">lacinski@qb1 ~$</font> ln -s /usr/local/packages/condor-7.2.1-r1/bin/condor_rm .
+<font color="red">lacinski@qb1 ~$</font> cat > condor_submit
+#!/bin/bash
+
+HOME=/home/lacinski
+ATTR=$HOME/condor/condor_attr
+JOB=$HOME/condor/condor_job
+
+cat $ATTR > $JOB
+
+while read l; do
+    if [[ $l == ${l/#universe/} ]]; then
+        echo $l >> $JOB
+    fi
+done
+
+exec /usr/local/packages/condor-7.2.1-r1/bin/condor_submit "$1" "$2" "$3" "$4" $JOB
+&lt;Ctrl+d&gt;
+</pre>
+The condor_submit wrapper creates the "condor_job" job description file, writes
+to this file the entire "condor_attr" file with all extra attributes written
+before in the SAGA condor ini file. At the end the original "condor_submit" is
+executed. Now the "condor_attr" file can be created and changed dynamically in
+a program:
+<pre style="border: 0px solid rgb(0, 0, 0); padding: 8px; background-color: rgb(220, 220, 255);">
+# job_condor_py
+
+import saga
+import os
+
+try:
+  js_url = saga.url("condor://localhost/")
+  job_service = saga.job.service(js_url)
+
+  job_desc = saga.job.description()
+  job_desc.executable = "/bin/hostname"
+  job_desc.arguments = ["--fqdn"]
+  job_desc.output = "condor7-gt2.$(CLUSTER).$(PROCESS).out"
+  job_desc.error = "condor7-gt2.$(CLUSTER).$(PROCESS).err"
+
+  home = os.environ.get("HOME")
+  attr = open(home + "/condor/condor_attr", "w")
+  attr.write("log = condor7-gt2.$(CLUSTER).$(PROCESS).log\n")
+  attr.write("universe = grid\n")
+  attr.write("grid_resource = gt2 queenbee.loni-lsu.teragrid.org/jobmanager-pbs\n")
+  attr.write("globus_rsl = (project=TG-STA080000N)(maxWallTime=10)(jobType=single)\n")
+  attr.write("x509userproxy = " + home + "/.globus/userproxy.pem\n")
+  attr.close()
+
+  my_job = job_service.create_job(job_desc)
+  my_job.run()
+
+except saga.exception, e: 
+  print "SAGA Error: ", e
+</pre>
+
+<!--
+<h3><li>How to run a job on the TG clusters using the globus adaptor?</li></h3>
+-->
+</ol>
+</body></html>
+
+
