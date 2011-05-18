@@ -523,6 +523,7 @@ $(CSA_README_CHECK):
 	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;'         $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'                      $(CSA_README_CHECK)
+	@echo "fixing permissions"
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	@$(CHMOD) -R a+rX $(EXTDIR)
 	-@$(CHMOD)   a+rX $(CSA_LOCATION)
