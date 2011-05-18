@@ -392,7 +392,7 @@ $(SA_CONDOR_CHECK):
 
 ########################################################################
 # saga-adaptor-pbspro
-SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_pbspro_job.ini
+SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 SA_PBSPRO_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/pbspro/trunk saga-adaptor-pbspro-trunk
 
 .PHONY: saga-adaptor-pbspro
