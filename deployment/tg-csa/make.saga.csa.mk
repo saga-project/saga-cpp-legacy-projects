@@ -97,6 +97,7 @@ all::                      saga-core saga-adaptors saga-bindings saga-clients re
 
 .PHONY: externals
 externals::                boost postgresql sqlite3
+boost::                    python
 
 .PHONY: saga-core
 saga-core::                externals
@@ -173,6 +174,8 @@ $(BOOST_CHECK):
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
+															 --with-python=$(PYTHON_LOCATION)/bin/python \
+															 --with-python_root=$(PYTHON_LOCATION) \
                                --prefix=$(BOOST_LOCATION) && ./bjam && ./bjam install
 
 
@@ -250,6 +253,7 @@ PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VER
 PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
 PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 SAGA_ENV       += PYTHON_LOCATION=$(PYTHON_LOCATION)
+SAGA_ENV       += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 SAGA_LDLIBPATH += :$(PYTHON_LOCATION)/lib
 
 .PHONY: python
@@ -456,7 +460,7 @@ $(SAGA_PYTHON_CHECK):
 	@echo "saga-bindings-python      installing"
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0 ; true
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make && make install
+	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure && make && make install
 
 
 ########################################################################
