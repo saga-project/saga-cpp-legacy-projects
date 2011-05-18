@@ -299,7 +299,7 @@ $(SAGA_CHECK):
 ########################################################################
 # saga-adaptor-x509
 SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
-SA_X509_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/x509/trunk saga-adaptor-x509-trunk
+SA_X509_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/x509/trunk
 
 .PHONY: saga-adaptor-x509
 saga-adaptor-x509:: base $(SA_X509_CHECK)
@@ -307,15 +307,15 @@ saga-adaptor-x509:: base $(SA_X509_CHECK)
 
 $(SA_X509_CHECK):
 	@echo "saga-adaptor-x509         installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP) saga-adaptor-x509-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk || $(SVNCO) $(SA_X509_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP)                saga-adaptor-x509-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk || $(SVNCO) $(SA_X509_SRC) saga-adaptor-x509-trunk
 	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-globus
 SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.ini
-SA_GLOBUS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/globus/trunk saga-adaptor-globus-trunk
+SA_GLOBUS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/globus/trunk
 
 .PHONY: saga-adaptor-globus
 saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
@@ -323,15 +323,15 @@ saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
 
 $(SA_GLOBUS_CHECK):
 	@echo "saga-adaptor-globus       installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP) saga-adaptor-globus-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk || $(SVNCO) $(SA_GLOBUS_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP)                  saga-adaptor-globus-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk || $(SVNCO) $(SA_GLOBUS_SRC) saga-adaptor-globus-trunk
 	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-ssh
 SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
-SA_SSH_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ssh/trunk saga-adaptor-ssh-trunk
+SA_SSH_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ssh/trunk
 
 .PHONY: saga-adaptor-ssh
 saga-adaptor-ssh:: base $(SA_SSH_CHECK)
@@ -339,15 +339,15 @@ saga-adaptor-ssh:: base $(SA_SSH_CHECK)
 
 $(SA_SSH_CHECK):
 	@echo "saga-adaptor-ssh          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP) saga-adaptor-ssh-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk || $(SVNCO) $(SA_SSH_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP)               saga-adaptor-ssh-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk || $(SVNCO) $(SA_SSH_SRC) saga-adaptor-ssh-trunk
 	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-aws
 SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
-SA_AWS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/aws/trunk saga-adaptor-aws-trunk
+SA_AWS_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/aws/trunk
 
 .PHONY: saga-adaptor-aws
 saga-adaptor-aws:: base $(SA_AWS_CHECK)
@@ -355,15 +355,15 @@ saga-adaptor-aws:: base $(SA_AWS_CHECK)
 
 $(SA_AWS_CHECK):
 	@echo "saga-adaptor-aws          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP) saga-adaptor-aws-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk || $(SVNCO) $(SA_AWS_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP)               saga-adaptor-aws-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk || $(SVNCO) $(SA_AWS_SRC) saga-adaptor-aws-trunk
 	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-drmaa
 SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
-SA_DRMAA_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/drmaa/trunk saga-adaptor-drmaa-trunk
+SA_DRMAA_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/drmaa/trunk
 
 .PHONY: saga-adaptor-drmaa
 saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
@@ -371,63 +371,63 @@ saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
 
 $(SA_DRMAA_CHECK):
 	@echo "saga-adaptor-drmaa        installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk && $(SVNUP) saga-adaptor-drmaa-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk || $(SVNCO) $(SA_DRMAA_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk && $(SVNUP)                 saga-adaptor-drmaa-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk || $(SVNCO) $(SA_DRMAA_SRC) saga-adaptor-drmaa-trunk
 	@cd $(SRCDIR)/saga-adaptor-drmaa-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-condor
 SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
-SA_CONDOR_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/condor/trunk saga-adaptor-condor-trunk
+SA_CONDOR_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/condor/trunk
 
 .PHONY: saga-adaptor-condor
 saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
-	@echo "saga-adaptor-condor        ok"
+	@echo "saga-adaptor-condor       ok"
 
 $(SA_CONDOR_CHECK):
-	@echo "saga-adaptor-condor        installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk && $(SVNUP) saga-adaptor-condor-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk || $(SVNCO) $(SA_CONDOR_SRC)
+	@echo "saga-adaptor-condor       installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk && $(SVNUP)                  saga-adaptor-condor-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk || $(SVNCO) $(SA_CONDOR_SRC) saga-adaptor-condor-trunk
 	@cd $(SRCDIR)/saga-adaptor-condor-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-pbspro
 SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
-SA_PBSPRO_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/pbspro/trunk saga-adaptor-pbspro-trunk
+SA_PBSPRO_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/pbspro/trunk
 
 .PHONY: saga-adaptor-pbspro
 saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
-	@echo "saga-adaptor-pbspro        ok"
+	@echo "saga-adaptor-pbspro       ok"
 
 $(SA_PBSPRO_CHECK):
-	@echo "saga-adaptor-pbspro        installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk && $(SVNUP) saga-adaptor-pbspro-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk || $(SVNCO) $(SA_PBSPRO_SRC)
+	@echo "saga-adaptor-pbspro       installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk && $(SVNUP)                  saga-adaptor-pbspro-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk || $(SVNCO) $(SA_PBSPRO_SRC) saga-adaptor-pbspro-trunk
 	@cd $(SRCDIR)/saga-adaptor-pbspro-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-torque
 SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque.ini
-SA_TORQUE_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/torque/trunk saga-adaptor-torque-trunk
+SA_TORQUE_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/torque/trunk
 
 .PHONY: saga-adaptor-torque
 saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
-	@echo "saga-adaptor-torque        ok"
+	@echo "saga-adaptor-torque       ok"
 
 $(SA_TORQUE_CHECK):
-	@echo "saga-adaptor-torque        installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk && $(SVNUP) saga-adaptor-torque-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk || $(SVNCO) $(SA_TORQUE_SRC)
+	@echo "saga-adaptor-torque       installing"
+	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk && $(SVNUP)                  saga-adaptor-torque-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk || $(SVNCO) $(SA_TORQUE_SRC) saga-adaptor-torque-trunk
 	@cd $(SRCDIR)/saga-adaptor-torque-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
 ########################################################################
 # saga-adaptor-bes
 SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_hpcbp_job.ini
-SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk saga-adaptor-ogf-trunk
+SA_BES_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/ogf/trunk
 
 .PHONY: saga-adaptor-bes
 saga-adaptor-bes:: base $(SA_BES_CHECK)
@@ -435,8 +435,8 @@ saga-adaptor-bes:: base $(SA_BES_CHECK)
 
 $(SA_BES_CHECK):
 	@echo "saga-adaptor-bes          installing"
-	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP) saga-adaptor-ogf-trunk ; true
-	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk || $(SVNCO) $(SA_BES_SRC)
+	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP)               saga-adaptor-ogf-trunk ; true
+	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk || $(SVNCO) $(SA_BES_SRC) saga-adaptor-ogf-trunk
 	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
 
 
@@ -464,7 +464,7 @@ $(SAGA_PYTHON_CHECK):
 # mandelbrot client
 #
 SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
-SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/mandelbrot saga-client-mandelbrot
+SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/mandelbrot
 
 .PHONY: saga-client-mandelbrot
 saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
@@ -472,8 +472,8 @@ saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
 
 $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-mandelbrot    installing"
-	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP) saga-client-mandelbrot ; true
-	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC)
+	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP)                      saga-client-mandelbrot ; true
+	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC) saga-client-mandelbrot
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make clean && make && make install
 
 
@@ -481,17 +481,17 @@ $(SC_MANDELBROT_CHECK):
 #
 # bigjob client
 #
-SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
-SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob saga-client-bigjob
+SC_BIGJOB_CHECK    = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
+SC_BIGJOB_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob
 
 .PHONY: saga-client-bigjob
-saga-client-bigjob:: base $(SC_MANDELBROT_CHECK)
+saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
 	@echo "saga-client-bigjob        ok"
 
-$(SC_MANDELBROT_CHECK):
+$(SC_BIGJOB_CHECK):
 	@echo "saga-client-bigjob        installing"
-	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP) saga-client-bigjob ; true
-	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_MANDELBROT_SRC)
+	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP)                  saga-client-bigjob ; true
+	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_BIGJOB_SRC) saga-client-bigjob
 	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
 
 
