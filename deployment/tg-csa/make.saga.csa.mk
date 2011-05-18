@@ -175,7 +175,7 @@ $(BOOST_CHECK):
 	@cd $(SRCDIR)/boost_1_44_0 ; ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
 															 --with-python=$(PYTHON_LOCATION)/bin/python \
-															 --with-python_root=$(PYTHON_LOCATION) \
+															 --with-python-root=$(PYTHON_LOCATION) \
                                --prefix=$(BOOST_LOCATION) && ./bjam && ./bjam install
 
 
