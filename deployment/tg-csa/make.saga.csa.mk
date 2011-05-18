@@ -229,9 +229,10 @@ $(SQLITE3_CHECK):
 
 ########################################################################
 # python
-PYTHON_LOCATION = $(CSA_LOCATION)/external/python/2.7.1/gcc-$(CC_VERSION)/
+PYTHON_VERSION  = 2.7.1
+PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
 PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
-PYTHON_SRC      = http://python.org/ftp/python/2.7.1/Python-2.7.1.tar.bz2
+PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)
@@ -240,8 +241,8 @@ python:: base $(PYTHON_CHECK)
 $(PYTHON_CHECK):
 	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
-	@cd $(SRCDIR) ; tar jxvf Python-2.7.1.tar.bz2
-	@cd $(SRCDIR)/Python-2.7.1/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared && make && make install
+	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
+	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared && make && make install
 
 
 ########################################################################
@@ -429,11 +430,9 @@ $(SA_BES_CHECK):
 #
 # python bindings
 #
-SAGA_PYTHON_LOCATION = 
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
-SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0
-SAGA_PYTHON_VERSION  = $(shell python -c "import sys; print(sys.version)"  | head -1 | cut -f 1 -d ' ')
-SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(SAGA_PYTHON_VERSION)/site-packages
+SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0/
+SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
 
 .PHONY: saga-bindings-python
 saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
@@ -468,7 +467,7 @@ $(SC_MANDELBROT_CHECK):
 #
 # bigjob client
 #
-SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/lib/python$(SAGA_PYTHON_VERSION)/bigjob/
+SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
 SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob saga-client-bigjob
 
 .PHONY: saga-client-bigjob
@@ -479,7 +478,7 @@ $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP) saga-client-bigjob ; true
 	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_MANDELBROT_SRC)
-	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(SAGA_PYTHON_VERSION)/bigjob/
+	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
 
 
 ########################################################################
