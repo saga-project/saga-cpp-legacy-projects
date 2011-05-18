@@ -32,8 +32,7 @@ class dare(api.base.dare):
         config.read(filename)
        
         for option in config.options(resource):
-            conf_options[option]=(config.get(resource, option))
-                    
+            conf_options[option]=(config.get(resource, option))                    
         return conf_options
         
     def read_conf(filename,resources_used):
@@ -45,10 +44,22 @@ class dare(api.base.dare):
         for resource in resources_used:
             resources_info = {}
             for option in config.options(resource):
-                print option
+                #print option
                 resources_info[option]=(config_ri.get(resource, option) )
                 
            resources_used_info[resource]=resources_info
+    def set_logger(DARE_APP_NAME, job_id, DARE_UUID):
+        
+        LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_%s.txt'%(job_id, \
+                               DARE_UUID,DARE_APP_NAME))
+        logger = logging.getLogger('dare_%s_manyjob'%DARE_APP_NAME)
+        hdlr = logging.FileHandler(LOG_FILENAME)
+        formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
+        hdlr.setFormatter(formatter)
+        logger.addHandler(hdlr)
+        logger.setLevel(logging.INFO)
+        return logger
+           
 class resource_handler(api.base.resource_handler):
       
     def __init__():
@@ -61,11 +72,10 @@ class resource_handler(api.base.resource_handler):
            k =1
         number_nodes = ccpn * (cbnc*crjc/ccpn +k )
     
-    def launch_manyjob(self,resource_list):
-        try:  
-               
-            # submit via mj abstraction        
-            
+    def launch_resources_agents(self,resource_list, resources_used_info):
+    
+        try:                 
+            # submit via mj abstraction                
             ## start the big job agents
             resource_list = []
             i =0
@@ -95,15 +105,20 @@ class resource_handler(api.base.resource_handler):
                 print "Create manyjob service "
                 #create multiple manyjobs should be changed by bfast affinity implementation
                 i = i+1
-            mjs_affinity = many_job_affinity.many_job_service(resource_list, "advert.cct.lsu.edu")
+                #decide type of bigjob to use here
+            resources_service = many_job_affinity.many_job_service(resource_list, \
+                                                                   DARE_ADVERT_HOST)
         except:
             traceback.print_exc(file=sys.stdout)
+            terminate_resources_agents(resources_service)
+            
+        return resources_service
+            
+    def terminate_resources_agents(self,resource_service): 
             try:
-                 mjs_affinity.cancel()           
+                 resource_service.cancel()           
             except:
                 pass
-        return mjs_affinity     
-         
          
 class subjob_handler(api.base.subjob_handler):
       
@@ -117,38 +132,53 @@ class subjob_handler(api.base.subjob_handler):
         else:
             return False
             
-    def subjob_submit( jd_executable, jd_number_of_processes, jd_spmd_variation, \
-                       jd_arguments, affinity, jd_work_dir, jd_output, jd_error):
+    def create_subjob( job_description, jd_arguments, affinity, handler_resource):
                                  
-            # create job description
-            jd = saga.job.description()
-            jd.executable = str(jd_executable)            
-            jd.number_of_processes = str(jd_number_of_processes)
-            jd.spmd_variation = jd_spmd_variation            
-            # choose the job arguments based on type of job
-            jd.arguments = jd_arguments            
-            jd.environment = ["affinity=%s"%(affinity)]
-            jd.working_directory = jd_work_dir
-            jd.output =  jd_output
-            jd.error = jd_error
-            subjob = mjs_affinity.create_job(jd)
+        # create job description
+        jd = saga.job.description()
+        jd.executable = str(job_description["jd_executable"]            
+        jd.number_of_processes = str(job_description["jd_number_of_processes"]
+        jd.spmd_variation = job_description["jd_spmd_variation"]            
+        # choose the job arguments based on type of job
+        jd.arguments = jd_arguments            
+        jd.environment = ["affinity=%s"%(affinity)]
+        jd.working_directory = job_description["jd_work_dir"]
+        jd.output =  job_description["jd_output"]
+        jd.error = job_description["jd_error"]        
+        logger.info( "subjob " + str(i))
+        logger.info( "jd.number_of_processes " + str(jd.number_of_processes))
+        for item in jd.arguments:
+            logger.info( "jd.arguments" + item)
+        logger.info("%s"%(affinity))
+        logger.info( "jd exec" + jd.executable)
+        return jd    
+            
+   def submit_subjob(jd, handler_resource):
+        
+        try:    
+            subjob = handler_resource.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."        
-            jobs.append(subjob)
-            job_start_times[subjob]=time.time()
-            job_states[subjob] = subjob.get_state()
-            logger.info( "subjob " + str(i))
-            logger.info( "jd.number_of_processes " + str(jd.number_of_processes))
-            for item in jd.arguments:
-                logger.info( "jd.arguments" + item)
-                print " ",item
-            logger.info("%s"%(affinity))
-            logger.info( "jd exec " + jd.executable)
+            return subjob
+        except:
+            traceback.print_exc(file=sys.stdout)
+            try:
+                handler_resource.cancel()           
+            except:
+                pass
+                
+    def add_subjob_to_list(subjob):
+    
+        jobs.append(subjob)
+        job_start_times[subjob]=time.time()
+        job_states[subjob] = subjob.get_state()
+           
             
  
-    def wait_for_subjobs(number_of_jobs):               
+    def monitor_subjobs(number_of_jobs):               
 
-        print logger.info("********All Jobs submitted********" +  str(number_of_jobs))
+        logger.info("********All Jobs submitted********" +  str(number_of_jobs))
+        
         while 1:
             finish_counter=0
             result_map = {}
@@ -160,14 +190,16 @@ class subjob_handler(api.base.subjob_handler):
                 result_map[state] = result_map[state]+1
                 #print "counter: " + str(i) + " job: " + str(jobs[i]) + " state: " + state
                 if old_state != state:
-                    print "Job " + str(jobs[i]) + " changed from: " + old_state + " to " + state
+                    logger.info("Job " + str(jobs[i]) + " changed from: " + old_state + \
+                                " to " + state)
                 if old_state != state and has_finished(state)==True:
-                     print "Job: " + str(jobs[i]) + " Runtime: " + str(time.time()-job_start_times[jobs[i]]) + " s."
+                     logger.info("Job: " + str(jobs[i]) + " Runtime: " + \
+                                 str(time.time()-job_start_times[jobs[i]]) + " s.")
                 if has_finished(state)==True:
                      finish_counter = finish_counter + 1
                 job_states[jobs[i]]=state
 
-            print "Current states: " + str(result_map)
+            logger.info("Current states: " + str(result_map))
             time.sleep(5)
             logger.info("Current states: " + str(result_map))
             if finish_counter == number_of_jobs:
@@ -176,7 +208,7 @@ class subjob_handler(api.base.subjob_handler):
 class file_handler(api.base.file_handler)
 
 
-    def file_stage(source_url, dest_url):
+    def file_stager(source_url, dest_url):
 
         logger.info("Now I am tranferring the files from %s to %s"%(source_url, dest_url))
         #fgeuca for clouds
@@ -194,26 +226,23 @@ class file_handler(api.base.file_handler)
             except saga.exception, e:
                 error_msg = "File stage in failed : from "+ source_url + " to "+ dest_url
         return None
-
-
    
-
 if __name__ == "__main__":
     config = {}
   
     #define app name
     DARE_APP_NAME="BFAST"   
-    dare_uuid = uuid.uuid1()
+    DARE_UUID = uuid.uuid1()
+    DARE_ADVERT_HOST = "advert.cct.lsu.edu"
     
-    # parse conf files
+    # parse options
     parser = optparse.OptionParser()    
     parser.add_option("-j", "--job-conf", dest="job_conf", help="job configuration file")
     (options, args) = parser.parse_args()
       
-    #parse job conf file
-    job_conf = options.job_conf
-
-    job_info = read_job_conf(job_conf)
+    
+    #read job conf file
+    job_info = read_job_conf(options.job_conf)
    
     job_id = job_info['job_id']    
     resources_used = []                 
@@ -231,40 +260,27 @@ if __name__ == "__main__":
     #get the current working directory
     cwd = os.getcwd()
     
-    #define log filename  
-    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_%s.txt'%(job_id, \
-                               dare_uuid,DARE_APP_NAME))
-
-    logger = logging.getLogger('dare_bfast_manyjob')
-    hdlr = logging.FileHandler(LOG_FILENAME)
-    formatter = logging.Formatter('%(asctime)s %(levelname)s %(message)s')
-    hdlr.setFormatter(formatter)
-    logger.addHandler(hdlr)
-    logger.setLevel(logging.INFO)
+    #define log filename      
+    logger = set_logger(DARE_APP_NAME, LOG_FILENAME)
     
-    logger.info("Reading conf files is done "  + str(job_id) )
+    logger.info("Reading conf files is done ")
     logger.info("Job id  is "  + str(job_id) )
-    logger.info("Machine used is " + resources_used[0] )
-    logger.info("Reference GNOME " + refgenome)
+    logger.info("Machine used are ")
+    for i in ranger(resource_used):
+         logger.info("resources_used[i]")
+    
     
     #launch manyjob affinity    
-    mjs_affinity = launch_manyjob(self,resource_list):
+    job_service = launch_manyjob(self,resource_list)
     
-    try:    
-        #sample subjob
-        subjob_submit("/bin/date" , 1, "single", [""], "LONI", \
+    #create subjob description
+    jd = create_subjob("/bin/date" , 1, "single", [""], "LONI", \
                     "/work/smaddi2/", "/work/smaddi2/stdout-1-now.out",  \
-                    "/work/smaddi2/stderr-1-now.out") 
-                    
-        # wait for submitted subjobs to get to state done
-        wait_for_subjobs(1) 
+                    "/work/smaddi2/stderr-1-now.out")
+    #submit subjob
+    submit_subjob(jd,job_service) 
         
-        #cancel the manyjob after done
-        mjs_affinity.cancel()
-
-    except:
-        traceback.print_exc(file=sys.stdout)
-        try:
-             mjs_affinity.cancel()           
-        except:
-            pass
+    # wait for submitted subjobs to get to state done
+    wait_for_subjobs(1) 
+        
+    terminate_resource_agents(job_service)
