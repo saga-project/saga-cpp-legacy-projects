@@ -118,8 +118,9 @@ saga-bindings::            saga-bindings-python
 saga-bindings-python::     python
 
 .PHONY: saga-clients
-saga-clients::             saga-client-mandelbrot
-saga-clients-mandelbrot::  saga-core
+saga-clients::             saga-client-mandelbrot saga-client-bigjob
+saga-client-mandelbrot::   saga-core
+saga-client-bigjob::       saga-core saga-bindings-python            
 
 
 ########################################################################
@@ -461,6 +462,24 @@ $(SC_MANDELBROT_CHECK):
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP) saga-client-mandelbrot ; true
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC)
 	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make clean && make && make install
+
+
+########################################################################
+#
+# bigjob client
+#
+SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/lib/python$(SAGA_PYTHON_VERSION)/bigjob/
+SC_MANDELBROT_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob saga-client-bigjob
+
+.PHONY: saga-client-bigjob
+saga-client-bigjob:: base $(SC_MANDELBROT_CHECK)
+	@echo "saga-client-bigjob        ok"
+
+$(SC_MANDELBROT_CHECK):
+	@echo "saga-client-bigjob        installing"
+	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP) saga-client-bigjob ; true
+	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_MANDELBROT_SRC)
+	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(SAGA_PYTHON_VERSION)/bigjob/
 
 
 ########################################################################
