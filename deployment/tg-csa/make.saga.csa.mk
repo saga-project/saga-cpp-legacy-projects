@@ -496,7 +496,7 @@ $(SC_BIGJOB_CHECK):
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP)                  saga-client-bigjob ; true
 	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_BIGJOB_SRC) saga-client-bigjob
-	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
+	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob
 
 
 ########################################################################
