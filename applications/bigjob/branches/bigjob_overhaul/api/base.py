@@ -9,7 +9,7 @@ All Bigjob implementation must be derived from this API.
 # Bigjob data structures
 # 
 class BigjobResource():
-    """class to pass resource descriptions values around"""
+    """ Class to pass resource descriptions values around. """
     def __init__(self):
         # self.name 
         # self.type 
@@ -23,7 +23,8 @@ class BigjobResource():
         pass
 
 class BigjobCapabilities():
-    """class to pass resource capabilities around"""
+    """ Class to pass resource capabilities around. """
+
     def __init__(self):
         # self.number_of_cores
         # self.number_of_nodes
@@ -37,7 +38,9 @@ class Bigjob():
     """ This class represents the Bigjob. """
 
     def __init__(self, resource):
-        """ Create a Bigjob object. Takes a resource description as only argument. """
+        """ Create a Bigjob object.
+            Takes a resource description as only argument.
+        """
         # self.__uuid
         pass
          
@@ -50,88 +53,84 @@ class Bigjob():
         pass
     
     def get_subjobs(self):        
-        """ Return the list of Subjobs that are submitted to this Bigjob. """
+        """ Return the list of Subjobs that are running in this Bigjob. """
+        pass
+
+    def get_tasks(self):        
+        """ Return the list of Tasks that are running in this Bigjob. """
         pass
 
     def resize(self):        
         """ (re-)Calibrate the BigJob to the given 'size'. """
         pass
 
-    def submit_subjob(self, subjob):
-        """ Execute a Subjob to this Bigjob. """
+    def assign_task(self, task):
+        """ Assign a Task to this Bigjob. """
         pass
 
     def cancel(self):        
-        """ Cancel the BigJob and its Subjobs. """
+        """ Cancel the BigJob and its Subjobs/Tasks. """
         pass
-
-
-
-
 
 
 #
 # Subjob data structures
-# 
-class SubjobRequirements():
-    """ Class to pass Subjob requirements around. """
-    def __init__(self):
-        # self.number_of_cores
-        # self.minimum_runtime
-        pass
-
+#
 class SubjobInfo():
-    """ Class to describe a task. """
+    """ Read-only class to describe a SubJob. 
+        It is the internal representation of the schedulable entity inside
+        a Bigjob, but its information is exposed through the Bigjob API.
+    """
+
     def __init__(self):
         # self.runtime
         # self.location
+        # self.size
         pass
 
-class SubjobTask():
-    """ Class to describe a task. """
+
+#
+# Task data structures
+# 
+class TaskRequirements():
+    """ Class to pass Task requirements around. """
+
     def __init__(self):
+        # self.number_of_cores
+        # self.minimum_runtime
+        # self.color_of_the_walls_at_the_datacenter
+        pass
+
+#
+# Task class
+# 
+class Task():
+    """ This class represents the Task concept in the Bigjob framework. """
+
+    def __init__(self, requirements):
+        # self.__uuid
         # self.state
-        # self.program
+        # self.action
         # self.inputs
         # self.outputs
         pass
 
-#
-# Subjob class
-# 
-class Subjob():
-    """ This class represents the Subjob concept in the Bigjob framework.
-        It is the representation of the schedulable entity.
-    """
-
-    def __init__(self, task_list, requirements):
-        # self.__uuid
-        pass
-
     def get_requirements(self):        
-        """ Return the requirements that this Subjob has """
+        """ Return the requirements that this Task has. """
         pass
 
     def get_bigjob(self):        
-        """ Return the Bigjob where this Subjob is running """
+        """ Return the Bigjob where this Task is running. """
         pass
 
-    def set_bigjob(self):        
-        """ Set the Bigjob where this Subjob is running """
-        pass
-    
     def get_state(self):        
-        """ Return the (simple) state of the Subjob """
+        """ Return the state of the Task. """
         pass
 
-    def get_info(self):        
-        """ Return structured info about the Subjob """
+    def get_subjob(self):        
+        """ Return the Subjob that this Tasks runs in. """
         pass
     
-    def get_task_info(self):        
-        """ Return info about the individual tasks """
-        pass
-
     def cancel(self):
-        """ Cancel the Subjob and its tasks """
+        """ Cancel the Task. """
         pass
