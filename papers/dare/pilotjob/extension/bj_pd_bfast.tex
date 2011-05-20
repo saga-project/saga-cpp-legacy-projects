@@ -35,6 +35,9 @@
 
 \usepackage{url}
 
+\usepackage{enumerate}
+\usepackage{subfigure}
+
 %\newif\ifpdf
 %\ifx\pdfoutput\undefined
 %\pdffalse % we are not running PDFLaTeX
@@ -118,7 +121,7 @@
   that supports dynamic execution
 
 \item We define the characteristics that need to be supported by a
-  pilot-job \jhanote{Infrastructucture or Application
+  pilot-job \jhanote{Infrastructure or Application
     characteristics?} \alnote{I think we meant application characteristics}
 
 \item An extensible framework to aid an understanding of pilot-jobs
@@ -287,7 +290,7 @@ data.
 	\item \textbf{Agent:} Does every pilot-job implementation have an agent? What are the tasks of an agent?
 	\begin{itemize}
 	    \item Wikipedia Definition: may refer to one who acts for, or in the place of, another, by authority from him; one entrusted with the business of another.
-	    \item \textbf{Tasks:}
+	    \item \textbf{Tasks of an agent:}
 	    \begin{itemize}
 	        \item manages control flow
 	        \item mapping tasks to resources
@@ -352,8 +355,17 @@ Call (27/04/2011)
 \jhanote{I also propose we equate task==workload wherein the task is
   independent of any resource}
 
-\begin{itemize}
-	\item A. Pilot-Agent / Agent / Pilot / Worker = the "thing" that is sent out to an "F"
+\begin{enumerate}[A.]
+	
+	
+	\item\textbf{Pilot-Agent / Agent / Pilot-Job / Worker / Placeholder Job / 
+	Resource Agent / Placeholder-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
+	that may be dynamically added to it. Tasks are ultimately loaded onto 
+	specific resources via late-binding. In other words, PJ provides a mechanism 
+	to decouple “task coordination” from “resource mapping”. Facilities provided 
+	include the creation of a PJ, insertion of tasks, and attachment to a CPU 
+	resource pool for late-binding task execution. \alnote{ the "thing" that is sent out to \ref{resource}} \label{pilot-agent}    
+	
 	\begin{itemize}
 	   	\item Big-Job Agent: capacity (physical size) is a property of an agent. 
     	cardinality: how many sub-jobs can be managed by an agent?
@@ -361,33 +373,45 @@ Call (27/04/2011)
     	assignment. Agent has the freedom to assign tasks to sub-job in any way 
     	it want. Agent can do local decisions.    
 	\end{itemize}
-	\item B. Sub-Job / Task / Job = the Unit of Work that is sent down to "A" to 
-	be executed, is an instance of "I": Resources assigned to a single task. 
-	\begin{itemize}
-	   \item Task is a workload that is independent form a resource. A task will be assigned to a sub-job.
-       \item Sub-job is a schedule-able unit (you don't need to have an agent
-        per sub-jobs).    	
-	\end{itemize}
-	
-	
-	\item C. Placeholder-Job = ???
-	\item D. Resource-Agent = ???
-	\item E. BigJob = 1. The entity that is presented to "H" or 2. The entity that gets scheduled on "F".
-	\item F. Resource = A storage/compute Resource that has a common entry point (like a queue)
-	\item G. Master / Manager / Central / Control / Coordination = something central
-	\item H. Application = upper layer on our stack e.g. DARE-NGS
-	\item I. program / executable / software = actual binary that gets run. e.g. /usr/local/bin/bfast
-	\item J. headnode / frontdoor / stepping stone = entity that is the entrance for an "F"
-\end{itemize}
+	\item \textbf{Task:} A task is a workload that is independent form a 
+	resource. A task can be assigned to a sub-job/job.
+	\item \textbf{Sub-Job/Job:} Sub-jobs are schedule-able units and are the 
+	unit of works that are sent down to \ref{pilot-agent} to be executed. 
+	Sub-jobs/jobs are used to reserve the resources required by a task. A 
+	sub-job runs an instance of \ref{application-program}. 	
+	\item \textbf{Task Scheduler:} A task scheduler is the the unit responsible for mapping tasks 
+	to resources and thus, creating jobs. 	
+	\item \textbf{BigJob:} The entity that is presented to 
+	\ref{application-program} or 2. The entity that gets scheduled on 
+	\ref{resource}.	
+	\item \textbf{Resource:} A storage/compute Resource that has a common entry 
+	point (like a queue) \label{resource}
+	\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
+	\item \textbf{Master / Manager / Central / Control / Coordination:} 
+	something central
+	\item \textbf{Application:} is upper layer on the stack e.g. DARE-NGS. The application utilizes the BigJob API to execute instances of \ref{application-program}. \label{application}
+	\item \textbf{Program / Executable / Software / Application Kernel:} An application kernel is actual binary that gets run, e.g. \texttt{/usr/local/bin/bfast}. \label{application-program}	
+\end{enumerate}
 
 
 
-Related terms:
-\begin{itemize}
-	\item opportunistic resource usage
-	\item application
-	\item application kernel
-\end{itemize}
+
+\begin{figure}[htbp]
+        \centering
+    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
+    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job2.pdf}}        
+    \caption{Relationship between Task and Sub-Job/Job}
+    \label{fig:figures_task-job1}
+\end{figure}    
+
+
+
+\textbf{Diane Definition of Terms: } The computation consists of many worker
+processes which communicate with one master process (the worker processes do not
+need to share the filesystem nor memory). The ensemble of computation is called
+a run and it consists of many tasks which may be executed in parallel. A task is
+defined as a set of parameters which are produced by the RunMaster (running on a
+master node) and consumed by the WorkerAgent (running on a worker node).
 
 
 
