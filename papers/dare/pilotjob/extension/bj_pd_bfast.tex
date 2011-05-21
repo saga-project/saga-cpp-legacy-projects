@@ -308,13 +308,18 @@ data.
             \item Heavy resource agent: SAGA BigJob -- resource management, sub-job dispatching, state management...
     \end{itemize}
 
-	\item How many resources are managed by an agent (BigJob Agent vs. Diane Worker Agent)? How many tasks can be assigned to a agent? Single core worker, partial node worker, whole node worker, multi node worker (BigJob
+	\item \textbf{Capacity of Agent:} How many resources are managed by an agent (BigJob Agent vs. Diane Worker Agent)? How many tasks can be assigned to a agent? Single core worker, partial node worker, whole node worker, multi node worker (BigJob
 default). This characteristic influences: 
     \begin{itemize}
         \item Scalability
         \item Scheduling possibilites
         \item Fault tolerance
     \end{itemize}
+    \alnote{from DIANE source: self.max\_capacity \# how many tasks may be 
+    assigned to the worker at any given time (default 1), submasters may be 
+    superworkers with $capacity>1$, FIXME: for the moment support only static 
+    capacity (defined upfront and set to 1 ;-)}
+    
     \end{itemize}
 	\item Supported middleware types and infrastructures	
 	\item Security
@@ -414,6 +419,13 @@ a run and it consists of many tasks which may be executed in parallel. A task is
 defined as a set of parameters which are produced by the RunMaster (running on a
 master node) and consumed by the WorkerAgent (running on a worker node).
 
+from 
+
+DIANE assumes the master-worker computing model (Fig.
+1). Client sends job parameters to the Planner which partitions
+the job into smaller tasks executed by the Workers. Integrator
+is responsible for merging the results of task execution and
+sending the final job outcome to the Client.
 
 
 \section{PilotJob Implementations}
@@ -563,45 +575,52 @@ of resources that suppose to be used. Thus, this limitation}
 
 \subsection{BigJob-Diane}
 
-\begin{tabular}{|l|l|l|}
+
+DIANE~\cite{Moscicki:908910}
+
+\subsubsection{Features Comparison}
+
+\begin{tabular}{|l|p{4cm}|p{4cm}|}
 \hline
  &BigJob &Diane\\
 \hline
-MPI &yes &yes\\
+MPI &yes &yes (Customer implementation of ApplicationWorker required)\\
 \hline
-Advanced Scheduling &no &yes\\
+Advanced Scheduling &no &yes (ITaskScheduler)\\
 \hline
-Dynamic Resources &no &yes\\
+Dynamic Resources &yes (Dynamic BigJob) &yes (AgentFactories)\\
 \hline
 API for Agent Submission &yes &no\\
+\hline
+Application Interfaces &Sub-job Execution & Application-level API (\texttt{ITaskScheduler}, \texttt{IApplicationManager}, \texttt{IApplicationWorker}) \\
+\hline
+Fault Tolerance &Error Propagation &Configurable Re-Tries\\
 \hline
 \end{tabular}
 
 \msnote{Whats VO in this context?}\alnote{Suppose to describes the capability to dynamically add/remove resource from/to a BigJob}
 
 
-Mapping of BigJob / Diane terms
+\subsubsection{Mapping of BigJob / Diane terms}
 
-\begin{tabular}{|l|l|l|}
+\begin{tabular}{|l|p{4cm}|p{4cm}|}
 \hline
-\textbf{BJ} &\textbf{Diane} & \textbf{Comments} \\
+\textbf{Term} &\textbf{BJ} &\textbf{Diane}  \\
 \hline
-BJ Manager &Master & \\ 
+Central Coordinator &BJ Manager & Master/RunMaster \\ 
 \hline
-BJ Agent  & Worker Agent & \\
+Resource Agent &BJ Agent  & Worker Agent \\
 \hline
-Subjob &  Task & Task description\\
+Capacity of Agent &1 BJ Agent per resource & 1 Worker Agent per core \\
 \hline
-SAGA-Advert & CORBA & Communication between master and worker\\
-
+Scheduleable Unit&Sub-Job &  Task \\
 \hline
-BJ Agent per resource & Worker Agent per core & default agent behaviour\\
+Communication &SAGA-Advert & CORBA\\
 \hline
-Yes &  &support for task execution by generations  \\
+Support for task execution by generations  &Yes &YES\\  
 \hline
-At sub-job submission & & Task-resource binding \\
+Task-resource Binding &Late (At sub-job submission or later for dynamic BJ) &Late\\
 \hline
-
 \end{tabular}
 \subsection{Dynamic BigJob}
 
