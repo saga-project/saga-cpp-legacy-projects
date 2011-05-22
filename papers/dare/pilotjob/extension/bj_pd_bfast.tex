@@ -274,7 +274,6 @@ data. \alnote{Communication inside/outside BigJob; Who communicates? How?}
 			\item Push/Pull model for growing/shrinking resources.
 			\item How is this decision made?
 		\end{itemize}
-		\alnote{TODO: define atomic pilot, multiple pilot model}
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
 	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic and inherently prone to failures and thus unreliable. To deal with failures, systems can deploy strategies, such as automatic resubmission etc.
 	\item \textbf{Resource abstraction:} SAGA vs. GANGA
@@ -367,39 +366,56 @@ Call (27/04/2011)
 \begin{enumerate}[A.]
 	
 	
-	\item\textbf{Pilot-Agent / Agent / Pilot-Job / Worker / Placeholder Job / 
-	Resource Agent / Placeholder-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
-	that may be dynamically added to it. Tasks are ultimately loaded onto 
-	specific resources via late-binding. In other words, PJ provides a mechanism 
+	\item\textbf{Pilot-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
+	that may be dynamically added to it. The PJ is the entity that actually gets 
+	scheduled on a resource (\ref{resource}). Tasks are ultimately loaded onto 
+	specific resources using the pilot-job and late-binding. In other words, PJ 
+	provides a mechanism 
 	to decouple “task coordination” from “resource mapping”. Facilities provided 
 	include the creation of a PJ, insertion of tasks, and attachment to a CPU 
-	resource pool for late-binding task execution. \alnote{ the "thing" that is sent out to \ref{resource}} \label{pilot-agent}    
-	
+	resource pool for late-binding task execution. \alnote{ the "thing" that is 
+	sent out to \ref{resource}} \label{pilot-agent}    	
 	\begin{itemize}
 	   	\item Big-Job Agent: capacity (physical size) is a property of an agent. 
     	cardinality: how many sub-jobs can be managed by an agent?
     	\item Sub-Job Agent: Agent assignment should be separated from resource 
     	assignment. Agent has the freedom to assign tasks to sub-job in any way 
     	it want. Agent can do local decisions.    
+    	\item Alternative terms:  Worker, Pilot-Agent, BigJob-Agent, Resource 
+    	Agent, Placeholder-Job
 	\end{itemize}
-	\item \textbf{Unit of Work:} A unit of work is a workload that is independent form a 
-	resource. A unit of work can be assigned to a sub-job/job.
+	\item \textbf{Atomic vs. Dynamic Pilot-Jobs:}
+	\begin{itemize}
+	   \item  \textbf{Atomic BigJob:} An atomic BigJob is confined to a single 
+	   cluster resource and represented by a single master process (i.\,e.\ a 
+	   single BigJob Manager or DIANE RunMaster).
+    	\item \textbf{Dynamic BigJob:} A dynamic BigJob consists of several 
+    	pilot-jobs distributed across 1 or more resources. Dynamic BigJobs are 
+    	malleable, i.\,e.\ resources can added or be removed.
+	\end{itemize}	
+	\item \textbf{Unit of Work (Task):} A unit of work is a workload that is 
+	independent form a resource. A unit of work can be assigned to a 
+	sub-job/job.
 	\item \textbf{Sub-Job/Job:} Sub-jobs are schedule-able units and are the 
 	unit of works that are sent down to \ref{pilot-agent} to be executed. 
 	Sub-jobs/jobs are used to reserve the resources required by a task. A 
-	sub-job runs an instance of \ref{application-program}. 	
-	\item \textbf{Task Scheduler:} A task scheduler is the the unit responsible for mapping tasks 
-	to resources and thus, creating jobs. 	
-	\item \textbf{BigJob:} The entity that is presented to 
-	\ref{application-program} or 2. The entity that gets scheduled on 
-	\ref{resource}.	
-	\item \textbf{Resource:} A storage/compute Resource that has a common entry 
-	point (like a queue) \label{resource}
-	\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
-	\item \textbf{Master / Manager / Central / Control / Coordination:} 
-	something central
+	sub-job runs an instance of the application 
+	kernel~\ref{application-program}. 	
+	\item \textbf{Task Scheduler:} A task scheduler is the the unit responsible
+	for mapping tasks to resources and thus, creating jobs. 	
+	\item \textbf{Central Manager:} The central manager is the component that 
+	exposes the BigJob API to the application (\ref{application}). Further, it 
+	centrally coordinates tasks and sub-jobs. In BigJob this component is 
+	represented by the BigJob Manager, in DIANE by the RunMaster.
+
+	\item \textbf{Resource:} A storage/compute resource that has a common entry 
+	point (like a queue) \label{resource}.
+	%\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
+	%\item \textbf{Master / Manager / Central / Control / Coordination:} 
+	%something central
 	\item \textbf{Application:} is upper layer on the stack e.g. DARE-NGS. The application utilizes the BigJob API to execute instances of \ref{application-program}. \label{application}
-	\item \textbf{Program / Executable / Software / Application Kernel:} An application kernel is actual binary that gets run, e.g. \texttt{/usr/local/bin/bfast}. \label{application-program}	
+	\item \textbf{Application Kernel:} An application kernel is actual binary that gets run, e.g. \texttt{/usr/local/bin/bfast} (Alternative terms: Program, Executable, Software). \label{application-program}	
+	
 \end{enumerate}
 
 
@@ -579,52 +595,53 @@ of resources that suppose to be used. Thus, this limitation}
 \subsection{BigJob-Diane}
 
 
-DIANE~\cite{Moscicki:908910}
-
-\subsubsection{Features Comparison}
-
-\begin{tabular}{|l|p{4cm}|p{4cm}|}
-\hline
- &BigJob &Diane\\
-\hline
-MPI &yes &yes (Customer implementation of ApplicationWorker required)\\
-\hline
-Advanced Scheduling &no &yes (ITaskScheduler)\\
-\hline
-Dynamic Resources &yes (Dynamic BigJob) &yes (AgentFactories)\\
-\hline
-API for Agent Submission &yes &no\\
-\hline
-Application Interfaces &Sub-job Execution & Application-level API (\texttt{ITaskScheduler}, \texttt{IApplicationManager}, \texttt{IApplicationWorker}) \\
-\hline
-Fault Tolerance &Error Propagation &Configurable Re-Tries\\
-\hline
-\end{tabular}
-
-\msnote{Whats VO in this context?}\alnote{Suppose to describes the capability to dynamically add/remove resource from/to a BigJob}
-
+DIANE~\cite{Moscicki:908910} is a task coordination framework which implements 
+the Master/Worker pattern. 
 
 \subsubsection{Mapping of BigJob / Diane terms}
-
-\begin{tabular}{|l|p{4cm}|p{4cm}|}
+\begin{table}[ht]
+\centering
+\begin{tabular}{|p{3.5cm}|p{5.9cm}|p{5.7cm}|}
 \hline
-\textbf{Term} &\textbf{BJ} &\textbf{Diane}  \\
+\textbf{Term} &\textbf{Atomic BigJob/Dynamic BigJob} &\textbf{Diane}  \\
 \hline
-Central Coordinator &BJ Manager & Master/RunMaster \\ 
+Central Coordinator &BigJob/ManyJob Manager & RunMaster \\ 
 \hline
-Resource Agent &BJ Agent  & Worker Agent \\
+Resource Agent / Pilot &BigJob Agent  & Worker Agent \\
 \hline
-Capacity of Agent &1 BJ Agent per resource & 1 Worker Agent per core \\
+Number Agents &1 BJ Agent/n BJ Agents & 1 Worker Agent per core \\
+\hline
+Capacity of Agent &n cores & 1 core\\
 \hline
 Scheduleable Unit&Sub-Job &  Task \\
 \hline
 Communication &SAGA-Advert & CORBA\\
 \hline
-Support for task execution by generations  &Yes &YES\\  
+Support for task execution by generations  &yes &yes\\  
 \hline
 Task-resource Binding &Late (At sub-job submission or later for dynamic BJ) &Late\\
 \hline
+MPI &yes &yes (custom implementation of ApplicationWorker required)\\
+\hline
+Advanced Scheduling &no/ManyJob Scheduler &yes (ITaskScheduler)\\
+\hline
+Dynamic Resources &no/yes &yes (AgentFactories)\\
+\hline
+Agent Submission &API &Ganga Submission Script\\
+\hline
+Application Interfaces &Big-Job/Sub-job Management &Big-Job/Sub-job 
+Management\linebreak[4] Master/Worker API (\texttt{ITaskScheduler}, 
+\texttt{IApplicationManager}, \texttt{IApplicationWorker}) \\
+\hline
+Fault Tolerance &Error Propagation &Configurable Re-Tries\\
+\hline
 \end{tabular}
+\caption{BigJob / DIANE Terms and Features}
+\end{table}
+
+\msnote{Whats VO in this context?}\alnote{Suppose to describes the capability to dynamically add/remove resource from/to a BigJob}
+
+
 \alnote{Update: atomic pilot, multiple pilot model}
 
 
@@ -653,31 +670,7 @@ scheduler then ensures that sub-jobs that demand a certain affinity are only
 executed on resources that fulfill this constraint.
 
 
-% This implementation is similar to SAGA-ManyJob except that we define affinity 
-% for each resource and also define affinity for the tasks. Therefore binding 
-% between tasks and resource occur while submitting the jobs.
-
-\msnote{How do we define that affinity?}\alnote{Affinity is a unique identifier 
-that can be assigned to each big-job}
-
-\smnote{This approach is well suited when utilizing wide variety of
-infrastructure/resources where parameters for the application will change
-according to the file paths/environment variables etc.. for each resource}
-
-\subsection{Other Pilot-Jobs}
-
-\begin{itemize}
-    \item MyCluster
-    \item Swift
-    \item Falkon
-    \item Nimrod/G
-\end{itemize}
-
-
-\subsection{Extensions}
-
-
-\subsubsection{Dynamically Resource Management}
+\subsubsection{Dynamic Resources}
 
 To address to the dynamic resource requirements of applications the ability to
 dynamically add and remove resources to a BigJob. The proposed API consists of
@@ -702,6 +695,30 @@ in the dynamic big-job layer:
      Each big-job object can be queried for it's allocated resources (number 
      nodes, number cores).
 \end{itemize}
+
+
+% This implementation is similar to SAGA-ManyJob except that we define affinity 
+% for each resource and also define affinity for the tasks. Therefore binding 
+% between tasks and resource occur while submitting the jobs.
+
+\msnote{How do we define that affinity?}\alnote{Affinity is a unique identifier 
+that can be assigned to each big-job}
+
+\smnote{This approach is well suited when utilizing wide variety of
+infrastructure/resources where parameters for the application will change
+according to the file paths/environment variables etc.. for each resource}
+
+\subsection{Other Pilot-Jobs}
+
+\begin{itemize}
+    \item MyCluster
+    \item Swift
+    \item Falkon
+    \item Nimrod/G
+\end{itemize}
+
+
+\subsection{Extensions}
 
 
 \subsubsection{Dynamic Scheduling}
