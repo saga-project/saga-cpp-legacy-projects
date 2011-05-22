@@ -205,6 +205,107 @@ will argue is also interoperable with Clouds.
 
 \msnote{why the explicit mentioning of clouds while in the same sentence there is referred to a "broad range of infrastructures"}
 
+\subsection{Definitions}
+
+% \jhanote{I propose this be after characteristics -- as the
+%   characteristics are fundamental and this is an 'abstract
+%   framework' to support the characteristics}
+
+% \jhanote{I also propose we equate task==workload wherein the task is
+%   independent of any resource}
+  \alnote{Call 5/20: task == unit of work}
+
+\begin{enumerate}[A.]
+	\item\textbf{Pilot-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
+	that may be dynamically added to it. The PJ is the entity that actually gets 
+	scheduled on a resource (\ref{resource}). Tasks are ultimately loaded onto 
+	specific resources using the pilot-job and late-binding. In other words, PJ 
+	provides a mechanism 
+	to decouple “task coordination” from “resource mapping”. Facilities provided 
+	include the creation of a PJ, insertion of tasks, and attachment to a CPU 
+	resource pool for late-binding task execution. \alnote{ the "thing" that is 
+	sent out to \ref{resource}} \label{pilot-agent}    	
+	\begin{itemize}
+	    \alnote{TOOD: Move to impl.}
+	   	\item Big-Job Agent: capacity (physical size) is a property of an agent. 
+    	cardinality: how many sub-jobs can be managed by an agent?
+    	\item Sub-Job Agent: Agent assignment should be separated from resource 
+    	assignment. Agent has the freedom to assign tasks to sub-job in any way 
+    	it want. Agent can do local decisions.    
+      \item Would it make sense to use the ``internal'' versus
+        ``external'' coordination concept to distinguish sub-job
+        versus big-job agent
+    	\item Alternative terms:  Worker, Pilot-Agent, BigJob-Agent, Resource 
+    	Agent, Placeholder-Job
+
+	\end{itemize}
+	  \alnote{TOOD: Move to impl.}
+      \item \textbf{Atomic and Dynamic Pilot-Jobs:} \jhanote{Is this a
+          fundamental difference or something we develop internally as
+          a model of understanding}\alnote{No, that's why it is in definitions 
+          and not in the model. Once we all know what we're talking about then 
+          we can  remove it again.}
+	\begin{itemize}
+	   \item  \textbf{Atomic BigJob:} An atomic BigJob is confined to a single 
+	   cluster resource and represented by a single master process (i.\,e.\ a 
+	   single BigJob Manager or DIANE RunMaster).
+    	\item \textbf{Dynamic BigJob:} A dynamic BigJob consists of several 
+    	pilot-jobs distributed across 1 or more resources. Dynamic BigJobs are 
+    	malleable, i.\,e.\ resources can added or be removed.
+	\end{itemize}	
+	\item \textbf{Unit of Work (Task):} A unit of work is a workload that is 
+	independent form a resource. A unit of work can be assigned to a 
+	sub-job/job.
+	\item \textbf{Unit of Scheduleable Entity (Job):} schedule-able entities are 
+	the unit of works that are sent down to \ref{pilot-agent} to be executed. 
+	Sub-jobs/jobs are used to reserve the resources required by a task. A 
+	sub-job runs an instance of the application 
+	kernel~\ref{application-program}. 	
+	\item \textbf{Task Scheduler:} A task scheduler is the the unit responsible
+	for mapping tasks to resources and thus, creating jobs. \alnote{move to task schedul.}
+	\item \textbf{Central Manager:} The central manager is the component that 
+	exposes the BigJob API to the application (\ref{application}). Further, it 
+	centrally coordinates tasks and sub-jobs. In BigJob this component is 
+	represented by the BigJob Manager, in DIANE by the RunMaster.
+    \alnote{move to coordination}
+	\item \textbf{Resource:} A storage/compute resource that has a common entry 
+	point (like a queue) \label{resource}.
+	%\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
+	%\item \textbf{Master / Manager / Central / Control / Coordination:} 
+	%something central
+	\item \textbf{Application:} is upper layer on the stack e.g. DARE-NGS. The application utilizes the BigJob API to execute instances of \ref{application-program}. \label{application}
+	\item \textbf{Application Kernel:} An application kernel is actual binary that gets run, e.g. \texttt{/usr/local/bin/bfast} (Alternative terms: Program, Executable, Software). \label{application-program}	
+	
+\end{enumerate}
+
+\begin{figure}[htbp]
+        \centering
+    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
+    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job2.pdf}}        
+    \caption{Relationship between Task and Sub-Job/Job}
+    \label{fig:figures_task-job1}
+\end{figure}    
+
+
+
+\textbf{Diane Definition of Terms: } The computation consists of many worker
+processes which communicate with one master process (the worker processes do not
+need to share the filesystem nor memory). The ensemble of computation is called
+a run and it consists of many tasks which may be executed in parallel. A task is
+defined as a set of parameters which are produced by the RunMaster (running on a
+master node) and consumed by the WorkerAgent (running on a worker node).
+
+from 
+
+DIANE assumes the master-worker computing model (Fig.
+1). Client sends job parameters to the Planner which partitions
+the job into smaller tasks executed by the Workers. Integrator
+is responsible for merging the results of task execution and
+sending the final job outcome to the Client.
+
+
+
+
 \subsection{Components of P*-Model:}
 
 We propose a set of fundamental properties/characteristics that can be
@@ -215,6 +316,8 @@ used to construct a framework to describe pilot-*..
   need to be exposed to the external environment. See classification
   of internal coordination and external coordination}
 
+
+\textbf{API-Relevant:}
 \begin{itemize}
 	\item \textbf{Task binding:~\cite{diane-thesis}} 
 		\begin{itemize}
@@ -250,8 +353,16 @@ used to construct a framework to describe pilot-*..
 				different components. Pilot-Jobs with decentralized decision 
 				making often utilize agents that accepts respectively pull 
 				sub-jobs according to a set of defined criteria.
+				\item Applicable to many aspects of the pilot-job framework (e.g. to task binding, resource binding)
+				\item \textbf{Push vs Pull} We define the terms push and pull 
+				based upon the determinism of the binding. If the task is 
+				centrally explicitly addressed to a specific pilot, and there is 
+				thus no freedom for a pilot to select the task, we speak of a 
+				push model. In all other situations, when there is a 
+            	degree of freedom for the pilots to select a task, we speak of 
+            	pull.
 			\end{itemize}
-			
+			\alnote{Save table for later! future work}
 			\begin{tabular}{|l|c|c|}
 				\hline
 				&central &decentral\\
@@ -271,25 +382,22 @@ used to construct a framework to describe pilot-*..
 stream (potentially unicast or multicast), publish/subscribe or through shared
 data. \alnote{Communication inside/outside BigJob; Who communicates? How?}
 	\begin{itemize}
-		\item Remote procedure calls: CORBA, RMI
+		%\item Remote procedure calls: CORBA, RMI
 		\item Messaging: point-to-point, collective operations
 		\item Shared data space (e.\,g.\ tuple space): BigJob e.g. uses the Advert service to share data between the manager and the agent (such as task information). In general, this is associated with a push/pull coordination schema, i.e. the manager pushes something to the shared data space and the agents periodically check for new data.
 	\end{itemize} 
-	\item \textbf{Dynamic Resources:}
+	\item \textbf{Dynamic Resources:} Dynamic resources describes the ability to acquire and release resources.
 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 	    resources, the external coordination is the same for both BJ.}
 		\begin{itemize}
-			\item Push/Pull model for growing/shrinking resources.
-			\item How is this decision made?
+			\item Push/Pull model for growing/shrinking resources 
+			(not only for task binding).
+			\item How is this decision made? see centralized vs. decentralized decision making
 		\end{itemize}
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
-	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic and inherently prone to failures and thus unreliable. To deal with failures, systems can deploy strategies, such as automatic resubmission etc.
-	\item \textbf{Resource abstraction:} SAGA vs. GANGA
-	\msnote{Whats this comparison aiming at?} \alnote{This is not a really 
-	defining characteristic. But, since we are talking about abstractions, I 
-	thought it might be useful to describe how resources are accessed.}
 	\item \textbf{End-user abstraction:} BigJob API
-	\item Task scheduling and prioritization
+	\item \textbf{Task scheduling and prioritization:}\alnote{some overlap with 
+	task binding}
 	\begin{itemize}
 	 			\item Policies and Algorithms
 	 			\item What attributes are required?
@@ -297,9 +405,17 @@ data. \alnote{Communication inside/outside BigJob; Who communicates? How?}
 	 			\item Integration of data- and compute scheduling
 	 			\item see MLS paper
 	\end{itemize}
-	\item \textbf{Agent:} Does every pilot-job implementation have an agent? What are the tasks of an agent?
+	\item \textbf{Agent:} Does every pilot-job implementation have an agent? 
+	What are the tasks of an agent? \alnote{Decision for now: agent is not a 
+	fundamental component. Can we cover this in other components, e.g. discuss 
+	multi-level scheduling in task scheduling.}
 	\begin{itemize}
-	    \item Wikipedia Definition: may refer to one who acts for, or in the place of, another, by authority from him; one entrusted with the business of another.
+	    \item Wikipedia Definition: may refer to one who acts for, or in the 
+	    place of, another, by authority from him; one entrusted with the 
+	    business of another.
+	    \item Difference between implementation and role of agent
+	    \item Agent explicitly in the model? Or requirements that must be met by 
+	    some component in the model?
 	    \item \textbf{Roles of an agent:}
 	    \begin{itemize}
 	        \item manages control flow
@@ -309,7 +425,7 @@ data. \alnote{Communication inside/outside BigJob; Who communicates? How?}
 	        \item state management of the complete pilot job state
 	        \item discovering local information
         \end{itemize}
-     \item \textbf{Distribution of agent / Agent Hierarchies} (we could introduce a resource agent or sub-agent):
+     \item \textbf{Distribution of agent / Agent Hierarchies} (we could introduce a resource agent or sub-agent): \alnote{\textbf{TODO:} move to impl. - make more generic in sec 2}
         \begin{itemize}
     	    \item No distribution: BigJob-Cloud -- direct dispatching of sub-jobs from manager (agent is component of manager)
             \item Lightweight resource agent: Diane -- Agent on resource is used as a dispatcher (capacity = 1 sub-job)
@@ -328,20 +444,34 @@ default). This characteristic influences:
     superworkers with $capacity>1$, FIXME: for the moment support only static 
     capacity (defined upfront and set to 1 ;-)}    
     \end{itemize}
-	\item Infrastructure Independence (Supported middleware types and infrastructures)
-	\item \textbf{Security}
-	\item \textbf{Push vs Pull} We define the terms push and pull based upon the 
-	determinism of the binding. If the task is centrally explicitly addressed to 
-	a specific pilot, and there is thus no freedom for a pilot to select the 
-	task, we speak of a push model. In all other situations, when there is a 
-	degree of freedom for the pilots to select a task, we speak of pull.
-	
-	
-	
+	% \item Infrastructure Independence (Supported middleware types and infrastructures)
+
 
 	
 	
 \end{itemize}
+
+\textbf{Non-Functional}
+
+\begin{itemize}
+	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic 
+	and inherently prone to failures and thus unreliable. To deal with failures, 
+	systems can deploy strategies, such as automatic resubmission etc.
+	\item \textbf{Security}: 
+	\begin{itemize}
+	   \item single vs. multiple user
+	   \item Authorization, authentication, accounting (AAA)
+	\end{itemize}
+	\item \textbf{Resource abstraction:} SAGA vs. GANGA
+	\msnote{Whats this comparison aiming at?} \alnote{This is not a really 
+	defining characteristic. But, since we are talking about abstractions, I 
+	thought it might be useful to describe how resources are accessed.}
+\end{itemize}
+
+\jhanote{I think upto this point, there should not be mention of
+  BigJob -- we should be talking implementation independent, e.g., must
+  not have sub-job and bigjob agent}
+
 
 \alnote{Comments from call (24/04/2011):
 \begin{itemize}
@@ -362,108 +492,6 @@ Call (27/04/2011)
 }
 
 
-\subsection{Definitions}
-
-% \jhanote{I propose this be after characteristics -- as the
-%   characteristics are fundamental and this is an 'abstract
-%   framework' to support the characteristics}
-
-% \jhanote{I also propose we equate task==workload wherein the task is
-%   independent of any resource}
-  \alnote{Call 5/20: task == unit of work}
-
-\begin{enumerate}[A.]
-	
-	
-	\item\textbf{Pilot-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
-	that may be dynamically added to it. The PJ is the entity that actually gets 
-	scheduled on a resource (\ref{resource}). Tasks are ultimately loaded onto 
-	specific resources using the pilot-job and late-binding. In other words, PJ 
-	provides a mechanism 
-	to decouple “task coordination” from “resource mapping”. Facilities provided 
-	include the creation of a PJ, insertion of tasks, and attachment to a CPU 
-	resource pool for late-binding task execution. \alnote{ the "thing" that is 
-	sent out to \ref{resource}} \label{pilot-agent}    	
-	\begin{itemize}
-	   	\item Big-Job Agent: capacity (physical size) is a property of an agent. 
-    	cardinality: how many sub-jobs can be managed by an agent?
-    	\item Sub-Job Agent: Agent assignment should be separated from resource 
-    	assignment. Agent has the freedom to assign tasks to sub-job in any way 
-    	it want. Agent can do local decisions.    
-      \item Would it make sense to use the ``internal'' versus
-        ``external'' coordination concept to distinguish sub-job
-        versus big-job agent
-    	\item Alternative terms:  Worker, Pilot-Agent, BigJob-Agent, Resource 
-    	Agent, Placeholder-Job
-
-	\end{itemize}
-      \item \textbf{Atomic vs. Dynamic Pilot-Jobs:} \jhanote{Is this a
-          fundamental difference or something we develop internally as
-          a model of understanding}\alnote{No, that's why it is in definitions and not in the model. Once we all know what we're talking about then we can remove it again.}
-	\begin{itemize}
-	   \item  \textbf{Atomic BigJob:} An atomic BigJob is confined to a single 
-	   cluster resource and represented by a single master process (i.\,e.\ a 
-	   single BigJob Manager or DIANE RunMaster).
-    	\item \textbf{Dynamic BigJob:} A dynamic BigJob consists of several 
-    	pilot-jobs distributed across 1 or more resources. Dynamic BigJobs are 
-    	malleable, i.\,e.\ resources can added or be removed.
-	\end{itemize}	
-	\item \textbf{Unit of Work (Task):} A unit of work is a workload that is 
-	independent form a resource. A unit of work can be assigned to a 
-	sub-job/job.
-	\item \textbf{Sub-Job/Job:} Sub-jobs are schedule-able units and are the 
-	unit of works that are sent down to \ref{pilot-agent} to be executed. 
-	Sub-jobs/jobs are used to reserve the resources required by a task. A 
-	sub-job runs an instance of the application 
-	kernel~\ref{application-program}. 	
-	\item \textbf{Task Scheduler:} A task scheduler is the the unit responsible
-	for mapping tasks to resources and thus, creating jobs. 	
-	\item \textbf{Central Manager:} The central manager is the component that 
-	exposes the BigJob API to the application (\ref{application}). Further, it 
-	centrally coordinates tasks and sub-jobs. In BigJob this component is 
-	represented by the BigJob Manager, in DIANE by the RunMaster.
-
-	\item \textbf{Resource:} A storage/compute resource that has a common entry 
-	point (like a queue) \label{resource}.
-	%\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
-	%\item \textbf{Master / Manager / Central / Control / Coordination:} 
-	%something central
-	\item \textbf{Application:} is upper layer on the stack e.g. DARE-NGS. The application utilizes the BigJob API to execute instances of \ref{application-program}. \label{application}
-	\item \textbf{Application Kernel:} An application kernel is actual binary that gets run, e.g. \texttt{/usr/local/bin/bfast} (Alternative terms: Program, Executable, Software). \label{application-program}	
-	
-\end{enumerate}
-
-\jhanote{I think upto this point, there should not be mention of
-  BigJob -- we should be talking implementation independent, e.g., must
-  not have sub-job and bigjob agent}
-
-
-
-
-\begin{figure}[htbp]
-        \centering
-    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
-    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job2.pdf}}        
-    \caption{Relationship between Task and Sub-Job/Job}
-    \label{fig:figures_task-job1}
-\end{figure}    
-
-
-
-\textbf{Diane Definition of Terms: } The computation consists of many worker
-processes which communicate with one master process (the worker processes do not
-need to share the filesystem nor memory). The ensemble of computation is called
-a run and it consists of many tasks which may be executed in parallel. A task is
-defined as a set of parameters which are produced by the RunMaster (running on a
-master node) and consumed by the WorkerAgent (running on a worker node).
-
-from 
-
-DIANE assumes the master-worker computing model (Fig.
-1). Client sends job parameters to the Planner which partitions
-the job into smaller tasks executed by the Workers. Integrator
-is responsible for merging the results of task execution and
-sending the final job outcome to the Client.
 
 
 \section{PilotJob Implementations}
