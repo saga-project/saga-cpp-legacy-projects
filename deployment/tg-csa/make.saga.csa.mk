@@ -510,8 +510,6 @@ $(SC_BIGJOB_CHECK):
 CSA_README_SRC   = $(CSA_LOCATION)/tg-csa/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
-PYTHONPATH=$(SAGA_LOCATION)/$(shell cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Package Path' configure.log | cut -f 2 -d ':' | cut -f 2 -d ' ')
-
 .PHONY: readme
 readme:: saga-core $(CSA_README_CHECK)
 	@echo "README                    ok"
