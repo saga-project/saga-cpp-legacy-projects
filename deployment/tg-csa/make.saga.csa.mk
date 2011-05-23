@@ -485,8 +485,8 @@ $(SC_MANDELBROT_CHECK):
 #
 # bigjob client
 #
-SC_BIGJOB_CHECK    = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob/
-SC_BIGJOB_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob
+SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/bigjob/
+SC_BIGJOB_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
@@ -496,7 +496,8 @@ $(SC_BIGJOB_CHECK):
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d saga-client-bigjob && $(SVNUP)                  saga-client-bigjob ; true
 	@cd $(SRCDIR) ; test -d saga-client-bigjob || $(SVNCO) $(SC_BIGJOB_SRC) saga-client-bigjob
-	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/bigjob
+	@rm -rf $(SC_BIGJOB_CHECK)
+	@cp -R $(SRCDIR)/saga-client-bigjob/ $(SC_BIGJOB_CHECK)
 
 
 ########################################################################
@@ -505,7 +506,7 @@ $(SC_BIGJOB_CHECK):
 #
 # create some basic documentation about the installed software packages
 #
-CSA_README_SRC   = https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa/README.stub
+CSA_README_SRC   = $(CSA_LOCATION)/tg-csa/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 PYTHONPATH=$(SAGA_LOCATION)/$(shell cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; grep -e 'Python Package Path' configure.log | cut -f 2 -d ':' | cut -f 2 -d ' ')
@@ -516,12 +517,13 @@ readme:: saga-core $(CSA_README_CHECK)
 
 $(CSA_README_CHECK):
 	@echo "README                    creating"
-	@$(WGET) $(CSA_README_SRC) -O $(CSA_README_CHECK)
+	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'                      $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'                    $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(call nospace, $(SAGA_LDLIBPATH))|ig;' $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;'         $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'                $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'                  $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'                      $(CSA_README_CHECK)
 	@echo "fixing permissions"
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
