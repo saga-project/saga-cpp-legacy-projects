@@ -485,7 +485,7 @@ $(SC_MANDELBROT_CHECK):
 #
 # bigjob client
 #
-SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/bigjob/
+SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/bigjob
 SC_BIGJOB_SRC      = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/
 
 .PHONY: saga-client-bigjob
