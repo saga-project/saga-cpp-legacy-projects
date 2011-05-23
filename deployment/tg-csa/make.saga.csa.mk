@@ -118,7 +118,9 @@ ifneq "$(CSA_HOST)" "queenbee"
 endif
 endif
   saga-adaptors::          saga-adaptor-pbspro
+ifneq "$(CSA_HOST)" "pople"
   saga-adaptors::          saga-adaptor-condor
+endif
 endif
 
 
