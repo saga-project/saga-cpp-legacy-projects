@@ -126,9 +126,10 @@ endif
 saga-bindings::            saga-core
 saga-bindings::            saga-bindings-python
 
+.PHONY: saga-bindings-python
 saga-bindings-python::     python
 
-.PHONY: saga-clients
+.PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
 saga-clients::             saga-client-mandelbrot saga-client-bigjob
 saga-client-mandelbrot::   saga-core
 saga-client-bigjob::       saga-core saga-bindings-python            
@@ -414,7 +415,7 @@ $(SA_PBSPRO_CHECK):
 
 ########################################################################
 # saga-adaptor-torque
-SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque.ini
+SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 SA_TORQUE_SRC      = https://svn.cct.lsu.edu/repos/saga-adaptors/torque/trunk
 
 .PHONY: saga-adaptor-torque
