@@ -267,7 +267,7 @@ $(PYTHON_CHECK):
 	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
-	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared && make && make install
+	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make && make install
 
 
 ########################################################################
