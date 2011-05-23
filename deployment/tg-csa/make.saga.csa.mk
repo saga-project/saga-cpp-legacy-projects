@@ -279,7 +279,7 @@ SAGA_CHECK      = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV       += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_LDLIBPATH += :$(SAGA_LOCATION)/lib
 
-SAGA_ENV     += LD_LIBRARY_PATH=$(call nospace, $(SAGA_LDLIBPATH))
+SAGA_ENV     += LD_LIBRARY_PATH=$(call nospace, $(SAGA_LDLIBPATH)):$(LD_LIBRARY_PATH)
 SAGA_ENV     += CPPFLAGS="-D__NR_eventfd=323"
 
 ifeq "$(SAGA_VERSION)" "trunk"
