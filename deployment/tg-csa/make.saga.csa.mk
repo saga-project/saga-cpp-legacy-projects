@@ -1,6 +1,6 @@
 
 # this makefile supportes the CSA deployment procedure on the TeraGrid.  It
-# requires the envirinment variable CSA_LOCATION to be set (will complain
+# requires the environment variable CSA_LOCATION to be set (will complain
 # otherwise), and needs 'wget', 'svn co', and the usual basic SAGA compilation
 # requirements (compiler, linker etc).  Boost, sqlite3 and postgresql are
 # installed in external/.  We also expect the SAGA version to be set as
@@ -160,12 +160,35 @@ $(CSA_LOCATION)/external/:
 #
 
 ########################################################################
+# python
+PYTHON_VERSION  = 2.7.1
+PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
+PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
+PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
+SAGA_ENV_VARS  += PYTHON_LOCATION=$(PYTHON_LOCATION)
+SAGA_ENV_LIBS  += $(PYTHON_LOCATION)
+
+.PHONY: python
+python:: base $(PYTHON_CHECK)
+	@echo "python                    ok"
+
+$(PYTHON_CHECK):
+	@echo "python                    installing"
+	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
+	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
+	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make && make install
+
+
+########################################################################
 # boost
 BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
-SAGA_ENV       += BOOST_LOCATION=$(BOOST_LOCATION)
-SAGA_LDLIBPATH += :$(BOOST_LOCATION)/lib
+SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
+SAGA_ENV_LIBS  += $(BOOST_LOCATION)
+
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
@@ -175,10 +198,11 @@ $(BOOST_CHECK):
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
-	@cd $(SRCDIR)/boost_1_44_0 ; ./bootstrap.sh \
+	@cd $(SRCDIR)/boost_1_44_0 ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
 															 --with-python=$(PYTHON_LOCATION)/bin/python \
 															 --with-python-root=$(PYTHON_LOCATION) \
+															 --with-python-version=2.7 \
                                --prefix=$(BOOST_LOCATION) && ./bjam && ./bjam install
 
 
@@ -216,8 +240,8 @@ $(SVN):
 POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/$(CC_NAME)/
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v9.0.2/postgresql-9.0.2.tar.bz2
-SAGA_ENV           += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
-SAGA_LDLIBPATH     += :$(POSTGRESQL_LOCATION)/lib
+SAGA_ENV_VARS      += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
+SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
@@ -235,8 +259,8 @@ $(POSTGRESQL_CHECK):
 SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/$(CC_NAME)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
-SAGA_ENV        += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
-SAGA_LDLIBPATH  += :$(SQLITE3_LOCATION)/lib
+SAGA_ENV_VARS   += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
+SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
@@ -250,37 +274,20 @@ $(SQLITE3_CHECK):
 
 
 ########################################################################
-# python
-PYTHON_VERSION  = 2.7.1
-PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
-PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
-PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
-SAGA_ENV       += PYTHON_LOCATION=$(PYTHON_LOCATION)
-SAGA_ENV       += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
-SAGA_LDLIBPATH += :$(PYTHON_LOCATION)/lib
-
-.PHONY: python
-python:: base $(PYTHON_CHECK)
-	@echo "python                    ok"
-
-$(PYTHON_CHECK):
-	@echo "python                    installing"
-	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
-	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
-	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make && make install
-
-
-########################################################################
 #
 # saga-core
 #
 SAGA_LOCATION   = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/$(CC_NAME)/
 SAGA_CHECK      = $(SAGA_LOCATION)/include/saga/saga.hpp
-SAGA_ENV       += SAGA_LOCATION=$(SAGA_LOCATION)
-SAGA_LDLIBPATH += :$(SAGA_LOCATION)/lib
+SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
+SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib
 
-SAGA_ENV     += LD_LIBRARY_PATH=$(call nospace, $(SAGA_LDLIBPATH)):$(LD_LIBRARY_PATH)
-SAGA_ENV     += CPPFLAGS="-D__NR_eventfd=323"
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+
+ifeq "$(CSA_HOST)" "abe"
+  # boost assumes that all linux hosts know this define.  Well, abe does not.
+  SAGA_ENV_VARS += CPPFLAGS="-D__NR_eventfd=323"
+endif
 
 ifeq "$(SAGA_VERSION)" "trunk"
   SAGA_SRC    = https://svn.cct.lsu.edu/repos/saga/core/trunk/  saga-core-trunk
@@ -295,13 +302,38 @@ saga-core:: base $(SAGA_CHECK)
 $(SAGA_CHECK):
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION) ; true
-	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)
-	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV) ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
+	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)/
+	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
+		              ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
+
+
+########################################################################
+#
+# python bindings
+#
+SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
+SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0/
+SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
+
+SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+
+.PHONY: saga-bindings-python
+saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
+	@echo "saga-bindings-python      ok"
+
+$(SAGA_PYTHON_CHECK):
+	@echo "saga-bindings-python      installing"
+	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0 ; true
+	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
+	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./configure && make && make install
+
 
 ########################################################################
 #
 # saga-adaptors
 #
+
+SAGA_ENV = $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS)
 
 ########################################################################
 # saga-adaptor-x509
@@ -449,25 +481,6 @@ $(SA_BES_CHECK):
 
 ########################################################################
 #
-# python bindings
-#
-SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
-SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0/
-SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
-
-.PHONY: saga-bindings-python
-saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
-	@echo "saga-bindings-python      ok"
-
-$(SAGA_PYTHON_CHECK):
-	@echo "saga-bindings-python      installing"
-	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0 ; true
-	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV) ./configure && make && make install
-
-
-########################################################################
-#
 # mandelbrot client
 #
 SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
@@ -519,13 +532,13 @@ readme:: saga-core $(CSA_README_CHECK)
 $(CSA_README_CHECK):
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'                      $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'                    $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(call nospace, $(SAGA_LDLIBPATH))|ig;' $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;'         $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'                $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'                  $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'                      $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'              $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@echo "fixing permissions"
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	@$(CHMOD) -R a+rX $(EXTDIR)
