@@ -62,8 +62,30 @@ saga::job::state client::get_state (void)
   catch ( const saga::incorrect_state )
   {
     std::cout << "inconsistent client state!\n";
-    return saga::job::Unknown;
+    ep_->log_ << "inconsistent client state!\n";
   }
+  catch ( const saga::exception & e )
+  {
+    std::cout << "failure - could not get client state: " << e.what () << std::endl;
+    ep_->log_ << "failure - could not get client state: " << e.what () << std::endl;
+  }
+  catch ( const std::exception & e )
+  {
+    std::cout << "failure - could not get client state: " << e.what () << std::endl;
+    ep_->log_ << "failure - could not get client state: " << e.what () << std::endl;
+  }
+  catch ( char const * s )
+  {
+    std::cout << "failure - could not get client state" << std::endl;
+    ep_->log_ << "failure - could not get client state" << std::endl;
+  }
+  catch ( ... )
+  {
+    std::cout << "failure - could not get client state" << std::endl;
+    ep_->log_ << "failure - could not get client state" << std::endl;
+  }
+
+  return saga::job::Unknown;
 }
 
 
@@ -83,6 +105,7 @@ void client::cancel (void)
         if ( job_.get_state () == saga::job::Running )
         {
           std::cout << "cancel failed " << job_.get_state () << std::endl;
+          ep_->log_ << "cancel failed " << job_.get_state () << std::endl;
         }
         else
         {
@@ -91,12 +114,26 @@ void client::cancel (void)
         }
       }
     }
-    catch ( const saga::exception & e ) 
+    catch ( const saga::exception & e )
     {
-      std::cout << "failed " << job_.get_state () << std::endl;
-      // so what? ;-)
+      std::cout << "failure - could not cancel client: " << e.what () << std::endl;
+      ep_->log_ << "failure - could not cancel client: " << e.what () << std::endl;
     }
-
+    catch ( const std::exception & e )
+    {
+      std::cout << "failure - could not cancel client: " << e.what () << std::endl;
+      ep_->log_ << "failure - could not cancel client: " << e.what () << std::endl;
+    }
+    catch ( char const * s )
+    {
+      std::cout << "failure - could not cancel client" << std::endl;
+      ep_->log_ << "failure - could not cancel client" << std::endl;
+    }
+    catch ( ... )
+    {
+      std::cout << "failure - could not cancel client" << std::endl;
+      ep_->log_ << "failure - could not cancel client" << std::endl;
+    }
   }
 }
 
