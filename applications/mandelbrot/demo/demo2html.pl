@@ -92,7 +92,7 @@ EOT
   my $tot_itemreq = 0;
   my $tot_itemok  = 0;
 
-  foreach my $ep ( @ep_logs )
+  foreach my $ep ( sort @ep_logs )
   {
     if ( $ep =~ /(endpoint\.(.+)\.txt)$/o )
     {

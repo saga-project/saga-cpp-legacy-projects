@@ -48,19 +48,26 @@ function main
 
     # re-create html for last demo, to fix 'next'
     if [ -d $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV ]; then
-      echo "re-creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS"
-      $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS
+      echo "re-creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV" \
+                                         " $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS"
+      test -f $SAGA_DEMO_FAKE \
+        || $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV \
+                                        $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS
     fi
 
     # some debug info
     date
     id
     grid-proxy-info
+    echo "--------------------------------------"
+    echo
+
 
     # this line expects mandelbrot_master to be installed in $SAGA_LOCATION/bin,
     # or elsewhere in $PATH
     cp $SAGA_MANDELBROT_INI $SAGA_DEMO_HOME
-    $SAGA_LOCATION/bin/saga-run.sh mandelbrot_master 2> $SAGA_DEMO_STDERR > $SAGA_DEMO_STDOUT \
+    test -f $SAGA_DEMO_FAKE \
+      || $SAGA_LOCATION/bin/saga-run.sh mandelbrot_master 2> $SAGA_DEMO_STDERR > $SAGA_DEMO_STDOUT \
       || echo "demo failed"
 
     echo "demo done "
@@ -72,7 +79,8 @@ function main
 
     # create html for the current demo - no 'next' nown yet
     echo "creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -"
-    $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -
+    test -f $SAGA_DEMO_FAKE \
+      || $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -
 
     # new demo starts shortly after the last one finished (1 min sleep)
     if [ -f $SAGA_DEMO_DELAY ]; then
@@ -101,6 +109,7 @@ export SAGA_DEMO_LOG=$SAGA_DEMO_ROOT/demo.log
 export SAGA_DEMO_LOCK=$SAGA_DEMO_ROOT/demo.lock
 export SAGA_DEMO_STOP=$SAGA_DEMO_ROOT/demo.stop
 export SAGA_DEMO_DELAY=$SAGA_DEMO_ROOT/demo.delay
+export SAGA_DEMO_FAKE=$SAGA_DEMO_ROOT/demo.fake
 
 export SAGA_MANDELBROT_INI=$SAGA_DEMO_ROOT/demo.ini
 
@@ -124,16 +133,21 @@ if test "$SAGA_DEMO_SCRIPT_ITERATION" != "yes"; then
   export SAGA_DEMO_PREV="-"
   export SAGA_DEMO_THIS="-"
 
+  export SAGA_DEMO_STARTUP=yes
+
+  # don't run that init phase again
+  export SAGA_DEMO_SCRIPT_ITERATION=yes
+fi
+
+
+main 2>&1 >> $SAGA_DEMO_LOG &
+
+if test "$SAGA_DEMO_STARTUP" = "yes"; then
   echo ""
   echo " $0 is going into background mode."
   echo " Output will be captured in '$SAGA_DEMO_LOG'."
   echo " The script's pid is '$!'"
   echo " To cancel the demo, run 'stop_demo.sh'"
   echo ""
-
-  # don't run that init phase again
-  export SAGA_DEMO_SCRIPT_ITERATION=yes
 fi
-
-main 2>&1 >> $SAGA_DEMO_LOG &
 
