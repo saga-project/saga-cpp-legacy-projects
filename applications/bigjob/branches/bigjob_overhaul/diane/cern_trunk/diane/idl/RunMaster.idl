@@ -1,0 +1,130 @@
+# ifndef _DIANE__JOBMASTER_IDL__
+# define _DIANE__JOBMASTER_IDL__ 1
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+# include "types.idl"
+# include "Peer.idl"
+
+module DIANE_CORBA
+{
+
+  interface Client;
+  interface Worker;
+  
+  interface FileServer;
+
+  /**
+   * RunMaster coordinates one job at a time.
+   *
+   * RunMaster manages jobid itself (increments it) for multiple (sequential) startJob
+   *
+   */
+    interface RunMaster : Peer
+    {
+
+	/**
+	 * Register worker. Return the worker id.
+	 * Registered worker will recieve initJob() automatically.
+	 * Multiple registration of the same worker is ignored however this may not be 100% reliable so better to be avoided.
+	 * Normal workers have capacity 1: processing one task at a time. Submasters may have larger capacity.
+	 */
+	workerid_t registerWorker(in uuid_t worker_uuid, in long max_capacity, out string file_server_ior) raises (XHangup,XRepeatCall); /** raises (XPrecondition); **/
+	
+	/**
+	 * Start processing (main job).
+	 */
+	
+	void startProcessing(in DXPByteSeq input);
+
+	/**
+	 *  
+	 */
+
+      void get_init_data(in uuid_t worker_uuid, out DXPByteSeq app_data, out DXPByteSeq init_data) raises (XHangup, XRepeatCall);
+      
+      void put_init_result(in uuid_t worker_uuid, in DXPByteSeq init_result, in long error) raises (XHangup, XRepeatCall);
+
+      /// PENDING: bulk task assignment (for superworkers)
+      void get_task_data(in uuid_t worker_uuid, out taskid_t taskid, out DXPByteSeq task_data) raises (XHangup, XRepeatCall);
+
+      void put_task_result(in uuid_t worker_uuid, in taskid_t taskid, in DXPByteSeq task_result, in long error) raises (XHangup, XRepeatCall);
+	
+# if 0
+//-----------------------------------------------------------------------------------------------
+
+      void workerInitializationFinished(in jobid_t jobid, in workerid_t wid, in task_status_t status, in DXPByteSeq output);
+
+      /**
+       * State of the DIANE::RunMaster.
+       */
+      enum jmstate_t { constructed, ready, job_in_progress, finished_unsaved };
+
+      /**
+       * Initialize application and set initial job id.
+       * Cleanup the registration sheet -- no workers registered at this point.
+       *
+       * \exception XApplication if failed to initialize the application
+       */      
+      void initApplication(in appinfo_t app, in jobid_t jobid, in boolean usa_ds)
+      raises (XApplication);
+
+      /** 
+       * At any point of job execution, client may reconnect if the the control link was broken.
+       * If job is finished_unsaved this is a way to retrieve the result.
+       * For the moment there is only one "active" client at a time.
+       */
+      boolean reconnectClient(in Client c, in jobid_t jobid);
+
+
+      /**
+       * Remove worker from registred list.
+       * When a worker is killed is should unregister itself in master.
+       * Also a multi-job executor might unregister workers to move the resource to other jobs.
+       */
+      void unregisterWorker(in Worker w)
+      raises (XPrecondition);
+
+
+      /**
+       * Worker notification about finished initialization of the job.
+       * Consistency crosscheck parameters: wid, jobid 
+       */
+      void jobInitFinished(in jobid_t jobid, in workerid_t wid, in task_status_t status, in task_exec_details_t details)
+      raises (XPrecondition);
+
+      /**
+       * Worker notification about completed task.
+       * Consistency crosscheck parameters: wid, jobid 
+       * After last task has been integrated, client will receive the result.
+       */
+      void receiveTaskResult(in DXPByteSeq task_output_data, in jobid_t jobid, in taskid_t taskid, in task_status_t status, in task_exec_details_t details, in workerid_t wid)
+      raises (XPrecondition);
+
+      /** 
+       * Send the result to specified client (jobTerminated).
+       * The result is buffered in case client is dead or disconnected. 
+       */
+      boolean sendResult(in Client c);
+      
+      /** Discard any unsaved result, so that master may accept startJob() again.*/
+      boolean discardResult();
+
+      /** Abort job and go into the accepting state (accept startJob()). */
+      boolean abortJob();
+      
+      /** Get current status. */
+      string currentState();
+# endif
+
+    };
+
+};
+
+# endif

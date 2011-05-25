@@ -1,0 +1,115 @@
+# ifndef _DIANE__TYPES_IDL__
+# define _DIANE__TYPES_IDL__ 1
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+module DIANE_CORBA
+{
+
+    /// CORBA sequence of bytes to serialize DXP objects.
+    /// comments: using string type is not OK for binary data (embedded NULLS)
+    typedef sequence<char> DXPByteSeq;
+    
+    /// Short identifier type for peers and other pieces of data (e.g. tasks)
+
+    typedef unsigned long short_id_t;
+
+    /// Universally unique identifier for peers.
+
+    typedef string uuid_t;
+
+  typedef unsigned long jobid_t;
+  typedef unsigned long workerid_t;
+  typedef unsigned long taskid_t;
+
+# if 0
+//-----------------------------------------------------------------------------------------------
+
+  // application information
+  struct appinfo_t
+  {
+    string appname;
+    string options;
+    
+    string failRecoveryCode; // job master fail recovery handler function (python source)
+    string lostRecoveryCode; // job master lost recovery handler function (python source)
+    string matchTasksToWorkersCode; // job master dispatch handler function (python source)
+  };
+
+
+
+
+  enum task_status_t {ok, app_error, dxp_error, diane_error, lost_contact_error, aborted_externally, unknown };
+
+  struct task_exec_details_t
+  {
+    long max_memory;
+    double duration;
+    // message if error
+    string error_msg;
+  };
+
+  /**
+   * Indicates that the operation failed because a precondition was not met.
+   * For example: if the worker.state == working you cannot startTask().
+   * Another case is bad parameter value (argument), for example: jobid == 0 is illegal.
+   */
+  exception XPrecondition
+  {
+    /// the item (argument name or state) which caused the error
+    string name;
+
+    /// additional message
+    string msg;
+  };
+
+  /**
+   * Mismatching DXP protocol.
+   * The reciever expected different protocol than that sent by the sender.
+   */
+  exception XDXP
+  {
+    /// the header of the data message which caused problems
+    string header_recieved;
+    /// the header which was expected
+    string header_expected;
+    string msg;
+  };
+
+  /**
+   * Problem with the application.
+   */
+  exception XApplication
+  {
+    string msg;
+  };
+
+  /**
+   * Communication problem with some other remote object during the remote call.
+   * 
+   * The exception policy is that System exceptions (COMM, TRANSIENT) are not forwarded
+   * from the 3rd party object into the client. For example: WorkerExecutor remotely
+   * calls Worker::sendReady which does not rais TRANSIENT exception if Master is unavailable.
+   * Instead, objname indicates the "name" of the remote object causing problems ("RunMaster"),
+   * obj contains its reference and msg contains more detailed description. 'transient' flag is set
+   * always for transient problems so client may retry the call later.
+   */
+  exception XCommunication
+  {
+    string objname;
+    Object obj;
+    string msg;
+    boolean transient;
+  };
+#endif
+
+};
+
+
+# endif

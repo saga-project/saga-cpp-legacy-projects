@@ -1,0 +1,27 @@
+# tell DIANE that we are just running executables
+# the ExecutableApplication module is a standard DIANE test application
+
+import AtlasPilotJobs as application
+
+# the run function is called when the master is started
+# input.data stands for run parameters
+def run(input,config):
+	d = input.data.task_defaults # this is just a convenience shortcut
+
+	# all tasks will share the default parameters (unless set otherwise in individual task)
+	d.input_files = ['hello']
+	d.output_files = ['message.out']
+	d.executable = 'hello'
+
+	# here are tasks differing by arguments to the executable
+	for i in range(20):
+            t = input.data.newTask()
+
+            if i == 10:
+	        t.executable = 'hello10' 
+		t.input_files = ['hello10']
+		t.requirements = application.PilotTaskRequirements(['X','Y'])
+	    else:
+                t.requirements = application.PilotTaskRequirements(['a','b'])
+
+	    t.args = [str(i)]

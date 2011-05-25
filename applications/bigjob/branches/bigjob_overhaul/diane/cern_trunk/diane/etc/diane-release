@@ -1,0 +1,234 @@
+#!/usr/bin/env python2
+#-*- python -*-
+
+################################################################################
+# Diane Project. http://cern.ch/diane
+#
+# $Id: diane-release,v 1.8 2009/06/08 14:04:33 moscicki Exp $
+################################################################################
+
+import os,sys,time,re
+import getopt
+
+def usage():
+    print '''
+usage: diane-release VERSION
+
+interactive release making tool...
+'''
+
+try:
+    opts, args = getopt.getopt(sys.argv[1:], "", ["svnurl="])
+except getopt.error, x:
+    print "command line syntax error"
+    usage()
+    sys.exit(2)
+
+try:
+    version = args[0]
+except IndexError:
+    usage()
+    sys.exit(2)
+
+CONFIG = {}
+CONFIG['top'] = '/afs/cern.ch/sw/arda/diane'
+CONFIG['svnurl'] = 'svn+ssh://svn.cern.ch/reps/diane'
+
+CONFIG['version'] = version
+CONFIG['reldir'] = os.path.join(CONFIG['top'],'install',CONFIG['version'])
+CONFIG['installdir'] = os.path.join(CONFIG['top'],'install')
+CONFIG['toolsdir'] = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+
+CONFIG['webdir_top'] = os.path.join(CONFIG['top'],'www')
+
+CONFIG['releasenotesdir'] = os.path.join(CONFIG['toolsdir'],'..')
+
+CONFIG['tag'] = "DIANE-"+version
+
+def askYesNo(msg):
+    answer = raw_input(msg+' [yes/NO] ')
+
+    if answer.upper() == 'YES':
+        return 'YES'
+    else:
+        return None
+
+def acmd(cmdpath):
+    print 'doing:',cmdpath
+    print
+    if os.system(cmdpath):
+        print "problem with executing: ",cmdpath
+        sys.exit(1)
+        
+def toolcmd(cmd):
+    if CONFIG['toolsdir']:
+        cmdpath = "%s/%s" %(CONFIG['toolsdir'],cmd)
+    else:
+        cmdpath = cmd
+    acmd(cmdpath)
+
+class TestCommand:
+    "TEST: run the test suite in the release directory"
+    def do(self):
+        if not os.path.isdir(CONFIG['reldir']):
+            print "can't find the release in ",CONFIG['reldir']
+            return
+
+        def run_test(name):
+            cmd = os.path.expandvars('cd %(reldir)s; env DIANE_USER_WORKSPACE=/tmp/diane-test-${USER} bin/diane-env --devel make cleantmp test') % CONFIG # FIXME: why need to cleantmp before test?
+            print '*'*40
+            print '%s tests ' % name
+            print 'Run on test machine: ',cmd
+            code = os.system(cmd)
+            print "Exit code:",code
+
+        testresult = []
+        testname = ['diane']
+        for n in testname:
+            testresult.append(run_test(n))
+
+        #print '*'*40
+        print "Tests are completed"
+        #for n,r in zip(testname, testresult):
+        #    print ' %-10s : %d : %s' % (n,r[1],r[0])
+
+class ExportCommand:
+    "EXPORT: export SVN source into release directory and run make"
+
+    def do(self):
+        if os.path.isdir(CONFIG['reldir']):
+            print "I will not override the existing release files:",CONFIG['reldir']
+            return
+        tagcmd = "cd %(installdir)s && svn export %(svnurl)s/tags/%(tag)s %(version)s" % CONFIG
+        acmd(tagcmd)
+        print
+        print 'Source code exported for  %(tag)s'%CONFIG
+        makecmd = "cd %(reldir)s && bin/diane-env --devel make all doc compile"%CONFIG
+        acmd(makecmd)
+
+class ReleaseCommand:
+    "RELEASE: release the code previously exported to the install directory"
+
+    def do(self):
+            
+        #print 'Regenerating reports'
+        #toolcmd('diane-release-html %(version)s %(reldir)s'%CONFIG)
+        
+        print 'Recreating the documentation'
+
+        acmd('cd %(reldir)s && env DIANE_DOXYGEN_PROJECT_NUMBER=%(version)s bin/diane-env --devel make doc'%CONFIG)
+
+        print 'Cleaning any junk in the release dir'
+        acmd('cd %(reldir)s && make cleantmp'%CONFIG)        
+        
+        print 'Making installation tarballs'
+
+        platforms = ['DEFAULT','x86_64-slc5-gcc41-py24','x86_64-slc5-gcc43-py25']
+
+        for platf in platforms:
+           CONFIG['platf'] = platf
+           print 'Forcing recreation for %(platf)s (all external dependencies)'%CONFIG
+           # do not forget to update the list of external dependencies for the release too
+           acmd('python %(top)s/packages/diane-install --prefix=%(top)s --platf=%(platf)s --force --make-tarballs %(version)s'%CONFIG)
+        
+        print 'Byte-compiling sources'
+        acmd('cd %(reldir)s && bin/diane-env --devel make compile'%CONFIG)
+
+        print 'Protecting the release area'
+        toolcmd('acl protect %(reldir)s'%CONFIG)
+
+        print 'update www links to the most recent reference manual'
+
+        release_php = '''<?php
+$pro_version="%(version)s";
+$dev_version="%(version)s";
+$pro_version=$dev_version;
+?>'''%CONFIG
+
+        print 'writing new release.php file'
+        file('%(webdir_top)s/include/release.php'%CONFIG,'w').write(release_php)
+
+        acmd('rm -f %(webdir_top)s/reference; ln -s ../install/%(version)s/doc/reference/html %(webdir_top)s/reference'%CONFIG)
+
+        #print 'Updating web pages'      
+        #self._updateWebPages()
+
+        print 'Release sucesfully made in the %(reldir)s'%CONFIG
+    
+    def _updateWebPages(self):
+        """
+        For each file (e.g mypage.html) that needs to be updated automatically at release time
+        one should write a template file (.tpl extension) for it (i.e. mypage.html.tpl)
+        """
+
+	#we do not expose development releases to public
+	if re.compile('(beta|alpha|pre)').search(CONFIG['version']):
+	    print 'DEVELOPMENT release detected. The web pages/NEWS are not generated!'
+	    return
+
+        # the list of directories in web area to search for templates
+        dirs = ['%(webdir_top)s/user/' % CONFIG,
+		'%(webdir_top)s/download/' % CONFIG,
+		'%(webdir_top)s/include/' % CONFIG]
+        
+        replacements = {'<:DIANE_VERSION:>': CONFIG['version'],
+                        '<:DIANE_DATE:>': time.strftime('%d %B %Y',time.gmtime())
+                       }
+        
+        import glob
+        templates=[]
+        for dir in dirs:
+            templates.extend(glob.glob('%s/*.tpl' % dir))
+        
+        # replace known keywords:
+        for template in templates:
+            newfile = os.path.splitext(template)[0]
+            try:
+                print 'Writting %s '% newfile
+                tf = file(template, 'r')
+                nf = file(newfile, 'w')
+                try:
+                    for line in tf:
+                        for keyword in replacements:
+                            line = line.replace(keyword,replacements[keyword])
+                        nf.write(line)
+                finally:
+                    tf.close()
+                    nf.close()                    
+            except Exception,e:
+                print 'Warning! Cannot write %s. %s' % (newfile,str(e))
+        
+class QuitCommand:
+    "Quit"
+
+    def do(self):
+        sys.exit(0)
+
+class ShowConfig:
+    "Show current configuration"
+
+    def do(self):
+        print "CONFIGURATION:"
+        for c in CONFIG:
+            print "  %-10s = %s" % (c,CONFIG[c])
+
+commands = [ShowConfig, ExportCommand, TestCommand, ReleaseCommand, QuitCommand ]
+
+ShowConfig().do()
+
+while 1:
+    print
+    print "COMMANDS:"  
+    for i in range(len(commands)):
+        print "  %d   - %s" % (i,commands[i].__doc__)
+    print
+    try:
+      c = int(raw_input('Enter your choice:'))
+    except ValueError:
+      continue
+    except EOFError:
+      break
+    commands[c]().do()
+
+print
+

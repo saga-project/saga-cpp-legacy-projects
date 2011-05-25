@@ -1,0 +1,80 @@
+# ifndef _DIANE__PEER_IDL__
+# define _DIANE__PEER_IDL__ 1
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+# include "types.idl"
+
+module DIANE_CORBA
+{
+    /// If you get XHangup exception it means that your peer is closing the session with the caller.
+    /// There may be several reasons of that, for example:
+    /// the client failed to send the heartbeat message in a time expected by your peer. E.g.: a
+    /// suspended worker agent with ^Z will get this exception on ping after
+    /// some time.
+
+    exception XHangup
+     {
+       /// PENDING: reason (e.g. heartbeat timeout)
+       DXPByteSeq finalization_cookie;
+     };
+
+
+    exception XRepeatCall
+     {
+       long delay;
+     };
+
+    
+    interface Peer {
+
+	/**
+	 * Check if peer still reachable. Hearbeats are implemented through
+	 * ping() method which normally returns 0. If a number greater than 0
+	 * is returned than the peer is asking the client to respect a minimum
+	 * delay (in seconds) until the next ping operation.  If a client is
+	 * another DIANE peer, it may provide its id (e.g. worker id) and set
+	 * a cookie.  The id == 0 means no peer.
+	 *
+	 * We always use uuid for peer identification. The uudid allows
+	 * avoiding a inconsitencies if a lost peer comes back or services are
+	 * restarted.
+	 * 
+	 */
+	long ping(in uuid_t peer_uuid, in DXPByteSeq cookie) raises (XHangup);
+
+	/**
+	 * Kill the peer.
+	 *
+	 */
+
+	boolean kill();
+
+	/**
+	 * Get a human-readable information of the current status of the peer.
+	 */
+     
+	DXPByteSeq getStatusReport();
+
+
+	DXPByteSeq getStatusPickle();
+
+	/**
+	 * Set verbosity level. Return new level or -1 if error. If -1 is passed as argument return current level.
+         * The string argument specifies which logging subsystem should be modified. The default logging subsystem
+         * is top-level python logger. The omniORB subsystem may be be specified in the following way: "omniORB.traceLevel", "omniORB.traceExceptions" etc.
+	 * Refer to omniORB configuration and API reference for more options (http://omniorb.sourceforge.net/omni41/omniORB/omniORB004.html).
+	 * In case of error return non-empty error_msg.
+         * 
+	 */
+	long verbosity(out string error_msg, in long level, in string subsystem);
+    };
+};
+
+#endif

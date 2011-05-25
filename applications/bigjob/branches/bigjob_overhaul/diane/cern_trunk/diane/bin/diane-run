@@ -1,0 +1,116 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+#  ==========================================
+#  DIANE - Distributed Analysis Environment 
+#  http://cern.ch/diane
+#  ------------------------------------------                                          
+#  This program is under GPL licence.
+#  See README file for details.
+#  ==========================================
+
+#$Id: diane-run,v 1.18 2010/12/20 14:40:37 moscicki Exp $
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Perform setup of the environment.
+# This is a Copy/Paste logic which must stay in THIS file
+def standardSetup():
+   import sys, os.path
+   # insert the path to DIANE itself
+   exeDir = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+   pythonDir = os.path.join(os.path.dirname(exeDir), 'python' )
+   sys.path.insert(0, pythonDir)
+   # setup environment
+   import diane.PACKAGE
+   diane.PACKAGE.standardSetup()
+
+standardSetup()
+del standardSetup
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import os,sys
+from optparse import OptionParser
+
+parser = OptionParser(usage="%prog [opts] RUNFILE [N SUBMITTER [args]]",
+                      description="""Start the run master locally and, optionally, submit the worker agents.
+Example: %prog test/testOK.py 2 Local  - starts master with the standard test
+application and submits 2 worker agents using the Local submitter""")
+
+parser.add_option("--debug", dest="loglevel", action="store_const", const='DEBUG',help="print lots of debug information")
+
+(options, args) = parser.parse_args()
+
+if options.loglevel:
+   import diane.logger
+   diane.logger.setLevel(options.loglevel)
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# initialize DIANE runtime subsystems (config etc)
+import diane.PACKAGE
+diane.PACKAGE.initializeRuntime()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import diane.RunMaster
+logger = diane.RunMaster.logger
+
+import os.path
+
+try:
+   runfilename = os.path.abspath(args[0])
+except IndexError:
+   logger.error('run script not specified, try --help')
+   sys.exit(1)
+
+import diane.rundef
+from diane.diane_exceptions import DianeException
+
+import diane.workspace
+rundir = diane.workspace.makeRundir()
+rid = diane.workspace.currentRunIndex() # WARNING: possible race condition with a parallel run (unlikely)
+os.chdir(rundir)
+
+### make a copy of stdout and stderr into a log file in rundir
+import subprocess, os, sys
+sys.stdout = os.fdopen(sys.stdout.fileno(), 'w', 0)
+
+tee = subprocess.Popen(["tee", "master.stdouterr"], stdin=subprocess.PIPE)
+os.dup2(tee.stdin.fileno(), sys.stdout.fileno())
+os.dup2(tee.stdin.fileno(), sys.stderr.fileno())
+###
+
+
+import diane.logger
+diane.logger.addFileLog('master.log')
+
+logger.user('run directory: %s',rundir)
+logger.user('this stderr and stdout is stored in: %s/%s',rundir,"master.stdouterr")
+logger.user('full log is stored in: %s/%s',rundir,"master.log")
+
+### store the full log in a separate file 
+import logging, diane.logger
+
+try:
+   runfile = diane.rundef.Runfile(runfilename)
+
+   input = diane.rundef.makedef(runfilename)
+except DianeException,x:
+   x.log(logger)
+   sys.exit(1)
+except Exception,x:
+   logger.exception('problem while reading run script')
+   sys.exit(1)
+
+from diane.util.omniorb_setup import make_omniorb_config
+omniorb_config_file = file('omniorb_config','w')
+enable_GSI=make_omniorb_config(runfile,'master',omniorb_config_file)
+omniorb_config_file.close()
+
+import atexit
+
+def master_terminated():
+   file(os.path.join(rundir,".terminated"),'w').close()
+
+atexit.register(master_terminated)
+
+diane.RunMaster.main(rid,input,omniorb_config_file.name,enable_GSI)
+

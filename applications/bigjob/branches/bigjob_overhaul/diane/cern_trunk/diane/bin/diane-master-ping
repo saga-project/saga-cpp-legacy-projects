@@ -1,0 +1,267 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+#  ==========================================
+#  DIANE - Distributed Analysis Environment 
+#  http://cern.ch/diane
+#  ------------------------------------------                                          
+#  This program is under GPL licence.
+#  See README file for details.
+#  ==========================================
+
+#$Id: diane-master-ping,v 1.21 2008/08/14 14:52:46 moscicki Exp $
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Perform setup of the environment.
+# This is a Copy/Paste logic which must stay in THIS file
+def standardSetup():
+   import sys, os.path
+   # insert the path to DIANE itself
+   exeDir = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+   pythonDir = os.path.join(os.path.dirname(exeDir), 'python' )
+   sys.path.insert(0, pythonDir)
+   # setup environment
+   import diane.PACKAGE
+   diane.PACKAGE.standardSetup()
+
+standardSetup()
+del standardSetup
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import sys
+
+from diane.util.ExtendedOptionParser import ExtendedOptionParser, OptionParser
+
+from diane.logger import getLogger,logging
+logger = getLogger('diane-master-ping')
+
+ping_command = OptionParser(prog='ping',description="%prog : check if the server is alive")
+
+verbosity_command = OptionParser(prog='verbosity',usage='%prog LEVEL',description="%prog"+" : switch the logging level of the server.\nThe LEVEL may be any of %s or a numeric value as defined in python logging module (0=most verbose) ."%(','.join([x for x in logging._levelNames.keys() if type(x) is type('')])))
+
+verbosity_command.add_option('-s','--subsystem',dest="subsystem", default="diane", help="specify another logging subsystem e.g. omniORB.traceLevel, etc. Consult omniORB configuration and API: http://omniorb.sourceforge.net/omni41/omniORB/omniORB004.html . The default subsystem is 'diane' and it corresponds to the python logger.")
+
+status_command = OptionParser(prog='getStatusPickle', usage='%prog FILE', description='%prog: get the detailed status of the server.\n The status is pretty printed to stdout unless FILE argument is provided. In this case the internal (pickle) representation is saved into the FILE ("-" means stdout dump) ')
+
+status_summary_command = OptionParser(prog='getStatusReport', usage='%prog FILE', description='%prog: get the summary of status of the server.\n The status is pretty printed to stdout unless FILE argument is provided. In this case the internal (pickle) representation is saved into the FILE ("-" means stdout dump) ')
+
+kill_command = OptionParser(prog='kill', usage='%prog', description='%prog: kill the server')
+
+parser = ExtendedOptionParser(subparsers=[ping_command,status_command, status_summary_command, verbosity_command, kill_command],
+                              strict_commands = False,
+                              usage="%prog [options] command [cmdopts]",
+                              description='''Execute remote command on a Run Master.
+                              The command may be executed on (almost) any type of DIANE  server.
+                              Unless specified otherwise the current Run Master from the runs directory is used.''')
+
+parser.add_option("-f", "--ior-file", dest="ior_filename", default=None,
+                  help="read Peer IOR from the specified FILE", metavar="FILE")
+parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,help="print debug information")
+(options, args) = parser.parse_args()
+
+
+if options.verbose:
+    logger.setLevel(logging.DEBUG)
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# initialize DIANE runtime subsystems (config etc)
+import diane.PACKAGE
+diane.PACKAGE.initializeRuntime()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import DIANE_CORBA, omniORB
+
+from diane.CORBAProgram import CORBAProgram
+
+program = CORBAProgram()
+
+cmd = parser.command
+
+if not cmd:
+    cmd = 'ping' # default command
+
+if options.ior_filename:
+   ior_file = options.ior_filename
+else:
+   import diane.workspace
+   ior_file=diane.workspace.getRundir('MasterOID')
+
+def fix_pprint():
+   import pprint
+
+   def spaces(level):
+       return ' '*2*level
+
+   def _safe_obj_repr(object,context, maxlevels, level):
+       if type(object).__name__ == 'instance':
+           state = object.__dict__
+           s = object.__class__.__name__  + '{\n'
+           recursion_detected = False
+           for x in state:
+               r = _safe_obj_repr(state[x],context, maxlevels, level+1)
+               s += spaces(level) + x + ':' + r[0] + '\n'
+               recursion_detected = recursion_detected or r[2]
+           s += spaces(level)+'}\n'
+           return s,False,recursion_detected
+       else:
+           return pprint.x_safe_repr(object,context, maxlevels, level)
+
+   pprint.x_safe_repr = pprint._safe_repr
+   pprint._safe_repr = _safe_obj_repr
+
+   # python 2.4 keyword arguments for backward compatibility
+   def _pprint(object, stream=None, indent=1, width=80, depth=None):
+      """Pretty-print a Python object to a stream [default is sys.stdout]."""
+      printer = pprint.PrettyPrinter(
+         stream=stream, indent=indent, width=width, depth=depth)
+      printer.pprint(object)
+
+   pprint.pprint = _pprint
+
+fix_pprint()
+
+class Handlers:
+    def getStatusPickle(rcmd,args,options):
+        result_msg = rcmd()
+
+        if args:
+            # print pickle to file or stdout
+            fn = args[0]
+
+            if fn == '-':
+                print result_msg
+            else:
+                file(fn,'w').write(result_msg)
+                logger.info('stored status pickle in %s',fn)
+        else:
+            # pretty print to stdout
+            import cPickle
+            result = cPickle.loads(result_msg)
+            
+            import pprint
+
+            pprint.pprint(result,width=40)
+
+    getStatusPickle = staticmethod(getStatusPickle)
+
+    getStatusReport = getStatusPickle
+
+    def ping(rcmd,args,options):
+        result = rcmd('','')
+        logger.info('ping: %s',result)
+
+    ping = staticmethod(ping)
+
+    def verbosity(rcmd, args, options):
+        try:
+            level = int(args[0])
+        except ValueError:
+            try:
+                level = logging._levelNames[args[0]]
+            except KeyError:
+                logger.error('unknown logging level name: %s'%str(args[0]))
+                sys.exit(-1)
+        except IndexError:
+            level = -1
+
+        result = rcmd(level,options.subsystem)
+        if result[0] == -1:
+           logger.error("%s",result[1])
+        else:
+           if options.subsystem.find('omniORB.') == 0:
+              logger.info('verbosity: %s=%d',options.subsystem,result[0])
+           else:
+              logger.info('verbosity: %s=%s',options.subsystem,logging.getLevelName(result[0]))
+
+    verbosity = staticmethod(verbosity)
+    
+try:
+    ior = file(ior_file).readline()
+    peer = program.orb.string_to_object(ior)._narrow(DIANE_CORBA.Peer)
+    omniORB.setClientCallTimeout(peer, 5000) #5 seconds timeout
+    rcmd = getattr(peer,cmd)
+
+    try:
+        cmdhandler = getattr(Handlers,cmd)
+    except AttributeError:
+        logger.debug('doing %s(%s)'%(cmd,str(args[1:])))
+        result = rcmd(*args[1:])
+        logger.debug('%s: %s',cmd,result)
+    else:
+        args = parser.subparsers[cmd].largs
+        options = parser.subparsers[cmd].values
+        logger.debug('doing %s(%s,%s)'%(cmd,args, options))
+        result = cmdhandler(rcmd,args,options)
+        logger.debug('%s: %s',cmd,result)
+        
+    logger.debug('command %s completed sucessfully',cmd)
+except Exception,x:
+    logger.exception(x)
+    sys.exit(1)
+    #logger.error(str(x))
+
+program.finalize()
+
+
+# $Log: diane-master-ping,v $
+# Revision 1.21  2008/08/14 14:52:46  moscicki
+# exit code: 0 on success, 1 on failure
+#
+# Revision 1.20  2008/06/12 10:36:21  moscicki
+# support for improved diane-master-ping getStatusReport
+#
+# Revision 1.19  2008/05/28 17:35:15  moscicki
+# added diane.PACKAGE.initializeRuntime()
+#
+# Revision 1.18  2008/05/26 17:26:46  moscicki
+# support for omniORB logging control
+#
+# Revision 1.17  2008/05/06 18:52:22  moscicki
+# pprint 2.3 backwards compatibility fix
+#
+# Revision 1.16  2008/04/22 14:47:09  moscicki
+# uuid instead of wid
+#
+# Revision 1.15  2008/01/25 21:04:48  moscicki
+# use run directory to run the master, adapt to using the current one
+#
+# Revision 1.14  2008/01/25 16:47:10  moscicki
+# added standard setup
+#
+# Revision 1.13  2007/10/07 20:00:38  moscicki
+# added kill, -v
+#
+# Revision 1.12  2007/10/03 14:21:20  moscicki
+# added verbosity command
+#
+# Revision 1.11  2007/10/03 12:16:10  moscicki
+# cvs-style command option parsing
+#
+# Revision 1.10  2007/08/11 21:02:44  moscicki
+# basic task dispatching in place
+#
+# Revision 1.9  2007/08/05 19:36:42  moscicki
+# minor fix
+#
+# Revision 1.8  2007/08/03 15:09:11  moscicki
+# removed obsolete code
+#
+# Revision 1.7  2007/08/03 15:08:19  moscicki
+# more structured support for commands
+#
+# Revision 1.6  2007/07/19 06:22:08  moscicki
+# added new command
+#
+# Revision 1.5  2007/07/18 08:30:03  moscicki
+# *** empty log message ***
+#
+# Revision 1.4  2007/07/08 20:55:05  moscicki
+# heartbeat protocol added
+# call timeouts added
+#
+# Revision 1.3  2007/07/05 08:49:28  moscicki
+# added standard header
+#
+
+
+

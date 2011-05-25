@@ -1,0 +1,182 @@
+#-*-python-*-
+
+##########################################################
+#
+# JOB DATA FILE FOR GEANT4 PRODUCTION WITH DIANE
+#
+# Created: 01/2007
+#
+##########################################################
+
+
+##########################################################
+###  Specifying application
+###  
+import G4Production as application
+
+##########################################################
+###  Specifying dictionary with init data passed to 
+###  the Planner.env_createPlan function
+
+### Name of simulation driver and directory containing the script
+local_driver_dir   = '/afs/cern.ch/sw/arda/install/DIANE/Geant4/G4Prod/run/driverdir'
+local_driver_name  = 'geant4_production.sh'
+
+### Directory containing the executables
+local_exe_dir      = '/afs/cern.ch/sw/arda/install/DIANE/Geant4/G4Prod/run/taskscripts/test_installation'
+
+### Name of G4 candidate tarball and the url, where to retrieve it (with wget)
+local_cand_url     = 'http://cern.ch/diane/AFS/Geant4/G4Prod/cand'
+local_cand_name    = 'g4prod_64bits-1.tgz'
+
+### Miscellaneous files, required to be shipped to worker nodes:  
+### File list and directory containing the files
+### Beware: Cumulated file size must not exceed
+###         the current value of ORBgiopMaxMsgSize
+local_file_dir     = '/afs/cern.ch/sw/arda/install/DIANE/Geant4/G4Prod/run/libdir'
+local_file_names   = ['FManipulation.pm','MyBaseExceptionHandler.pm','MySimuExceptionHandler.pm']
+
+
+def run(input,config):
+    input.data =  {'exedir':     local_exe_dir,
+                   'candname':   local_cand_name,                   
+                   'driverdir':  local_driver_dir,
+                   'candurl':    local_cand_url,
+                   'filedir':    local_file_dir,
+                   'filelist':   local_file_names,
+                   'drivername': local_driver_name
+
+                   }
+
+    policy.FAILED_TASKS_MAX_ASSIGN = 2
+    policy.LOST_TASK_MAX_ASSIGN = 3
+    policy.REMOVE_FAILED_WORKER_ATTEMPTS = 2 # the worker will be removed after 2 failures
+
+    config.WorkerAgent.inprocess_proxy = True
+    config.WorkerAgent.HEARTBEAT_DELAY = 900 # ping master every 15 minutes
+    config.WorkerAgent.HEARTBEAT_TIMEOUT = 30 
+    config.WorkerAgent.PULL_REQUEST_DELAY = 2
+    config.RunMaster.LOST_WORKER_TIMEOUT = 1020 # if ping not received for 17 minutes the worker is lost
+
+
+
+
+
+# ----------------------------------------------------------------------------------------------
+# OLD FAILURE RECOVERY RULES - TO BE ULTIMATELY DELETED AFTER DOCUMENTATION REVIEW
+# ----------------------------------------------------------------------------------------------
+
+## ##########################################################
+## ###  Ruling task assignment to worker agents
+## ###
+
+## ###  A) Fail Recovery 
+## ###
+## ###  Note: If Geant4 simulation programmes are likely to 
+## ###        show illegal behavior, it is recommended to
+## ###        set myfailRecovery to "Restricted", otherwise
+## ###        they might act as "worker killers".
+## ###        Disadvantage: "Good" simulation programmes, that
+## ###        are assigned to "bad" workers more than 
+## ###        MAX_FAILED_TASK_ASSIGN times are ignored as well.
+## ###
+## ###        If Geant4 simulation programmes are assumed to
+## ###        be well-behaving, myfailRecovery can be set to 
+## ###        "NotRestricted" and thus every failed task is
+## ###        reassigned to another worker.
+## ###
+## myfailRecovery = "Restricted"
+## #myfailRecovery = "NotRestricted"
+
+
+## if myfailRecovery == "Restricted":
+    
+##     # Reassignment rule: Task is ignored if it
+##     # failed more than MAX_FAILED_TASK_ASSIGN times.
+##     # (But job is NOT terminated!)
+##     #
+##     # Beware: MAX_FAILED_TASK_ASSIGN must be defined
+##     # in function failRecovery_RestrictedRetry. 
+##     #
+##     # Protection against tasks that would induce the
+##     # termination of all workers they are assigned to,
+##     # since they raise an exception in the simulation
+##     # driving script due to an errorneous simulation
+##     # programme.
+     
+##     def failRecovery_RestrictedRetry(self): 
+
+##         print 'Applying user defined failRecovery method (Restricted Retry)'
+        
+##         MAX_FAILED_TASK_ASSIGN = 2
+
+##         failed_list = self.master.tasks.failed().copy()
+
+##         for tid in failed_list:
+##             tid_assign_number = self.master.tasks.task(tid).assign_number
+            
+##             if tid_assign_number > MAX_FAILED_TASK_ASSIGN:
+##                  self.log.info("task with taskid=%d failed more than %d time(s), ignoring task..." %(tid,MAX_FAILED_TASK_ASSIGN) )
+##                  self.master.tasks.ignore(tid)
+##             else:
+##                  self.log.info("task with taskid=%d failed %d time(s), retrying task..." %(tid,tid_assign_number))
+##                  self.master.tasks.retry(tid)
+##         return 1
+
+##     failRecovery = failRecovery_RestrictedRetry
+
+## else:
+
+##     # Reassignment rule: Task is never ignored even
+##     # if failing many times
+##     # (Job is NOT terminated!)
+     
+##     failRecovery = 'failRecovery_Retry'
+
+
+
+## ###  B) Lost Recovery 
+## ###
+## ###  Note: It is recommended to set mylostRecovery to
+## ###        "NotRestricted"
+## ###
+## ###
+## #mylostRecovery = "Restricted"
+## mylostRecovery = "NotRestricted"
+
+
+## if mylostRecovery == "Restricted":
+
+##     # Reassignment rule: If lost task is resubmitted more
+##     # than MAX_TASK_ASSIGN times (i.e. 3 times), the *job*
+##     # is terminated
+
+##     lostRecovery = 'lostRecovery'
+
+## else:
+
+##     # Reassignment rule: A lost task is always resubmitted
+##     #
+##     # Protection against non-responding behaving sites: A particular 
+##     # task is likely to be resubmitted to worker node at the
+##     # same site, thus easily exceeding MAX_TASK_ASSIGN (see
+##     # above rule) and consequently causing the job termination.
+    
+##     def lostRecovery_Retry(self):
+        
+##         failed_list = self.master.tasks.lost().copy()
+        
+##         for tid in failed_list:
+##             self.log.info("retrying lost task: %d"%tid)            
+##             self.master.tasks.retry(tid)
+##         return 1
+
+##     lostRecovery = lostRecovery_Retry
+
+
+## ###  C) Reassignement to another worker if # of Tasks < # of workers
+## matchTasksToWorkers = "matchTasksToWorkers_Redundantly"
+
+
+
+

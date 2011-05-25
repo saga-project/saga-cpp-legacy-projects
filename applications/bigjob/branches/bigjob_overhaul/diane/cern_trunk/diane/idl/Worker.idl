@@ -1,0 +1,144 @@
+# ifndef _DIANE__WORKER_IDL__
+# define _DIANE__WORKER_IDL__ 1
+
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+# include "types.idl"
+# include "Peer.idl"
+module DIANE_CORBA
+{
+
+  interface RunMaster;
+
+  /**
+   * Problem with the application.
+   */
+  exception XApplication
+  {
+    DXPByteSeq source_exception;
+  };
+
+
+    interface WorkerServlet 
+    {
+	void create_application(in DXPByteSeq app_boot) raises (XApplication);
+	DXPByteSeq initialize(in DXPByteSeq app_init) raises (XApplication);
+	DXPByteSeq do_work(in DXPByteSeq task_data) raises (XApplication);
+	void finalize(in DXPByteSeq cookie) raises (XApplication);
+	void stop();
+    };
+	
+};
+
+# if 0
+  /**
+   * Worker serves one job at a time only.
+   *
+   * All methods may raise XPrecondition exception.
+   *
+   * \image html WorkerStatechart.gif
+   */
+    interface Worker : Peer {
+
+
+	/**
+	 *
+	 */
+
+	void initializeProcessing(in jobid_t jobid, in DXPByteSeq input, in workerid_t workerid);
+	
+	
+
+//-----------------------------------------------------------------------------------------------
+
+
+      /**
+       * State of the DIANE::Worker.
+       */
+      enum wstate_t { 
+	constructed, 
+	app_inited, 
+	busy,
+	ready,
+	inactive
+      };
+
+      // interface used by the executor
+
+      /**
+       * Initialize worker for given application and register in master.
+       *
+       * Init application and register in the master.
+       *
+       * \exception XApplication if failed to initialize the application
+       * \exception XCommunication if problems to communicate with master
+       * \exception any user exception thrown by the RunMaster::registerWorker()
+       * \post state: app_inited
+       */
+      // this method is called locally
+      //void initApplication(in appinfo_t app, in RunMaster master /*, timeouts and other params here?*/);
+
+      // interface used by master
+
+      /**
+       * Asynchronous initialization of a new job. 
+       * At the end of initialization master will get jobInitFinished() message.
+       * auto_kill flag sets the life time policy: if 1 then the worker will commit suicide automatically when the job is finished
+       * \pre state: ready
+       * \post state: busy
+       */
+      void initJob(in DXPByteSeq worker_init_data, in jobid_t jobid, in workerid_t workerid, in string userid, in unsigned long auto_kill );
+
+      /**
+       * Asynchronous start of a new task with a given task id.
+       * At the end of processing master will get receiveTaskResult() message.
+       * \pre  state: ready
+       * \post state: busy
+       */
+      void startTask(in DXPByteSeq worker_input_data, in taskid_t taskkid)
+      raises (XPrecondition);
+
+
+      /**
+       * Abort current task and go to ready state.
+       *
+       * \return false if cannot move to ready state (job not initialized).
+       */
+      void abortTask();
+
+      /**
+       * Abort current job.
+       *
+       * No effect if application was not initialized.
+       * 
+       * \pre state: any
+       * \post state: app_inited
+       */
+      void abortJob();
+
+      /**
+       * Notification from master that the job has been finished.
+       * jobid is used to crosscheck.
+       */
+      void jobFinished(in jobid_t jobid);
+
+      /// Get current status. May be used as ping.
+      wstate_t currentState();
+
+      /// Kill worker at any state (also in the middle of working state).
+      /// Automatically unregisters the worker in the master.
+      /// Typically used by local container. Should also be called by the destructor.
+      void killWorker();
+
+    };
+};
+# endif
+
+# endif

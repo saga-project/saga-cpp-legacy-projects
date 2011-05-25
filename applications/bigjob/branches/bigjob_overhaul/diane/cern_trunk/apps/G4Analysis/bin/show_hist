@@ -1,0 +1,127 @@
+#!/usr/bin/env python
+# ===============================================
+# SETUP FULL DIANE ENVIRONMENT
+# Note: this is copy/paste logic for executable scripts.
+# Note: minimal diane environment must be already set up (i.e. diane-env in PATH)
+# Note: this code does not work in interactive python sessions or with -c python option.
+import os.path,sys
+setup_done = False
+for p in os.environ['PATH'].split(os.pathsep):
+    if os.path.exists(os.path.join(p,'diane-env')):
+        sys.path.insert(0, os.path.join(os.path.dirname(p),'python'))
+        import diane.PACKAGE
+        diane.PACKAGE.standardSetup()
+        diane.PACKAGE.initializeRuntime()
+        setup_done = True
+if not setup_done:
+    print >> sys.stderr, 'ERROR: cannot set up DIANE environment (diane-env not in PATH)'
+    sys.exit(-1)
+# ===============================================   
+
+import sys
+
+try:
+    from matplotlib.pylab import show,ion,clf,axis,ioff,xlim,ylim,title,subplot
+    GUI = True
+except ImportError,x:
+    print >> sys.stderr, 'ERROR: matplotlib not available (%s)'%x
+    GUI = False
+    
+import time,math
+
+def usage():
+    print "show_hist.py filename.xml name1 [name2 ...]"
+    sys.exit(-1)
+    
+try:
+    fn = sys.argv[1]
+    names = sys.argv[2:]
+except IndexError:
+    usage()
+
+if not names:
+    usage()
+
+# animation technique: directly update the histogram outline on the plot (rather then replotting the whole thing)
+ion()
+lines = dict([(n,None) for n in names])
+
+# define the layout of the page with subplots
+n = len(names)
+xn = yn = int(math.sqrt(n)+0.5)
+if xn*yn < n:
+    xn += 1
+
+from diane.analysis_tools.stats import Histogram1D
+import diane
+
+logger = diane.getLogger('show_hist')
+once = {}
+
+try:
+    while 1:
+        time.sleep(0.5)
+        
+        i = 1
+
+        try:
+            f = file(fn)
+        except IOError:
+            logger.warning('file %s does not exist',fn)
+            time.sleep(3)
+            continue
+            
+        hists = Histogram1D.createFromAidaXML(f)
+        
+        for name in names:
+            try:
+                h = hists[name]
+            except KeyError:
+                once.setdefault(name,True)
+                if once[name]:
+                    logger.warning('histogram1d "%s" not found in the file %s',name,fn)
+                    once[name] = False
+            else:
+                if GUI:
+                    subplot(xn,yn,i)
+                    lines[name] = h.plot(autoscale=True,line=lines[name])
+                    i += 1
+                else:
+                    h.show() # lineprinter output
+
+        break
+except KeyboardInterrupt:
+    print "bye bye"
+
+show()
+
+
+## # animation technique: directly update the histogram outline on the plot (rather then replotting the whole thing)
+## ion()
+## line1 = None
+## line2 = None
+
+## sum_hists = {}
+
+## for fn in sys.argv[1:]:
+##     print fn
+##     sum_hists = Histogram1D.mergeHistograms(file(fn),sum_hists)
+
+##     subplot(211)
+##     line1 = sum_hists['30'].plot(autoscale=False,line=line1)
+##     axis([-150,150,0,.5])
+
+##     subplot(212)
+##     line2 = sum_hists['20'].plot(autoscale=True,line=line2)
+            
+##     #time.sleep(.1)
+##     #hists['30'].show()
+##     #clf()
+
+## sum_hists['30'].show()
+
+## show()
+
+## #raw_input('press any key')
+
+## #plt.xlim

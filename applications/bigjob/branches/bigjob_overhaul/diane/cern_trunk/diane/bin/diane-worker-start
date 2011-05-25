@@ -1,0 +1,95 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+#  ==========================================
+#  DIANE - Distributed Analysis Environment 
+#  http://cern.ch/diane
+#  ------------------------------------------                                          
+#  This program is under GPL licence.
+#  See README file for details.
+#  ==========================================
+
+#$Id: diane-worker-start,v 1.8 2010/12/20 15:02:32 moscicki Exp $
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Perform setup of the environment.
+# This is a Copy/Paste logic which must stay in THIS file
+def standardSetup():
+   import sys, os.path
+   # insert the path to DIANE itself
+   exeDir = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+   pythonDir = os.path.join(os.path.dirname(exeDir), 'python' )
+   sys.path.insert(0, pythonDir)
+   # setup environment
+   import diane.PACKAGE
+   diane.PACKAGE.standardSetup()
+
+standardSetup()
+del standardSetup
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import sys
+from optparse import OptionParser
+
+parser = OptionParser(usage="%prog [opts]",
+                      description="""Start a worker agent. Unless specified otherwise connect to the Run Master defined in the local current runs directory.""")
+
+parser.add_option("-f", "--ior-file", dest="ior_filename", default=None,
+                  help="read Peer IOR from the specified FILE", metavar="FILE")
+
+parser.add_option("--enable-GSI", dest="enable_GSI", default=False, action="store_true",
+                  help="enable secure connections based on Grid certificates (GSI)")
+
+parser.add_option("--omniorb-config-file", dest="omniorb_config_filename", default=None,
+                  help="omniORB configuration file")
+
+parser.add_option("--workdir",dest="workdir",default="",metavar="DIR", help="cd DIR before starting (create DIR if it does not exist)")
+
+(options, args) = parser.parse_args()
+
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# initialize DIANE runtime subsystems (config etc)
+import diane.PACKAGE
+diane.PACKAGE.initializeRuntime()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+import diane.WorkerAgent
+logger = diane.WorkerAgent.logger
+
+import diane.logger
+
+#diane.logger.setLevel('INFO',override_user_setting=False) 
+
+import os.path
+
+if options.ior_filename:
+   ior_file = options.ior_filename
+else:
+   import diane.workspace
+   ior_file=diane.workspace.getRundir('MasterOID')
+
+if options.workdir:
+   if os.path.exists(options.workdir):
+      if not os.path.isdir(options.workdir):
+         logger.error('--workdir %s is not a directory',options.workdir)
+         sys.exit(2)
+   else:
+      try:
+         os.makedirs(options.workdir)
+      except Exception,x:
+         logger.error('cannot create --workdir %s (%s)',options.workdir,str(x))
+         sys.exit(2)
+   os.chdir(options.workdir)
+
+diane.logger.addFileLog('worker.log')
+
+logger.user('workdir: %s',os.getcwd())
+logger.user('full log in %s', os.path.realpath('worker.log'))
+
+master_oid=file(ior_file).read()
+
+import diane.WorkerAgent
+diane.WorkerAgent.main(master_oid,options.omniorb_config_filename,bool(options.enable_GSI))
+

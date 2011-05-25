@@ -1,0 +1,104 @@
+# ifndef _DIANE__JOBMASTER_IDL__
+# define _DIANE__JOBMASTER_IDL__ 1
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   Autor: Paola Di Marcello
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+# include "types.idl"
+
+module DIANE_CORBA
+{
+
+  /**
+   *  DirectoryService
+   */
+
+  interface RunMaster;
+  interface Worker;
+  typedef RunMaster Master;
+  
+  /**
+   * struct used by the Master to anotify it is still alive and do update the information
+   * about its current state 
+   */
+  struct MasterMessage{
+	  Master master_ref;
+	  jobid_t job_id;
+	  long current_work;
+	  long completed_task;
+	  long all_task;
+	  string userid;
+	  string host;
+	  
+  };
+  
+  /**
+   * struct given to the Worker
+   * if master_ref is None, the Worker checks the keep_asking flag
+   * if is true the Worker will be kept alive and it  will come back to the
+   * Directory Service, until a new master is available
+   */  
+  struct MasterInfo{
+	Master master_ref;
+	boolean keep_asking;
+  };
+  
+ 
+  interface DirectoryService 
+    {
+      /**
+       * method used by the client to receive the reference of 
+       * one master available
+       */
+	 MasterInfo getMaster(in string string_id, in Worker  worker_ref);
+
+      /**
+       * method used by the master to register himself 
+       * to the directory service
+       */
+      boolean registerMaster(in Master mas,in long num_work,in jobid_t job_id,in string userid,in long importance, in string appname, in string host);
+
+
+      /**
+       * method used by the master to update the number of worker
+       * to the directory service
+       */
+      
+      void update (in MasterMessage msg);
+      
+      /**
+       * method used by the master to unregister himself 
+       * to the directory service
+       */
+      void unregisterMaster(in string job_id);
+
+      /**
+      * method used by the worker to 
+      * notify that a master is not reachable
+      */
+      void isDied(in Master mas); 
+
+      /** 
+       * Get imformation of the current status.
+       * 
+       *  */
+      string currentState();
+      /**
+       * method used to kill the Directory Service running
+       */
+       void killDirectoryService(); 
+      
+      /**
+       *method used by Master when they have finished with the master  
+       */
+      void unsubscribeMaster(in jobid_t job_id);
+    };   
+};
+
+# endif

@@ -1,0 +1,74 @@
+
+
+#=====================================================
+# VERBOSE
+#=====================================================
+
+/control/execute mac/verbose.mac 
+
+#=====================================================
+# PHYSICS (EM)
+#=====================================================
+
+/control/execute mac/physics-EM.mac
+
+#=====================================================
+# GEOMETRY
+#=====================================================
+
+#### Material Databases (could have several DB)
+/this/geometry/materialDatabase  data/GateMaterials.db
+
+#### World
+/this/geometry/addVolume         Box world
+/this/geometry/world/setHalfsize 1 1 1.1 m
+
+#### Main patient description
+/this/geometry/addVolume           ImageRegionalized patient
+/this/geometry/patient/parent      world
+/this/geometry/patient/image       data/Thorax-segRe-6-labels.hdr
+/this/geometry/materialDatabase    data/Thorax-segRe-6-materials.txt
+/this/geometry/patient/materials   data/Thorax-segRe-6-lab2mat.txt
+/this/geometry/patient/distanceMap data/Thorax-segRe-6-labels-dmap.hdr
+
+#### IsoCenter 
+/this/geometry/patient/SetIsoCenter 258.1 184.8 105.816 mm
+
+###################################################################
+### Stop on script return code
+# Creates a StopOnScriptSensor
+/this/geometry/addSensor                   StopOnScriptSensor stop
+# Attach it to the world
+/this/geometry/stop/attach                 world
+# Name of the script to source
+/this/geometry/stop/save                   ./stopOnScript.sh
+# Run the script every N event
+/this/geometry/stop/saveEveryNEvent        5001
+###################################################################
+
+
+#=====================================================
+# CUTS
+#=====================================================
+
+/control/execute mac/cuts.mac
+
+#=====================================================
+# SENSORS
+#=====================================================
+
+/control/execute mac/sensors.mac
+
+#/this/geometry/DS/save  output/Thorax-segRe-6-RV/output.hdr
+#/this/geometry/TSS/save output/Thorax-segRe-6-RV/output-stat.txt
+
+#=====================================================
+# INIT
+#=====================================================
+#/run/initialize
+
+#=====================================================
+# BEAMS
+#=====================================================
+
+#/control/execute mac/beam.mac

@@ -1,0 +1,42 @@
+# tell DIANE that we are running executables with local caching 
+
+import CachingExecutable as application
+
+# NOTE: before running this example with Local submitter you should
+# mkdir /tmp/diane-cache-wn
+# mkdir /tmp/diane-cache-master
+# create file /tmp/diane-cache-master/X
+
+
+# the run function is called when the master is started
+# input.data stands for run parameters
+def run(input,config):
+
+	###### CACHE SPECIFIC OPTIONS #####
+        # a path to cache location on the worker node
+	input.data.input_cache._path = '/tmp/diane-cache-wn'
+
+	# files which go to cache, paths are local to the run file (master) filesystem
+	input.data.input_cache.files = ['/tmp/diane-cache-master/X']
+
+	# additional security specification
+	input.data.input_cache.authorized_dirs = ['/tmp/diane-cache-master']
+
+	# if some other worker locks the file for download (cache refresh) we
+	# will break this lock after some time (specified in seconds)
+	# this prevents to workers to be stalled in case of problems
+	input.data.policy.BREAK_CACHE_LOCK_TIMEOUT = 10 
+
+	##########
+
+	d = input.data.task_defaults # this is just a convenience shortcut
+
+	# all tasks will share the default parameters (unless set otherwise in individual task)
+	d.input_files = ['hello']
+	d.output_files = ['message.out']
+	d.executable = 'hello'
+
+	# here are tasks differing by arguments to the executable
+	for i in range(20):
+		t = input.data.newTask()
+		t.args = [str(i)]

@@ -1,0 +1,121 @@
+#!/usr/bin/env python
+# -*- python -*-
+
+#  ==========================================
+#  DIANE - Distributed Analysis Environment 
+#  http://cern.ch/diane
+#  ------------------------------------------                                          
+#  This program is under GPL licence.
+#  See README file for details.
+#  ==========================================
+
+#$Id: diane-ls,v 1.2 2008/08/21 15:28:32 shsiung Exp $
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# Perform setup of the environment.
+# This is a Copy/Paste logic which must stay in THIS file
+def standardSetup():
+   import sys, os.path
+   # insert the path to DIANE itself
+   exeDir = os.path.abspath(os.path.normpath(os.path.dirname(sys.argv[0])))
+   pythonDir = os.path.join(os.path.dirname(exeDir), 'python' )
+   sys.path.insert(0, pythonDir)
+   # setup environment
+   import diane.PACKAGE
+   diane.PACKAGE.standardSetup()
+
+standardSetup()
+del standardSetup
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import sys
+
+from diane.util.ExtendedOptionParser import ExtendedOptionParser, OptionParser
+
+from diane.logger import getLogger,logging
+logger = getLogger('diane-ls')
+
+from optparse import OptionParser
+
+parser = OptionParser(usage="%prog [opts]",
+                      description="""List the status of all the masters under the $DIANE_USER_WORKSPACE/runs directory.""")
+
+parser.add_option("-a", "--all", dest="list_all", action="store_true", default=False, help="List the status of all the masters")
+
+parser.add_option("-v", "--verbose", dest="verbose", action="store_true", default=False,help="print debug information")
+(options, args) = parser.parse_args()
+
+verbosity = False
+if options.verbose:
+    verbosity = True
+    logger.setLevel(logging.DEBUG)
+
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+# initialize DIANE runtime subsystems (config etc)
+import diane.PACKAGE
+diane.PACKAGE.initializeRuntime()
+# %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+import subprocess, glob, diane.workspace
+
+diane_run_path =  diane.workspace.getPath('runs')
+
+#print diane_run_path
+
+status = {True : 'Alive', False : 'Dead'}
+existed_runsdir = glob.glob('%s/%s' % (diane_run_path, '[0-9]' * 4))
+existed_runs_dic = {}
+status_code = 0
+current_run_masteroid = ''
+
+if verbosity is False:
+    sout = file('/dev/null','w')
+    serr = sout
+else:
+    sout = None
+    serr = None
+
+## Check the status of all the masters with 'diane-master-ping' command
+import os
+
+for rundir in existed_runsdir:
+    current_run_masteroid = '%s/MasterOID' % rundir
+    ## Check the file '.terminated' before doing 'diane-master-ping', if the file is existed and means the master is dead. 
+    if os.path.isfile(os.path.join(rundir,'.terminated')):
+        existed_runs_dic[current_run_masteroid] = False
+        continue
+
+    proc = subprocess.Popen(['diane-master-ping','-f%s' % current_run_masteroid], stdout = sout, stderr = serr)
+    status_code = proc.wait()
+
+    if status_code is 0:
+        existed_runs_dic[current_run_masteroid] = True
+    else:
+        existed_runs_dic[current_run_masteroid] = False
+        file(os.path.join(rundir,".terminated"),'w').close()
+
+dic_keys = existed_runs_dic.keys()
+dic_keys.sort()
+
+def printAll(dic_keys):
+    for key in dic_keys:
+        print '%s is %s' % (os.path.dirname(key), status[existed_runs_dic[key]])
+
+def printSummary(dic_keys):
+    dead_count = 0
+    alive_count = 0
+    for key in dic_keys:
+        if existed_runs_dic[key] is True:
+            print '%s is %s' % (os.path.dirname(key), status[existed_runs_dic[key]])
+            alive_count += 1
+        else:
+            dead_count += 1
+
+    print '''Total master number : %d
+Alive master number : %d
+ Dead master number : %d''' % (alive_count + dead_count, alive_count, dead_count)
+
+if options.list_all:
+    printAll(dic_keys)
+else:
+    printSummary(dic_keys)

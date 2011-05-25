@@ -1,0 +1,58 @@
+# ifndef _DIANE__CLIENT_IDL__
+# define _DIANE__CLIENT_IDL__ 1
+
+/* ==========================================
+   DIANE - Distributed Analysis Environment 
+   Copyright (C) Jakub T. Moscicki, 2000-2003
+   ------------------------------------------                                          
+   See $DIANE_TOP/LICENSE for details.
+   ========================================== 
+*/
+
+# include "types.idl"
+
+module DIANE_CORBA
+{
+  /**
+   * Client interface -- callbacks from DIANE server.
+   */
+  interface Client
+  {
+
+    /**
+     * Called by RunMaster after the job has been submitted with the job-id.
+     */
+    void jobSubmitted(in jobid_t jobid);
+
+    /**
+     * Called by RunMaster at the end of job.
+     *
+     * Job_summary contains a report of the execution of
+     * tasks, their timings together with initial plan etc.
+     */
+    void jobTerminated(in jobid_t jobid, in DXPByteSeq job_result, in DXPByteSeq job_summary);
+
+    /// @name callbacks if client requested monitoring
+    //@{
+    /// get initial job plan.
+    void jobPlan(in DXPByteSeq job_plan);
+
+    /// get result of every task.    
+    void taskTerminated(in DXPByteSeq task_output_data, in taskid_t taskid, in task_status_t status, in task_exec_details_t details);
+
+    /// get integrated result - currently NOT supported
+    void integratedResult(in DXPByteSeq partial_result);
+
+    void workerRegistered(in workerid_t wid, in string details);
+    void workerUnregistered(in workerid_t wid, in task_status_t status, in task_exec_details_t details);
+    //@}
+
+  };
+
+  interface ClientProxy : Client
+  {
+    void startJob(in DXPByteSeq job_data, in Client c);
+  };
+};
+
+# endif

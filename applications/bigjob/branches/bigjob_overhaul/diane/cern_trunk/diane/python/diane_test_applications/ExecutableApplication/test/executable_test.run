@@ -1,0 +1,36 @@
+#-*-python-*-
+
+from diane_test_applications import ExecutableApplication as application
+
+def run(input,config):
+	d = input.data.task_defaults
+
+	# all tasks will share the default parameters (unless set otherwise in individual task)
+	d.input_files = ['hello']
+	d.output_files = ['message.out']
+	d.executable = 'hello'
+
+	# here are tasks differing by arguments to the executable
+	for i in range(20):
+		d = input.data.newTask()
+		d.args = [str(i)]
+
+	# task 10 will have different executable (and input_files)
+	input.data.tasks[10].input_files = ['byebye']
+	input.data.tasks[10].executable = 'byebye'
+
+	# this show how to create a file "on the fly"
+	# note that there will are two files called byebye and they will not clash with each other
+	# this is maybe not a good practice but is possible
+	import tempfile,os
+
+	tempdir = tempfile.mkdtemp()
+
+	f = file(os.path.join(tempdir,'byebye'),'w')
+	f.write('#!/usr/bin/env bash \n echo byebye $* \n exit -1')
+	f.close()
+
+	input.data.tasks[15].input_files = [f.name]
+	input.data.tasks[15].executable = f.name
+
+	
