@@ -219,7 +219,7 @@ will argue is also interoperable with Clouds.
 
 \begin{enumerate}[A.]
 	\item\textbf{Pilot-Job:} A PJ is a container for multiple \textbf{tasks/jobs?} 
-	that may be dynamically added to it. The PJ is the entity that actually gets 
+	that may be dynamically added to it. The PJ (also referred to as pilot) is the entity that actually gets 
 	scheduled on a resource (\ref{resource}). Tasks are ultimately loaded onto 
 	specific resources using the pilot-job and late-binding. In other words, PJ 
 	provides a mechanism 
@@ -227,10 +227,10 @@ will argue is also interoperable with Clouds.
 	include the creation of a PJ, insertion of tasks, and attachment to a CPU 
 	resource pool for late-binding task execution. \alnote{ the "thing" that is 
 	sent out to \ref{resource}} \label{pilot-agent}    	
-	\item \textbf{Unit of Work (Task):} A unit of work is a workload that is 
+	\item \textbf{Unit of Work (UW):} A unit of work is a workload that is 
 	independent form a resource. A unit of work can be assigned to a 
 	sub-job/job.(This is essentially a task, but we did not use that term because of its usage in the SAGA context)
-	\item \textbf{Unit of Scheduleable Entity (Job):} schedule-able entities are 
+	\item \textbf{Unit of Scheduleable Entity (US):} schedule-able entities are 
 	the unit of works that are sent down to \ref{pilot-agent} to be executed. 
 	Sub-jobs/jobs are used to reserve the resources required by a task. A 
 	sub-job runs an instance of the application 
@@ -246,10 +246,10 @@ will argue is also interoperable with Clouds.
 \end{enumerate}
 
 \begin{figure}[htbp]
-        \centering
-    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
+        \centering    
+\subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
     \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job2.pdf}}        
-    \caption{Relationship between Task and Sub-Job/Job}
+    \caption{Relationship between Unit of Work and Scheduleable Entity}
     \label{fig:figures_task-job1}
 \end{figure}    
 
@@ -340,8 +340,6 @@ used to construct a framework to describe pilot-*..
 				push model. In all other situations, when there is a 
             	degree of freedom for the pilots to select a task, we speak of 
             	pull.
-		
-
 		% \item Sub-Job pull vs. push applies to control and data flow (different objects that are pushed/pulled)
 
 	\end{itemize}	
@@ -376,30 +374,59 @@ used to construct a framework to describe pilot-*..
 			\item How is this decision made? see centralized vs. decentralized decision making
 		\end{itemize}
 	\item \textbf{Data management:} Managing input and output files can be critical in particular with the current increase of data volumes. Pilot-Jobs can support different kinds of data management, e.\,g.\ file stage-in and out. Also, it can provide integration with other kinds of data systems.
-	\item \textbf{End-user abstraction:} BigJob API
-	\item \textbf{Task Binding:~\cite{diane-thesis}} 
-		\begin{itemize}
-			\item In the traditional early binding approach a job carries
-			 exactly one task which is specified at a time of job submission.
-			 \item Partial binding?
-			\item Late binding is a scheduling and coordination
-			 method, where work is assigned to a job at runtime rather than at
-			 submission time.
-			\begin{itemize}
-				\item At sub-job submission 
-				\item After sub-job submission
-			\end{itemize}
-	\end{itemize}
-	\item \textbf{Task Scheduling:} A task scheduler is the entity 
-	responsible for mapping tasks to resources according to a set of defined 
-	policies. \alnote{some overlap with task binding}
+	\item The \textbf{End-user abstraction} is the external API (respectively interface) that is exposed by the P*-framework to the applicaiton.
+	\item \textbf{Task Binding} describes the 
+	assignment of a UW to a pilot-job.
+    %   \begin{itemize}
+    %       \item In the traditional early binding approach a job carries
+    %        exactly one task which is specified at a time of job submission.
+    %       \item Partial binding?
+    %       \item Late binding is a scheduling and coordination
+    %        method, where work is assigned to a job at runtime rather than at
+    %        submission time.
+    %       \begin{itemize}
+    %           \item At sub-job submission 
+    %           \item After sub-job submission
+    %       \end{itemize}
+    % \end{itemize}
+	\item \textbf{Task Scheduling:} Task scheduling describes 1) the process of  
+	mapping UW to US (pilot internal) and 2) of mapping US to physical 
+	resources (pilot external). Scheduling decisions are made on basis of a 
+	defined set of policies (e.g. resource capabilities, data/compute 
+	affinities, etc.).
 	\begin{itemize}
-	 			\item Policies and Algorithms
-	 			\item What attributes are required?
-	 			\item Multi-level scheduling
-	 			\item Integration of data- and compute scheduling
-	 			\item see MLS paper
+	 			\item Multi-level scheduling: In a distributed environment often multiple levels of autonomous schedulers are involved. 
+	 			\begin{itemize}	 			  
+	 			   \item The pilot job is schedules using the local RMS or some 
+	 			   other Grid (meta)-scheduler.
+	 			   \item UW are scheduled to US on application-level within the 
+	 			   pilot-job.
+	 			\end{itemize}
 	\end{itemize}
+\end{itemize}
+	\alnote{05/25:\\
+	What is the difference between assignment and scheduling? Job gets
+	resources allocated? 
+	Difference between task and job binding
+	Task scheduling: internal vs. external scheduling
+	BigJob assignment to resource not part of this section
+	Task Binding: assignment to a big-job
+	Task Scheduling: assignment to a sub-job	
+	\textbf{Shantenu's simple model: }
+     Pilot is executed on a certain resource\\
+     UW gets bound to a pilot\\
+     UW gets scheduled to a US  (either one or multiple UW can be 
+     scheduled to a US)\\
+     Properties of the US are dependent on the pilot job which they 
+     are running in.\\
+     Scheduling has temporal and spatial component (not only which, 
+     but also when)\\
+     US gets scheduled to a physical resource on which the pilot is 
+     operating\\
+	in the definition should be no multi-level scheduling
+	mls should come out of pilot abstractions
+    }
+	
     % \item \textbf{Agent:} Does every pilot-job implementation have an agent? 
     % What are the tasks of an agent? \alnote{Decision for now: agent is not a 
     % fundamental component. Can we cover this in other components, e.g. discuss 
@@ -423,10 +450,6 @@ used to construct a framework to describe pilot-*..
     %     
 	% \item Infrastructure Independence (Supported middleware types and infrastructures)
 
-
-	
-	
-\end{itemize}
 
 \alnote{Not sure what to do with that...
 \textbf{Capacity of Agent:} How many resources are managed by an agent (BigJob Agent vs. Diane Worker Agent)? How many tasks can be assigned to a agent? Single core worker, partial node worker, whole node worker, multi node worker (BigJob
