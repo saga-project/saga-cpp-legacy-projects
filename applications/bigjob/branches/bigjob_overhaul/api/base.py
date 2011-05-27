@@ -5,132 +5,161 @@ All Bigjob implementation must be derived from this API.
 
 """
 
-#
-# Bigjob data structures
-# 
-class BigjobResource():
-    """ Class to pass resource descriptions values around. """
-    def __init__(self):
-        # self.name 
-        # self.type 
-        # self.url
-        # self.queue
-        # self.project
-        # self.working_directory
-        # self.walltime
-        # self.userproxy
-        # self.agent_executable
-        pass
 
-class BigjobCapabilities():
-    """ Class to pass resource capabilities around. """
+# Dict to pass Resource descriptions values around. 
+Resource = {
+        'name' : None,
+        'type' : None,
+        'url' : None,
+        'queue' : None,
+        'project' : None,
+        'working_directory' : None,
+        'walltime': 0,
+        'userproxy' : None,
+        'agent_executable' : None
+        }
 
-    def __init__(self):
-        # self.number_of_cores
-        # self.number_of_nodes
-        # self.time_to_live
-        pass
+# Dict to pass Resource capabilities around.
+Capabilities = {
+        'number_of_cores' : 0,
+        'number_of_nodes' : 0,
+        'time_to_live' : 0,
+        'local_diskspace_available' : 0,
+        'shared_filesystem' = False
+        }
+
+# Dict to pass UoW requirements around.
+Requirements = {
+        'number_of_cores' : 0,
+        'minimum_runtime' : 0,
+        }
+
+# Dict to describe action to be passed to UoW
+Action = {
+        'application_kernel' : None,
+        'input' : None,
+        'output' : None
+        }
 
 #
 # Bigjob class
 #
-class Bigjob():
+class Bigjob(object):
     """ This class represents the Bigjob. """
 
     def __init__(self, resource):
         """ Create a Bigjob object.
-            Takes a resource description as only argument.
+
+            Keyword arguments:
+            resources -- a (list of) resource description(s)
+
         """
-        # self.__uuid
+        # self.__uuid = getuuid()
+        pass
+
+    def add_resource(self, resource):
+        """ Add a (list of) resource(s) to the Bigjob
+
+            Keyword arguments:
+            resource -- a (list of) resource description(s)
+        """
+        pass
+
+    def get_resource(self):
+        """ Return the resource(s) that is/are under this BigJob.  """
+        pass
+
+    def remove_resource(self, resource):
+        """ Remove the resource(s) from the Bigjob
+
+            Keyword arguments:
+
+            resource -- a (list of) resource description(s)
+        """
         pass
          
-    def get_state(self):        
-        """ Return the state of the Bigjob. """
-        pass
+    def get_capabilities(self, resource=None):
+        """ Return the capabilities that this Bigjob provides.
+       
+            Keyword arguments:
 
-    def get_capabilities(self):
-        """ Return the capabilities that this Bigjob provides. """
+            resource -- The (optional) resource to act upon.
+        """
         pass
     
-    def get_subjobs(self):        
-        """ Return the list of Subjobs that are running in this Bigjob. """
+    def get_uows(self):        
+        """ Return the list of UoWs that are assigned to this Bigjob. """
         pass
 
-    def get_tasks(self):        
-        """ Return the list of Tasks that are running in this Bigjob. """
+    def resize_resource(self, resource):        
+        """ (re-)Calibrate the resouce in the Bigjob to the given 'size'.
+        
+            Keyword arguments:
+            resource -- The resource to act upon.
+        """
         pass
 
-    def resize(self):        
-        """ (re-)Calibrate the BigJob to the given 'size'. """
+    def assign_uow(self, uow):
+        """ Assign a UoW to this Bigjob.
+
+            Keyword argument:
+            uow -- The Unit of Work from the application
+
+        """
         pass
 
-    def assign_task(self, task):
-        """ Assign a Task to this Bigjob. """
-        pass
+    def cancel(self, resource=None):        
+        """ Cancel the a resource in the BigJob.
 
-    def cancel(self):        
-        """ Cancel the BigJob and its Subjobs/Tasks. """
-        pass
-
-
-#
-# Subjob data structures
-#
-class SubjobInfo():
-    """ Read-only class to describe a SubJob. 
-        It is the internal representation of the schedulable entity inside
-        a Bigjob, but its information is exposed through the Bigjob API.
-    """
-
-    def __init__(self):
-        # self.runtime
-        # self.location
-        # self.size
+            Keyword arguments:
+            resource -- The optional resource(s) to act upon.
+        """
         pass
 
 
 #
-# Task data structures
+# Unit of Work class
 # 
-class TaskRequirements():
-    """ Class to pass Task requirements around. """
+class UoW(object):
+    """ This class represents the Unit of Work concept in the Bigjob framework. """
 
-    def __init__(self):
-        # self.number_of_cores
-        # self.minimum_runtime
-        # self.color_of_the_walls_at_the_datacenter
-        pass
+    def __init__(self, action, requirements=None):
+        """ Create a new Unit of Work.
 
-#
-# Task class
-# 
-class Task():
-    """ This class represents the Task concept in the Bigjob framework. """
+            Keyword arguments:
+            action -- the description of the action for this UoW
+            requirements -- the (optional) application requirements for this UoW
 
-    def __init__(self, requirements):
-        # self.__uuid
-        # self.state
-        # self.action
-        # self.inputs
-        # self.outputs
+        """
+
+        # self.__uuid = getuuid()
+        # self.state = New
+        # self.action = action.application_kernel
+        # self.input = action.input
+        # self.output = action.output
+        # self.requirements = requirements
         pass
 
     def get_requirements(self):        
-        """ Return the requirements that this Task has. """
-        pass
-
-    def get_bigjob(self):        
-        """ Return the Bigjob where this Task is running. """
+        """ Return the requirements that this UoW has. """
         pass
 
     def get_state(self):        
-        """ Return the state of the Task. """
+        """ Return the state of the UoW. """
         pass
 
-    def get_subjob(self):        
-        """ Return the Subjob that this Tasks runs in. """
+    def get_input(self):        
+        """ Return the input(s) of this UoW. """
         pass
-    
+
+    def get_output(self):        
+        """ Return the output(s) of this UoW. """
+        pass
+
+    def get_action(self):        
+        """ Return the action of this UoW. """
+        pass
+
     def cancel(self):
         """ Cancel the Task. """
         pass
