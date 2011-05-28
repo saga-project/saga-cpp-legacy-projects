@@ -16,7 +16,12 @@ from bigjob import bigjob, subjob
 
 # configurationg
 advert_host = "localhost"
-BIGJOB_HOME= os.getcwd() + "/../"
+
+if os.getenv("BIGJOB_HOME")!=None:
+    BIGJOB_HOME= os.getenv("BIGJOB_HOME") 
+else:
+    BIGJOB_HOME= os.getcwd() + "/../"
+    os.environ["BIGJOB_HOME"]=BIGJOB_HOME
 
 
 """ Test Job Submission via Advert """
@@ -36,22 +41,14 @@ if __name__ == "__main__":
     print "Start Pilot Job/BigJob: " + bigjob_agent + " at: " + lrms_url
     bj = bigjob(advert_host)
     bj.start_pilot_job(lrms_url,
-                            bigjob_agent,
+                            None,
                             nodes,
                             None,
                             None,
                             workingdirectory, 
                             userproxy,
                             None)
-    
-    #bj.start_pilot_job(lrms_url,
-    #                        bigjob_agent,
-    #                        nodes,
-    #                        None,
-    #                        None,
-    #                        workingdirectory, 
-    #                        userproxy,
-    #                        None)
+        
     
     print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + str(bj.get_state())
 

@@ -8,8 +8,12 @@ It assumes that an bigjob_agent.py is available on the remote machine.
 bigjob_agent.py will poll the advert service for new jobs and run these jobs on the respective
 machine .
 
-Background: This approach avoids queueing delays since the advert-launcher.py must be just started via saga.job or saga.cpr
-once. All shortrunning task will be started using the protocol implemented by advert_job() and advert_launcher.py
+Background: This approach avoids queueing delays since the igjob_agent_launcher.py must be just started via saga.job or saga.cpr
+once. All shortrunning task will be started using the protocol implemented by subjob() and bigjob_agent.py
+
+Installation:
+Set environment variable BIGJOB_HOME to installation directory
+
 """
 
 import sys
@@ -102,6 +106,13 @@ class bigjob(api.base.bigjob):
         self.pilot_dir.set_attribute("stopped", "false")
         logging.debug("set pilot state to: " + self.pilot_dir.get_attribute("state"))
         self.number_nodes=int(number_nodes)        
+        
+        # discover location of agent executable
+        if bigjob_agent_executable==None:            
+            if os.getenv("BIGJOB_HOME", None)!=None:
+                bigjob_agent_executable=os.getenv("BIGJOB_HOME")+"/bigjob_agent_launcher.sh"
+            else:
+                bigjob_agent_executable=os.getcwd()+"/bigjob_agent_launcher.sh"
  
         # create job description
         jd = saga.job.description()
