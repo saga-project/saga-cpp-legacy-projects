@@ -14,7 +14,12 @@ sys.path.append("..")
 from bigjob import bigjob, subjob
 
 advert_host = "localhost"
-BIGJOB_HOME= os.getcwd() + "/../"
+
+if os.getenv("BIGJOB_HOME")!=None:
+    BIGJOB_HOME= os.getenv("BIGJOB_HOME") 
+else:
+    BIGJOB_HOME= os.getcwd() + "/../"
+    os.environ["BIGJOB_HOME"]=BIGJOB_HOME
 
 """ Test Job Submission via Advert """
 if __name__ == "__main__":

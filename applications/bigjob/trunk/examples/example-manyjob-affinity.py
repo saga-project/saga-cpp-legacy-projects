@@ -19,7 +19,12 @@ sys.path.append("..")
 import many_job_affinity
 
 NUMBER_JOBS=8
-BIGJOB_HOME= os.getcwd() + "/../"
+
+if os.getenv("BIGJOB_HOME")!=None:
+    BIGJOB_HOME= os.getenv("BIGJOB_HOME") 
+else:
+    BIGJOB_HOME= os.getcwd() + "/../"
+    os.environ["BIGJOB_HOME"]=BIGJOB_HOME
 
 def has_finished(state):
         state = state.lower()

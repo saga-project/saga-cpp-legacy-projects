@@ -22,7 +22,12 @@ import sys
 sys.path.append("..")
 import many_job
 
-BIGJOB_HOME= os.getcwd() + "/../"
+if os.getenv("BIGJOB_HOME")!=None:
+    BIGJOB_HOME= os.getenv("BIGJOB_HOME") 
+else:
+    BIGJOB_HOME= os.getcwd() + "/../"
+    os.environ["BIGJOB_HOME"]=BIGJOB_HOME
+    
 NUMBER_JOBS=8
 
 def has_finished(state):
