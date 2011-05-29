@@ -239,10 +239,10 @@ will argue is also interoperable with Clouds.
     tasks, and attachment to a CPU resource pool for late-binding task
     execution.}
 
-\item \textbf{Unit of Work (UW):} A unit of work is a workload that
-  will be assigned to a resource indirectly via a Pilot-Job.  The PJ
-  in turn has flexibility in determining when and how-many resources
-  the UW will receive.
+\item \textbf{Unit of Work (UW):} A unit of work is the workload that 
+    encapsulates a self-contained piece of work and will be assigned to a 
+    resource indirectly via a Pilot-Job.  The PJ in turn has flexibility in 
+    determining when and how-many resources the UW will receive.
 
  % independent form a resource but
 
@@ -302,7 +302,8 @@ as well.}
 Example usage mode of a pilot job:
 \begin{enumerate}
     \item The pilot is executed on a certain resource.
-    \item UW gets bound to a pilot. \alnote{I think at this point we must 
+    \item UW gets bound to a pilot-job via the central manager. 
+    \alnote{I think at this point we must 
     clearly differentiate between pilot (aka the submitted agent) and pilot (aka 
     the framework)}
     \item UW gets scheduled to a US  (either one or multiple UW can be 
@@ -372,18 +373,14 @@ used to construct a framework to describe pilot-*..
 	to acquire and release resources at runtime of the pilot-job.
 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 	    resources, the external coordination is the same for both BJ.}
-	    % \begin{itemize}
-	   %       \item Push/Pull model for growing/shrinking resources 
-	   %       (not only for task binding).
-	   %       \item How is this decision made? see centralized vs. decentralized decision making
-	   %   \end{itemize}
+
 	\item \textbf{Data management:} Managing input and output files can be 
 	critical in particular with the current increase of data volumes. Pilot-Jobs 
 	can support different kinds of data management, e.\,g.\ file stage-in and 
 	out. Also, it can provide integration with other kinds of data systems.
 	\item The \textbf{End-user abstraction} is the external API (respectively 
 	interface) that is exposed by the P*-framework to the application.
-	\item \textbf{Task Binding} describes the assignment of a UW to a pilot-job.
+	\item \textbf{UW Binding} describes the assignment of a UW to a pilot-job.
     %   \begin{itemize}
     %       \item In the traditional early binding approach a job carries
     %        exactly one task which is specified at a time of job submission.
@@ -396,7 +393,7 @@ used to construct a framework to describe pilot-*..
     %           \item After sub-job submission
     %       \end{itemize}
     % \end{itemize}
-	\item \textbf{Task Scheduling:} Task scheduling describes 1) the process of  
+	\item \textbf{UW Scheduling:} Task scheduling describes 1) the process of  
 	mapping UW to US (pilot internal) and 2) of mapping US to physical 
 	resources (pilot external). Scheduling decisions are made on basis of a 
 	defined set of policies (e.g. resource capabilities, data/compute 
@@ -548,10 +545,15 @@ applications that are supported by a pilot-job frameworks:
 	\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic 
 	and inherently prone to failures and thus unreliable. To deal with failures, 
 	systems can deploy strategies, such as automatic resubmission etc.
-	\item \textbf{Security}: 
+	\item \textbf{Security}
 	\begin{itemize}
-	   \item Single vs. multiple user
-	   \item Authorization, authentication, accounting (AAA)
+       \item Authorization, authentication, accounting (AAA) describes the 
+       authentication and authorization mechanisms supported by the PJ (e.\,g.\  
+       GSI, VOMS, MyProxy, etc.). 
+	   \item Single vs. multiple user: A pilot-job that runs under the identity 
+	   of a single user and is only able to accept jobs from this user is 
+	   referred to as private PJ. A PJ that is able to accept jobs from 
+	   different users is referred to as public PJ.
 	\end{itemize}
 	\item \textbf{Resource abstraction} describes the framework that is used for accessing distributed resources (e.\,g.\ SAGA, GANGA, JGlobus etc.).
 \end{itemize}
@@ -595,7 +597,7 @@ of the BigJob API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 \begin{table}[t]
 \begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
 	\hline
-	&\textbf{Task Binding} &\textbf{Cluster Support} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} &\textbf{Dynamic Resources}\\
+	&\textbf{Task Binding} &\textbf{Resource Types} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} &\textbf{Dynamic Resources}\\
 	\hline
 	\textbf{BigJob} & &&&&\\
 	\hline
@@ -729,12 +731,10 @@ scheduler then ensures that sub-jobs that demand a certain affinity are only
 executed on resources that fulfill this constraint.
 
 
+\subsubsection{Future Extensions}
 
-
-
-% This implementation is similar to SAGA-ManyJob except that we define affinity 
-% for each resource and also define affinity for the tasks. Therefore binding 
-% between tasks and resource occur while submitting the jobs.
+describe the benefits of de-central decision making 
+autonomic capabilities
 
 
 
@@ -879,22 +879,39 @@ LHCb community.
     \item Nimrod/G
     \item Dirac
     \item Topos
-    \item Panda
-    
+    \item Panda    
 \end{itemize}
 
 
-\subsection{Extensions}
+\subsection{Summary}
+
+\begin{table}[ht]
+\centering
+\begin{tabular}{|l|p{2.5cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}
+	\hline
+	&\textbf{SAGA BigJob} &\textbf{DIANE} &\textbf{Condor Glide-In} &   
+	\textbf{DIRAC} \\ \hline
+External Coordination &Local API for UW execution management & &Master/Worker &\\ \hline
+
+Internal Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &Master/Worker\\ \hline
+
+External Communication &local &Central Manager exposes local \& remote CORBA service & &\\ \hline
+	
+Internal Communication &Advert Service &CORBA & & \\ \hline
+
+UW Binding \& Scheduling &&&&\\ \hline
+
+Security &Middleware dependent (GSI, Advert DB Login) &GSI &- &GSI/Glexec\\ \hline
+
+Resource Types &HTC/HPC (via SAGA adaptors) &HTC &HTC &HTC \\ \hline
+
+Fault Tolerance  &&&&\\ \hline
+	
+\end{tabular}
+\caption{Pilot-Job Comparison}
+\end{table}
 
 
-\subsubsection{Dynamic Scheduling}
-
-describe the benefits of de-central decision making 
-
-autonomic capabilities
-
-
-\subsubsection{Data-/Compute-Affinities}
 
 
 
