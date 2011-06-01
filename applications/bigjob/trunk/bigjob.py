@@ -58,6 +58,7 @@ def get_uuid():
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
+ADVERT_URL_SCHEME = "advert://"
 
 class BigJobError(Exception):
     def __init__(self, value):
@@ -72,7 +73,7 @@ class bigjob(api.base.bigjob):
         self.database_host = database_host
         print "init advert service session at host: " + database_host
         self.uuid = get_uuid()
-        self.app_url = saga.url("advert://" + database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
+        self.app_url = saga.url(ADVERT_URL_SCHEME+ database_host + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
         self.app_dir = saga.advert.directory(self.app_url, saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         self.state=saga.job.Unknown
         self.pilot_url=""
@@ -238,7 +239,7 @@ class subjob(api.base.subjob):
         
     def get_job_url(self, pilot_url):
         self.saga_pilot_url = saga.url(pilot_url)
-        if(self.saga_pilot_url.scheme=="advert"): #
+        if(self.saga_pilot_url.scheme=="advert" or self.saga_pilot_url.scheme=="sqlfastadvert"):  #
             pass
 
         else: # any other url, try to guess pilot job url
@@ -250,7 +251,7 @@ class subjob(api.base.subjob):
             if host =="":
                 host=socket.gethostname()
             # create dir for destination url
-            self.saga_pilot_url = saga.url("advert://" +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
+            self.saga_pilot_url = saga.url(ADVERT_URL_SCHEME +  self.database_host + "/"+APPLICATION_NAME + "/" + host)
 
         # create dir for job
         self.job_url = self.saga_pilot_url.get_string() + "/" + str(self.uuid)
