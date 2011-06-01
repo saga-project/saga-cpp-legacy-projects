@@ -28,7 +28,7 @@ else:
     BIGJOB_HOME= os.getcwd() + "/../"
     os.environ["BIGJOB_HOME"]=BIGJOB_HOME
     
-NUMBER_JOBS=8
+NUMBER_JOBS=128
 
 def has_finished(state):
         state = state.lower()
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         starttime=time.time()
 
         # submit via mj abstraction
-        resource_dictionary = {"resource_url" : "fork://localhost/", "number_nodes" : "2", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
+        resource_dictionary = {"resource_url" : "fork://localhost/", "number_nodes" : "32", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
                                "working_directory": (os.getcwd() + "/agent"), "walltime":3600 }
         resource_list = []
         #resource_list.append( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})

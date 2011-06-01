@@ -11,6 +11,10 @@ import traceback
 import signal
 import ConfigParser
 
+sys.path.append(os.path.dirname( __file__ ) + "/ext/threadpool-1.2.7/src/")
+from threadpool import *
+
+
 if sys.version_info < (2, 5):
     sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
     sys.stderr.write("Warning: Using unsupported Python version\n")
@@ -24,6 +28,8 @@ if sys.version_info < (2, 3):
 import subprocess
 
 CONFIG_FILE="bigjob_agent.conf"
+THREAD_POOL_SIZE=4
+
 class bigjob_agent:
     
     """BigJob Agent:
@@ -74,6 +80,7 @@ class bigjob_agent:
         # update state of glidin job to running
         self.update_glidin_state()
         # start background thread for polling new jobs and monitoring current jobs
+        self.resource_lock=threading.Lock()
         self.launcher_thread=threading.Thread(target=self.start_background_thread())
         self.launcher_thread.start()
         
@@ -263,9 +270,11 @@ class bigjob_agent:
     def allocate_nodes(self, job_dir):
         """ allocate nodes
             allocated nodes will be written to machinefile advert-launcher-machines-<jobid>
-            this method is only call by background thread and thus not threadsafe"""
+        """
+        self.resource_lock.acquire()
         number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
         nodes = []
+        machine_file_name = None
         if (len(self.freenodes)>=number_nodes):
             unique_nodes=set(self.freenodes)
             for i in unique_nodes:
@@ -289,8 +298,10 @@ class bigjob_agent:
             # update node structures
             #self.busynodes.extend(self.freenodes[:number_nodes])
             #del(self.freenodes[:number_nodes])            
-            return machine_file_name
-        return None
+        
+        self.resource_lock.release()
+        return machine_file_name
+        
     
     
     def setup_charmpp_nodefile(self, allocated_nodes):
@@ -335,7 +346,8 @@ class bigjob_agent:
          print "Machinefile: " + filename + " Hosts: " + str(lines)
          
     def free_nodes(self, job_dir):
-         print "Free nodes ..."
+         self.resource_lock.acquire()
+         print "Free nodes ..."         
          number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
          machine_file_name = self.get_machine_file_name(job_dir)
          print "Machine file: " + machine_file_name
@@ -352,6 +364,7 @@ class bigjob_agent:
              self.freenodes.append(i)
          print "Delete " + machine_file_name
          os.remove(machine_file_name)
+         self.resource_lock.release()
                
             
     def get_machine_file_name(self, job_dir):
@@ -368,22 +381,30 @@ class bigjob_agent:
         # new algorithm separates new jobs and old jobs in separate dirs
         new_jobs = self.new_job_dir.list()
         print "Base dir: " + self.new_job_dir.get_url().get_string() + " Number New jobs: " + str(len(new_jobs));
-        for i in new_jobs:            
-                 print "check job: " + i.get_string()
-                 #job_entry = self.new_job_dir.open_dir(i)
-                 new_job_item = self.new_job_dir.open_dir(i.get_string(), saga.advert.Create | saga.advert.ReadWrite)
-                 job_url = new_job_item.get_attribute("joburl")
-                 print "Found new job: " + str(job_url)
-                 job_dir = None
-                 try: #potentially racing condition (dir could be already deleted by RE-Manager
-                     job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
-                 except:
-                     pass
-                 if job_dir != None:
-                     self.execute_job(job_dir)
-                     print "Execute: " + job_dir.get_attribute("Executable")
-                     if job_dir.get_attribute("state")=="Running":
-                          self.new_job_dir.remove(new_job_item.get_url(), saga.name_space.Recursive)
+        for i in new_jobs:
+            #requests = makeRequests(self.start_new_job_in_thread, i.get_string(),None)
+            request = WorkRequest(self.start_new_job_in_thread, [i.get_string()])
+            self.threadpool.putRequest(request)
+            
+        #self.threadpool.wait()
+        
+    def start_new_job_in_thread(self, new_job):
+        """evaluates job dir, sanity checks, executes job """        
+        print "check job: " + new_job
+        new_job_item = self.new_job_dir.open_dir(new_job, saga.advert.Create | saga.advert.ReadWrite)
+        job_url = new_job_item.get_attribute("joburl")
+        print "Found new job: " + str(job_url)
+        job_dir = None
+        try: #potentially racing condition (dir could be already deleted by RE-Manager
+            job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
+        except:
+            pass
+        if job_dir != None:
+            self.execute_job(job_dir)
+            print "Execute: " + job_dir.get_attribute("Executable")
+            if job_dir.get_attribute("state")=="Running":
+                self.new_job_dir.remove(new_job_item.get_url(), saga.name_space.Recursive)
+        
         
         # OLD unoptimized code
         #try:
@@ -463,7 +484,8 @@ class bigjob_agent:
         return false
                         
     def start_background_thread(self):
-        self.stop=False
+        self.stop=False        
+        self.threadpool = ThreadPool(THREAD_POOL_SIZE)
         print "\n"
         print "##################################### New POLL/MONITOR cycle ##################################"
         print "Free nodes: " + str(len(self.freenodes)) + " Busy Nodes: " + str(len(self.busynodes))
@@ -477,7 +499,7 @@ class bigjob_agent:
             try:
                 self.poll_jobs()
                 self.monitor_jobs()            
-                time.sleep(5)
+                time.sleep(2)
                 self.failed_polls=0
             except saga.exception:
                 traceback.print_exc(file=sys.stdout)
