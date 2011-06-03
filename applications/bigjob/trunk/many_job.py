@@ -83,14 +83,23 @@ class many_job_service(object):
             ppn=bj_dict["processes_per_node"]
         else:
             bj_dict["processes_per_node"]="1"
+
+        walltime = 3600
+        if ("walltime" in bj_dict):
+            walltime=bj_dict["walltime"]
+
+        working_directory = (os.getcwd()+"/agent")
+        if ("working_directory" in bj_dict):
+            working_directory=bj_dict["working_directory"]
+
         bj.start_pilot_job(gram_url,
                            bj_dict["bigjob_agent"],
                            bj_dict["number_nodes"],
                            bj_dict["queue"],
                            bj_dict["allocation"],
-                           bj_dict["working_directory"], 
+                           working_directory, 
                            None,
-                           bj_dict["walltime"],
+                           walltime,
                            ppn)
         bj_dict["bigjob"]=bj # store bigjob for later reference in dict
         bj_dict["free_cores"]=int(bj_dict["number_nodes"])*int(ppn)
