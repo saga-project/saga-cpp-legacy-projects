@@ -23,19 +23,21 @@ if __name__ == "__main__":
     subtime1 = time.time()
     print "PD creation time: " + str(subtime1-starttime)
     ##########################################################################################
-    base_dir="/work/luckow/test-data/"
-    base_url="gsiftp://qb1.loni.org/" + base_dir 
+    base_dir="/work/luckow/data-small/"
+    base_url="gsiftp://oliver1.loni.org/" + base_dir 
     ps = pd.create_pilot_store("affinity1", base_url)
     subtime2 = time.time()
     print "PS creation time: " + str(subtime2-subtime1)
 
     counter=0
-    pdb.set_trace()
-    for f in os.listdir(base_dir):
-        file_url = base_url + f
-        print "register: " + str(file_url)
-        ps.register_file(saga.url(file_url))
-        counter = counter + 1
+    #pdb.set_trace()
+    data_files=os.listdir(base_dir);
+    ps.register_files(data_files)
+    #for f in os.listdir(base_dir):
+    #    file_url = base_url + f
+    #    print "register: " + str(file_url)
+    #    ps.register_file(saga.url(file_url))
+    #    counter = counter + 1
 
     subtime3 = time.time()
 
@@ -46,9 +48,9 @@ if __name__ == "__main__":
 
     
     # move store to other resource
-    ps1 = ps.copy("affinity2", "gsiftp://eric1.loni.org//work/luckow/test-data/")
+    #ps1 = ps.copy("affinity2", "gsiftp://qb1.loni.org//work/luckow/data-small/")
     
-    ps.move("gsiftp://eric1.loni.org//work/luckow/test-data/")
+    #ps.move("gsiftp://eric1.loni.org//work/luckow/data-small/")
     
     print "Pilot Store contains the following pilot data containers: "
     for ps_element in pd:

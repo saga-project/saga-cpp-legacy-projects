@@ -22,6 +22,9 @@ DATABASE_HOST="localhost"
 #DATA_FILE_DIR=os.getcwd()+"/data-small"
 DATA_FILE_DIR="/work/luckow/data"
 
+WORKING_DIR="/work/luckow/mr-run/"
+#WORKING_DIR=os.getcwd()
+
 NUMBER_MAP_JOBS=16
 NUMBER_REDUCE_JOBS=1
 
@@ -80,13 +83,14 @@ if __name__ == "__main__":
     ps1.register_files(data_files)
     
     pd.add_pilot_store(ps1)
+    print "time to register: " + str(time.time()-starttime)
     
     ##########################################################################################
     print "Start some BigJob w/ affinity"
     resource_list = []
-    resource_list.append( {"gram_url" : "gram://poseidon1.loni.org/jobmanager-pbs", "number_cores" : str(NUMBER_MAP_JOBS), "allocation" : "loni_jhabig10",
+    resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : str(NUMBER_MAP_JOBS), "allocation" : "loni_jhabig10",
                            "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"),
-                           "working_directory": (os.getcwd() + "/agent"), "walltime":120, "affinity" : "affinity1"})
+                           "working_directory": (WORKING_DIR + "/agent"), "walltime":1800, "affinity" : "affinity1"})
 
     #resource_list.append( {"gram_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_cores" : "4", "allocation" : "loni_jhabig10",
     #                       "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"),
@@ -113,9 +117,9 @@ if __name__ == "__main__":
                 jd.number_of_processes = "1"
                 jd.spmd_variation = "single"
                 jd.arguments = [pd.app_url.get_string(), p.name, str(i), app_url.get_string()]
-                jd.working_directory = os.getcwd()
-                jd.output =  os.getcwd() + "/map-stdout-" + str(i) + ".txt"
-                jd.error = os.getcwd() + "/map-stderr-" + str(i) + ".txt"
+                jd.working_directory = WORKING_DIR
+                jd.output =  WORKING_DIR + "/map-stdout-" + str(i) + ".txt"
+                jd.error = WORKING_DIR + "/map-stderr-" + str(i) + ".txt"
                 jd.environment = ["affinity=affinity1"]
                 subjob = mjs.create_job(jd)
                 subjob.run()
@@ -171,9 +175,9 @@ if __name__ == "__main__":
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
             jd.arguments = [pd.app_url.get_string(), result_ps.name, "0", app_url.get_string()]
-            jd.working_directory = os.getcwd()
-            jd.output =  os.getcwd() + "/reduce-stdout-" + str(i) + ".txt"
-            jd.error = os.getcwd() + "/reduce-stderr-" + str(i) + ".txt"
+            jd.working_directory = WORKING_DIR
+            jd.output =  WORKING_DIR + "/reduce-stdout-" + str(i) + ".txt"
+            jd.error = WORKING_DIR + "/reduce-stderr-" + str(i) + ".txt"
             jd.environment = ["affinity=affinity1"]
             subjob = mjs.create_job(jd)
             subjob.run()

@@ -12,8 +12,10 @@
 import sys
 import saga
 import uuid
-sys.path.append("../../../BigJob/")
-sys.path.append("../store/")
+import os
+print os.path.dirname(__file__) 
+sys.path.append(os.path.dirname(__file__) + "/../../../BigJob/")
+sys.path.append(os.path.dirname(__file__) + "/../store/")
 
 from pilotstore import *
 
@@ -52,10 +54,11 @@ for ps in pd.list_pilot_store():
                 textf = open(filename, 'r')
                    
                 # reads one line at a time
+                lines_per_file = 0
                 for line in textf:
-                    print line,   # test
+                    #print line,   # test
                     lines += 1
-              
+                    lines_per_file +=1
                     if line.startswith('\n'):
                         blanklines += 1
                     else:
@@ -67,16 +70,17 @@ for ps in pd.list_pilot_store():
                         # use None to split at any whitespace regardless of length
                         # so for instance double space counts as one space
                         tempwords = line.split(None)
-                        print tempwords  # test
+                        #print tempwords  # test
                         
                         # word total count
                         words += len(tempwords)
                 textf.close()
+                print "File: " + str(filename) + " Number Lines: " + str(lines_per_file)
             except IOError:
               print 'Cannot open file %s for reading' % filename
               
           
-logging.debug("Finished counting words")
+logging.debug("Finished counting words - number lines: " +str(lines))
           
 filename = "data/result-map-"+uuid+".txt"
 result_file = open(filename, 'w')
@@ -86,18 +90,18 @@ result_file.write("Sentences  : " + str(sentences)+ '\n')
 result_file.write("Words      : " + str(words)+ '\n')
 result_file.close()
 
-print "Creating pilot store for result file"
 ps_name = "map-result-"+uuid
+print "Creating pilot store " + ps_name + " for result file: " + str(filename)
 base_dir = saga.url("file://localhost" + os.getcwd()+"/data")
 ps_results = pilot_store(ps_name, base_dir, pd)
 ps_results.add_file(saga.url("file://localhost" + os.getcwd()+"/" + filename))
 pd.add_pilot_store(ps_results)
 
-print "Writing to advert directory: " + app_url.get_string()
+print "Posting result pilot store to advert directory: " + app_url.get_string()
 app_dir = saga.advert.directory(app_url, saga.advert.Create | 
                                          saga.advert.CreateParents | 
                                          saga.advert.ReadWrite)
 app_dir.set_attribute("ps", ps_name)
         
-for p in pd.list_pilot_store():
-    print p
+#for p in pd.list_pilot_store():
+#    print p

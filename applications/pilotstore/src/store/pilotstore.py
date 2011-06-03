@@ -11,10 +11,11 @@ import pdb
 
 # for logging
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.INFO)
 
 APPLICATION_NAME="pilot-data"
-DATABASE_HOST="localhost"
+DATABASE_HOST="advert.cct.lsu.edu"
+ADVERT_URL_SCHEME="sqlfastadvert://"
 
 class pilot_store:  
     """ abstractions for managing a group of files 
@@ -236,7 +237,7 @@ class pilot_data:
     def __init__(self):
         self.pilot_store={}
         self.uuid = uuid.uuid1()
-        self.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
+        self.app_url = saga.url(ADVERT_URL_SCHEME + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(self.uuid) + "/")
         pilot_data.to_advert(self)
     
     ##############################################################################
@@ -290,7 +291,7 @@ class pilot_data:
         
         pd = pilot_data()        
         pd.uuid=pd_dir.get_attribute("uuid")
-        pd.app_url = saga.url("advert://" + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(pd.uuid) + "/")
+        pd.app_url = saga.url(ADVERT_URL_SCHEME + DATABASE_HOST + "/"+APPLICATION_NAME + "-" + str(pd.uuid) + "/")
         #logging.debug("Open directory")
         pilot_stores = pd_dir.list()
         for i in pilot_stores:

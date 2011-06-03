@@ -3,8 +3,9 @@
 # Aggregate subtotals of mapping phase
 import saga
 import sys
-sys.path.append("../../../BigJob/")
-sys.path.append("../store/")
+import os
+sys.path.append(os.path.dirname(__file__) + "/../../../BigJob/")
+sys.path.append(os.path.dirname(__file__) + "/../store/")
 
 from pilotstore import *
 
@@ -21,6 +22,7 @@ if len(sys.argv) !=5:
     sys.exit(-1)
 
 
+uuid = str(uuid.uuid1())
 logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: " 
               + sys.argv[2] + " Chunk id: " + sys.argv[3] 
               + " App URL: " + sys.argv[4])
@@ -28,7 +30,7 @@ logging.debug("Pilot Data URL: " + sys.argv[1] + " Pilot Store Name: "
 pd = pilot_data.from_advert(saga.url(sys.argv[1]))
 ps_name = sys.argv[2]
 chunk_id=sys.argv[3]
-uuid = str(uuid.uuid1())
+
 app_url = saga.url(sys.argv[4] + "/reduce-" + uuid)
 
 print '-' * 50
@@ -51,6 +53,7 @@ for ps in pd.list_pilot_store():
                 for line in textf:
                     comp = line.partition(":")
                     if comp[0].strip()=="Lines":
+                        print "File: " + str(file) + " Lines: " + str(comp[2])
                         total_lines = total_lines + int(comp[2])            
                 
                 textf.close()

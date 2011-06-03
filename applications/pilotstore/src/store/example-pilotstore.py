@@ -9,7 +9,13 @@ import saga
 import sys
 import time
 
-sys.path.append("../../../BigJob/")
+if os.getenv("BIGJOB_HOME")!=None:
+    BIGJOB_HOME= os.getenv("BIGJOB_HOME")
+else:
+    BIGJOB_HOME= os.getcwd() + "/../../../bigjob/trunk/"
+    os.environ["BIGJOB_HOME"]=BIGJOB_HOME
+
+sys.path.append(BIGJOB_HOME)
 import many_job_affinity
 
 NUMBER_JOBS=2
@@ -57,8 +63,8 @@ if __name__ == "__main__":
    
     try:
         resource_list = []
-        resource_list.append( {"gram_url" : "fork://localhost/", "number_cores" : "64", "allocation" : "<your allocation>", 
-                               "queue" : "workq", "re_agent": (os.getcwd() + "/../../../bigjob/bigjob_agent_launcher.sh"), 
+        resource_list.append( {"resource_url" : "fork://localhost/", "number_nodes" : "64", "allocation" : "<your allocation>", 
+                               "queue" : "workq", "bigjob_agent": (BIGJOB_HOME+"/bigjob_agent_launcher.sh"), 
                                "affinity" : "affinity1"})
 
         print "Create manyjob service "
@@ -75,7 +81,7 @@ if __name__ == "__main__":
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
             jd.arguments = [""]
-            jd.working_directory = "/Users/luckow"
+            jd.working_directory = "/home/luckow"
             jd.output =  os.getcwd() + "/stdout-" + str(i) + ".txt"
             jd.error = os.getcwd() + "/stderr-" + str(i) + ".txt"
             jd.environment = ["affinity=affinity1"]
