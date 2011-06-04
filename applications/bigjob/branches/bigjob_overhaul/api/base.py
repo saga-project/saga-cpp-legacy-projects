@@ -25,7 +25,7 @@ Capabilities = {
         'number_of_nodes' : 0,
         'time_to_live' : 0,
         'local_diskspace_available' : 0,
-        'shared_filesystem' = False
+        'shared_filesystem' : False
         }
 
 # Dict to pass UoW requirements around.
