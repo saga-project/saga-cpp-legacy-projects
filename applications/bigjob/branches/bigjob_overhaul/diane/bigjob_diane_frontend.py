@@ -78,7 +78,8 @@ def get_uuid():
     return wd_uuid
 
 
-class bigjob(api.base.bigjob):
+#class bigjob(api.base.bigjob): # backend?
+class BigjobDiane(object):
        
     def __init__(self, database_host=None):  
         self.pilot_url = "diane://"
@@ -161,7 +162,8 @@ class bigjob(api.base.bigjob):
         pass
                     
                     
-class subjob(api.base.subjob):
+#class subjob(api.base.subjob):
+class subjob(object):
     
     def __init__(self, database_host=None):
         print 'constructor of subjob'

@@ -9,14 +9,15 @@ import sys
 
 # BigJob implementation can be swapped here by importing another implementation,
 # e.g. condor, cloud, azure, diane
-BIGJOB_HOME= "/home/marksant/proj/bigjob"
+BIGJOB_HOME= "/home/marksant/proj/bigjob/branches/bigjob_overhaul"
 sys.path.append(BIGJOB_HOME)
-import api.base
 
-import diane.bigjob_diane_frontend as bigjob
+#import api.base
+
+import bigjob
 
 # configurationg
-#advert_host = "localhost"
+RESOURCE_URL = "gram://louie1.loni.org/jobmanager-pbs"
 
 
 """ Test Job Submission via Advert """
@@ -24,55 +25,52 @@ if __name__ == "__main__":
     ###########################################################################
     print "Bigjob/Diane"
 
+    print ('SAGA API Version: 0x%x' % (saga.job.get_job_package_api_version()))
+    print ('SAGA Package version: 0x%x' % (saga.job.get_job_package_version()))
+
     # Start BigJob
     # Parameter for BigJob
-    #resource_url = "gram://eric1.loni.org/jobmanager-pbs"
-    resource_url = "gram://oliver1.loni.org/jobmanager-pbs"
-    bigjob_agent = None
-    number_nodes = 1 # number nodes for agent
-    queue = None
-    project = None
-    workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
-    userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
-    walltime = None
-    processes_per_node = 1
+
+    jd = saga.job.description()
+
+    jd.set_attribute('NumberOfProcesses', '1') # total number of agents
+    jd.set_attribute('Queue', 'workq')
+    #jd.set_attribute('JobProject', 'randomstring')
+    jd.set_attribute('WorkingDirectory', 'gsiftp://louie1.loni.org/work/marksant/diane')
+    jd.set_attribute('WallTimeLimit', '12')
+    jd.set_attribute('ProcessesPerHost', '1')
+
+    #exit(0)
 
     # start pilot job (bigjob_agent)
-    print "Start BigJob/Diane Pilot Job at: " + resource_url
-    bj = bigjob.bigjob()
-    bj.start_pilot_job(resource_url,
-                            bigjob_agent,
-                            number_nodes,
-                            queue,
-                            project,
-                            workingdirectory, 
-                            userproxy,
-                            walltime,
-                            processes_per_node)
+    print "Start BigJob/Diane Pilot Job"
+    bj = bigjob.Bigjob()
+    bj.add_resource(RESOURCE_URL, jd)
 
-    print "Pilot Job/BigJob URL: " + bj.pilot_url + \
-            " State: " + str(bj.get_state())
+    print "Pilot Job/BigJob URL: ", bj.get_resources()
+
+
+    #exit(0)
 
     #######################################################################
     # Submit SubJob through BigJob
-    jd = saga.job.description()
-    jd.executable = "/bin/date"
-    jd.number_of_processes = "1"
-    jd.spmd_variation = "single"
-    jd.arguments = ["-u", "-R"]
-    jd.working_directory = os.getcwd() 
-    jd.output = "stdout.txt"
-    jd.error = "stderr.txt"
-    sj = bigjob.subjob()
-    sj.submit_job(bj.pilot_url, jd)
+    uowd = saga.job.description()
+    uowd.set_attribute('Executable', '/bin/date')
+    uowd.set_attribute('NumberOfProcesses', '1')
+    uowd.set_attribute('SPMDVariation', 'single')
+    uowd.set_vector_attribute('Arguments', \
+            ['-u', '-R', ';', '/bin/sleep', '60'])
+    uowd.set_attribute('WorkingDirectory', os.getcwd())
+    uowd.set_attribute('Output', 'stdout.txt')
+    uowd.set_attribute('Error', 'stderr.txt')
+
+    uow = bj.assign_uow(uowd)
     
     # busy wait for completion
     while 1:
-        sj_state = str(sj.get_state())
-        bj_state = str(bj.get_state())
-        print "Subjob state: " + sj_state
-        print "Bigjob state: " + bj_state
-        if(sj_state=="Failed" or sj_state=="Done"):
+        uow_state = str(uow.get_state())
+        print 'UoW state:', uow_state
+        if(uow_state == 'Failed' or uow_state == 'Done'):
             break
         time.sleep(10)
 

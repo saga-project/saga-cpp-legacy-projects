@@ -7,39 +7,39 @@ All Bigjob implementation must be derived from this API.
 
 
 # Dict to pass Resource descriptions values around. 
-Resource = {
-        'name' : None,
-        'type' : None,
-        'url' : None,
-        'queue' : None,
-        'project' : None,
-        'working_directory' : None,
-        'walltime': 0,
-        'userproxy' : None,
-        'agent_executable' : None
-        }
+#Resource = {
+#        'name' : None,
+#        'type' : None,
+#        'url' : None,
+#        'queue' : None,
+#        'project' : None,
+#        'working_directory' : None,
+#        'walltime': 0,
+#        'userproxy' : None,
+#        'agent_executable' : None
+#        }
 
 # Dict to pass Resource capabilities around.
-Capabilities = {
-        'number_of_cores' : 0,
-        'number_of_nodes' : 0,
-        'time_to_live' : 0,
-        'local_diskspace_available' : 0,
-        'shared_filesystem' : False
-        }
+#Capabilities = {
+#        'number_of_cores' : 0,
+#        'number_of_nodes' : 0,
+#        'time_to_live' : 0,
+#        'local_diskspace_available' : 0,
+#        'shared_filesystem' : False
+#        }
 
 # Dict to pass UoW requirements around.
-Requirements = {
-        'number_of_cores' : 0,
-        'minimum_runtime' : 0,
-        }
+#Requirements = {
+#        'number_of_cores' : 0,
+#        'minimum_runtime' : 0,
+#        }
 
 # Dict to describe action to be passed to UoW
-Action = {
-        'application_kernel' : None,
-        'input' : None,
-        'output' : None
-        }
+#Action = {
+#        'application_kernel' : None,
+#        'input' : None,
+#        'output' : None
+#        }
 
 #
 # Bigjob class
@@ -47,21 +47,22 @@ Action = {
 class Bigjob(object):
     """ This class represents the Bigjob. """
 
-    def __init__(self, resource):
+    def __init__(self, resource_url, job_desc):
         """ Create a Bigjob object.
 
             Keyword arguments:
-            resources -- a (list of) resource description(s)
-
+            resource_url -- URL pointing to resource
+            job_desc -- SAGA job description
         """
         # self.__uuid = getuuid()
         pass
 
-    def add_resource(self, resource):
+    def add_resource(self, resource_url, job_desc):
         """ Add a (list of) resource(s) to the Bigjob
 
             Keyword arguments:
-            resource -- a (list of) resource description(s)
+            resource_url -- URL pointing to resource
+            job_desc -- SAGA job description
         """
         pass
 
