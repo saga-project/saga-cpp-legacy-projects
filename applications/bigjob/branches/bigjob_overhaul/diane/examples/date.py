@@ -31,7 +31,7 @@ if __name__ == "__main__":
     # Start BigJob
     # Parameter for BigJob
 
-    jd = saga.job.description()
+    jd = bigjob.bj_description()
 
     jd.set_attribute('NumberOfProcesses', '1') # total number of agents
     jd.set_attribute('Queue', 'workq')
@@ -54,7 +54,7 @@ if __name__ == "__main__":
 
     #######################################################################
     # Submit SubJob through BigJob
-    uowd = saga.job.description()
+    uowd = bigjob.uow_description()
     uowd.set_attribute('Executable', '/bin/date')
     uowd.set_attribute('NumberOfProcesses', '1')
     uowd.set_attribute('SPMDVariation', 'single')

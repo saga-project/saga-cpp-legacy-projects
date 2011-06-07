@@ -4,8 +4,7 @@ This Module contains the frontend of the Bigjob framework.
 
 """
 
-import api.base
-
+#import api.base
 import saga
 
 #
@@ -13,6 +12,11 @@ import saga
 #
 from diane.bigjob_diane_frontend import BigjobDiane
 
+class uow_description(saga.job.description):
+    pass
+
+class bj_description(saga.job.description):
+    pass
 
 # Dict to pass Resource descriptions values around. 
 #Resource = {
@@ -52,16 +56,16 @@ from diane.bigjob_diane_frontend import BigjobDiane
 #
 # Bigjob class
 #
-#class Bigjob(api.base.Bigjob):
+#class Bigjob(api.base.Bigjob): # make it dependend on api again
 class Bigjob(object):
 
     """ This class represents the Bigjob. """
 
-    def __init__(self, resource_url=None, job_desc=None):
+    def __init__(self, rm=None, job_desc=None):
         """ Create a Bigjob object.
 
             Keyword arguments:
-            resource_url -- URL pointing to resource
+            rm -- URL pointing to resource management backend
             job_desc -- SAGA job description
             TODO: type, name/label
 
@@ -74,21 +78,44 @@ class Bigjob(object):
         # self.__uuid = getuuid()
         pass
 
-    def add_resource(self, resource_url, job_desc):
+    def add_resource(self, rm, job_desc):
         """ Add a (list of) resource(s) to the Bigjob
 
             Keyword arguments:
-            resource_url -- URL pointing to resource
+            resource_url -- URL pointing to resource management backend
             job_desc -- SAGA job description
         """
-        self.js = saga.job.service(resource_url)
+
+        # Put here the incredible complex logic of selecting a backend,
+        # for now just use the DIANE backend
+        self.bj = BigjobDiane()
+        resource_url = rm
+        number_nodes = 1 # number nodes for agent
+        queue = None
+        project = None
+        #workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
+        workingdirectory = job_desc.get_attribute('WorkingDirectory')
+        userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
+        walltime = None
+        processes_per_node = 1
+        bigjob_agent = workingdirectory
+
+        self.bj.start_pilot_job(resource_url,
+            bigjob_agent,
+            number_nodes,
+            queue,
+            project,
+            workingdirectory, 
+            userproxy,
+            walltime,
+            processes_per_node)
 
 
     def get_resources(self):
         """ Return the resource(s) that is/are under this BigJob.  """
         pass
 
-    def remove_resource(self, resource):
+    def remove_resource(self, rm):
         """ Remove the resource(s) from the Bigjob
 
             Keyword arguments:
@@ -97,7 +124,7 @@ class Bigjob(object):
         """
         pass
          
-    def get_capabilities(self, resource=None):
+    def get_capabilities(self, rm=None):
         """ Return the capabilities that this Bigjob provides.
        
             Keyword arguments:
@@ -110,7 +137,7 @@ class Bigjob(object):
         """ Return the list of UoWs that are assigned to this Bigjob. """
         pass
 
-    def resize_resource(self, resource):        
+    def resize_resource(self, rm):        
         """ (re-)Calibrate the resouce in the Bigjob to the given 'size'.
         
             Keyword arguments:
@@ -125,13 +152,13 @@ class Bigjob(object):
             uow -- The Unit of Work from the application
 
         """
-        return UoW(self)
+        return UoW(self.bj, uow)
 
-    def cancel(self, resource=None):        
+    def cancel(self, rm=None):        
         """ Cancel the a resource in the BigJob.
 
             Keyword arguments:
-            resource -- The optional resource(s) to act upon.
+            rm -- The optional resource(s) to act upon.
         """
         pass
 
@@ -142,7 +169,7 @@ class Bigjob(object):
 class UoW(object):
     """ This class represents the Unit of Work concept in the Bigjob framework. """
 
-    def __init__(self, action, requirements=None):
+    def __init__(self, bj, uowd, requirements=None):
         """ Create a new Unit of Work.
 
             Keyword arguments:
@@ -151,13 +178,16 @@ class UoW(object):
 
         """
 
+        self.bj = bj
+        self.uuid = bj.submit_job(uowd)
+
         # self.__uuid = getuuid()
         # self.state = New
         # self.action = action.application_kernel
         # self.input = action.input
         # self.output = action.output
         # self.requirements = requirements
-        pass
+
 
     def get_requirements(self):        
         """ Return the requirements that this UoW has. """
@@ -165,7 +195,7 @@ class UoW(object):
 
     def get_state(self):        
         """ Return the state of the UoW. """
-        pass
+        return self.bj.get_job_state(self.uuid)
 
     def get_input(self):        
         """ Return the input(s) of this UoW. """

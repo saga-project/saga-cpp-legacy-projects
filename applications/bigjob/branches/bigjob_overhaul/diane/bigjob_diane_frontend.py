@@ -89,7 +89,7 @@ class BigjobDiane(object):
 
         # TODO: create DIANE master object
         print "Launching Diane Master"
-        os.system("~/proj/bigjob/diane/run_master.sh")
+        os.system("~/proj/bigjob/branches/bigjob_overhaul/diane/run_master.sh")
 
     def __del__(self):
         # TODO: kill the right master, not the most recent
@@ -115,7 +115,7 @@ class BigjobDiane(object):
         #    print "Agent Executable is specified, but ignoring it!"
 
         print 'submitting worker, resource url: %s workdir: %s number of nodes: %s' % (resource_url, working_directory, number_nodes)
-        os.system("~/proj/bigjob/diane/submit_worker.sh %s %s %s %s" % \
+        os.system("~/proj/bigjob/branches/bigjob_overhaul/diane/submit_worker.sh %s %s %s %s" % \
                 (resource_url, diane_agent_staging, number_nodes, workers_per_node))
 
         self.rundir = get_rundir()
@@ -132,7 +132,7 @@ class BigjobDiane(object):
         self.conn = Client(address, authkey='D I A N E !')
         
 
-    def get_state(self):        
+    def get_bj_state(self):        
         # TODO
 
         print 'get_state:', self.state
@@ -161,24 +161,12 @@ class BigjobDiane(object):
         # TODO: kill master? agents?
         pass
                     
-                    
-#class subjob(api.base.subjob):
-class subjob(object):
-    
-    def __init__(self, database_host=None):
-        print 'constructor of subjob'
-        self.state = 'Unknown'
-        self.uuid = get_uuid()
-        print 'uuid of subjob:', self.uuid
-
-        # TODO: this incorrectly assumes that we use the most recent rundir
-        self.rundir = get_rundir()
-        print 'Rundir:', self.rundir
-    
-    def submit_job(self, pilot_url, jd):
+    def submit_job(self, jd):
         print "Starting Submit_job ..."
 
-        scriptname = '/tmp/' + self.uuid + ".sh"
+        uuid = get_uuid()
+
+        scriptname = '/tmp/' + uuid + ".sh"
         f = open(scriptname, 'w')
         f.write('#!/bin/sh\n')
         f.write(jd.executable)
@@ -190,25 +178,27 @@ class subjob(object):
 
         shutil.move(scriptname,os.path.join(self.rundir,'submitted'))
 
-    def get_state(self):        
+        return uuid
 
-        scriptname = self.uuid + '.sh'
+    def get_job_state(self, uuid):        
+
+        scriptname = uuid + '.sh'
 
         if os.path.isfile(self.rundir + '/submitted/' + scriptname ):
-            pass
+            state = 'Unknown'
         if os.path.isfile(self.rundir + '/scheduled/' + scriptname ):
-            self.state = 'New'
+            state = 'New'
         if os.path.isfile(self.rundir + '/running/' + scriptname):
-            self.state = 'Running'
+            state = 'Running'
         if os.path.isfile(self.rundir + '/done/' + scriptname):
-            self.state = 'Done'
+            state = 'Done'
         if os.path.isfile(self.rundir + '/cancelled/' + scriptname):
-            self.state = 'Canceled'
+            state = 'Canceled'
         if os.path.isfile(self.rundir + '/failed/' + scriptname):
-            self.state = 'Failed'
+            state = 'Failed'
             
-        print 'DEBUG: subjob state:', self.state
-        return self.state
+        print 'DEBUG: job state:', state
+        return state
     
     def cancel(self):
         # TODO: move and remove in directory structure
