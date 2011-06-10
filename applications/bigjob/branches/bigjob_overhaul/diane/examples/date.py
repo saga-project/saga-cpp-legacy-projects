@@ -12,21 +12,23 @@ import sys
 BIGJOB_HOME= "/home/marksant/proj/bigjob/branches/bigjob_overhaul"
 sys.path.append(BIGJOB_HOME)
 
-#import api.base
-
 import bigjob
 
 # configurationg
 RESOURCE_URL = "gram://louie1.loni.org/jobmanager-pbs"
+DEPLOYMENT_LOCATION = 'gsiftp://louie1.loni.org/work/marksant/diane'
+#RESOURCE_URL = "gram://painter1.loni.org/jobmanager-pbs"
+#DEPLOYMENT_LOCATION = 'gsiftp://painter1.loni.org/work/marksant/diane'
+#RESOURCE_URL = "gram://eric1.loni.org/jobmanager-pbs"
+#DEPLOYMENT_LOCATION = 'gsiftp://eric1.loni.org/work/marksant/diane'
 
 
 """ Test Job Submission via Advert """
 if __name__ == "__main__":
     ###########################################################################
-    print "Bigjob/Diane"
 
-    print ('SAGA API Version: 0x%x' % (saga.job.get_job_package_api_version()))
-    print ('SAGA Package version: 0x%x' % (saga.job.get_job_package_version()))
+    print ('SAGA API Version: 0x%x' % (saga.get_api_version()))
+    print ('SAGA Package version: 0x%x' % (saga.get_version()))
 
     # Start BigJob
     # Parameter for BigJob
@@ -36,24 +38,21 @@ if __name__ == "__main__":
     jd.set_attribute('NumberOfProcesses', '1') # total number of agents
     jd.set_attribute('Queue', 'workq')
     #jd.set_attribute('JobProject', 'randomstring')
-    jd.set_attribute('WorkingDirectory', 'gsiftp://louie1.loni.org/work/marksant/diane')
+    jd.set_attribute('WorkingDirectory', DEPLOYMENT_LOCATION)
     jd.set_attribute('WallTimeLimit', '12')
     jd.set_attribute('ProcessesPerHost', '1')
-
-    #exit(0)
 
     # start pilot job (bigjob_agent)
     print "Start BigJob/Diane Pilot Job"
     bj = bigjob.Bigjob()
-    bj.add_resource(RESOURCE_URL, jd)
+    bj.add_resource(bigjob.bigjob_type.DIANE, RESOURCE_URL, jd)
+    #bj.add_resource(bigjob.bigjob_type.Advert, RESOURCE_URL, jd)
 
-    print "Pilot Job/BigJob URL: ", bj.get_resources()
+    print "Pilot Job/BigJob URL: ", bj.list_resources()
 
-
-    #exit(0)
 
     #######################################################################
-    # Submit SubJob through BigJob
+    # Submit UoW through BigJob
     uowd = bigjob.uow_description()
     uowd.set_attribute('Executable', '/bin/date')
     uowd.set_attribute('NumberOfProcesses', '1')
@@ -68,9 +67,10 @@ if __name__ == "__main__":
     
     # busy wait for completion
     while 1:
-        uow_state = str(uow.get_state())
+        uow_state = uow.get_state()
         print 'UoW state:', uow_state
-        if(uow_state == 'Failed' or uow_state == 'Done'):
+        if(uow_state == saga.job.job_state.Failed or \
+                uow_state == saga.job.job_state.Done):
             break
         time.sleep(10)
 
