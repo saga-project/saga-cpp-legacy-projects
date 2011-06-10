@@ -185,17 +185,17 @@ class BigjobDiane(object):
         scriptname = uuid + '.sh'
 
         if os.path.isfile(self.rundir + '/submitted/' + scriptname ):
-            state = 'Unknown'
+            state = saga.job.job_state.Unknown
         if os.path.isfile(self.rundir + '/scheduled/' + scriptname ):
-            state = 'New'
+            state = saga.job.job_state.New
         if os.path.isfile(self.rundir + '/running/' + scriptname):
-            state = 'Running'
+            state = saga.job.job_state.Running
         if os.path.isfile(self.rundir + '/done/' + scriptname):
-            state = 'Done'
+            state = saga.job.job_state.Done
         if os.path.isfile(self.rundir + '/cancelled/' + scriptname):
-            state = 'Canceled'
+            state = saga.job.job_state.Canceled
         if os.path.isfile(self.rundir + '/failed/' + scriptname):
-            state = 'Failed'
+            state = saga.job.job_state.Failed
             
         print 'DEBUG: job state:', state
         return state
