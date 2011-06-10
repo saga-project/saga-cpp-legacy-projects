@@ -4,8 +4,8 @@ This Module contains the frontend of the Bigjob framework.
 
 """
 
-#import api.base
 import saga
+import uuid
 
 #
 # BigJob/Diane implementation
@@ -18,40 +18,19 @@ class uow_description(saga.job.description):
 class bj_description(saga.job.description):
     pass
 
-# Dict to pass Resource descriptions values around. 
-#Resource = {
-#        'name' : None,
-#        'type' : None,
-#        'url' : None,
-#        'queue' : None,
-#        'project' : None,
-#        'working_directory' : None,
-#        'walltime': 0,
-#        'userproxy' : None,
-#        'agent_executable' : None
-#        }
+#
+# Supported list of backends. Static for now.
+#
+class bigjob_type(object):
+    Unknown = 0
+    Advert = 1
+    DIANE = 2
 
-# Dict to pass Resource capabilities around.
-#Capabilities = {
-#        'number_of_cores' : 0,
-#        'number_of_nodes' : 0,
-#        'time_to_live' : 0,
-#        'local_diskspace_available' : 0,
-#        'shared_filesystem' : False
-#        }
-
-# Dict to pass UoW requirements around.
-#Requirements = {
-#        'number_of_cores' : 0,
-#        'minimum_runtime' : 0,
-#        }
-
-# Dict to describe action to be passed to UoW
-#Action = {
-#        'application_kernel' : None,
-#        'input' : None,
-#        'output' : None
-#        }
+#
+# Isoldate uuid calls
+# 
+def getuuid():
+    return uuid.uuid4()
 
 #
 # Bigjob class
@@ -61,13 +40,16 @@ class Bigjob(object):
 
     """ This class represents the Bigjob. """
 
-    def __init__(self, rm=None, job_desc=None):
+    def __init__(self, type=None, rm=None, job_desc=None, context=None):
         """ Create a Bigjob object.
 
             Keyword arguments:
+            type -- Backend type
             rm -- URL pointing to resource management backend
             job_desc -- SAGA job description
-            TODO: type, name/label
+            context -- security context
+
+            TODO: name/label?
 
             Return value:
             If resource_url and job_desc are supplied, return a job service.
@@ -75,57 +57,72 @@ class Bigjob(object):
 
         """
 
-        # self.__uuid = getuuid()
-        pass
+        self.__uuid = getuuid()
+        if type != None and rm != None and job_desc != None:
+            self.add_resource(type, rm, job_desc, context)
 
-    def add_resource(self, rm, job_desc):
+    def add_resource(self, type, rm, job_desc, context=None):
         """ Add a (list of) resource(s) to the Bigjob
 
             Keyword arguments:
+            type -- Backend type
             resource_url -- URL pointing to resource management backend
             job_desc -- SAGA job description
+            context -- a security context
         """
 
-        # Put here the incredible complex logic of selecting a backend,
-        # for now just use the DIANE backend
-        self.bj = BigjobDiane()
-        resource_url = rm
-        number_nodes = 1 # number nodes for agent
-        queue = None
-        project = None
-        #workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
-        workingdirectory = job_desc.get_attribute('WorkingDirectory')
-        userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
-        walltime = None
-        processes_per_node = 1
-        bigjob_agent = workingdirectory
+        if type == bigjob_type.Advert:
+            raise saga.not_implemented("Advert Backend not yet implemented")
+            
+        elif type == bigjob_type.DIANE:
+            self.bj = BigjobDiane()
+            resource_url = rm
+            number_nodes = 1 # number nodes for agent
+            queue = None
+            project = None
+            #workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
+            workingdirectory = job_desc.get_attribute('WorkingDirectory')
+            userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
+            walltime = None
+            processes_per_node = 1
+            bigjob_agent = workingdirectory
 
-        self.bj.start_pilot_job(resource_url,
-            bigjob_agent,
-            number_nodes,
-            queue,
-            project,
-            workingdirectory, 
-            userproxy,
-            walltime,
-            processes_per_node)
+            self.bj.start_pilot_job(resource_url,
+                bigjob_agent,
+                number_nodes,
+                queue,
+                project,
+                workingdirectory, 
+                userproxy,
+                walltime,
+                processes_per_node)
+
+        else:
+            raise saga.exception.no_success("Unknown Backend type")
 
 
-    def get_resources(self):
-        """ Return the resource(s) that is/are under this BigJob.  """
+    def list_resources(self):
+        """ Return the resources that are managed by this BigJob.  
+
+            Keyword arguments:
+            None
+
+            Return value:
+            A list of resources of type job_service
+        """
+
         pass
 
     def remove_resource(self, rm):
-        """ Remove the resource(s) from the Bigjob
+        """ Remove the resource from the Bigjob
 
             Keyword arguments:
-
-            resource -- a (list of) resource description(s)
+            resource -- a resource description
         """
         pass
          
     def get_capabilities(self, rm=None):
-        """ Return the capabilities that this Bigjob provides.
+        """ Return the capabilities that this Bigjob or resource provides.
        
             Keyword arguments:
 
@@ -133,7 +130,7 @@ class Bigjob(object):
         """
         pass
     
-    def get_uows(self):        
+    def list_uows(self, rm):        
         """ Return the list of UoWs that are assigned to this Bigjob. """
         pass
 
@@ -173,7 +170,8 @@ class UoW(object):
         """ Create a new Unit of Work.
 
             Keyword arguments:
-            action -- the description of the action for this UoW
+            bj -- the bigjob this corresponds to
+            uowd -- the description of this UoW
             requirements -- the (optional) application requirements for this UoW
 
         """
@@ -181,13 +179,9 @@ class UoW(object):
         self.bj = bj
         self.uuid = bj.submit_job(uowd)
 
-        # self.__uuid = getuuid()
-        # self.state = New
-        # self.action = action.application_kernel
-        # self.input = action.input
-        # self.output = action.output
-        # self.requirements = requirements
-
+    def get_description(self):        
+        """ Return the description of this UoW. """
+        pass
 
     def get_requirements(self):        
         """ Return the requirements that this UoW has. """
@@ -203,10 +197,6 @@ class UoW(object):
 
     def get_output(self):        
         """ Return the output(s) of this UoW. """
-        pass
-
-    def get_action(self):        
-        """ Return the action of this UoW. """
         pass
 
     def cancel(self):
