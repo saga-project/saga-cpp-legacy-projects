@@ -22,6 +22,34 @@ AX_SAGA_CHECK_LIBPNGWRITER()
 AX_SAGA_CHECK_LIBFT()
 AX_SAGA_CHECK_LIBX11()
 
+# allow to switch master and client on and off
+AC_ARG_ENABLE([master],
+            AS_HELP_STRING([--enable-master=yes],
+            [build mandelbrot master (default: 'yes')]),
+            [enable_master="$withval"],
+            [enable_master="yes"])
+
+AC_ARG_ENABLE([client],
+            AS_HELP_STRING([--enable-client=yes],
+            [build mandelbrot client (default: 'yes')]),
+            [enable_client="$withval"],
+            [enable_client="yes"])
+
+if test "x$enable_master" = "xyes"; then
+  MANDELBROT_ENABLE_MASTER=yes
+else
+  MANDELBROT_ENABLE_MASTER=no
+fi
+
+if test "x$enable_client" = "xyes"; then
+  MANDELBROT_ENABLE_CLIENT=yes
+else
+  MANDELBROT_ENABLE_CLIENT=no
+fi
+
+AC_SUBST([MANDELBROT_ENABLE_MASTER])
+AC_SUBST([MANDELBROT_ENABLE_CLIENT])
+
 # create output files
 AC_CONFIG_FILES([config/make.cfg])
 
@@ -38,6 +66,8 @@ echo " ========================================================          " >> $O
 echo "                                                                   " >> $OUT
 echo " Mandelbrot                                                        " >> $OUT
 echo "   Version               : $SAGA_LIB_VERSION                       " >> $OUT
+echo "   build master          : $MANDELBROT_ENABLE_MASTER               " >> $OUT
+echo "   build client          : $MANDELBROT_ENABLE_CLIENT               " >> $OUT
 echo "                                                                   " >> $OUT
 echo " SAGA Core                                                         " >> $OUT
 echo "   Prefix                : $SAGA_LOCATION                          " >> $OUT

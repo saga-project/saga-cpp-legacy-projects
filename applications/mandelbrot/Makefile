@@ -8,7 +8,16 @@ SAGA_MB_ROOT = ./
 
 include $(SAGA_MB_ROOT)/config/make.cfg.base
 
-SAGA_SUBDIRS     = config external master client
+SAGA_SUBDIRS     = config 
+
+ifeq "$(MB_ENABLE_MASTER)" "yes"
+ SAGA_SUBDIRS   += external master
+endif
+
+ifeq "$(MB_ENABLE_CLIENT)" "yes"
+ SAGA_SUBDIRS   += client
+endif
+
 
 include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
