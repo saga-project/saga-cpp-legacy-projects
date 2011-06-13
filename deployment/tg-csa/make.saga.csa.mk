@@ -495,7 +495,7 @@ $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP)                      saga-client-mandelbrot ; true
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC) saga-client-mandelbrot
-	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure && make clean && make && make install
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure --disable-master && make clean && make && make install
 
 
 ########################################################################
