@@ -18,7 +18,7 @@
 %\widowpenalty = 10000
 
 
-\title{Computational Characteristics of Data-Intensive Computing with NGS Short-read Aligners : Distributed Computing Perspective}
+\title{A Practical Comparison of NGS Short Read Aligners : Data-Intensive Distributed Computing Perspective}
 
 \numberofauthors{6}
 \author{
@@ -60,8 +60,10 @@
 
 
 \begin{abstract}
-We present the survey of Short-read Aligners of Next-Generation DNA Sequencing Data.  Our interest is, in particular, to understand their computational requirements and characteristic aspects with respect to their capacity as distributed applications.  
-  
+We present the comparison of short read aligners for Next-Generation Sequencing (NGS) data.  The main goal of the comparison is to understand the possible utilization of each aligner with Data-Intensive Distributed Computing (DIDC).  To this end, first, we characterized computational requirements and implementation strategies, and then  outputs obtained with two classes of genomes, a microbe, Bukerholderia Glumae and human (hg18), which together allowed us to find favorable usage modes of aligners with scalable distributed resources.  
+
+With several widely used, publicly accessible aligners selected for this comparison, this work provides useful information on i) how the strategy with DIDC could advance NGS analytics in particular by keeping the total time-to-completion of alignment desirably low without compromising ideal sensitivity of an individual aligner and ii) how a desirable workflow for NGS analytics and downstream analyses with emerging scalable distributed computing environments such as HPC grids and Clouds would be constructed by considering computational characteristics and     
+algorithmic implementation decided by developers.  
   
 \end{abstract}
 
@@ -105,33 +107,82 @@ We present the survey of Short-read Aligners of Next-Generation DNA Sequencing D
 %  \label{tg2007}
 %\end{figure}
 
+The alignment of massively generated short reads from High-throughput Sequencing techniques such as Next-Generation Sequencing platforms is the first step, along with de novo assembly, of biological discovery aiming genome structure variation, transcriptome analysis, and genome-wide DNA-protein interaction profiling.  
+
+In recent years, new programs were introduced in the NGS community many of which improved sensitivity by employing better algorithms for locating candidate match locations, and the final local alignment allowing gapped match.  Still, computing power is one of primary concerns of developers due to large memory requirement as well as disk space for large eukaryote genomes, resulting in a conventional consensus that the balance between sensitivity and computational requirement.  However, as we recently addressed, distributed computing could remove the major obstacle associated with computational requirement by providing a runtime environment for a aligner, and therefore encourages the next generation of alignment programs only focusing on the sensitivity.    
+
+Another aspect, which does not draw serious attention from the community, is the use of multiple programs.  Carrying out multiple aligners and utilize all produced information for downstream analyses is the strategy that most of researchers with NGS technologies concede as an ideal one, but in a practical setting, it is a non-trivial task.      
+
+Motivated by such observations, we explore essential information for our new approach for NGS mapping, providing the Data-Intensive Distributed Computing that executes multiple mappers regardless of their computing requirement with scalable computing environment such as HPC grids, Clouds, and HTC grids.
+
 
 \begin{table}
- \tiny
-\begin{tabular}{|c|c|c|c|c|c|c|} 
-  \hline  Name & BFAST  & BWA & Novoalign & SHRiMP2  & SOAP2 & Stampy \\ 
-\hline \hline
-
-Ref. Genome  & & & & & & \\
-Indexing & & & & & & \\ \hline
-Alignment & & & & & & \\
- & & & & & \\ \hline
-Color Space  & Yes & Yes & Yes & Yes & No & No\\ \hline
-\textbf{Fine-grain} &  &  &  &  & & \\ 
- \textbf{Parallelism} & & & & & & \\
-Multi-threading & Yes & Yes & Yes & Yes & &\\ 
-MPI & & & Yes & & &\\
-OpenMP &  & &  & Yes & &\\  \hline
-\textbf{Coarse-grain}  & & & & & &\\ 
-\textbf{Paralleism} & & & & & &\\
-& & & & & &\\ \hline
+ \small
+\begin{tabular}{|c|c|c|c|c|} 
+  \hline  
+& BFAST  & BWA & Novo- & SHRiMP2  \\  
+&  &  & align & \\ \hline \hline
+\textbf{INDEXING}  & & & &  \\
+ Algorithm & HT & BWT & HT & HT \\
+ Target & Ref & Ref & Ref & Ref \\ \hline
+\textbf{SEARCH} & & & & \\
+Space Seed & Yes &   &  Yes & \\ \hline
+\textbf{ALIGNMENTt} &  & & & \\
+Gapped & Yes & Yes & Yes & Yes \\ 
+Algorithm & SW & SW & NW & \\ 
+Paired-End &  &  &  & \\ \hline
+\textbf{MISC}  &  &  &  & \\
+Color Space Support  & Yes & Yes & Yes & Yes  \\
+Sam Output & Yes & Yes & Yes &   \\ \hline
+\textbf{FINE-GRAIN} &  &  &  & \\ 
+ \textbf{PARALLELISM} & & & & \\
+Multi-Threading & Yes & Yes & Yes & Yes\\ 
+MPI & & & Yes &\\
+OpenMP &  & &  & Yes \\  \hline
+\textbf{COARSE-GRAIN}  & & & &\\ 
+\textbf{PARALLELISM} & & & & \\\
+& & & &  \\ \hline
 \end{tabular} 
-\caption{Overall comparison of the mapping tools surveyed in this work.}
- \label{global-comp} 
+
+\begin{tabular}{|c|c|c|c|c|} 
+  \hline  
+& SOAP2  & Stampy & Bowtie & MAQ  \\  \hline \hline
+\textbf{INDEXING}  & & & &  \\
+ Algorithm & BWT &  & BWT & HT \\
+ Target &  &  & & Reads \\ \hline
+\textbf{SEARCH} & & & & \\
+Space Seed &  &   &   & \\ \hline
+\textbf{ALIGNMENT} &  & & & \\
+Gapped &  & & No &  \\ 
+Algorithm & &  &  & \\ 
+Paired-End &  &  &  & \\ \hline
+\textbf{Misc}  &  &  &  & \\ 
+Color Space Support  & No &  &  &   \\
+Sam Output & &  &   & \\  \hline
+\textbf{FINE-GRAIN} &  &  &  & \\ 
+ \textbf{PARALLELISM} & & & & \\
+Multi-Threading &  &  &  & \\ 
+MPI & & & Yes &\\
+OpenMP &  & &  & Yes \\  \hline
+\textbf{COARSE-GRAIN}  & & & &\\ 
+\textbf{PARALLELISM} & & & & \\\
+& & & &  \\ \hline
+\end{tabular} 
+
+
+
+\caption{Overall comparison of the mapping tools or aligners surveyed in this work. HT : Hash Table, BWT : Burrow Wheeler Transform, SW : Smith-Waterman, NW : .  MPI : Message Passing Interface}
+ \label{tbl:comp-aligner} 
 \end{table}
 
 
 \section{Algorithmic Characteristics}
+
+
+
+
+
+
 \textit{Reference genome indexing}
 
 
@@ -161,57 +212,24 @@ OpenMP &  & &  & Yes & &\\  \hline
 \begin{table}
 
 \begin{tabular}{|c|c|c|c|}  \hline
-  & Memory & Disk-space &  \\  \hline 
-Indexing  & 16 GB & 130 GB &  \\
-  & & &  \\ 
- & & &  \\
- & & &  \\ \hline
+  & Memory & Disk-space & Supporting     \\ 
+  &  &    & Parallelism \\ \hline 
+\textbf{BFAST} &  &  & \\
+index  & 16 GB & 130 GB & \\ 
+match & &  &  \\ 
+localalignalign & & &  \\
+postprocess & &  &  \\ \hline
+\textbf{BWA} & & & \\
+index &  & & \\
+aln &  &  & \\
+sampe &  &  & \\  \hline
+
 
 \end{tabular} 
-\caption{Computational requirement for BFAST with hg18 as a reference genome.  hg18 is composed of 2.7 GB}
+\caption{Comparison of computational requirement for memory and disk space with a standard condition and supported parallelism.  Here, a standard condition represents computation without parallelism, i.e. using a single processor with a single file for a reference genome (fasta) and a short read data file (fastq).   In general, tools surveyed in this work are composed of multiple steps. The requirement is analyzed for each step. The NGS data used are the human exome data sets obtained from the SOLiD platform and a microbial genome data from Illumina GA II.}
  \label{comp-req-bfast} 
 \end{table}
 
-\begin{table}
-\begin{tabular}{|c|c|c|c|}  \hline
-  & Memory & Disk-space &  \\  \hline 
-Indexing  & &  &  \\
-  & & &  \\ 
- & & &  \\
- & & &  \\ \hline
-
-\end{tabular} 
-\caption{Computational requirement for BWA with hg18 as a reference genome.  hg18 is composed of 2.7 GB}
- \label{comp-req-bwa} 
-\end{table}
-
-\begin{table}
-
-\begin{tabular}{|c|c|c|c|}  \hline
-  & Memory & Disk-space &  \\  \hline 
-Indexing  & 48 GB (+ 0.75 GB + 0.05 GB) & &  \\
-  & & &  \\ 
- & & &  \\
- & & &  \\ \hline
-
-\end{tabular} 
-\caption{Computational requirement for SHRiMP with hg18 as a reference genome.  hg18 is composed of 2.7 GB}
- \label{comp-req-shrimp} 
-\end{table}
-
-\begin{table}
-
-\begin{tabular}{|c|c|c|c|}  \hline
-  & Memory & Disk-space &  \\  \hline 
-Indexing  &   & 8 GB &  \\
-  & & &  \\ 
- & & &  \\
- & & &  \\ \hline
-
-\end{tabular} 
-\caption{Computational requirement for NovoalignCS with hg18 as a reference genome.  hg18 is composed of 2.7 GB}
- \label{comp-req-novoCS} 
-\end{table}
 
 
 
