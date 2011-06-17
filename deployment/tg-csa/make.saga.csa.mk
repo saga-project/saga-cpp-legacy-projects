@@ -188,7 +188,7 @@ BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boos
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
 SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 
 .PHONY: boost
@@ -283,7 +283,7 @@ SAGA_CHECK      = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
 
 ifeq "$(CSA_HOST)" "abe"
   # boost assumes that all linux hosts know this define.  Well, abe does not.
@@ -316,7 +316,7 @@ SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4
 SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0/
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
 
-SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
 
 .PHONY: saga-bindings-python
 saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
