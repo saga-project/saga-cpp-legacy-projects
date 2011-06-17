@@ -206,8 +206,9 @@ if ( $do_deploy )
                              "env CSA_HOST=$name                         " .
                              "    CSA_LOCATION=$path                     " .
                              "    CSA_SAGA_VERSION=trunk                 " .
-                             "    make -f make.saga.csa.mk            && " . 
+                             "    make -f make.saga.csa.mk            ;  " . 
                              " cp $path/README*trunk* $path/tg-csa    && " . 
+                             " svn add  README*trunk*$name*           && " .
                              " svn ci -m \"automated update\"          ' ");
       print "\n";
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
@@ -219,6 +220,7 @@ if ( $do_deploy )
                              "    CSA_SAGA_VERSION=1.5.3                 " .
                              "    make -f make.saga.csa.mk            && " . 
                              " cp $path/README*1.5.3* $path/tg-csa    && " . 
+                             " svn add  README*1.5.3*$name*           && " .
                              " svn ci -m \"automated update\"          ' ");
     }
   }
