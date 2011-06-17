@@ -530,7 +530,7 @@ CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(SAGA_VERSION).$(CC_NAME).$(HOST
 readme:: saga-core $(CSA_README_CHECK)
 	@echo "README                    ok"
 
-$(CSA_README_CHECK):
+$(CSA_README_CHECK): $(CSA_README_SRC)
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(SAGA_VERSION)|ig;'              $(CSA_README_CHECK)
