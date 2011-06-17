@@ -6,12 +6,28 @@ BEGIN {
 
 
 my $CSA_HOSTS = "./csa_hosts";
+my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
 my %csa_hosts = ();
 my @names     = ();
 my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
-my $use_all = 0;
+my $use_all   = 0;
+
+if ( ! scalar (@ARGV) )
+{
+  print <<EOT;
+
+    $0 [-l|--list] [-c|--check] [-d|--deploy] [-a|--all|host1 host2 ...]
+
+    -l : list available target hosts
+    -c : check access mechanism for given target host(s)
+    -d : deploy SAGA on given target host(s)
+    -a : deploy SAGA on all known target hosts.  Use listed hosts if not
+         specified
+
+EOT
+}
 
 foreach my $arg ( @ARGV )
 {
@@ -57,19 +73,21 @@ foreach my $arg ( @ARGV )
     {
       # skip comment lines and empty lines
     }
-    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s+(\S+)\s*$/io )
+    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s+(\S+)\s+((?:ssh|gsissh)\s*?.*?)\s*$/io )
     {
-      my $name = $1;
-      my $host = $2;
-      my $path = $3;
+      my $name   = $1;
+      my $host   = $2;
+      my $path   = $3;
+      my $access = $4;
 
       if ( exists ( $csa_hosts{$name} ) )
       {
         warn "WARNING: duplicated csa host '$name'\n"
       }
 
-      $csa_hosts {$1}{'host'} = $host;
-      $csa_hosts {$1}{'path'} = $path;
+      $csa_hosts {$1}{'host'}   = $host;
+      $csa_hosts {$1}{'path'}   = $path;
+      $csa_hosts {$1}{'access'} = $access;
     }
     else
     {
@@ -95,9 +113,10 @@ if ( ! scalar (@names) )
 # list mode simply lists the known hosts
 if ( $do_list )
 {
-  print "----------------------------------------------------------\n";
-  print "name     \t- host                       \t- path\n";
-  print "----------------------------------------------------------\n";
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
   foreach my $name ( sort keys (%csa_hosts) )
   {
@@ -110,35 +129,40 @@ if ( $do_list )
       my $host = $csa_hosts{$name}{'host'};
       my $path = $csa_hosts{$name}{'path'};
     
-      print "$name     \t- $host \t- $path\n";
+      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
     }
   }
-  print "----------------------------------------------------------\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  print "\n";
 }
 
 
-# for each csa host, deploy SAGA
-if ( $do_check )
+# for each csa host, check the tg-csa installation itself (also check on deploy!)
+if ( $do_check || $do_deploy )
 {
   # just check if we are able to deploy
- 
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+
   foreach my $name ( @names )
   {
     if ( ! exists $csa_hosts{$name} )
     {
-      print "----------------------------------------------------------\n";
-      print "check $name: Do not know how to handle entry\n";
-      print "----------------------------------------------------------\n";
+      print "WARNING: Do not know how to handle host $name\n";
     }
     else
     {
-      my $host = $csa_hosts{$name}{'host'};
-      my $path = $csa_hosts{$name}{'path'};
+      my $host   = $csa_hosts{$name}{'host'};
+      my $path   = $csa_hosts{$name}{'path'};
+      my $access = $csa_hosts{$name}{'access'};
 
-      print "----------------------------------------------------------\n";
-      print "check $name\t- $host \t- $path\n";
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      if ( 0 == system ("gsissh $host 'cd $path/tg-csa/ && svn up'" ) )
+      if ( 0 == system ("$access $host 'test -d $path && ".
+                        " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'" ) )
       {
         print "ok\n" 
       }
@@ -146,52 +170,59 @@ if ( $do_check )
       {
         print "error\n";
       }
-      print "----------------------------------------------------------\n";
     }
   }
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  print "\n";
 
 }
-elsif ( $do_deploy )
+
+if ( $do_deploy )
 {
   # ! check, so do the real deployment
 
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+
   foreach my $name ( @names )
   {
-    print "----------------------------------------------------------\n";
-    print "$name\n";
-    print "----------------------------------------------------------\n";
-
     if ( ! exists $csa_hosts{$name} )
     {
       warn "WARNING: Do not know how to handle host '$name'\n";
-      print "----------------------------------------------------------\n";
     }
     else
     {
-      my $host = $csa_hosts{$name}{'host'};
-      my $path = $csa_hosts{$name}{'path'};
+      my $host   = $csa_hosts{$name}{'host'};
+      my $path   = $csa_hosts{$name}{'path'};
+      my $access = $csa_hosts{$name}{'access'};
 
-      print "$name\t- $host \t- $path\n";
-
-      print "----------------------------------------------------------\n";
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
       print " build trunk\n";
-      print "----------------------------------------------------------\n";
-      system ("gsissh $host 'cd $path/tg-csa/        && " .
-                            "svn up                  && " .
-                            "env CSA_HOST=$name         " .
-                            "    CSA_LOCATION=$path     " .
-                            "    CSA_SAGA_VERSION=trunk " .
-                            "    make -f make.saga.csa.mk'"); 
-      print "----------------------------------------------------------\n";
+      system ("$access $host 'cd $path/tg-csa/                        && " .
+                             "svn up                                  && " .
+                             "env CSA_HOST=$name                         " .
+                             "    CSA_LOCATION=$path                     " .
+                             "    CSA_SAGA_VERSION=trunk                 " .
+                             "    make -f make.saga.csa.mk            && " . 
+                             " cp $path/README*trunk* $path/tg-csa    && " . 
+                             " svn ci -m \"automated update\"          ' ");
+      print "\n";
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
       print " build 1.5.3\n";
-      print "----------------------------------------------------------\n";
-      system ("gsissh $host 'cd $path/tg-csa/        && " .
-                            "svn up                  && " .
-                            "env CSA_HOST=$name         " .
-                            "    CSA_LOCATION=$path     " .
-                            "    CSA_SAGA_VERSION=1.5.3 " .
-                            "    make -f make.saga.csa.mk'"); 
-      print "----------------------------------------------------------\n";
+      system ("$access $host 'cd $path/tg-csa/                        && " .
+                             "svn up                                  && " .
+                             "env CSA_HOST=$name                         " .
+                             "    CSA_LOCATION=$path                     " .
+                             "    CSA_SAGA_VERSION=1.5.3                 " .
+                             "    make -f make.saga.csa.mk            && " . 
+                             " cp $path/README*1.5.3* $path/tg-csa    && " . 
+                             " svn ci -m \"automated update\"          ' ");
     }
   }
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  print "\n";
 }
+

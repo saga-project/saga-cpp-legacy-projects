@@ -167,7 +167,7 @@ PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VER
 PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
 PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 SAGA_ENV_VARS  += PYTHON_LOCATION=$(PYTHON_LOCATION)
-SAGA_ENV_LIBS  += $(PYTHON_LOCATION)
+SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)
@@ -186,9 +186,9 @@ BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
-SAGA_ENV_LIBS  += $(BOOST_LOCATION)
+SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
 SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 
 .PHONY: boost
@@ -242,7 +242,7 @@ POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/$(CC_NAME)/
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp9.us.postgresql.org/pub/mirrors/postgresql/source/v9.0.2/postgresql-9.0.2.tar.bz2
 SAGA_ENV_VARS      += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
-SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib
+SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
@@ -261,7 +261,7 @@ SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/$(CC_NAME)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
 SAGA_ENV_VARS   += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
-SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib
+SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
@@ -281,9 +281,9 @@ $(SQLITE3_CHECK):
 SAGA_LOCATION   = $(CSA_LOCATION)/saga/$(SAGA_VERSION)/$(CC_NAME)/
 SAGA_CHECK      = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
-SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib
+SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
 
 ifeq "$(CSA_HOST)" "abe"
   # boost assumes that all linux hosts know this define.  Well, abe does not.
@@ -316,7 +316,7 @@ SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4
 SAGA_PYTHON_SRC      = https://svn.cct.lsu.edu/repos/saga/bindings/python/tags/releases/saga-bindings-python-0.9.0/
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
 
-SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)/lib)):$(LD_LIBRARY_PATH)
+SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$(LD_LIBRARY_PATH)
 
 .PHONY: saga-bindings-python
 saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
