@@ -13,23 +13,29 @@ my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $use_all   = 0;
+my $svnuser   = `id -un`;
+my $svnpass   = "";
+
+chomp ($svnuser);
 
 if ( ! scalar (@ARGV) )
 {
   print <<EOT;
 
-    $0 [-l|--list] [-c|--check] [-d|--deploy] [-a|--all|host1 host2 ...]
+    $0 [-l|--list] [-c|--check] [-d|--deploy] [-u|--user id] [-p|--pass pw] [-a|--all|host1 host2 ...]
 
     -l : list available target hosts
     -c : check access mechanism for given target host(s)
     -d : deploy SAGA on given target host(s)
     -a : deploy SAGA on all known target hosts.  Use listed hosts if not
          specified
+    -u : svn user id (defaults to local user id)
+    -p : svn password
 
 EOT
 }
 
-foreach my $arg ( @ARGV )
+while ( my $arg = shift )
 {
   if ( $arg =~ /^(-l|--list)$/io )
   {
@@ -47,6 +53,14 @@ foreach my $arg ( @ARGV )
   {
     $use_all = 1;
   }
+  elsif ( $arg =~ /^(-u|--user)$/io )
+  {
+    $svnuser = shift || "";
+  }
+  elsif ( $arg =~ /^(-p|--pass)$/io )
+  {
+    $svnpass = shift || "";
+  }
   elsif ( $arg =~ /^-/io )
   {
     warn "WARNING: cannot parse command line flag '$arg'\n";
@@ -56,6 +70,12 @@ foreach my $arg ( @ARGV )
     push (@names, $arg);
   }
 }
+
+
+my $SVNCI = "svn ";
+if ( $svnuser ) { $SVNCI .= " --username '$svnuser'"; }
+if ( $svnpass ) { $SVNCI .= " --password '$svnpass'"; }
+$SVNCI .= " ci";
 
 
 # read and parse csa host file
@@ -207,9 +227,9 @@ if ( $do_deploy )
                              "    CSA_LOCATION=$path                     " .
                              "    CSA_SAGA_VERSION=trunk                 " .
                              "    make -f make.saga.csa.mk            ;  " . 
-                             " cp $path/README*trunk* $path/tg-csa    && " . 
+                             " cp -v $path/README*trunk* $path/tg-csa && " . 
                              " svn add  README*trunk*$name*           && " .
-                             " svn ci -m \"automated update\"          ' ");
+                             " $SVNCI -m \"automated update\"          ' ");
       print "\n";
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       print " build 1.5.3\n";
@@ -218,10 +238,10 @@ if ( $do_deploy )
                              "env CSA_HOST=$name                         " .
                              "    CSA_LOCATION=$path                     " .
                              "    CSA_SAGA_VERSION=1.5.3                 " .
-                             "    make -f make.saga.csa.mk            && " . 
-                             " cp $path/README*1.5.3* $path/tg-csa    && " . 
+                             "    make -f make.saga.csa.mk            ;  " . 
+                             " cp -v $path/README*1.5.3* $path/tg-csa && " . 
                              " svn add  README*1.5.3*$name*           && " .
-                             " svn ci -m \"automated update\"          ' ");
+                             " $SVNCI -m \"automated update\"          ' ");
     }
   }
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
