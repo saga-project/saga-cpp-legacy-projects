@@ -15,12 +15,12 @@ sys.path.append(BIGJOB_HOME)
 import bigjob
 
 # configurationg
-RESOURCE_URL = "gram://louie1.loni.org/jobmanager-pbs"
-DEPLOYMENT_LOCATION = 'gsiftp://louie1.loni.org/work/marksant/diane'
+#RESOURCE_URL = "gram://louie1.loni.org/jobmanager-pbs"
+#DEPLOYMENT_LOCATION = 'gsiftp://louie1.loni.org/work/marksant/diane'
 #RESOURCE_URL = "gram://painter1.loni.org/jobmanager-pbs"
 #DEPLOYMENT_LOCATION = 'gsiftp://painter1.loni.org/work/marksant/diane'
-#RESOURCE_URL = "gram://eric1.loni.org/jobmanager-pbs"
-#DEPLOYMENT_LOCATION = 'gsiftp://eric1.loni.org/work/marksant/diane'
+RESOURCE_URL = "gram://eric1.loni.org/jobmanager-pbs"
+DEPLOYMENT_LOCATION = 'gsiftp://eric1.loni.org/work/marksant/diane'
 
 
 """ Test Job Submission via Advert """
