@@ -152,7 +152,39 @@
   multiple infrastructure.
 \end{abstract}
 
-\section*{Outline of Paper}
+\section*{Outline}
+\begin{footnotesize}
+\begin{verbatim}
+1. Introduction:
+- Distributed CI and the need/role of Dynamic 
+Execution 
+- PJs as an effective abstraction for DE
+- Brief Overview of the status of PJ
+-- Many PJ out there but no consistent terminology, 
+framework to compare/contrast
+- Basis for extension of Pilot concepts to 
+other dimensions
+ 
+2. A Conceptual FW for Pilot-abstractions for DE
+
+3 TROY: SAGA-based implementation of Pilot-abstractions
+
+TROY = Pilot-Job (BigJob) + Pilot-Data (BigData)
+
+4 Analysing other PJs using the Conceptual FW
+
+5 Experiments/Implementation/Comparision:
+- PJ interop using the TROY API using DARE
+-- this is where DIANE, BigJob will be used together
+using TROY API (effectively just BigJob)
+-- all other experiments, measurements 
+and validation tests
+
+\end{verbatim}
+\end{footnotesize}
+
+\section{Introduction and Overview}
+
 There exist multiple reasons why distributed applications have not
 been able to utilize distributed cyberinfrastructure effectively and
 without immense effort\cite{dpa_surveypaper}.  There exist multiple
@@ -191,50 +223,93 @@ that it has become an ``unregulated cottage industry'' reaffirms the
 lack of common nomenclature, integration, interoperatbility and
 extension.
 
-Our work is motivated by precisely this status of the existing usage
-and availability of the Pilot-Job abstraction vis-a-vis the existing
+Our work is motivated by the existing status of the usage and
+availability of the Pilot-Job abstraction vis-a-vis the current
 landscape of distributed application and cyberinfrastructure.
 
-\begin{footnotesize}
-\begin{verbatim}
-1. Introduction:
-- Distributed CI and the need/role of Dynamic 
-Execution 
-- PJs as an effective abstraction for DE
-- Brief Overview of the status of PJ
--- Many PJ out there but no consistent terminology, 
-framework to compare/contrast
-- Basis for extension of Pilot concepts to 
-other dimensions
- 
-2. A Conceptual FW for Pilot-abstractions for DE
+We begin this work with an attempt to provide a minimal, but complete
+model -- for the Pilot-Job abstraction, to provide a common and
+consistent framework to compare and contrast different
+Pilot-Jobs. This is, to the best of our knowledge, the first such
+attempt.  
 
-3 TROY: SAGA-based implementation of Pilot-abstractions
+A natural and logical extension of the Pilot-Job model, arising from
+the need to treat data as a first-class schedulable entity, is a
+concept analagous to Pilot-Job: the Pilot-Data. Given the consistent
+treatment of data and compute, as potentially equal components in a
+framework to support dynamic resource and execution, we refer to as
+the P-* Model,
 
-TROY = Pilot-Job (BigJob) + Pilot-Data (BigData)
+In \S3 we introduce TROY -- A Tiered Resource Overlay framework, as an
+implementation of the P-* Model using the SAGA API. The Pilot-Job and
+Pilot-Data concepts in TROY are referred to as BigJob and BigData; as
+we will discuss, consistent with the goals and aims of SAGA, there can
+be multiple {\it atomic} instances of BigJob for different backends.
+Thus we posit that the TROY API is a general purpose API that can be
+used for all Pilot-Jobs. Before validating this claim, in \S4 of this
+paper, we discuss the mapping of DIANE to the P-* Model and outline
+briefly how other well known Pilot-Jobs can be understood using the
+{\it vectors}~\cite{dpa_surveypaper} of the P-* Model.
 
-4 Analysing other PJs using the Conceptual FW
-
-5 Experiments/Implementation/Comparision:
-- PJ interop using the TROY API using DARE
--- this is where DIANE, BigJob will be used together
-using TROY API (effectively just BigJob)
--- all other experiments, measurements 
-and validation tests
-
-\end{verbatim}
-\end{footnotesize}
-
+In \S5 we validate the TROY API by demonstrating how DIANE -- an
+existing and widely used Pilot-Job, can be given a well defined API
+via the TROY-BigJob API. To further substantiate the impact of
+TROY-BigJob API, we will demonstrate interoperability between
+different Pilot-Jobs -- a native SAGA based Pilot-Job, referred to as
+bigjob/advert with DIANE.  We believe this is also the first
+demonstration of interoperation of different Pilot-Jobs.
 
 \jhanote{Should we to introduce Dynamic Applications explicitly in the
   title? Just a question, not a suggestion...}
 
+%\subsection{Introduction \jhanote{SJ, AL}}
+
+\subsection*{Motivation}
+
+\jhanote{Not sure yet if we should have ``Motivation and Aims'' as a
+  stand alone section, and if so how to name that section....or if we
+  should wrap it into \S 1..}
+
+Distributed systems are inherently dynamic: resources can suddenly
+fail or new resources can become available at any time. Generally
+there are two types of dynamism.
+
+\begin{itemize}
+\item \textbf{Resource dynamism:} Distributed systems are inherently dynamic
+     -- resources can become available or fail at any time. The same holds for
+      network connections. Further, hybrid infrastructures comprised of 
+      different resources classes can vary significantly in their costs for 
+      usage, performance, availability and the guarantees for quality of service 
+      they provide.
+      
+\item \textbf{Application dynamism} describes the requirement of many
+applications to support dynamic resource requirements. An example are
+applications whose execution time resource requirements cannot be determined
+exactly in advance (either due to changes in runtime requirements) or those that
+are dependent on dynamic data (e. g. sensor, in-transit or variable source/sink
+of data). Further, the application requirements may change, due to,
+for example, a failure or an application event.
+\end{itemize}
+
+Further things to consider:
+\begin{itemize}
+    \item dynamic scheduling
+    \item dynamic task placement
+    \item autonomic behaviors: Monitoring of the system/application state and 
+    adaptations of the application and/or resources to respond to changing 
+    requirements or environment.
+  \item Multi-level and multi-dimensional scheduling (in a distributed
+    context). Make reference to it.
+\end{itemize}
+
+The real power of distributed systems, however, arises from adaptive algorithms
+and implementations that provide applications with an agile execution model, and
+thus the ability to use resources dynamically as opposed to a static execution
+model inherited from parallel and cluster computing
 
 
-\section{Introduction \jhanote{SJ, AL}}
+\section*{Aims} 
 
-
-\subsection{Aims of the paper}
 \begin{itemize}
 
 \item Establish the need for dynamic execution of applications -
@@ -269,43 +344,6 @@ and validation tests
     reviews of the paper with Bishop}
 \end{itemize}
 
-\subsection{Motivation}
-
-Distributed systems are inherently dynamic: resources can suddenly fail or 
-new resources can become available at any time. Generally there are two types
-of dynamism.
-\begin{itemize}
-\item \textbf{Resource dynamism:} Distributed systems are inherently dynamic
-     -- resources can become available or fail at any time. The same holds for
-      network connections. Further, hybrid infrastructures comprised of 
-      different resources classes can vary significantly in their costs for 
-      usage, performance, availability and the guarantees for quality of service 
-      they provide.
-      
-\item \textbf{Application dynamism} describes the requirement of many
-applications to support dynamic resource requirements. An example are
-applications whose execution time resource requirements cannot be determined
-exactly in advance (either due to changes in runtime requirements) or those that
-are dependent on dynamic data (e. g. sensor, in-transit or variable source/sink
-of data). Further, the application requirements may change, due to,
-for example, a failure or an application event.
-\end{itemize}
-
-Further things to consider:
-\begin{itemize}
-    \item dynamic scheduling
-    \item dynamic task placement
-    \item autonomic behaviors: Monitoring of the system/application state and 
-    adaptations of the application and/or resources to respond to changing 
-    requirements or environment.
-  \item Multi-level and multi-dimensional scheduling (in a distributed
-    context). Make reference to it.
-\end{itemize}
-
-The real power of distributed systems, however, arises from adaptive algorithms
-and implementations that provide applications with an agile execution model, and
-thus the ability to use resources dynamically as opposed to a static execution
-model inherited from parallel and cluster computing
 
 
 %\section{Pilot-* : An abstraction for Dynamic Execution}
