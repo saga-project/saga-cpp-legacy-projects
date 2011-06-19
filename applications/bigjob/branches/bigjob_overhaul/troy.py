@@ -146,7 +146,8 @@ class Bigjob(object):
         """ Assign a UoW to this Bigjob.
 
             Keyword argument:
-            uow -- The Unit of Work from the application
+            uow -- The Unit of Work Dfrom the application
+            XXX
 
         """
         return UoW(self.bj, uow)
@@ -197,6 +198,10 @@ class UoW(object):
 
     def get_output(self):        
         """ Return the output(s) of this UoW. """
+        pass
+
+    def get_error(self):        
+        """ Return the error(s) of this UoW. """
         pass
 
     def cancel(self):
