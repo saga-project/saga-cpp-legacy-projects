@@ -136,7 +136,7 @@
 \begin{abstract}
   Distributed Cyberinfrastructure and Applications: require dynamical
   resource utilization models and not static resource.  Pilot-Jobs
-  have been one notable success -- in the scope of usageand number of
+  have been one notable success -- in the scope of usage and number of
   CI that support them and applications that use them.  However, in
   spite of broad uptake, there does not exist a well defined, unifying
   theoretical framework for Pilot-Job using which different
@@ -230,7 +230,7 @@ Introduction.
 
 There exist multiple reasons why distributed applications have not
 been able to utilize distributed cyberinfrastructure effectively and
-without immense effort\cite{dpa_surveypaper}.  
+without immense effort~\cite{dpa_surveypaper}.  
 At the root of the problem is the fact that developing
 large-scale distributed applications is fundamentally a difficult
 process. The range of proposed tools, programming systems and
@@ -746,7 +746,7 @@ applications that are supported by a pilot-job frameworks:
 
 
 \subsection{Authentication, Authorization and Accounting}
-\alnote{Should AAA be just a component of the overall framework?}
+\alnote{Moved AAA to the overall framework? Can we remove this subsection? Won't be a defining characteristic in my opinion?}
 
 \subsubsection{Authentication}
 usernames, passwords, certificates, etc.
@@ -759,6 +759,103 @@ permissions
 Before: allocation
 After: billing 
 
+
+\subsection{Pilot-Data}
+
+\jhanote{We should purely by analogy go with BigData, no? Need a
+  diagram that talks about TROY = BigJob + BigData + ``??''. Need to
+  define ``??''}
+
+\jhanote{note: DARE == Dynamic Application Runtime Environment: TROY +
+  MapReduce + Other capabilities}
+
+\jhanote{Ideally the background/underlying theory of Pilot Data/Store
+  should be presented outside of TROY -- not sure this will be
+  possible, or where, possibly in the \S II? Maybe as an explicit \S
+  II-D, where we say, ``having defined a P-* model, we extend it to
+  Dynamic Data..''}
+
+\label{sec:pilot-data}
+\begin{figure}[t]
+    \centering
+        \includegraphics[width=0.45\textwidth]{figures/pilotstore.pdf}
+    \caption{Pilot Data and Store Overview}
+    \label{fig:figures_pilotstore}
+\end{figure}
+
+Pilot Data is a set of abstractions for expressing data localities and
+affinities. Pilot Data can be used to create groups of file clustered
+together using a quantifiable property, such as affinity ($\alpha$)
+e.g., $\alpha = 1.0$ would imply that files are always stored
+together. \jhanote{I've distinguished store and usage} The concept of
+correlated access originates in
+Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
+
+Pilot Data provides a set of basic operations on top of these file
+groups, whilst Pilot Store is a container that represents a logical
+group of physical files that share the same affinity.
+
+Pilot Store Containers can be used to express data-data abstractions. 
+Abstraction supports basic management tasks (create, delete, update,
+move, list). 
+
+\subsubsection{Overview}
+
+The Pilot Data abstraction serves the following needs:
+\begin{itemize}
+	\item Reservation of physical disk space: acquisition of data storage (advanced reservation, place holder)
+	\item Virtual destination: dynamically mapping of data to pilot stores.
+	\item Runtime environment for $\alpha$ based data
+	\item Automatic data partitioning and distribution
+\end{itemize}
+
+
+The pilot data abstraction provides two kinds of abstractions (see Figure~\ref{fig:figures_ps-instantiation}):
+\begin{itemize}
+    \item Pilot Data: Allows the logical grouping of files and the expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.
+    
+    \item Pilot Store: Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
+\end{itemize}
+
+
+Figure~\ref{fig:figures_ps-instantiation} describes the differences between
+pilot data object (abstract pilot stores) and pilot stores. A pilot data object
+is a logical container and describes the properties of a group of files. A pilot
+store is a placeholder reserving a certain amount of storage. By associating a
+pilot data object to a pilot store the data is actually moved to the physically
+location managed by the pilot store.
+
+\begin{figure}[htbp]
+    \centering
+        \includegraphics[width=0.45\textwidth]{figures/ps-instantiation.pdf}
+    \caption{Level of Abstractions - Resource Binding}
+    \label{fig:figures_ps-instantiation}
+\end{figure}
+
+
+
+	
+\noindent	
+Dynamic data:
+\begin{itemize}
+	\item Data to be generated (temporal)
+	\item Data that is in place (spatial)
+	\item Data that is changing (temporal)
+	\item Data characteristics, properties
+\end{itemize}	
+
+\noindent
+Analogies with Pilot-Job:
+\begin{itemize}
+	\item Assign pilot job to resource: $f^{1}(PJ_i) \rightarrow R_i$
+	\item Assign task to pilot-job: $f^{2}(T_i) \rightarrow PJ_i$ 
+
+	\item $g^{1} (D_i) \rightarrow PS_i$
+	\item $g^{2} (PS_i) \rightarrow R_i$
+\end{itemize}
+
+
+
 \section{TROY: A SAGA-based Implementation of the P-* Model
   \jhanote{AL, MS, SM}}
 
@@ -767,8 +864,7 @@ After: billing
 \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
   BigData etc.}
 
-Table~\ref{tab:pilotjob_overview} gives an overview of different
-pilot-job implementations and their characteristics. BigJob currently
+Table~\ref{tab:pilotjob_overview} gives an overview of the different SAGA-based Troy implementations and their characteristics. BigJob currently
 supports different Backends: SAGA BigJob can be used in conjunction
 with different SAGA adaptors, e.\,g.\ the Globus, PBS, Amazon Web
 Service and local adaptor. In addition to the SAGA-based reference
@@ -781,10 +877,10 @@ API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 \begin{tabular}{|l|p{2.5cm}|p{2cm}|p{2cm}|p{2cm}|p{2cm}|}
 	\hline
 	&\textbf{Task Binding} &\textbf{Resource Types} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} &\textbf{Dynamic Resources}\\
+	%\hline
+	%\textbf{BigJob} & &&&&\\
 	\hline
-	\textbf{BigJob} & &&&&\\
-	\hline
-	SAGA BigJob & &&&&\\
+	BigJob-SAGA & &&&&\\
 	\hline
 	\hspace{4mm} Globus/PBS adaptor  &late binding (at sub-job submission)  
 									 &yes &central decision making &SAGA Advert (pull/push) &no\\  
@@ -802,18 +898,17 @@ API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 	\hline
     BigJob-Diane &late binding  &yes &decentral decision making &CORBA (pull from master) &yes\\ 
 	\hline	
-	\textbf{Dynamic BigJob} & &&&&\\
-	\hline
-    Dynamic BigJob &late binding (after job submission) &same as BJ &central decision making &same as BJ &(yes in future)\\
-    \hline
+	% \textbf{Dynamic BigJob} & &&&&\\
+	% 	\hline
+	%     Dynamic BigJob &late binding (after job submission) &same as BJ &central decision making &same as BJ &(yes in future)\\
+	%     \hline
     %   ManyJob-Cloud &late binding (after job submission) &no &central decision making &SAGA Job (SSH) (push) &no\\
     % \hline 
     % ManyJob-Affinity &late binding (after job submission)
     % &yes &central decision making &SAGA Advert (push/pull) &no\\
     % \hline
 \end{tabular}
-\caption{Characteristics of Pilot-Job Implementations According 
-		to Defined Vectors} \label{tab:pilotjob_overview}
+\caption{SAGA-based Troy Implementations: Characteristics According to Defined Vectors} \label{tab:pilotjob_overview}
 \end{table*}		
 
 
@@ -857,11 +952,21 @@ BigJob:
 	malleable, i.\,e.\ resources can added or be removed.
 \end{itemize}
 
+\begin{figure*}[htbp]
+	\centering
+		\includegraphics[height=3in]{figures/distributed_pilot_job.pdf}
+	\caption{SAGA-based TROY Implementation - BigJob}
+	\label{fig:figures_distributed_pilot_job}
+\end{figure*}
+
+
 \jhanote{It is CRITICAL to explain why we need to expose the details
   of multiple atomic BigJobs to the end-user? Remember part of the
   whole idea of the exercise is, (i) theory: to provide a framework
-  for understanding any differences, (ii) practise: make all these
+  for understanding any differences, (ii) practice: make all these
   differences go away from the end user!}
+\alnote{Since we were not sure about the term ``atomic'', we could also use base 
+bigjob, or core bigjob}
 
 The BigJob framework provides several types of atomic BigJob for
 various resource types. The dynamic BigJob is discussed in
@@ -1013,99 +1118,8 @@ Azure Storage is used.
 
 \subsection{Pilot Data and Store}
 
-\jhanote{We should purely by analogy go with BigData, no? Need a
-  diagram that talks about TROY = BigJob + BigData + ``??''. Need to
-  define ``??''}
 
-\jhanote{note: DARE == Dynamic Application Runtime Environment: TROY +
-  MapReduce + Other capabilities}
-
-\jhanote{Ideally the background/underlying theory of Pilot Data/Store
-  should be presented outside of TROY -- not sure this will be
-  possible, or where, possibly in the \S II? Maybe as an explicit \S
-  II-D, where we say, ``having defined a P-* model, we extend it to
-  Dynamic Data..}
-
-\label{sec:pilot-data}
-\begin{figure}[t]
-    \centering
-        \includegraphics[width=0.45\textwidth]{figures/pilotstore.pdf}
-    \caption{Pilot Data and Store Overview}
-    \label{fig:figures_pilotstore}
-\end{figure}
-
-Pilot Data is a set of abstractions for expressing data localities and
-affinities. Pilot Data can be used to create groups of file clustered
-together using a quantifiable property, such as affinity ($\alpha$)
-e.g., $\alpha = 1.0$ would imply that files are always stored
-together. \jhanote{I've distinguished store and usage} The concept of
-correlated access originates in
-Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
-
-Pilot Data provides a set of basic operations on top of these file
-groups, whilst Pilot Store is a container that represents a logical
-group of physical files that share the same affinity.
-
-Pilot Store Containers can be used to express data-data abstractions. 
-Abstraction supports basic management tasks (create, delete, update,
-move, list). 
-
-\subsubsection{Overview}
-
-The Pilot Data abstraction serves the following needs:
-\begin{itemize}
-	\item Reservation of physical disk space: acquisition of data storage (advanced reservation, place holder)
-	\item Virtual destination: dynamically mapping of data to pilot stores.
-	\item Runtime environment for $\alpha$ based data
-	\item Automatic data partitioning and distribution
-\end{itemize}
-
-
-The pilot data abstraction provides two kinds of abstractions (see Figure~\ref{fig:figures_ps-instantiation}):
-\begin{itemize}
-    \item Pilot Data: Allows the logical grouping of files and the expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.
-    
-    \item Pilot Store: Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
-\end{itemize}
-
-
-Figure~\ref{fig:figures_ps-instantiation} describes the differences between
-pilot data object (abstract pilot stores) and pilot stores. A pilot data object
-is a logical container and describes the properties of a group of files. A pilot
-store is a placeholder reserving a certain amount of storage. By associating a
-pilot data object to a pilot store the data is actually moved to the physically
-location managed by the pilot store.
-
-\begin{figure}[htbp]
-    \centering
-        \includegraphics[width=0.45\textwidth]{figures/ps-instantiation.pdf}
-    \caption{Level of Abstractions - Resource Binding}
-    \label{fig:figures_ps-instantiation}
-\end{figure}
-
-
-
-	
-\noindent	
-Dynamic data:
-\begin{itemize}
-	\item Data to be generated (temporal)
-	\item Data that is in place (spatial)
-	\item Data that is changing (temporal)
-	\item Data characteristics, properties
-\end{itemize}	
-
-\noindent
-Analogies with Pilot-Job:
-\begin{itemize}
-	\item Assign pilot job to resource: $f^{1}(PJ_i) \rightarrow R_i$
-	\item Assign task to pilot-job: $f^{2}(T_i) \rightarrow PJ_i$ 
-
-	\item $g^{1} (D_i) \rightarrow PS_i$
-	\item $g^{2} (PS_i) \rightarrow R_i$
-\end{itemize}
-
-\subsubsection{Pilot Data Architecture}
+%\subsubsection{Pilot Data Architecture}
 
 \jhanote{theory goes upfront; implementation and architecture stays
   here}
@@ -1307,6 +1321,8 @@ Fault Tolerance &Error Propagation &Configurable Re-Tries\\
 DIRAC~\cite{1742-6596-219-6-062049} is another pilot-job framework used by the 
 LHCb community.
 
+\subsection{SWIFT}
+
 \subsection{Other Pilot-Jobs}
 
 \begin{itemize}
@@ -1362,5 +1378,5 @@ Fault Tolerance  &&&&\\ \hline
 
 
 \bibliographystyle{plain}
-\bibliography{pilotjob,saga.bib}
+\bibliography{pilotjob,saga.bib,saga-related}
 \end{document}
