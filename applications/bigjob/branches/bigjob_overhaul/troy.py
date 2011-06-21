@@ -11,8 +11,8 @@ import uuid
 # BigJob/Diane implementation
 #
 from diane.bigjob_diane_frontend import BigjobDIANE
-from saga.bigjob_saga import bigjob as BigjobSAGA
-from saga.bigjob_saga import subjob
+from bjsaga.bigjob_saga import bigjob as BigjobSAGA
+from bjsaga.bigjob_saga import subjob
 
 ADVERT_HOST = 'advert.cct.lsu.edu'
 
@@ -21,7 +21,7 @@ ADVERT_HOST = 'advert.cct.lsu.edu'
 #
 class bigjob_type(object):
     Unknown = 0
-    Advert = 1
+    SAGA = 1
     DIANE = 2
 
 #
@@ -103,8 +103,8 @@ class Bigjob(object):
         #
         # Advert
         #
-        if bj_type == bigjob_type.Advert:
-            self.bj = BigjobAdvert(ADVERT_HOST)
+        if bj_type == bigjob_type.SAGA:
+            self.bj = BigjobSAGA(ADVERT_HOST)
             self.bj.bj_type = bj_type
 
             resource_url = rm
@@ -117,8 +117,7 @@ class Bigjob(object):
             processes_per_node = job_desc.get_attribute('ProcessesPerHost')
 
             # local
-            bigjob_agent =
-            '/home/marksant/proj/bigjob/branches/bigjob_overhaul/saga/bigjob_agent_launcher.sh' 
+            bigjob_agent = '/home/marksant/proj/bigjob/branches/bigjob_overhaul/advert/bigjob_agent_launcher.sh' 
             # gram
 
             self.bj.start_pilot_job(resource_url,
@@ -239,8 +238,8 @@ class UoW(object):
 
         self.bj = bj
 
-        if self.bj.bj_type == bigjob_type.Advert:
-            print 'This is an Advert UoW'
+        if self.bj.bj_type == bigjob_type.SAGA:
+            print 'This is an SAGA UoW'
 
             self.sj = subjob(ADVERT_HOST)
             self.uuid = self.sj.uuid
@@ -266,7 +265,7 @@ class UoW(object):
     def get_state(self):        
         """ Return the state of the UoW. """
 
-        if self.bj.bj_type == bigjob_type.Advert:
+        if self.bj.bj_type == bigjob_type.SAGA:
             return str2state(self.sj.get_state())
 
         elif self.bj.bj_type == bigjob_type.DIANE:
