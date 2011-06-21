@@ -10,13 +10,11 @@ import uuid
 #
 # BigJob/Diane implementation
 #
-from diane.bigjob_diane_frontend import BigjobDiane
+from diane.bigjob_diane_frontend import BigjobDIANE
+from saga.bigjob_saga import bigjob as BigjobSAGA
+from saga.bigjob_saga import subjob
 
-class uow_description(saga.job.description):
-    pass
-
-class bj_description(saga.job.description):
-    pass
+ADVERT_HOST = 'advert.cct.lsu.edu'
 
 #
 # Supported list of backends. Static for now.
@@ -32,6 +30,36 @@ class bigjob_type(object):
 def getuuid():
     return uuid.uuid4()
 
+def str2state(state):
+    if state == 'New':
+        return saga.job.job_state.New
+    elif state == 'Running':
+        return saga.job.job_state.Running
+    elif state == 'Done':
+        return saga.job.job_state.Done
+    elif state == 'Canceled':
+        return saga.job.job_state.Canceled
+    elif state == 'Failed':
+        return saga.job.job_state.Failed
+    else:
+        return saga.job.job_state.Unknown
+
+    
+
+#
+# Description of UoW (for now just a saga job description)
+# 
+class uow_description(saga.job.description):
+    pass
+
+
+#
+# Description of Bigjob (for now just a saga job description)
+#
+class bj_description(saga.job.description):
+    pass
+
+
 #
 # Bigjob class
 #
@@ -40,11 +68,11 @@ class Bigjob(object):
 
     """ This class represents the Bigjob. """
 
-    def __init__(self, type=None, rm=None, job_desc=None, context=None):
+    def __init__(self, bj_type=None, rm=None, job_desc=None, context=None):
         """ Create a Bigjob object.
 
             Keyword arguments:
-            type -- Backend type
+            bj_type -- Backend type
             rm -- URL pointing to resource management backend
             job_desc -- SAGA job description
             context -- security context
@@ -58,23 +86,55 @@ class Bigjob(object):
         """
 
         self.__uuid = getuuid()
-        if type != None and rm != None and job_desc != None:
-            self.add_resource(type, rm, job_desc, context)
+        if bj_type != None and rm != None and job_desc != None:
+            self.add_resource(bj_type, rm, job_desc, context)
 
-    def add_resource(self, type, rm, job_desc, context=None):
+    def add_resource(self, bj_type, rm, job_desc, context=None):
         """ Add a (list of) resource(s) to the Bigjob
 
             Keyword arguments:
-            type -- Backend type
+            bj_type -- Backend type
             resource_url -- URL pointing to resource management backend
             job_desc -- SAGA job description
             context -- a security context
         """
 
-        if type == bigjob_type.Advert:
-            raise saga.not_implemented("Advert Backend not yet implemented")
+
+        #
+        # Advert
+        #
+        if bj_type == bigjob_type.Advert:
+            self.bj = BigjobAdvert(ADVERT_HOST)
+            self.bj.bj_type = bj_type
+
+            resource_url = rm
+            number_nodes = job_desc.get_attribute('NumberOfProcesses')
+            queue = job_desc.get_attribute('Queue')
+            project = None
+            workingdirectory = job_desc.get_attribute('WorkingDirectory')
+            userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
+            walltime = job_desc.get_attribute('WallTimeLimit')
+            processes_per_node = job_desc.get_attribute('ProcessesPerHost')
+
+            # local
+            bigjob_agent =
+            '/home/marksant/proj/bigjob/branches/bigjob_overhaul/saga/bigjob_agent_launcher.sh' 
+            # gram
+
+            self.bj.start_pilot_job(resource_url,
+                bigjob_agent,
+                number_nodes,
+                queue,
+                project,
+                workingdirectory, 
+                userproxy,
+                walltime,
+                processes_per_node)
             
-        elif type == bigjob_type.DIANE:
+        #
+        # DIANE
+        #
+        elif bj_type == bigjob_type.DIANE:
             self.bj = BigjobDiane()
             resource_url = rm
             number_nodes = 1 # number nodes for agent
@@ -146,7 +206,7 @@ class Bigjob(object):
         """ Assign a UoW to this Bigjob.
 
             Keyword argument:
-            uow -- The Unit of Work Dfrom the application
+            uow -- The Unit of Work from the application
             XXX
 
         """
@@ -178,7 +238,22 @@ class UoW(object):
         """
 
         self.bj = bj
-        self.uuid = bj.submit_job(uowd)
+
+        if self.bj.bj_type == bigjob_type.Advert:
+            print 'This is an Advert UoW'
+
+            self.sj = subjob(ADVERT_HOST)
+            self.uuid = self.sj.uuid
+            print 'pilot_url:', self.bj.pilot_url
+            self.sj.submit_job(self.bj.pilot_url, uowd)
+
+        elif self.bj.bj_type == bigjob_type.DIANE:
+            print 'This is a DIANE UoW'
+
+            self.uuid = bj.submit_job(uowd)
+        else:
+            print 'This is an unknown UoW'
+
 
     def get_description(self):        
         """ Return the description of this UoW. """
@@ -190,7 +265,16 @@ class UoW(object):
 
     def get_state(self):        
         """ Return the state of the UoW. """
-        return self.bj.get_job_state(self.uuid)
+
+        if self.bj.bj_type == bigjob_type.Advert:
+            return str2state(self.sj.get_state())
+
+        elif self.bj.bj_type == bigjob_type.DIANE:
+            return self.bj.get_job_state(self.uuid)
+
+        else:
+            print 'This is an unknown UoW'
+
 
     def get_input(self):        
         """ Return the input(s) of this UoW. """
