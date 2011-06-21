@@ -6,6 +6,9 @@ This Module contains the frontend of the Bigjob framework.
 
 import saga
 import uuid
+import Queue
+import time
+from threading import Thread
 
 #
 # BigJob/Diane implementation
@@ -59,6 +62,38 @@ class uow_description(saga.job.description):
 class bj_description(saga.job.description):
     pass
 
+class Engine(Thread):
+    def __init__(self, bj):
+
+        print 'Troy Engine starting'
+
+        Thread.__init__(self)
+        self.status = -1
+        self.bj = bj
+        self.should_stop = False
+        self.i = 0
+
+    def run(self):
+        while 1:
+            print 'Engine loop'
+
+            print 'Resources:', len(self.bj.resources)
+            print 'UoW Queue:', self.bj.uow_q.qsize() 
+
+            if self.i >= len(self.bj.resources):
+                self.i = 0
+
+            if self.bj.uow_q.qsize() > 0:
+                u = self.bj.uow_q.get()
+                u.run(self.bj.resources[self.i])
+                print u.uowd.get_vector_attribute('Arguments')
+
+            self.i = self.i + 1
+            
+            if self.should_stop == True:
+                break
+            time.sleep(5)
+
 
 #
 # Bigjob class
@@ -85,9 +120,16 @@ class Bigjob(object):
 
         """
 
+        self.resources = []
+        self.uow_q = Queue.Queue()
+
         self.__uuid = getuuid()
         if bj_type != None and rm != None and job_desc != None:
             self.add_resource(bj_type, rm, job_desc, context)
+
+        self.engine = Engine(self)
+        self.engine.start()
+
 
     def add_resource(self, bj_type, rm, job_desc, context=None):
         """ Add a (list of) resource(s) to the Bigjob
@@ -104,8 +146,8 @@ class Bigjob(object):
         # Advert
         #
         if bj_type == bigjob_type.SAGA:
-            self.bj = BigjobSAGA(ADVERT_HOST)
-            self.bj.bj_type = bj_type
+            bj = BigjobSAGA(ADVERT_HOST)
+            bj.bj_type = bj_type
 
             resource_url = rm
             number_nodes = job_desc.get_attribute('NumberOfProcesses')
@@ -117,10 +159,10 @@ class Bigjob(object):
             processes_per_node = job_desc.get_attribute('ProcessesPerHost')
 
             # local
-            bigjob_agent = '/home/marksant/proj/bigjob/branches/bigjob_overhaul/advert/bigjob_agent_launcher.sh' 
+            bigjob_agent = '/home/marksant/proj/bigjob/branches/bigjob_overhaul/bjsaga/bigjob_agent_launcher.sh' 
             # gram
 
-            self.bj.start_pilot_job(resource_url,
+            bj.start_pilot_job(resource_url,
                 bigjob_agent,
                 number_nodes,
                 queue,
@@ -130,6 +172,7 @@ class Bigjob(object):
                 walltime,
                 processes_per_node)
             
+            self.resources.append(bj)
         #
         # DIANE
         #
@@ -209,7 +252,11 @@ class Bigjob(object):
             XXX
 
         """
-        return UoW(self.bj, uow)
+        u = UoW(self, uow)
+
+        self.uow_q.put(u)
+
+        return u
 
     def cancel(self, rm=None):        
         """ Cancel the a resource in the BigJob.
@@ -217,7 +264,9 @@ class Bigjob(object):
             Keyword arguments:
             rm -- The optional resource(s) to act upon.
         """
-        pass
+        print 'Cancel the BigJob'
+        self.engine.should_stop = True
+        self.engine.join()
 
 
 #
@@ -237,19 +286,26 @@ class UoW(object):
         """
 
         self.bj = bj
+        self.state = saga.job.job_state.Unknown
+        self.uowd = uowd
 
-        if self.bj.bj_type == bigjob_type.SAGA:
+    def run(self, rm):
+
+        if rm.bj_type == bigjob_type.SAGA:
             print 'This is an SAGA UoW'
 
             self.sj = subjob(ADVERT_HOST)
             self.uuid = self.sj.uuid
-            print 'pilot_url:', self.bj.pilot_url
-            self.sj.submit_job(self.bj.pilot_url, uowd)
+            print 'pilot_url:', rm.pilot_url
+            self.sj.submit_job(rm.pilot_url, self.uowd)
+            self.state = saga.job.job_state.Running
 
-        elif self.bj.bj_type == bigjob_type.DIANE:
+            self.rm = rm
+
+        elif rm.bj_type == bigjob_type.DIANE:
             print 'This is a DIANE UoW'
 
-            self.uuid = bj.submit_job(uowd)
+            self.uuid = rm.submit_job(self.uowd)
         else:
             print 'This is an unknown UoW'
 
@@ -265,14 +321,18 @@ class UoW(object):
     def get_state(self):        
         """ Return the state of the UoW. """
 
-        if self.bj.bj_type == bigjob_type.SAGA:
+        if self.state == saga.job.job_state.Unknown:
+            return self.state
+
+        if self.rm.bj_type == bigjob_type.SAGA:
             return str2state(self.sj.get_state())
 
-        elif self.bj.bj_type == bigjob_type.DIANE:
-            return self.bj.get_job_state(self.uuid)
+        #elif self.bj.bj_type == bigjob_type.DIANE:
+        #    return self.bj.get_job_state(self.uuid)
 
-        else:
-            print 'This is an unknown UoW'
+        #else:
+        #    print 'This is an unknown UoW'
+
 
 
     def get_input(self):        
