@@ -79,7 +79,7 @@ def get_uuid():
 
 
 #class bigjob(api.base.bigjob): # backend?
-class BigjobDiane(object):
+class BigjobDIANE(object):
        
     def __init__(self, database_host=None):  
         self.pilot_url = "diane://"
