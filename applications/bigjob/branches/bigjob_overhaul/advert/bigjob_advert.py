@@ -24,7 +24,7 @@ import logging
 
 # import other BigJob packages
 # import API
-import api.base
+#import api.base
 
 if sys.version_info < (2, 5):
     sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
@@ -62,7 +62,8 @@ class BigJobError(Exception):
     def __str__(self):
         return repr(self.value)
 
-class bigjob(api.base.bigjob):
+#class bigjob(api.base.bigjob):
+class bigjob(object):
     
     def __init__(self, database_host):        
         self.database_host = database_host
@@ -216,7 +217,8 @@ class bigjob(api.base.bigjob):
 
                     
                     
-class subjob(api.base.subjob):
+#class subjob(api.base.subjob):
+class subjob(object):
     
     def __init__(self, database_host):
         """Constructor"""
