@@ -86,7 +86,7 @@ class Engine(Thread):
             if self.bj.uow_q.qsize() > 0:
                 u = self.bj.uow_q.get()
                 u.run(self.bj.resources[self.i])
-                print u.uowd.get_vector_attribute('Arguments')
+                #print u.uowd.get_vector_attribute('Arguments')
 
             self.i = self.i + 1
             
@@ -264,6 +264,10 @@ class Bigjob(object):
             Keyword arguments:
             rm -- The optional resource(s) to act upon.
         """
+
+        for r in self.resources:
+            r.cancel()
+
         print 'Cancel the BigJob'
         self.engine.should_stop = True
         self.engine.join()
