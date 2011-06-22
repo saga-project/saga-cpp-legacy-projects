@@ -87,12 +87,13 @@ class Engine(Thread):
                 u = self.bj.uow_q.get()
                 u.run(self.bj.resources[self.i])
                 #print u.uowd.get_vector_attribute('Arguments')
+            else:
+                time.sleep(5)
 
             self.i = self.i + 1
             
             if self.should_stop == True:
                 break
-            time.sleep(5)
 
 
 #
@@ -177,19 +178,21 @@ class Bigjob(object):
         # DIANE
         #
         elif bj_type == bigjob_type.DIANE:
-            self.bj = BigjobDiane()
+            bj = BigjobDIANE()
+            bj.bj_type = bj_type
+
             resource_url = rm
-            number_nodes = 1 # number nodes for agent
-            queue = None
+            number_nodes = job_desc.get_attribute('NumberOfProcesses')
+            queue = job_desc.get_attribute('Queue')
             project = None
             #workingdirectory = "gsiftp://oliver1.loni.org/work/marksant/diane"
             workingdirectory = job_desc.get_attribute('WorkingDirectory')
             userproxy = None # userproxy (not supported yet due to context issue w/ SAGA)
-            walltime = None
-            processes_per_node = 1
+            walltime = job_desc.get_attribute('WallTimeLimit')
+            processes_per_node = job_desc.get_attribute('ProcessesPerHost')
             bigjob_agent = workingdirectory
 
-            self.bj.start_pilot_job(resource_url,
+            bj.start_pilot_job(resource_url,
                 bigjob_agent,
                 number_nodes,
                 queue,
@@ -198,6 +201,8 @@ class Bigjob(object):
                 userproxy,
                 walltime,
                 processes_per_node)
+
+            self.resources.append(bj)
 
         else:
             raise saga.exception.no_success("Unknown Backend type")
@@ -310,6 +315,10 @@ class UoW(object):
             print 'This is a DIANE UoW'
 
             self.uuid = rm.submit_job(self.uowd)
+            self.state = saga.job.job_state.Running
+
+            self.rm = rm
+
         else:
             print 'This is an unknown UoW'
 
@@ -331,11 +340,11 @@ class UoW(object):
         if self.rm.bj_type == bigjob_type.SAGA:
             return str2state(self.sj.get_state())
 
-        #elif self.bj.bj_type == bigjob_type.DIANE:
-        #    return self.bj.get_job_state(self.uuid)
+        elif self.rm.bj_type == bigjob_type.DIANE:
+            return self.rm.get_job_state(self.uuid)
 
-        #else:
-        #    print 'This is an unknown UoW'
+        else:
+            print 'This is an unknown UoW'
 
 
 
