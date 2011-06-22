@@ -71,7 +71,7 @@ class bigjob_agent:
         print "Open advert: " + self.base_url
         try:
             self.base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
-            self.new_job_dir = saga.advert.directory(saga.url(self.base_url+"/new/"), saga.advert.Create| saga.advert.ReadWrite)
+            self.new_job_dir = saga.advert.directory(saga.url(self.base_url+"/new/"), saga.advert.Create| saga.advert.CreateParents | saga.advert.ReadWrite)
         except:
             print "No advert entry found at specified url: " + self.base_url
             traceback.print_exc(file=sys.stderr)
@@ -351,7 +351,7 @@ class bigjob_agent:
          number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
          machine_file_name = self.get_machine_file_name(job_dir)
          print "Machine file: " + machine_file_name
-         allocated_nodes = ["localhost"]
+         allocated_nodes = ["localhost\n"]
          try:
                  machine_file = open(machine_file_name, "r")
                  allocated_nodes = machine_file.readlines()
@@ -359,11 +359,12 @@ class bigjob_agent:
          except:
              pass
          for i in allocated_nodes:
-             print "free node: " + str(i) + " current busy nodes: " + str(self.busynodes) + " free nodes: " + str(self.freenodes)
+             print "free node: " + str(i) + " current busy nodes: " + str(self.busynodes) + " free nodes: " + str(self.freenodes)             
              self.busynodes.remove(i)
              self.freenodes.append(i)
          print "Delete " + machine_file_name
-         os.remove(machine_file_name)
+         if os.path.exists(machine_file_name):
+             os.remove(machine_file_name)
          self.resource_lock.release()
                
             
