@@ -197,7 +197,7 @@ class BigjobDIANE(object):
         if os.path.isfile(self.rundir + '/failed/' + scriptname):
             state = saga.job.job_state.Failed
             
-        print 'DEBUG: job state:', state
+        # print 'DEBUG: job state:', state
         return state
     
     def cancel(self):
