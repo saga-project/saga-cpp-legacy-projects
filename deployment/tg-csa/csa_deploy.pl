@@ -72,7 +72,7 @@ while ( my $arg = shift )
 }
 
 
-my $SVNCI = "svn ";
+my $SVNCI = "svn --no-auth-cache";
 if ( $svnuser ) { $SVNCI .= " --username '$svnuser'"; }
 if ( $svnpass ) { $SVNCI .= " --password '$svnpass'"; }
 $SVNCI .= " ci";
