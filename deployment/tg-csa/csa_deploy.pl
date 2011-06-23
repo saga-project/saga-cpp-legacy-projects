@@ -27,8 +27,8 @@ if ( ! scalar (@ARGV) )
     -l : list available target hosts
     -c : check access mechanism for given target host(s)
     -d : deploy SAGA on given target host(s)
-    -a : deploy SAGA on all known target hosts.  Use listed hosts if not
-         specified
+    -a : deploy SAGA on all known target hosts.
+         if -a is not specified, an explicit list hostnames is expected.
     -u : svn user id (defaults to local user id)
     -p : svn password
 
