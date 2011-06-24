@@ -1,4 +1,14 @@
 #!/usr/bin/env python
+""" Example application demonstrating job submission via bigjob 
+    diane implementation of BigJob is used
+"""
+# BigJob implementation can be swapped here by importing another implementation,
+# e.g. condor, cloud, azure, diane
+cwd = os.getcwd()
+BIGJOB_HOME= "cwd" + "../"
+sys.path.append("..")
+import troy
+
 import sys
 import saga
 import getopt
@@ -7,15 +17,14 @@ import pdb
 import os
 import traceback
 import logging
-import many_job
 import ConfigParser
 import optparse
 import uuid
 
-global jobs, job_start_times, job_states
-jobs = []
-job_start_times = {}
-job_states = {}
+global  uows #, job_start_times, job_states
+uows = []
+#job_start_times = {}
+#job_states = {}
 
 #initialize the conf files
 def initialize(conf_filename):
@@ -74,72 +83,77 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
  
             else:
                  jd_executable_use = jd_executable
-         
-            # create job description
-            jd = saga.job.description()
-            print jd_executable_use
-            jd.executable = jd_executable_use
             
-            jd.number_of_processes = str(jd_number_of_processes)
-            jd.spmd_variation = "single"
+            # create job description
+            uowd = troy.uow_description()
+
+            print jd_executable_use
+            uowd.set_attribute('Executable', jd_executable_use)
+            uowd.set_attribute('NumberOfProcesses', jd_number_of_processes)
+
+            uowd.set_attribute('SPMDVariation', 'single')
             
             # choose the job arguments based on type of job
             if job_type == "reads":
-                jd.arguments = ["-n",  "%s" %(bfast_reads_num[affinity]),  
-                                "-o", "%s/%s.%s" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid),
-                                 "%s/*.csfasta"%(bfast_raw_reads_dir[affinity]),
-                                 "%s/*.qual" %(bfast_raw_reads_dir[affinity])]
+                uowd.set_vector_attribute('Arguments', \
+                        ["-n",  "%s" %(bfast_reads_num[affinity]),  
+                        "-o", "%s/%s.%s" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid),
+                        "%s/*.csfasta"%(bfast_raw_reads_dir[affinity]),
+                        "%s/*.qual" %(bfast_raw_reads_dir[affinity])])
                                   
             elif job_type == "count":
-                jd.arguments = [" -altr" , "%s/%s.%s.*" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid), 
+                uowd.set_vector_attribute('Arguments', \
+                                [" -altr" , "%s/%s.%s.*" %(bfast_reads_dir[affinity],shortreads_name ,dare_uuid), 
                                 "|",  "/usr/bin/wc", "-l" , 
-                                ">", "%s/out.%s.txt"%(bfast_raw_reads_dir[affinity], dare_uuid)]
+                                ">", "%s/out.%s.txt"%(bfast_raw_reads_dir[affinity], dare_uuid)])
                                 
             elif job_type == "matches":
-                jd.arguments = ["match",  
-                                "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgenome) , 
-                                "-A", encoding_space, 
-                                "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
-                                "-n" ,"8" ,
-                                "-T" , "%s" %(bfast_tmp_dir[affinity]),
-                                ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1)]  
+                uowd.set_vector_attribute('Arguments', \
+                         ["match",  
+                         "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgenome) , 
+                         "-A", encoding_space, 
+                         "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
+                         "-n" ,"8" ,
+                         "-T" , "%s" %(bfast_tmp_dir[affinity]),
+                         ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1)])  
 
             elif job_type == "localalign":
-                jd.arguments = ["localalign", 
+                uowd.set_vector_attribute('Arguments', \
+                                ["localalign", 
                                 "-f",  "%s/%s.fa"%(bfast_ref_genome_dir[affinity], refgenome),
                                 "-A", encoding_space,
                                 "-m", "%s/bfast.matches.file.%s.%s.%s.bmf"%(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1),
-                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1)]
+                                ">", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1)])
                                 
             elif job_type == "postprocess":
-                jd.arguments = ["postprocess",
+                uowd.set_vector_attribute('Arguments', \
+                                ["postprocess",
                                 "-f",  "%s/%s.fa" %(bfast_ref_genome_dir[affinity], refgenome),
                                 "-A",  encoding_space,
                                 "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1),
-                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgenome,i+1)]     
+                                ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgenome,i+1)])     
             else:
-                jd.arguments = [""]
+                uowd.set_vector_attribute('Arguments', [""])
             
             #jd.environment = ["affinity=affinity%s"%(affinity)]
             print "affinity%s"%(affinity)
-            jd.working_directory = work_dir[affinity]
-            jd.output =  os.path.join(work_dir[affinity], "stdout_" + job_type + "-"+ str(dare_uuid)+"-"+ str(i) + ".txt")
-            jd.error = os.path.join(work_dir[affinity], "stderr_"+ job_type + "-"+str(dare_uuid)+ "-"+str(i) + ".txt")
-            subjob = mjs[int(affinity)].create_job(jd)
-            subjob.run()
+            uowd.set_attribute('WorkingDirectory', work_dir[affinity])
+            uowd.set_attribute('Output', os.path.join(work_dir[affinity], "stdout_" + job_type + \
+                              "-"+ str(dare_uuid)+"-"+ str(i) + ".txt"))
+            uowd.set_attribute('Error', os.path.join(work_dir[affinity], "stderr_"+ job_type + \
+                              "-"+str(dare_uuid)+ "-"+str(i) + ".txt"))
+
+            uows.append(bj.assign_uow(uowd))
+            
             print "Submited sub-job " + "%d"%i + "."
-         
-            jobs.append(subjob)
-            job_start_times[subjob]=time.time()
-            job_states[subjob] = subjob.get_state()
+                     
+          
             logger.info( job_type + "subjob " + str(i))
             logger.info( "jd.number_of_processes " + str(jd.number_of_processes))
             print "jd.arguments"
-            for item in jd.arguments:
-                logger.info( "jd.arguments" + item)
-                print " ",item
+           
             logger.info("affinity%s"%(affinity))
-            logger.info( "jd exec " + jd.executable)
+            logger.info( "jd exec " + jd_executable_use)
             
  
 #get the number of tasks and wait till they finish 
@@ -147,29 +161,17 @@ def wait_for_jobs(number_of_jobs):
 
         print "************************ All Jobs submitted ************************" +  str(number_of_jobs)
         while 1:
-            finish_counter=0
-            result_map = {}
-            for i in range(0, number_of_jobs):
-                old_state = job_states[jobs[i]]
-                state = jobs[i].get_state()
-                if result_map.has_key(state) == False:
-                    result_map[state]=0
-                result_map[state] = result_map[state]+1
-                #print "counter: " + str(i) + " job: " + str(jobs[i]) + " state: " + state
-                if old_state != state:
-                    print "Job " + str(jobs[i]) + " changed from: " + old_state + " to " + state
-                if old_state != state and has_finished(state)==True:
-                     print "Job: " + str(jobs[i]) + " Runtime: " + str(time.time()-job_start_times[jobs[i]]) + " s."
-                if has_finished(state)==True:
-                     finish_counter = finish_counter + 1
-                job_states[jobs[i]]=state
-
-            print "Current states: " + str(result_map)
-            time.sleep(5)
-            logger.info("Current states: " + str(result_map))
-            if finish_counter == number_of_jobs:
+            uow_states = set()
+            for i in range(len(uows)):
+                uow_states.add(uows[i].get_state())
+            print 'UoW state:', uow_states
+            if set([saga.job.job_state.New,saga.job.job_state.Unknown, \
+                saga.job.job_state.Running]).isdisjoint(uow_states):
                 break
-                  
+            try:
+                time.sleep(5)
+            except:
+                break
 
 
 if __name__ == "__main__":
@@ -307,24 +309,25 @@ if __name__ == "__main__":
             if (cbnc*crjc%ccpn !=0):
                k =1
             number_nodes = ccpn * (cbnc*crjc/ccpn +k ) 
-            resource_list[i].append({ \
-                    "resource_url" : resource_url[i], \
-                    "walltime": walltime , \
-                    "number_nodes" : str(number_nodes), \
-                    "cores_per_node" : cores_per_node[i], \
-                    "allocation" : allocation[i], \
-                    "queue" : queue[i], \
-                    "bigjob_agent": bigjob_agent[i], \
-                    "userproxy": resource_proxy[i], \
-                    "working_directory": work_dir[i]})
-
+                        
+            jd = troy.bj_description()
+            RESOURCE_URL = "gram://painter1.loni.org/jobmanager-pbs"
+            DEPLOYMENT_LOCATION = '/work/smaddi2/bigjob/'
+            jd.set_attribute('NumberOfProcesses', '4') # total number of agents
+            jd.set_attribute('ProcessesPerHost', '4') # Ignored?
+            jd.set_attribute('Queue', 'workq')
+            jd.set_vector_attribute('JobProject', ['randomstring'])
+            jd.set_attribute('WorkingDirectory', DEPLOYMENT_LOCATION)
+            jd.set_attribute('WallTimeLimit', '12')
+            #jd.set_attribute('bigjob_agent', '2')
+            bj.add_resource(troy.bigjob_type.SAGA, RESOURCE_URL, jd)
+            print "Pilot Job/BigJob URL: ", bj.list_resources()
             logger.info("resource_url" + resource_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
-            #create multiple manyjobs should be changed by bfast affinity implementation
-            mjs.append(many_job.many_job_service(resource_list[i], None))
+
         
-        
+        """
         #file transfer step, check if prepare_shortreads parameter is set from job-conf file 
         ### transfer the files index files
         if not (source_refgenome == "NONE"):       
@@ -367,12 +370,15 @@ if __name__ == "__main__":
                     p = p + int(resources_job_count[i])
         total_number_of_jobs=0
         ### run the matching step      
-        
+        """
         #sample sub_jobs_submit for reference
         #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 
         #                 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
+        
+        
+        
         matches_starttime = time.time()
-
+    
         for i in range (0, len(resources_used)):         
             sub_jobs_submit("bfast","matches", i , total_number_of_jobs 
                            , resources_job_count[i],int(bfast_num_cores[i]))
@@ -388,45 +394,18 @@ if __name__ == "__main__":
         matches_runtime = time.time()-matches_starttime
         logger.info("Matches Runtime: " + str( matches_runtime) )       
         
-        total_number_of_jobs=0
-        ### run the local-alignment step
-        localalign_starttime = time.time()     
-        for i in range (0, len(resources_used)):         
-            sub_jobs_submit("bfast","localalign", i , total_number_of_jobs 
-                           , resources_job_count[i],int(bfast_num_cores[i]))
-            logger.info( "localalign resource " + str(i))
-            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
-            logger.info( "resources_job_count " + str(resources_job_count[i]))
-            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))            
-            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])
-
-        wait_for_jobs(total_number_of_jobs)
         
-        localalign_runtime = time.time() - localalign_starttime
-        logger.info("localalign Runtime: " + str( localalign_runtime) )
-        total_number_of_jobs=0
-        ### run the postprocess step        
-        postprocess_starttime = time.time()
-        for i in range (0, len(resources_used)):         
-            sub_jobs_submit("bfast","postprocess", i , total_number_of_jobs
-                           , resources_job_count[i],int(bfast_num_cores[i]))
-            logger.info( "postprocess resource " + str(i))
-            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
-            logger.info( "resources_job_count " + str(resources_job_count[i]))
-            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))            
-            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])
-        wait_for_jobs(total_number_of_jobs)
-        postprocess_runtime = time.time() - postprocess_starttime
-        logger.info("Postporcess Runtime: " + str( postprocess_runtime) )
         
-        for i in range(0,len(resources_used) ):
-            mjs[i].cancel()
+        
+        total_number_of_jobs=0
+        
+        
+        
+        bj.cancel()
 
     except:
         traceback.print_exc(file=sys.stdout)
         try:
-            for i in range(0,len(resources_used) ):
-                mjs[i].cancel()
-            
+            bj.cancel()            
         except:
             pass
