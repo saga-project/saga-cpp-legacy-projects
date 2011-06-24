@@ -2,12 +2,7 @@
 """ Example application demonstrating job submission via bigjob 
     diane implementation of BigJob is used
 """
-# BigJob implementation can be swapped here by importing another implementation,
-# e.g. condor, cloud, azure, diane
-cwd = os.getcwd()
-BIGJOB_HOME= "cwd" + "../"
-sys.path.append("..")
-import troy
+
 
 import sys
 import saga
@@ -20,6 +15,16 @@ import logging
 import ConfigParser
 import optparse
 import uuid
+
+# BigJob implementation can be swapped here by importing another implementation,
+# e.g. condor, cloud, azure, diane
+
+cwd = os.getcwd()
+BIGJOB_HOME= "/home/cctsg/examples/bigjob/branches/bigjob_overhaul/"
+sys.path.append(BIGJOB_HOME)
+
+import troy
+
 
 global  uows #, job_start_times, job_states
 uows = []
@@ -193,6 +198,8 @@ if __name__ == "__main__":
     #parse job conf file
     job_conf = options.job_conf
     config = initialize(job_conf)
+    
+    print job_conf
     
     refgenome = config.get('Bfast', 'refgenome')
     job_id = config.get('Bfast', 'job_id')
