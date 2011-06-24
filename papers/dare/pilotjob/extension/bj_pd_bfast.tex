@@ -395,8 +395,6 @@ of application types, and is usable over a broad range of
 infrastructures, i.e., it is general-purpose and extensible, and as we
 will argue is also interoperable with Clouds.
 
-
-
 \subsection{Definitions}
 
 
@@ -805,8 +803,9 @@ for expressing data localities and affinities. Pilot-Data can be used to create
 groups of file clustered together using a quantifiable property, such as 
 affinity ($\alpha$) e.g., $\alpha = 1.0$ would imply that files are always 
 stored together. \jhanote{I've distinguished store and usage} The concept of
-correlated access originates in
+correlated access originates in 
 Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
+
 
 Pilot-Data provides a set of basic operations on top of these file
 groups, whilst Pilot Store is a container that represents a logical
@@ -814,7 +813,6 @@ group of physical files that share the same affinity. Pilot-Store
 containers can be used to express data-data affinities. The abstraction 
 supports basic management tasks (create, delete, update,
 move, list). 
-
 
 The Pilot-Data abstraction serves the following needs:
 \begin{itemize}
@@ -829,23 +827,24 @@ The Pilot-Data abstraction defines the following elements:
 \begin{itemize}
     \item \textbf{Data Unit:} The base unit of data used by the framework, e.\,g.\ a data 
     file or chunk.
-    \item \textbf{Pilot-Data:} Allows the logical grouping of files and the expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.    
-    \item \textbf{Pilot-Store:} Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
+    \item \textbf{Pilot-Data (PD):} Allows the logical grouping of files and the 
+expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.    
+    \item \textbf{Pilot-Store (PS):} Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
 \end{itemize}
-% Figure~\ref{fig:figures_ps-instantiation} describes the differences between
-% pilot data object (abstract pilot stores) and pilot stores. 
+
 A pilot-data object is a logical container and describes the properties of a 
 group of files. A pilot-store is a placeholder reserving a certain amount of 
 storage. By associating a pilot data object to a pilot store the data is 
 actually moved to the physically location managed by the pilot store.
+Pilot-Data supports commonly occurring application patterns, such as the 
+scatter/gather pattern commonly used by  master-worker or 
+MapReduce-applications.
 
-% \begin{figure}[htbp]
-%     \centering
-%         \includegraphics[width=0.4\textwidth]{figures/ps-instantiation.pdf}
-%     \caption{Level of Abstractions - Resource Binding}
-%     \label{fig:figures_ps-instantiation}
-% \end{figure}
-	
+While the application-level abstraction enables application developers to model 
+data affinities, dependencies etc., the runtime framework will be responsible 
+for managing data-compute co-allocations, data-transfers, the dynamic expansion of storage pools etc. 
+
+\alnote{insert Millau figure}
 
 \subsubsection{Extension of P*-Model}
 
@@ -857,20 +856,40 @@ extended by the following elements:
 \begin{itemize}
     \item \textbf{Data Characteristics:}
     \begin{itemize}
-    \item Static Data
-    \item Dynamic data:
+    \item Static data refers to data that is infrequently changed and does not 
+	need to be moved.
+    \item Dynamic data refers to different spatial and temporal properties of 
+	data:
     \begin{itemize}
-    	\item Data to be generated (temporal)
-    	\item Data that is in place (spatial)
-    	\item Data that is changing (temporal)
+    	\item Data that is generated or changing at runtime (temporal).
+    	\item Data that is in place or needs to be moved (spatial).
     \end{itemize}
-    \end{itemize}        
+	\item Streaming data
+    \end{itemize}  
+	\item \textbf{Data Access Patterns: } While the P* is 
+	primarily concerned with capturing aspects of distributed coordination, this 
+	elements is extended to include patterns of data access.
+	\begin{itemize}
+		\item Co-Access: a collection of data that is always accessed together
+		\item One-to-One: two data objects that are always accessed together (a 
+		special case of co-access)
+		\item One-to-All:
+		\item All-to-All:
+		\item Scatter:
+		\item Gather:
+	\end{itemize}      
     \item \textbf{Affinities:}
     \begin{itemize}
-        \item Data-Data
-        \item Data-Compute
+        \item Data-Data affinity arises when different data-sets/elements are 
+		required to be at the same compute element.
+		\item Compute-Compute may arise, for example, either if C1 and C2 are 
+		related by a data-element D, which could be the output of C1 and is the 
+		required input for C2 (Case-I), or if both C1 and C2 need to operate on 
+		(replicas of) the same data-element (Case-II)
+        \item Data-Compute		
     \end{itemize}
-    \item \textbf{Unit of Scheduling:}
+    \item \textbf{Unit of Scheduling} describes the core unit of data that is 
+	used by the framework.
     \begin{itemize}
         \item Chunk-based
         \item File-based
@@ -883,9 +902,10 @@ extended by the following elements:
 \end{itemize}
 
 Pilot-Job and Pilot-Data encapsulate cross-cutting properties across data and 
-computation.
+computation. Both Pilot-Job and Pilot-Data can be used to express affinities 
+between data and compute elements. 
 
-\alnote{insert Millau figure}
+
 
 \noindent
 Analogies with Pilot-Job:
