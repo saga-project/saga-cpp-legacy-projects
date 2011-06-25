@@ -347,7 +347,6 @@ class bigjob_agent:
          
     def free_nodes(self, job_dir):
          self.resource_lock.acquire()
-         print "Free nodes ..."         
          number_nodes = int(job_dir.get_attribute("NumberOfProcesses"))
          machine_file_name = self.get_machine_file_name(job_dir)
          print "Machine file: " + machine_file_name
@@ -356,8 +355,11 @@ class bigjob_agent:
                  machine_file = open(machine_file_name, "r")
                  allocated_nodes = machine_file.readlines()
                  machine_file.close()
-         except:
-             pass
+         except:	
+	     traceback.print_exc(file=sys.stderr)
+
+         print "Free nodes: " + str(allocated_nodes)         
+	
          for i in allocated_nodes:
              print "free node: " + str(i) + " current busy nodes: " + str(self.busynodes) + " free nodes: " + str(self.freenodes)             
              self.busynodes.remove(i)
@@ -377,6 +379,7 @@ class bigjob_agent:
         return homedir  + "/advert-launcher-machines-"+ job_dir_url
         
     def poll_jobs(self):
+	self.threadpool.wait()
         """Poll jobs from advert service. """
         jobs = []
         # new algorithm separates new jobs and old jobs in separate dirs
@@ -392,19 +395,21 @@ class bigjob_agent:
     def start_new_job_in_thread(self, new_job):
         """evaluates job dir, sanity checks, executes job """        
         print "check job: " + new_job
-        new_job_item = self.new_job_dir.open_dir(new_job, saga.advert.Create | saga.advert.ReadWrite)
+	base_dir = saga.advert.directory(saga.url(self.base_url), saga.advert.Create | saga.advert.ReadWrite)
+        new_job_dir = saga.advert.directory(saga.url(self.base_url+"/new/"), saga.advert.Create| saga.advert.CreateParents | saga.advert.ReadWrite)
+        new_job_item = new_job_dir.open_dir(new_job, saga.advert.Create | saga.advert.ReadWrite)
         job_url = new_job_item.get_attribute("joburl")
         print "Found new job: " + str(job_url)
         job_dir = None
         try: #potentially racing condition (dir could be already deleted by RE-Manager
-            job_dir = self.base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
+            job_dir = base_dir.open_dir(saga.url(job_url), saga.advert.Create | saga.advert.ReadWrite)
         except:
             pass
         if job_dir != None:
             self.execute_job(job_dir)
             print "Execute: " + job_dir.get_attribute("Executable")
             if job_dir.get_attribute("state")=="Running":
-                self.new_job_dir.remove(new_job_item.get_url(), saga.name_space.Recursive)
+                new_job_dir.remove(new_job_item.get_url(), saga.name_space.Recursive)
         
         
         # OLD unoptimized code
