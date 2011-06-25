@@ -10,8 +10,7 @@ import pdb
 # BigJob implementation can be swapped here by importing another implementation,
 # e.g. condor, cloud, azure
 import sys
-sys.path.append("..")
-from bigjob import bigjob, subjob
+
 
 
 # configurationg
@@ -22,6 +21,9 @@ if os.getenv("BIGJOB_HOME")!=None:
 else:
     BIGJOB_HOME= os.getcwd() + "/../"
     os.environ["BIGJOB_HOME"]=BIGJOB_HOME
+
+sys.path.insert(0, BIGJOB_HOME)
+from bigjob import bigjob, subjob
 
 
 """ Test Job Submission via Advert """

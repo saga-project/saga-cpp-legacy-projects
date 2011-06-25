@@ -15,8 +15,7 @@ import traceback
 import logging
 
 import sys
-sys.path.append("..")
-import many_job_affinity
+
 
 NUMBER_JOBS=8
 
@@ -25,6 +24,11 @@ if os.getenv("BIGJOB_HOME")!=None:
 else:
     BIGJOB_HOME= os.getcwd() + "/../"
     os.environ["BIGJOB_HOME"]=BIGJOB_HOME
+
+sys.path.insert(0, BIGJOB_HOME)
+from bigjob import bigjob, subjob
+import many_job_affinity
+
 
 def has_finished(state):
         state = state.lower()

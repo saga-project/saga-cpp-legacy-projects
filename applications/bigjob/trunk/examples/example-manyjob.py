@@ -19,14 +19,17 @@ import logging
 # BigJob implementation can be swapped here by importing another implementation,
 # e.g. condor, cloud, azure
 import sys
-sys.path.append("..")
-import many_job
 
 if os.getenv("BIGJOB_HOME")!=None:
     BIGJOB_HOME= os.getenv("BIGJOB_HOME") 
 else:
     BIGJOB_HOME= os.getcwd() + "/../"
     os.environ["BIGJOB_HOME"]=BIGJOB_HOME
+
+sys.path.insert(0, BIGJOB_HOME)
+from bigjob import *
+import many_job
+
     
 NUMBER_JOBS=128
 
