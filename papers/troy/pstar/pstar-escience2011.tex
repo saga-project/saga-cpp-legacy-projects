@@ -891,14 +891,20 @@ Further, non-functional properties must be considered:
 \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
   BigData etc.}
 
-TROY is a SAGA-based implementation of the P* model defined in 
-section~\ref{sec:pilot-model}. As shown in Figure~\ref{fig:figures_troy} the 
-framework is located on top of the SAGA API and runtime environment, which is 
-utilized for job management, data transfer and distributed coordination. The 
-TROY API maintains the SAGA Look \& Feel and was designed to be similar 
-to SAGA in appearance and philosophy: it re-uses many of the well defined (and 
-standardized) semantics. Further, we aimed for a simple-to-use API exposing as 
-least amount of details needed.
+TROY is a SAGA-based implementation of the P* model defined in
+section~\ref{sec:pilot-model}. As shown in Figure~\ref{fig:figures_troy} the
+framework is located on top of the SAGA API and runtime environment, which is
+utilized for job management, data transfer and distributed coordination. The
+TROY API maintains the SAGA Look \& Feel and was designed to be similar to SAGA
+in appearance and philosophy: it re-uses many of the well defined (and
+standardized) semantics and syntax of the File, Job and Advert API. Further, we
+aimed for a simple-to-use API exposing as least amount of details necessary.
+TROY supports different usage modes i) it provides stand-alone Pilot-Job
+functionalities, ii) it provides a unified API to various Pilot-Job
+implementations (e.\,g.\ Condor-G and Diane) and iii) enables the concurrent
+usage of multiple Pilot-Job implementations. Further, we show in 
+section~\ref{sec:bigdata} how TROY is extended to support dynamic data and
+affinity-based scheduling. 
 
 \begin{figure}[htbp]
 	\centering
@@ -908,13 +914,74 @@ least amount of details needed.
 \end{figure}
 
 
-Table~\ref{tab:pilotjob_overview} gives an overview of the different SAGA-based 
-Troy implementations and their characteristics. BigJob currently
-supports different backends: SAGA BigJob can be used in conjunction
-with different SAGA adaptors, e.\,g.\ the Globus, PBS, Amazon Web
-Service and local adaptor. In addition to the SAGA-based reference
-implementation, there are various other implementations of the BigJob
-API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
+\subsection{What is Unique about a SAGA-based Implementation of the
+  P-* Model?}
+\alnote{these points should be addressed in the introduction above}
+\begin{itemize}
+\item Consistent with based API and job/file/data model
+\item thus programmable (eg. affinity-based PJ) and extensible 
+\item ....
+\item different usage modes: a stand-alone PJ, API access to other PJ,
+  concurrent usage with other PJ (as will be demonstrated)
+\end{itemize}
+
+\jhanote{MUST provide SAGA URL for updated BigJob API and
+  documentation}
+
+\subsection{BigJob: A SAGA-based Pilot-Job}
+
+\jhanote{Alternative title: ``BigJob: TROY Pilot-Job'' ?}
+
+\jhanote{It is CRITICAL to explain why we need to expose the details
+  of multiple atomic BigJobs to the end-user? Remember part of the
+  whole idea of the exercise is, (i) theory: to provide a framework
+  for understanding any differences, (ii) practice: make all these
+  differences go away from the end user!}
+\alnote{Since we were not sure about the term ``atomic'', we could also use base 
+bigjob, or core bigjob}
+
+
+BigJob is the SAGA-based Pilot-Job implementation of the TROY
+framework~\cite{bigjob_web}. It supports a wide range of application types, and
+is usable over a broad range of infrastructures, i.\,e.\ it is general-purpose
+and extensible. 
+
+\alnote{not sure how deep we should go here or in sec V}
+The framework consists of the API package and a runtime environment. The API
+utilizes the framework and elements defined in section~\ref{sec:pilot-model}. We
+define two description classes that extend the known SAGA Job Description
+object, the pilot-job description and the UW description. A TROY manager
+represents a pool of resources. Resources can be added by submitting a pilot-job
+description to the TROY manager using the \texttt{add\_resource()} method. 
+Subsequently, UW can be assigned to the TROY manager. At runtime resources can 
+be added and removed at any time. 
+
+
+\begin{figure*}[htbp]
+	\centering
+		\includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
+	\caption{SAGA-based TROY Implementation - BigJob \jhanote{fix
+            to include EGI/DIANE}}
+	\label{fig:figures_distributed_pilot_job}
+\end{figure*}
+
+Pilot-Job implementations are plugged into the TROY runtime environment via a
+thin adaptor layer. Figure~\ref{fig:figures_distributed_pilot_job} shows the
+various layers of the SAGA TROY framework. While BigJob-DIANE provides dynamic
+capabilities out-of-the-box, the traditional BigJob
+implementation~\cite{saga_bigjob_condor_cloud} utilizes two layers: the
+\emph{Core BigJob} and the \emph{Dynamic BigJob} layer. Core BigJobs are
+confined to a single resource and represented by a single master process
+(i.\,e.\ a single BigJob Manager). Generally, Core BigJobs are used to
+encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
+(Condor, Cloud, etc.). A Dynamic BigJob manages multiple Core BigJobs.
+
+Table~\ref{tab:pilotjob_overview} summarizes the different SAGA-based
+implementations and their characteristics. BigJob currently supports different
+backends: SAGA BigJob can be used in conjunction with different SAGA adaptors,
+e.\,g.\ the Globus, PBS, Amazon Web Service and local adaptor. In addition to
+the SAGA-based reference implementation, there are various other implementations
+of the BigJob API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 
 
 \begin{table}[t]
@@ -958,115 +1025,53 @@ API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 \end{table}		
 
 
-\subsection{What is Unique about a SAGA-based Implementation of the
-  P-* Model?}
+% Aspects that need to be addressed:
+% \begin{itemize}
+%     \item Big-Job Agent: capacity (physical size) is a property of an agent. 
+% 	cardinality: how many sub-jobs can be managed by an agent?
+% 	\item Sub-Job Agent: Agent assignment should be separated from resource 
+% 	assignment. Agent has the freedom to assign tasks to sub-job in any way 
+% 	it want. Agent can do local decisions.    
+%   \item Would it make sense to use the ``internal'' versus
+%     ``external'' coordination concept to distinguish sub-job
+%     versus big-job agent
+% \end{itemize}
 
-\begin{itemize}
-\item Consistent with based API and job/file/data model
-\item thus programmable (eg. affinity-based PJ) and extensible 
-\item ....
-\item different usage modes: a stand-alone PJ, API access to other PJ,
-  concurrent usage with other PJ (as will be demonstrated)
-\end{itemize}
-
-\jhanote{MUST provide SAGA URL for updated BigJob API and
-  documentation}\cite{troy_api}
-
-\subsection{BigJob: A SAGA-based Pilot-Job}
-
-\jhanote{Alternative title: ``BigJob: TROY Pilot-Job'' ?}
-
-%\begin{figure}[t]
-%    \centering
-%        \includegraphics[width=0.7\textwidth]{figures/distributed_pilot_job.pdf}
-%    \caption{BigJob API and Implementation}
-%    \label{fig:figures_distributed_pilot_job}
-%\end{figure}
-
-BigJob is the SAGA-based Pilot-Job implementation of the TROY
-framework~\cite{bigjob_web}. 
-It supports a wide range of application types, and is
-usable over a broad range of infrastructures, i.\,e.\ it is
-general-purpose and extensible.  As shown in Figure~\ref{fig:figures_distributed_pilot_job} the framework consists of two layers: the atomic and the dynamic BigJob:
-\begin{itemize}
-   \item  \textbf{Atomic BigJob:} An atomic BigJob is confined to a single 
-   cluster resource and represented by a single master process (i.\,e.\ a 
-   single BigJob Manager or DIANE RunMaster).
-	\item \textbf{Dynamic BigJob:} A dynamic BigJob consists of several 
-	pilot-jobs distributed across 1 or more resources. Dynamic BigJobs are 
-	malleable, i.\,e.\ resources can added or be removed.
-\end{itemize}
-
-\begin{figure*}[htbp]
-	\centering
-		\includegraphics[height=3in]{figures/distributed_pilot_job.pdf}
-	\caption{SAGA-based TROY Implementation - BigJob \jhanote{fix
-            to include EGI/DIANE}}
-	\label{fig:figures_distributed_pilot_job}
-\end{figure*}
+In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
+accelerate the time-to-completion or to provide resilience to resource failures
+and/or unexpected delays. A Dynamic BigJob consists of multiple Core
+BigJobs potentially distributed across several resources and types of
+infrastructures. Each BigJob manages it's own resources. An extensible scheduler
+is used for dispatching UWs to the different BigJobs that are managed by a
+Dynamic BigJob. Dynamic BigJobs are malleable, i.\,e.\ resources can added or be
+removed. For this purpose, the dynamic BigJob provides an introspection API that applications can utilize to query the manager for a list of current resources.
 
 
-\jhanote{It is CRITICAL to explain why we need to expose the details
-  of multiple atomic BigJobs to the end-user? Remember part of the
-  whole idea of the exercise is, (i) theory: to provide a framework
-  for understanding any differences, (ii) practice: make all these
-  differences go away from the end user!}
-\alnote{Since we were not sure about the term ``atomic'', we could also use base 
-bigjob, or core bigjob}
-
-The BigJob framework provides several types of atomic BigJob for
-various resource types. The dynamic BigJob is discussed in
-section~\ref{sec:dynamic_bigjob}.
 
 
-Aspects that need to be addressed:
-\begin{itemize}
-    \item Big-Job Agent: capacity (physical size) is a property of an agent. 
-	cardinality: how many sub-jobs can be managed by an agent?
-	\item Sub-Job Agent: Agent assignment should be separated from resource 
-	assignment. Agent has the freedom to assign tasks to sub-job in any way 
-	it want. Agent can do local decisions.    
-  \item Would it make sense to use the ``internal'' versus
-    ``external'' coordination concept to distinguish sub-job
-    versus big-job agent
-\end{itemize}
-
-\subsubsection{Dynamic BigJob}
-
-\label{sec:dynamic_bigjob}
-A traditional BigJob is always confined to a single resource. In many scenarios 
-it is beneficial to utilize multiple resources, e.\,g.\ to accelerate the
-time-to-completion or to provide resilience to resource failures and/or
-unexpected delays. The Dynamic BigJob provides an abstraction for multiple
-big-jobs. These big-jobs can be distributed across multiple resources and types
-of infrastructures. Each big-job manages it's own resources. An extensible
-scheduler is used for dispatching sub-jobs to the different big-jobs that are
-managed by a dynamic big-job.
-
-
-Dynamic BigJob provides the ability to dynamically add and remove resources to a 
-big-job. The API consists of two parts, the resource management and the resource 
-introspection part:
-\begin{itemize}
-    \item \texttt{add\_resource()}: New resources are added by starting a new
-    big-job.There are various flavors of this method:
-    \begin{itemize}
-        \item \texttt{add\_resource(re\-sour\-ce\_dic\-tionary)}: Start another big-job on the resource defined in the \texttt{resource\_dictionary}.
-        \item \texttt{add\_resource(affinity, number\_cores)}: Add another big-job to the specified affinity group.
-    \end{itemize}
-    \item \texttt{remove\_resource(bigjob)}: Removes the big-job from the
-    resources.
-\end{itemize}
-
-Higher-level wrappers that encapsulate e.\,g.\ the specific resource
-descriptions can be implement. Further, to implement this dynamic resource
-capabilities it is necessary to provide different dynamic resource introspection
-in the dynamic big-job layer:
-\begin{itemize}
-    \item \texttt{get\_resources()}: returns a list of managed big-job objects.
-     Each big-job object can be queried for it's allocated resources (number 
-     nodes, number cores).
-\end{itemize}
+% Dynamic BigJob provides the ability to dynamically add and remove resources to a 
+% big-job. The API consists of two parts, the resource management and the resource 
+% introspection part:
+% \begin{itemize}
+%     \item \texttt{add\_resource()}: New resources are added by starting a new
+%     big-job.There are various flavors of this method:
+%     \begin{itemize}
+%         \item \texttt{add\_resource(re\-sour\-ce\_dic\-tionary)}: Start another big-job on the resource defined in the \texttt{resource\_dictionary}.
+%         \item \texttt{add\_resource(affinity, number\_cores)}: Add another big-job to the specified affinity group.
+%     \end{itemize}
+%     \item \texttt{remove\_resource(bigjob)}: Removes the big-job from the
+%     resources.
+% \end{itemize}
+% 
+% Higher-level wrappers that encapsulate e.\,g.\ the specific resource
+% descriptions can be implemented. Further, to implement this dynamic resource
+% capabilities it is necessary to provide different dynamic resource introspection
+% in the dynamic big-job layer:
+% \begin{itemize}
+%     \item \texttt{get\_resources()}: returns a list of managed big-job objects.
+%      Each big-job object can be queried for it's allocated resources (number 
+%      nodes, number cores).
+% \end{itemize}
 
 
 % It uses SAGA BigJob approach to start multiple BigJobs agents 
@@ -1078,17 +1083,12 @@ in the dynamic big-job layer:
   application scenario different BJ with different
   properties/characteristics may be required. Thus dynamic BJ maybe
   comprised of either homogeneous or heterogeneous atomic BJs}
-
-In particular for data-intensive applications data locality is an important
-concern. Different types of affinity, e.\,g.\ data-data or data-compute, exists.
-Dynamic BigJob provides support for data-compute affinities. Each resource
-(i.\,e.\ each big-job) can be assigned to a certain affinity. The affinity-aware
-scheduler then ensures that sub-jobs that demand a certain affinity are only
-executed on resources that fulfill this constraint.
+\alnote{did one pass... still not perfect}
 
 
 
-\subsection{BigJob for Cloud Computing}
+
+\subsubsection{BigJob for Cloud Computing}
 
 \jhanote{Once again -- why do differences in execution details between
   grids and clouds result in the need for different atomic BJs needs
@@ -1162,8 +1162,8 @@ Azure Storage is used.
   used. Thus, this limitation}
 
 
-\subsection{BigData}
-
+\subsection{BigData: A SAGA-based Pilot-Data Implementation}
+\label{sec:bigdata}
 % \jhanote{theory goes upfront; implementation and architecture stays
 %   here} \alnote{ok}
 
@@ -1216,6 +1216,15 @@ Work on optimizing file transfers: Kosar[2011]
 
 Work on reliable file transfer: RFT, Globus Online
 
+\subsubsection{BigJob and BigData Integration}
+
+In particular for data-intensive applications data locality is an important
+concern. Different types of affinity, e.\,g.\ data-data or data-compute, exists.
+Dynamic BigJob provides support for data-compute affinities. Each resource
+(i.\,e.\ each big-job) can be assigned to a certain affinity. The affinity-aware
+scheduler then ensures that sub-jobs that demand a certain affinity are only
+executed on resources that fulfill this constraint.
+
 
 \subsubsection{Related Work}
 
@@ -1261,7 +1270,7 @@ Questions:
     \item Where should we store them for effective load balancing?
 \end{itemize}
 
-\subsection{TODO/Future Work}
+\textbf{TODO/Future Work}
 The current framework provides building blocks for expressing data localities and operation on file groups (similar to filecules).
 
 Limitations:
@@ -1279,7 +1288,11 @@ Limitations:
     \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
 \end{itemize}
 
+\subsection{Conclusion}
 
+In the future we plan to further refine the TROY API, e.\,g.\ by generically supporting different security models via a context API (similar to the SAGA Context API).
+
+The TROY API is available at~\cite{troy_api}.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -1309,7 +1322,7 @@ different usage scenarios and infrastructure. The aim of this section is to
 show: (i) that our P* Model can be used to explain/understand DIANE as well as
 other Pilot-Job frameworks.
 
-\subsection{Diane}
+\subsection{DIANE}
 
 DIANE~\cite{Moscicki:908910} is a task coordination framework which
 implements the Master/Worker pattern. Table~\ref{table:bigjob-saga-diane} 
