@@ -103,8 +103,10 @@
 \usepackage{graphicx}
 \fi
 
-\title{Towards A Framework for Pilot-Abstractions for Production
-  Cyberinfrastructure}
+% \title{Towards A Framework for Pilot-Abstractions for Production
+%   Cyberinfrastructure}
+
+\title{A Framework for Pilot-Abstractions for Dynamic Execution}
 
 % \jhanote{Alternate title: The Tiered Resource OverlaY framework
 %   (TROY): An Empirical Framework for Pilot-* Abstractions}
@@ -392,18 +394,18 @@ of application types, and is usable over a broad range of
 infrastructures, i.e., it is general-purpose and extensible, and as we
 will argue is also interoperable with Clouds.
 
-\subsection{Definitions}
+\subsection{Elements of the P-* Model}
 
 
 \begin{enumerate}[A.]
 
-\item\textbf{Pilot-Job:} A PJ is a container for multiple
+\item\textbf{Pilot-Job Abstraction:} A PJ is a container for multiple
   \textbf{tasks/jobs?}  that may be dynamically added to it. The PJ
   (also referred to as pilot) is the entity that actually gets
   scheduled {\it first} on a resource (\ref{resource}).  PJ provides a
-  mechanism to decouple “tasks'' from being hard-coded to a specific
-  “resource'' or delay the binding. \alnote{ the "thing" that is sent
-    out to \ref{resource}} \label{pilot-agent}
+  mechanism to decouple unit of works (the compute ``tasks'') from being 
+  hard-coded to a specific “resource'' or delay the binding. \alnote{ the 
+  "thing" that is sent out to \ref{resource}} \label{pilot-agent}
 
   \note{Tasks are ultimately loaded onto specific resources using the
     pilot-job and late-binding. In other words} \note{PJ provides a
@@ -413,9 +415,13 @@ will argue is also interoperable with Clouds.
   \note{Facilities provided include the creation of a PJ, insertion of
     tasks, and attachment to a CPU resource pool for late-binding task
     execution.}
+	\alnote{Remark from AndreM: we need to careful when talking about Pilot-Job 
+	as a framework and Pilot-Job as the placeholder job (agent).}
+
+\item Conceptual agent/ pilot job / placeholder job: user space - attempt to decouple workload from resource prov. and workload
 
 \item \textbf{Local Resource Manager (LRM)} is the gateway to local resources. 
-This can be e.\,g.\ a PBS/Torque or WMS service.
+This can be e.\,g.\ a PBS/Torque or WMS service. \alnote{not a element of P* possibly merge with R - move to impl. section}
 
 \item \textbf{Unit of Work (UW):} A unit of work is the workload that 
     encapsulates a self-contained piece of work and will be assigned to a 
@@ -455,7 +461,7 @@ as well.}
 
 \item \textbf{Resource:} A storage/compute resource that has a common
   entry point (like a queue). Commonly, a resource is accessed by a 
-  LRM.\label{resource}
+  LRM.\label{resource} \alnote{move to impl. section}
 	%\item \textbf{Headnode:} entity that is the entrance for an \ref{resource}
 	%\item \textbf{Master / Manager / Central / Control / Coordination:} 
 	%something central
@@ -472,13 +478,13 @@ as well.}
 \end{enumerate}
 
 \begin{figure}[htbp]
-        \centering    
-\subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job1.pdf}}\qquad\qquad
-    \subfigure{\includegraphics[width=0.4\textwidth]{figures/task-job2.pdf}}        
+    \centering    
+    \includegraphics[width=0.4\textwidth]{figures/task-job.pdf}
     \caption{Relationship between Unit of Work and Scheduleable Entity}
     \label{fig:figures_task-job1}
 \end{figure}    
 
+\note{to be moved to end}
 \noindent
 Example usage mode of a pilot job:
 \begin{enumerate}
@@ -512,10 +518,13 @@ Example usage mode of a pilot job:
 % sending the final job outcome to the Client.
 
 
-\subsection{Elements of P*-Model:}
+\subsection{Characteristics of P*-Model:}
 \label{sec:p_star_elements}
-We propose a set of fundamental properties/characteristics that can be
-used to construct a framework to describe pilot-*..
+
+We propose a set of fundamental properties/characteristics that aid the 
+description of P* frameworks. Further, these properties are important for the 
+implementation of P-*.
+
 
 % \jhanote{We should divide into two categories: those aspects that are
 %   exposed at the API level, i.e., which are purely internal or either
@@ -523,53 +532,34 @@ used to construct a framework to describe pilot-*..
 %   of internal coordination and external coordination}
 
 
-\subsubsection{Functional Elements:}
-\begin{itemize}
-
-    \item \textbf{Coordination:}
-    \begin{itemize}
-    \item \textbf{External Coordination (Exposed to API)} describes the 
-    coordination between the application and pilot-job framework. In general a 
-    component, such 
-	 as the central manager, exposes the pilot framework to the  application 
-	 (\ref{application}). 
-	 \item \textbf{Internal Coordination} describes how the various components of the 
-     pilot-job framework are internally coordinated.
+\subsubsection{Functional Characteristics}
+\noindent
+\textbf{Coordination:} describes how the various components of the 
+pilot-job framework are internally coordinated.
      		\begin{itemize}
-     			\item \textbf{Central:} Information about available resources (aka 
-     			pilots) are collected by a central manager.  Decisions are centrally 
-     			made by a manager process, which decides which unit 
-        		    of work  is executed on what resource. In BigJob 
-      		    this component is  represented by the BigJob Manager, in DIANE 
-      		    by the RunMaster.
-      			 \item \textbf{Hierarchical/Multi-Level coordination:} The 
-      			 framework can  utilize a hierarchy of distributed agents to 
-      			 coordinate between the components of the framework. 
-                  \begin{itemize}
-                  	    \item Central: BigJob-Cloud -- direct dispatching of 
-                  	    sub-jobs from manager (agent is component of manager)
-                          \item Lightweight resource agent: Diane -- Agent on 
-                          resource is used as a dispatcher (capacity = 1 sub-job)
-                          \item Heavy resource agent: SAGA BigJob -- resource 
-                          management, sub-job dispatching, state management...
-                  \end{itemize}
-     			\item \textbf{Decentral:} Control is distributed among the 
+     			\item \textbf{Decision Making:} In the \textbf{central} model 
+				information about available resources (aka 	pilots) are 
+				collected by a central manager.  Decisions are centrally 
+     			made by a manager process, which decides which UW is executed on 
+				what resource. In the \textbf{hierarchical/multi-Level} 
+				model the decision making process is divided up into a hierarchy 	
+				of distributed agents. Each of them coordinates a coordinates a 
+				defined aspect (e.\,g.\ a certain set of resources). In the 
+				\textbf{decentral:} model, control is distributed among the 
      			different components. Pilot-Jobs with decentralized decision 
      			making often utilize agents that accepts respectively pull 
-     			sub-jobs according to a set of defined criteria.
-     			\item \textbf{Push vs Pull:} We define the terms push and pull 
-         				based upon the determinism of the binding. If the task is 
-         				centrally explicitly addressed to a specific pilot, and 
-         				there is thus no freedom for a pilot to select the task, we 
-         				speak of a push model. In all other situations, when there 
-         				is a degree of freedom for the pilots to select a task, we 
-         				speak of pull.
+     			UWs according to a set of defined criteria.
 
-     			\item The different coordination mechanisms are applicable to many 
-     			aspects of the pilot-job framework 
-     			(e.g. to task binding, resource binding, resource 
-     			additions/removals).    		
-     		\end{itemize}
+				\item \textbf{Push vs Pull Model:} We define the terms push and 
+				pull based upon the determinism of the binding. If
+				the task is centrally explicitly addressed to a specific pilot, 
+				and there is thus no freedom for a pilot to select the task, we 
+				speak of a push model. In all other situations, when there is a 
+				degree of freedom for the pilots to select a task, we speak of 
+				pull. This model is applicable to different aspects of the 
+				pilot-job framework (e.g. to task binding, resource binding, 
+				resource additions/removals).    		
+     		
      \end{itemize}
 	 
     % \item \textbf{Coordination} describes how the various components of 
@@ -587,13 +577,7 @@ used to construct a framework to describe pilot-*..
 	% \item Sub-Job pull vs. push applies to control and data flow (different 
 	% objects that are pushed/pulled)
 
-	\item \textbf{Communication:}
-	\begin{itemize}
-        \item \textbf{External Communication (Exposed to API)} described the 
-        communication 
-        mechanism used to expose the pilot job framework to the client 
-        application.  This can be e.\,g.\ a local API or a service interface.
-        \item \textbf{Internal Communication:} Different communication 
+\textbf{Communication:} Different communication 
                	mechanisms can be used pilot-job  internally  (point-to-point, 
                	all-to-all, one-to-all, all-to-one, or group-to-group),
                 stream (potentially unicast or multicast), publish/subscribe or      
@@ -602,22 +586,22 @@ used to construct a framework to describe pilot-*..
                 schema, i.e. the central manager pushes something to the shared 
                 data space and the agents 
                 periodically check for new data.
-	\end{itemize}
 		
-	\item \textbf{Dynamic Resources:} Dynamic resources describes the ability 
+\textbf{Dynamic Resources:} Dynamic resources describes the ability 
 	to acquire and release resources at runtime of the pilot-job.
 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 	    resources, the external coordination is the same for both BJ.}
 
-	\item \textbf{Data management:} Managing input and output files can be 
+\textbf{Data management:} Managing input and output files can be 
 	critical in particular with the current increase of data volumes. Pilot-Jobs 
 	can support different kinds of data management, e.\,g.\ file stage-in and 
 	out. Data and UW must be efficiently scheduled obeying data-data and 
 	data-compute affinities. 
 
-	\item The \textbf{End-user abstraction} is the external API (respectively 
+The \textbf{End-user abstraction} is the external API (respectively 
 	interface) that is exposed by the P*-framework to the application.
-	\item \textbf{UW Binding} describes the assignment of a UW to a pilot-job.
+
+\textbf{UW Binding} describes the assignment of a UW to a pilot-job.
 	\begin{itemize}
 		\item Time of binding describes the point at which the binding decision 
 		is made, e.\,g.\ in the case of early binding the decision is made by 
@@ -638,7 +622,7 @@ used to construct a framework to describe pilot-*..
     %           \item After sub-job submission
     %       \end{itemize}
     % \end{itemize}
-	\item \textbf{UW Scheduling:} Task scheduling describes 1) the process of  
+\textbf{UW Scheduling:} Task scheduling describes 1) the process of  
 	mapping UW to US (pilot internal) and 2) of mapping US to physical 
 	resources (pilot external). Scheduling decisions are made on basis of a 
 	defined set of policies (e.g. resource capabilities, data/compute 
@@ -688,7 +672,7 @@ used to construct a framework to describe pilot-*..
     %     
 	% \item Infrastructure Independence (Supported middleware types and infrastructures)
 
-\item \textbf{Resource Types:} Pilot-jobs can be run on different 
+\textbf{Resource Types:} Pilot-jobs can be run on different 
 types of homogeneous and heterogeneous resources. HPC resources are specifically 
 designed for high-end parallel jobs, while HTC resources are particularly suited 
 for long-running, independent 
@@ -701,7 +685,7 @@ workloads on HPC resources.
 %       \item Number of concurrent sub-jobs per BigJob agent
 % \end{itemize}
 
-\item \textbf{Application Types} describe the characteristics of the 
+\textbf{Application Types} describe the characteristics of the 
 applications that are supported by a pilot-job frameworks:
 \begin{itemize}
     \item UW Mix: Homogeneous versus heterogeneous UWs
@@ -710,7 +694,7 @@ applications that are supported by a pilot-job frameworks:
     dependencies
     \item Runtime: Long-running versus short-running UWs
 \end{itemize}
-\end{itemize}
+
 
 \alnote{Not sure what to do with that...
 \textbf{Capacity of Agent:} How many resources are managed by an agent (BigJob Agent vs. Diane Worker Agent)? How many tasks can be assigned to a agent? Single core worker, partial node worker, whole node worker, multi node worker (BigJob
@@ -734,7 +718,7 @@ default). This characteristic influences:
 
 %\subsection{Authentication, Authorization and Accounting}
 
-\subsubsection{Non-Functional Elements}
+\subsubsection{Non-Functional Characteristics}
 
 \alnote{Moved AAA to the overall framework? Can we remove this subsection? Won't be a defining characteristic in my opinion?}
 
@@ -913,6 +897,24 @@ Analogies with Pilot-Job:
 	\item $g^{2} (PS_i) \rightarrow R_i$
 \end{itemize}
 
+
+\subsection{Implementation Considerations}
+
+To implement the P* model, additional consideration must be taken e.\,g.\ the 
+exposed end-user abstraction and usage model, the type of communication (API or 
+service) etc. In the following we will use the developed framework to develop 
+the TROY-based implementation of the P* model. 
+
+\textbf{External Coordination (Exposed to API)} describes the 
+  coordination between the application and pilot-job framework. In general a 
+  component, such 
+	 as the central manager, exposes the pilot framework to the  application 
+	 (\ref{application}).
+	
+		\textbf{External Communication (Exposed to API)} described the 
+     communication 
+     mechanism used to expose the pilot job framework to the client 
+     application.  This can be e.\,g.\ a local API or a service interface.
 
 \section{TROY: A SAGA-based Implementation of the P-* Model
   \jhanote{AL, MS, SM}}
@@ -1477,13 +1479,13 @@ other frameworks exist.
 	\hline
 	&\textbf{SAGA BigJob} &\textbf{DIANE} &\textbf{Condor Glide-In} &   
 	\textbf{SWIFT} \\ \hline
-External Coordination &Local API for UW execution management & &Master/Worker &\\ \hline
+External Coordination &Local API for UW execution management & &Master/Worker &SWIFT language\\ \hline
 
-Internal Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &\\ \hline
+Internal Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &Master/Worker \\ \hline
 
 External Communication &local &Central Manager exposes local \& remote CORBA service & &\\ \hline
 	
-Internal Communication &Advert Service &CORBA & & \\ \hline
+Internal Communication &Advert Service &CORBA & &GSI-enabled TCP \\ \hline
 
 UW Binding \& Scheduling &&&&\\ \hline
 
@@ -1505,6 +1507,9 @@ can be used to  marshall DIANE stand-alone as well as (ii) that the TROY API
 can be used stand alone with both BigJob and DIANE concurrently.
 
 \section{Conclusion and Future Work}
+
+
+implement a more decentral distributed control mechanism in TROY
 
 \section*{Acknowledgements}
 Mark Santcroos is sponsored by the program of BiG Grid, the Dutch e-Science Grid, which is financially supported by the Netherlands Organisation for Scientific Research, NWO.
