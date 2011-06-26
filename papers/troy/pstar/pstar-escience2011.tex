@@ -159,8 +159,8 @@
 \section*{Outline}
 
 \jhanote{Need consistency in the way Pilot-Job is written: currently
-  we have pilot-job, Pilot-Job, pilot job, and possibly more...} \alnote{Would 
-Pilot-Job and Pilot-Data be ok?}
+  we have pilot-job, Pilot-Job, pilot job, and possibly more...}
+\alnote{Would Pilot-Job and Pilot-Data be ok?}
 
 % \begin{footnotesize}
 % \begin{verbatim}
@@ -233,10 +233,10 @@ Introduction.
 
 \section{Introduction and Overview}
 
-Distributed infrastructure almost by definition is comprised  of a
-set of resources that are fluctuating -- growing, shrinking, changing
-in load and capability.  The ability to respond to such changes is
-thus an important attribute of any application that wants to utilize
+Distributed infrastructure almost by definition is comprised of a set
+of resources that are fluctuating -- growing, shrinking, changing in
+load and capability.  The ability to respond to such changes is thus
+an important attribute of any application that wants to utilize
 distributed infrastructure efficiently, as opposed to a static
 execution model characteristic of parallel and cluster computing.
 
@@ -553,41 +553,52 @@ functioning of any pilot-job based upon the P-* Model.
 \subsection{Characteristics of P*-Model:}
 \label{sec:p_star_elements}
 
-We propose a set of fundamental properties/characteristics that aid the 
-description of P* frameworks. Further, these properties are important for the 
-implementation of P-*.
+As we will see in \S4, the above elements can be mapped to specific
+entitites in many pilot-jobs in existence and use.  But in order to
+understand the degrees of freedom that any specific pilot-job
+implementation must constraint as well as the functioning of
+pilot-jobs implementation, we propose a set of fundamental
+properties/characteristics. These characteristis are integral
+components of the P-* Model, in that they describe the interactions
+between the elements, and thus aid in the description of P*
+frameworks. 
 
-\textbf{Coordination:} describes how the various components of the 
-pilot-job framework are internally coordinated. Commonly, 
-distributed coordination mechanisms, such as master-worker or a 
-set of distributed software agents are utilized.
-     \begin{itemize}
-     			\item \textbf{Decision Making:} In the \textbf{central} model 
-				information about available resources (aka 	pilots) are 
-				collected by a central manager.  Decisions are centrally 
-     			made by a manager process, which decides which UW is executed on 
-				what resource. In the \textbf{hierarchical} 
-				model the decision making process is divided up into a hierarchy 	
-				of distributed agents. Each of them coordinates a coordinates a 
-				defined aspect (e.\,g.\ a certain set of resources). In the 
-				\textbf{decentral} model, control is distributed among the 
-     			different components. Pilot-Jobs with decentralized decision 
-     			making often utilize agents that accepts respectively pull 
-     			UWs according to a set of defined criteria.
+% Further, these properties are important for the implementation of
+% P-*.  list several characteristics.
 
-				\item \textbf{Push versus Pull Model:} We define the terms push 
-				and pull based upon the determinism of the binding. If
-				the task is centrally explicitly addressed to a specific pilot, 
-				and there is thus no freedom for a pilot to select the task, we 
-				speak of a push model. In all other situations, when there is a 
-				degree of freedom for the pilots to select a task, we speak of 
-				pull. This model is applicable to different aspects of the 
-				pilot-job framework (e.g. to task binding, resource binding, 
-				resource additions/removals).    \alnote{should we move 
-				push/pull to communication? It's is also currently references 
-				there already}     		
-     \end{itemize}
-	 
+\textbf{Coordination:} describes how the various components of the
+pilot-job framework are internally coordinated. Coordination between
+different elements is required to understand:
+
+\begin{itemize}
+\item \textbf{Decision Making:} In the \textbf{central} model
+  information about available resources (aka pilots) are collected by
+  a central manager.  Decisions are centrally made by a manager
+  process, which decides which UW is executed on what resource. In the
+  \textbf{hierarchical} model the decision making process is divided
+  up into a hierarchy of distributed agents. Each of them coordinates
+  a coordinates a defined aspect (e.\,g.\ a certain set of
+  resources). In the \textbf{decentral} model, control is distributed
+  among the different components. Pilot-Jobs with decentralized
+  decision making often utilize agents that accepts respectively pull
+  UWs according to a set of defined criteria.
+
+\item \textbf{Push versus Pull Model:} We define the terms push and
+  pull based upon the determinism of the binding. If the task is
+  centrally explicitly addressed to a specific pilot, and there is
+  thus no freedom for a pilot to select the task, we speak of a push
+  model. In all other situations, when there is a degree of freedom
+  for the pilots to select a task, we speak of pull. This model is
+  applicable to different aspects of the pilot-job framework (e.g. to
+  task binding, resource binding, resource additions/removals).
+  \alnote{should we move push/pull to communication? It's is also
+    currently references there already}
+
+\end{itemize}
+
+Commonly, distributed coordination mechanisms, such as master-worker
+or a set of distributed software agents are utilized.
+
     % \item \textbf{Coordination} describes how the various components of 
     % the Pilot-Job framework are coordinated. Possible values for this vector 
     % include data flow, control flow, SPMD (where the control flow is implicit in 
@@ -603,29 +614,36 @@ set of distributed software agents are utilized.
 	% \item Sub-Job pull vs. push applies to control and data flow (different 
 	% objects that are pushed/pulled)
 
-\textbf{Communication:} describes the mechanisms for data exchange between the
-components of the framework, can be used (e.\,g.\ point-to-point, all-to-all,
-one-to-all, all-to-one, or group-to-group), stream (potentially unicast or
-multicast), publish/subscribe or shared data spaces. Shared data spaces (e.\,g.\
-tuple spaces) as used by BigJob are associated with a push/pull coordination
-schema, i.e. the central manager pushes something to the shared data space and
-the agents periodically check for new data.
+\textbf{Communication:} describes the mechanisms for data exchange
+between the components of the framework, can be used (e.\,g.\
+point-to-point, all-to-all, one-to-all, all-to-one, or
+group-to-group), stream (potentially unicast or multicast),
+publish/subscribe or shared data spaces. Shared data spaces (e.\,g.\
+tuple spaces) as used by BigJob are associated with a push/pull
+coordination schema, i.e. the central manager pushes something to the
+shared data space and the agents periodically check for new data.
 		
 % \textbf{Dynamic Resources:} Dynamic resources describes the ability 
 % 	to acquire and release resources at runtime of the pilot-job.
 % 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 % 	    resources, the external coordination is the same for both BJ.}
 
-\textbf{UW Binding} defines how and at what time the assignment of a UW to a 
-Pilot-Job is done.
-	\begin{itemize}
-		\item Time of binding describes the point at which the binding decision 
-		is made, e.\,g.\ in the case of early binding the decision is made by 
-		the application, while in late binding mode the decision is made by the 
-		middleware framework.
-		\item Explicit binding refers to the ability to explicitly 
-		request a certain resource for a UW.		
-	\end{itemize}
+\textbf{UW Binding} defines how and at what time the assignment of a
+UW to a Pilot-Job is done.  For example, a UW can be bound to a
+Pilot-Job either before the Pilot-Job has in turn been scheduled (late
+binding), whereas late-late binding can occur if the UW is bound after
+the Pilot-Job has been assigned to a resource.  Depending upon the
+type of binding supported, the workload is eithed specified completely
+indepenedent of a (specific) resource or just partially.
+\jhanote{Andre L: there was something we wanted to about the
+  advantages of late or late-late binding}
+
+Furthermore, the time of binding describes the point at which the
+binding decision is made, e.\,g.\ in the case of early binding, the
+decision could be made by the application, while in late binding mode
+the decision is made by the middleware framework. \jhanote{should we
+  change early/late to late/late-late?}
+
     %   \begin{itemize}
     %       \item In the traditional early binding approach a job carries
     %        exactly one task which is specified at a time of job submission.
@@ -638,20 +656,27 @@ Pilot-Job is done.
     %           \item After sub-job submission
     %       \end{itemize}
     % \end{itemize}
-\textbf{UW Scheduling:} Task scheduling describes i) the process of  
-	mapping UW to US (pilot internal) and ii) of mapping US to physical 
-	resources (pilot external). Scheduling decisions are made on basis of a 
-	defined set of policies (e.g. resource capabilities, data/compute 
-	affinities, etc.).
-	\begin{itemize}
-	 			\item Multi-level scheduling: In a distributed environment often multiple levels of autonomous schedulers are involved. 
-	 			\begin{itemize}	 			  
-	 			   \item The pilot job is schedules using the local RMS or some 
-	 			   other Grid (meta)-scheduler.
-	 			   \item UW are scheduled to US on application-level within the 
-	 			   pilot-job.
-	 			\end{itemize}
-	\end{itemize}
+
+\jhanote{Difference between mapping and assignment}
+
+\textbf{UW Scheduling:} Task scheduling describes i) the process of
+mapping UW to US (pilot internal) and ii) of mapping US to physical
+resources (pilot external).  The different scheduling decisions that
+need to be made are representative of multi-level scheduling decisions
+that are often required in distributed environments.  Scheduling
+decisions can be made on basis of a defined set of policies
+(e.g. resource capabilities, data/compute affinities, etc.).
+
+%\begin{itemize}
+% \item Multi-level scheduling: In a distributed environment often
+%   multiple levels of autonomous schedulers are involved.
+% \begin{itemize}
+% \item The pilot job is schedules using the local RMS or some other
+%   Grid (meta)-scheduler.
+% \item UW are scheduled to US on application-level within the
+%   pilot-job.
+% \end{itemize}
+%\end{itemize}
 
 	
 	
@@ -686,10 +711,10 @@ Pilot-Job is done.
 
 \subsubsection*{Bringing it all together}
 
-\jhanote{To generalise the previous point,
-  we need to have a few sentences that aims to put all the elements,
-  characteristics together and presents a {\it unified} view of the
-  working of the P-* Model.}
+\jhanote{To generalise the previous point, we need to have a few
+  sentences that aims to put all the elements, characteristics
+  together and presents a {\it unified} view of the working of the P-*
+  Model.}
   
 \noindent
 Example usage mode of a pilot job:
@@ -716,8 +741,8 @@ Example usage mode of a pilot job:
 %   diagram that talks about TROY = BigJob + BigData + ``??''. Need to
 %   define ``??''}
 
-\jhanote{note: DARE == Dynamic Application Runtime Environment: TROY +
-  MapReduce + Other capabilities}
+% \jhanote{note: DARE == Dynamic Application Runtime Environment: TROY +
+%   MapReduce + Other capabilities}
 
 % \jhanote{Ideally the background/underlying theory of Pilot Data/Store
 %   should be presented outside of TROY -- not sure this will be
@@ -725,7 +750,10 @@ Example usage mode of a pilot job:
 %   II-D, where we say, ``having defined a P-* model, we extend it to
 %   Dynamic Data..''}
 
+
 \subsubsection{Overview}
+% The concept of correlated access originates in
+% Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
 
 \begin{figure}[t]
     \centering
@@ -734,121 +762,146 @@ Example usage mode of a pilot job:
     \label{fig:figures_pilotstore}
 \end{figure}
 
-Having defined the P* model, we extend this model to dynamic data using a set of 
-abstraction that we call \emph{Pilot-Data}. Pilot-Data is a set of abstractions 
-for expressing data localities and affinities. Pilot-Data can be used to create 
-groups of file clustered together using a quantifiable property, such as 
-affinity ($\alpha$) e.g., $\alpha = 1.0$ would imply that files are always 
-stored together. \jhanote{I've distinguished store and usage} The concept of
-correlated access originates in 
-Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
-
-
-Pilot-Data provides a set of basic operations on top of these file
-groups, whilst Pilot Store is a container that represents a logical
-group of physical files that share the same affinity. Pilot-Store 
-containers can be used to express data-data affinities. The abstraction 
-supports basic management tasks (create, delete, update,
-move, list). 
-
-The Pilot-Data abstraction serves the following needs:
-\begin{itemize}
-	\item Reservation of physical disk space: acquisition of data storage (advanced reservation, place holder)
-	\item Virtual destination: dynamically mapping of data to pilot stores.
-	\item Runtime environment for $\alpha$ based data
-	\item Automatic data partitioning and distribution
-\end{itemize}
-
-
-The Pilot-Data abstraction defines the following elements:
-\begin{itemize}
-    \item \textbf{Data Unit:} The base unit of data used by the framework, e.\,g.\ a data 
-    file or chunk.
-    \item \textbf{Pilot-Data (PD):} Allows the logical grouping of files and the 
-expression of data-data affinities. This collection of files can be associated with certain properties. One of this property is affinity.    
-    \item \textbf{Pilot-Store (PS):} Binds a pilot-data object to a actual physical resource. A pilot-store object can function as a placeholder object that reserves the space for a pilot-data object.
-\end{itemize}
-
-A pilot-data object is a logical container and describes the properties of a 
-group of files. A pilot-store is a placeholder reserving a certain amount of 
-storage. By associating a pilot data object to a pilot store the data is 
-actually moved to the physically location managed by the pilot store.
-Pilot-Data supports commonly occurring application patterns, such as the 
-scatter/gather pattern commonly used by  master-worker or 
-MapReduce-applications.
-
-While the application-level abstraction enables application developers to model 
-data affinities, dependencies etc., the runtime framework will be responsible 
-for managing data-compute co-allocations, data-transfers, the dynamic expansion of storage pools etc. 
-
-\alnote{insert Millau figure}
+\jhanote{Motivation for PD: We have discussed the importance of DE for
+  compute; there exist similar and important considerations for DE for
+  data. Analagous challenges of DE for data as DE for Compute, e.g.,
+  importance of issues of (late) binding and decision making}
+ 
+Thus, having defined the P* Model, we propose to extend it to dynamic
+data. This will motivate an analagous abstraction that we call
+\emph{Pilot-Data}.  DE is important for data because..
 
 \subsubsection{Extension of P*-Model}
 
-The P* model can in many parts be applied to Pilot-Data: The communication and
-coordination element e.\,g.\ describes important characteristics of a Pilot-Data
-implementation. The elements defined in section~\ref{sec:p_star_elements} can be
+The Pilot-Data abstraction defines the following elements:
+\begin{itemize}
+\item \textbf{Data Unit:} The base unit of data used by the framework,
+  e.\,g.\ a data file or chunk.
+\item \textbf{Pilot-Data (PD):} Allows the logical grouping of files
+  and the expression of data-data affinities. This collection of files
+  can be associated with certain properties. One of this property is
+  affinity.
+\item \textbf{Pilot-Store (PS):} Binds a pilot-data object to a actual
+  physical resource. A pilot-store object can function as a
+  placeholder object that reserves the space for a pilot-data object.
+\end{itemize}
+
+\jhanote{Are these the elements of Pilot-Data? If so, please make connection of above elements to earlier defined
+  elements of P-* Model explicit, e.g. is Pilot-Data = UW, PS = US
+  etc. }
+
+
+A pilot-data object is a logical container and describes the
+properties of a group of files. A pilot-store is a placeholder
+reserving a certain amount of storage. By associating a pilot data
+object to a pilot store the data is actually moved to the physically
+location managed by the pilot store.  Pilot-Data supports commonly
+occurring application patterns, such as the scatter/gather pattern
+commonly used by master-worker or MapReduce-applications.
+
+While the application-level abstraction enables application developers
+to model data affinities, dependencies etc., the runtime framework
+will be responsible for managing data-compute co-allocations,
+data-transfers, the dynamic expansion of storage pools etc.
+
+The P* model can in many parts be applied to pilot-data. Analagous to
+pilot-jobs, the communication and coordination element e.\,g.\
+describes important characteristics of a Pilot-Data implementation.
+
+%\alnote{insert Millau figure}
+
+The elements defined in section~\ref{sec:p_star_elements} can be
 extended by the following elements:
 
 \begin{itemize}
     \item \textbf{Data Characteristics:}
     \begin{itemize}
-    \item Static data refers to data that is infrequently changed and does not 
-	need to be moved.
-    \item Dynamic data refers to different spatial and temporal properties of 
-	data:
+    \item Static data refers to data that is infrequently changed and
+does not need to be moved.
+    \item Dynamic data refers to different spatial and temporal
+properties of data:
     \begin{itemize}
-    	\item Data that is generated or changing at runtime (temporal).
+    	\item Data that is generated or changing at runtime
+(temporal).
     	\item Data that is in place or needs to be moved (spatial).
-    \end{itemize}
-	\item Streaming data
-    \end{itemize}  
-	\item \textbf{Data Access Patterns: } While the P* is 
-	primarily concerned with capturing aspects of distributed coordination, this 
-	elements is extended to include patterns of data access.
+\end{itemize}
+\item Streaming data
+\end{itemize}  
+
+\item \textbf{Data Access Patterns: } While the P* is primarily
+concerned with capturing aspects of distributed coordination, this
+elements is extended to include patterns of data access.
 	\begin{itemize}
-		\item Co-Access: a collection of data that is always accessed together
-		\item One-to-One: two data objects that are always accessed together (a 
-		special case of co-access)
+		\item Co-Access: a collection of data that is always
+accessed together
+		\item One-to-One: two data objects that are always
+accessed together (a special case of co-access)
 		\item One-to-All:
 		\item All-to-All:
 		\item Scatter:
 		\item Gather:
-	\end{itemize}      
-    \item \textbf{Affinities:}
-    \begin{itemize}
-        \item Data-Data affinity arises when different data-sets/elements are 
-		required to be at the same compute element.
-		\item Compute-Compute may arise, for example, either if C1 and C2 are 
-		related by a data-element D, which could be the output of C1 and is the 
-		required input for C2 (Case-I), or if both C1 and C2 need to operate on 
-		(replicas of) the same data-element (Case-II)
-        \item Data-Compute		
-    \end{itemize}
-    \item \textbf{Unit of Scheduling} describes the core unit of data that is 
-	used by the framework.
+	\end{itemize}
+
+\item \textbf{Affinities:} 
+\begin{itemize}
+\item Data-Data affinity arises when different
+data-sets/elements are required to be at the same compute element.
+		\item Compute-Compute may arise, for example, either
+if C1 and C2 are related by a data-element D, which could be the
+output of C1 and is the required input for C2 (Case-I), or if both C1
+and C2 need to operate on (replicas of) the same data-element
+(Case-II)
+\item Data-Compute
+\end{itemize}
+    \item \textbf{Unit of Scheduling} describes the core unit of data
+that is used by the framework.
     \begin{itemize}
         \item Chunk-based
         \item File-based
     \end{itemize}
-	\item \textbf{Data management:} Managing input and output files can be 
-		critical in particular with the current increase of data volumes. 
-		Pilot-Jobs can support different kinds of data management, e.\,g.\ file 
-		stage-in and 
-		out. Data and UW must be efficiently scheduled obeying data-data and 
-		data-compute affinities. 
+	\item \textbf{Data management:} Managing input and output
+files can be critical in particular with the current increase of data
+volumes.  Pilot-Jobs can support different kinds of data management,
+e.\,g.\ file stage-in and out. Data and UW must be efficiently
+scheduled obeying data-data and data-compute affinities.
 
     \item \textbf{Data Unit Binding and Scheduling:}
     \begin{itemize}
         \item Affinity-based scheduling
         \item Data-transfer scheduling
-    \end{itemize}    
+    \end{itemize}
 \end{itemize}
 
+
+\subsection*{Not sure what to with this yet}
+
+Pilot-Data is a set of abstractions for expressing data localities and
+affinities. Pilot-Data can be used to create groups of file clustered
+together using a quantifiable property, such as affinity ($\alpha$)
+e.g., $\alpha = 1.0$ would imply that files are always stored
+together.
+
+ 
 Pilot-Job and Pilot-Data encapsulate cross-cutting properties across data and 
 computation. Both Pilot-Job and Pilot-Data can be used to express affinities 
 between data and compute elements. 
 
+Pilot-Data provides a set of basic operations on top of these file
+groups, whilst Pilot Store is a container that represents a logical
+group of physical files that share the same affinity. Pilot-Store
+containers can be used to express data-data affinities. The
+abstraction supports basic management tasks (create, delete, update,
+move, list).
+
+The Pilot-Data abstraction serves the following needs:
+\begin{itemize}
+\item Reservation of physical disk space: acquisition of data storage
+  (advanced reservation, place holder)
+\item Virtual destination: dynamically mapping of data to pilot
+  stores.
+\item Runtime environment for $\alpha$ based data
+\item Automatic data partitioning and distribution
+\end{itemize}
 
 
 \subsection{Implementation Considerations}
