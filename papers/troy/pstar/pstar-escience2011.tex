@@ -257,7 +257,7 @@ supply is kept fixed and the demand is changed to meet the supply; in
 the other the supply changes in response to the demand.
 
 For the purposes of this paper, we will focus on the latter, wherein
-the availabilty and utilization of resources changes...  As a
+the availability and utilization of resources changes...  As a
 consequence, we will not consider dynamic execution arising from
 internal application changes.  In other words, we will concern
 and confine ourselves to  % distributed
@@ -277,13 +277,17 @@ smaller tasks.
 % At this point, it is worth elaborating upon dynamic resource
 % utilization;
 
+\alnote{not sure why do we need week and strong model? Determinism and 
+distributed systems don't go together well. Also, I wouldn't claim that
+the prob. of adv. rerv. is 1 (it might be 0.99...). PJ are more in line
+w/ the weak model. Do we say that Advance Reserv. are better?}
 There exist two models of dynamic resource utilization, which we refer
 to as the weak (probabilistic) model of Dynamic Execution (DE) and the
 strong (deterministic) model of DE. In the former, there exists a
 certain probability to acquire a resource at a given instant of time;
 in the latter the probability of acquiring a resource is by definition
 is 1, but there exists a broad range of times over which this
-probabilty will first be 1.  Multiple approaches exist to support
+probability will first be 1.  Multiple approaches exist to support
 dynamic resource utilization -- both weak and strong.  For example,
 Advanced Scheduling (without pre-emption) provides a guarantee
 (probability of 1) at a sufficiently far out time window.
@@ -424,7 +428,7 @@ existing and widely used Pilot-Job, can be given a well defined API
 via the TROY-BigJob API. To further substantiate the impact of
 TROY-BigJob API, we will demonstrate interoperability between
 different Pilot-Jobs -- a native SAGA based Pilot-Job, referred to as
-bigjob/advert with DIANE.  We believe this is also the first
+BigJob/SAGA, and DIANE.  We believe this is also the first
 demonstration of interoperation of different Pilot-Jobs.
 
 \jhanote{Should we to introduce Dynamic Applications explicitly in the
@@ -886,16 +890,18 @@ Further, non-functional properties must be considered:
 \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
   BigData etc.}
 
-TROY is an implementation of the P* model
-(section~\ref{sec:pilot-model}) using SAGA. As shown in
-Figure~\ref{fig:figures_troy} the framework is located on top of the
-SAGA API and runtime environment, which is utilized for job
-management, data transfer and distributed coordination. The TROY API
-maintains the SAGA Look \& Feel and was designed to be similar to SAGA
-in appearance and philosophy: it re-uses many of the well defined (and
-standardized) semantics and syntax of the File, Job and Advert
-API. Further, we aimed for a simple-to-use API exposing as least
-amount of details necessary.  
+TROY is an implementation of the P* model (section~\ref{sec:pilot-model}) using
+SAGA. SAGA~\cite{saga_url,saga_gfd90} provides a simple, POSIX-style API to the
+most common Grid functions (e.\,g.\ file, job management and distributed 
+coordination) at a sufficiently high-level of abstraction so as to
+be independent of the diverse and dynamic Grid environments. As shown in
+Figure~\ref{fig:figures_troy} TROY is located on top of the SAGA API
+and runtime environment, which is utilized for job management, data transfer and
+distributed coordination. The TROY API maintains the SAGA Look \& Feel and was
+designed to be similar to SAGA in appearance and philosophy: it re-uses many of
+the well defined (and standardized) semantics and syntax of the File, Job and
+Advert API. Further, we aimed for a simple-to-use API exposing as least amount
+of details necessary. 
 
 TROY supports different usage modes i) it provides stand-alone
 Pilot-Job functionalities, ii) it provides a unified API to various
@@ -940,7 +946,7 @@ scheduling.
 bigjob, or core bigjob}
 
 
-BigJob is the SAGA-based Pilot-Job implementation of the TROY
+BigJob is a Pilot-Job implementation of the TROY
 framework~\cite{bigjob_web}. It supports a wide range of application types, and
 is usable over a broad range of infrastructures, i.\,e.\ it is general-purpose
 and extensible. 
@@ -969,17 +975,23 @@ thin adaptor layer. Figure~\ref{fig:figures_distributed_pilot_job} shows the
 various layers of the SAGA TROY framework. While BigJob-DIANE provides dynamic
 capabilities out-of-the-box, the traditional BigJob
 implementation~\cite{saga_bigjob_condor_cloud} utilizes two layers: the
-\emph{Core BigJob} and the \emph{Dynamic BigJob} layer. Core BigJobs are
+\emph{Core BigJob} and the so called \emph{BigJob Pool} layer. Core BigJobs are
 confined to a single resource and represented by a single master process
 (i.\,e.\ a single BigJob Manager). Generally, Core BigJobs are used to
 encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
-(Condor, Cloud, etc.). A Dynamic BigJob manages multiple Core BigJobs.
+(Condor, Cloud, etc.). A BigJob Pool manages multiple Core BigJobs.
 
-Table~\ref{tab:pilotjob_overview} summarizes the different SAGA-based
-implementations and their characteristics. BigJob currently supports different
-backends: SAGA BigJob can be used in conjunction with different SAGA adaptors,
-e.\,g.\ the Globus, PBS, Amazon Web Service and local adaptor. In addition to
-the SAGA-based reference implementation, there are various other implementations
+Table~\ref{tab:pilotjob_overview} summarizes the different TROY implementations
+and their characteristics: BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a
+implementation of TROY built on top of the SAGA API. The framework utilizes a
+Master/Worker coordination model: The BigJob Manager is responsible for the
+orchestration and scheduling of the Pilot-Jobs represented by the BigJob Agent.
+For submission of the Pilot-Jobs, BigJob-SAGA utilizes the SAGA Job API and
+thus, can be used in conjunction with different SAGA adaptors, e.\,g.\ the
+Globus, PBS, Amazon Web Service and local adaptor. The SAGA Advert Service and
+API are used for communication between manager and agent.
+
+In addition, there are various other implementations
 of the BigJob API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 
 
@@ -1038,12 +1050,13 @@ of the BigJob API, e.\,g.\ for Amazon Web Services, Azure and Condor resources.
 
 In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
 accelerate the time-to-completion or to provide resilience to resource failures
-and/or unexpected delays. A Dynamic BigJob consists of multiple Core
+and/or unexpected delays. A BigJob Pool consists of multiple Core
 BigJobs potentially distributed across several resources and types of
 infrastructures. Each BigJob manages it's own resources. An extensible scheduler
 is used for dispatching UWs to the different BigJobs that are managed by a
-Dynamic BigJob. Dynamic BigJobs are malleable, i.\,e.\ resources can added or be
-removed. For this purpose, the dynamic BigJob provides an introspection API that applications can utilize to query the manager for a list of current resources.
+BigJob Pool. BigJob Pools are malleable, i.\,e.\ resources can added or be
+removed. For this purpose, the dynamic BigJob provides an introspection API that 
+applications can utilize to query the manager for a list of current resources.
 
 
 
@@ -1386,6 +1399,9 @@ Fault Tolerance &Error Propagation &Configurable Re-Tries\\
 Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. Using Condor-G 
 a complete Condor pool can be initiated using the GRAM service; subsequently 
 jobs can be submitted to this pool using the standard Condor tools and APIs.
+
+Condor Flocking
+
 
 \subsection{SWIFT}
 
