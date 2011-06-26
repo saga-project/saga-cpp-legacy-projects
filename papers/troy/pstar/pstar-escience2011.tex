@@ -921,24 +921,31 @@ dependencies etc., the runtime framework will be responsible for
 managing data-compute co-allocations, data-transfers, the dynamic
 expansion of storage pools etc.
 
-
 \subsection{Implementation Considerations}
 
-To implement the P* model, additional consideration must be taken e.\,g.\ the 
-exposed end-user abstraction and usage model, the type of communication (API or 
-service) etc. In the following we will use the developed framework to develop 
-the TROY-based implementation of the P* model. 
+To implement the P* model, there are additional consideration that
+must be taken, e.\,g.\ the exposed end-user abstraction and usage
+model, the type of communication (API or service) etc.
 
-The PJ framework must define the usage model, i.\,e.\ how are resources
-allocated, UW specified and assigned, as well as the way how the framework can
-be accessed, e.\,g.\ via a service or API. Pilot-Jobs can be run on different
-types of homogeneous and heterogeneous resources. Generally, the Local Resource
-Manager (LRM) is the gateway to local resources. This can be e.\,g.\ a
-PBS/Torque or WMS service. HPC resources are specifically designed for high-end
-parallel jobs, while HTC resources are particularly suited for 
-independent ensemble of tasks. Different applications require a mix of HTC and
-HPC, e.\,g.\ when running an ensemble of MPI jobs. 
-Different workload characteristics (UW heterogeneities, parallelism, UW dependencies, etc.) can be supported by a Pilot-Job, e.\,g.\ via special information collector and scheduler capabilities.
+%In the following we will discuss how we implement
+%use the % developed framework
+%to develop the
+%TROY -- implementation of the P* model.
+
+\jhanote{I propose we remove ``framework'' ; if anything it should be
+  Model?} The PJ framework must define the usage model, i.\,e.\ how are
+resources allocated, UW specified and assigned, as well as the way how
+the framework can be accessed, e.\,g.\ via a service or
+API. Pilot-Jobs can be run on different types of homogeneous and
+heterogeneous resources. Generally, the Local Resource Manager (LRM)
+is the gateway to local resources. This can be e.\,g.\ a PBS/Torque or
+WMS service. HPC resources are specifically designed for high-end
+parallel jobs, while HTC resources are particularly suited for
+independent ensemble of tasks. Different applications require a mix of
+HTC and HPC, e.\,g.\ when running an ensemble of MPI jobs.  Different
+workload characteristics (UW heterogeneities, parallelism, UW
+dependencies, etc.) can be supported by a Pilot-Job, e.\,g.\ via
+special information collector and scheduler capabilities.
 
 Further, non-functional properties must be considered:
 \begin{itemize}
@@ -959,9 +966,6 @@ Further, non-functional properties must be considered:
 \end{itemize}
 
 
-
-
-
 \section{TROY: A SAGA-based Implementation of the P-* Model
   \jhanote{AL, MS, SM}}
 %Pilot-Abstraction for Dynamic Execution 
@@ -970,8 +974,8 @@ Further, non-functional properties must be considered:
 %  Pilot-Jobs} \msnote{In hindsight not sure why it was at this place,
 %  and what you expected but here is an attempt:}
 
-\jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
-  BigData etc.}
+% \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
+%   BigData etc.}
 
 \begin{figure}[t]
 	\centering
@@ -1039,31 +1043,33 @@ scheduling.
 \jhanote{MUST provide SAGA URL for updated BigJob API and
   documentation}
 
-\jhanote{Alternative title: ``BigJob: TROY Pilot-Job'' ?}
+% \jhanote{Alternative title: ``BigJob: TROY Pilot-Job'' ?}
 
-\jhanote{It is CRITICAL to explain why we need to expose the details
-  of multiple atomic BigJobs to the end-user? Remember part of the
-  whole idea of the exercise is, (i) theory: to provide a framework
-  for understanding any differences, (ii) practice: make all these
-  differences go away from the end user!}
-\alnote{Since we were not sure about the term ``atomic'', we could also use base 
-bigjob, or core bigjob}
+% \jhanote{It is CRITICAL to explain why we need to expose the details
+%   of multiple atomic BigJobs to the end-user? Remember part of the
+%   whole idea of the exercise is, (i) theory: to provide a framework
+%   for understanding any differences, (ii) practice: make all these
+%   differences go away from the end user!}  \alnote{Since we were not
+%   sure about the term ``atomic'', we could also use base bigjob, or
+%   core bigjob}
 
 
 BigJob is a Pilot-Job implementation of the TROY
-framework~\cite{bigjob_web}. It supports a wide range of application types, and
-is usable over a broad range of infrastructures, i.\,e.\ it is general-purpose
-and extensible. 
+framework~\cite{bigjob_web}. It supports a wide range of application
+types, and is usable over a broad range of infrastructures, i.\,e.\ it
+is general-purpose and extensible.
 
-\alnote{not sure how deep we should go here or in sec V}
-The framework consists of the API package and a runtime environment. The API
-utilizes the framework and elements defined in section~\ref{sec:pilot-model}. We
-define two description classes that extend the known SAGA Job Description
-object, the pilot-job description and the UW description. A TROY manager
-represents a pool of resources. Resources can be added by submitting a pilot-job
-description to the TROY manager using the \texttt{add\_resource()} method. 
-Subsequently, UW can be assigned to the TROY manager. At runtime resources can 
-be added and removed at any time. 
+\alnote{not sure how deep we should go here or in sec V} The framework
+\jhanote{Is the ``framework'' a reference to BigJob or TROY?} consists
+of the API package and a runtime environment. The API utilizes the
+framework \jhanote{Is framework here P-* ?} and elements defined in
+section~\ref{sec:pilot-model}. We define two description classes that
+extend the known SAGA Job Description object, the pilot-job
+description and the UW description. A TROY manager represents a pool
+of resources. Resources can be added by submitting a pilot-job
+description to the TROY manager using the \texttt{add\_resource()}
+method.  Subsequently, UW can be assigned to the TROY manager. At
+runtime resources can be added and removed at any time.
 
 
 \begin{figure*}[htbp]
@@ -1085,16 +1091,18 @@ confined to a single resource and represented by a single master process
 encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
 (Condor, Cloud, etc.). A BigJob Pool manages multiple Core BigJobs.
 
-Table~\ref{tab:pilotjob_overview} summarizes the different TROY implementations
-and their characteristics: BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a
-implementation of TROY built on top of the SAGA API. The framework utilizes a
-Master/Worker coordination model: The BigJob Manager is responsible for the
-orchestration and scheduling of the Pilot-Jobs represented by the BigJob Agent.
-For submission of the Pilot-Jobs, BigJob-SAGA utilizes the SAGA Job API and
-thus, can be used in conjunction with different SAGA adaptors, e.\,g.\ the
-Globus, PBS, Amazon Web Service and local adaptor. The SAGA Advert Service and
-API are used for communication between manager and agent. The binding between UW 
-and pilot-job takes places at submission.
+\jhanote{Should Table I be zapped?} Table~\ref{tab:pilotjob_overview}
+summarizes the different TROY implementations and their
+characteristics: BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a
+implementation of TROY built on top of the SAGA API. The framework
+utilizes a Master/Worker coordination model: The BigJob Manager is
+responsible for the orchestration and scheduling of the Pilot-Jobs
+represented by the BigJob Agent.  For submission of the Pilot-Jobs,
+BigJob-SAGA utilizes the SAGA Job API and thus, can be used in
+conjunction with different SAGA adaptors, e.\,g.\ the Globus, PBS,
+Amazon Web Service and local adaptor. The SAGA Advert Service and API
+are used for communication between manager and agent. The binding
+between UW and pilot-job takes places at submission.
 
 
 
@@ -1194,14 +1202,14 @@ applications can utilize to query the manager for a list of current resources.
 % these agents are responsible for pulling the tasks from advert 
 % service and run the possible subjobs concurrently or in generations.
 
-\jhanote{The rationale behind dynamic BJ is that for the same
-  application scenario different BJ with different
-  properties/characteristics may be required. Thus dynamic BJ maybe
-  comprised of either homogeneous or heterogeneous atomic BJs}
-\alnote{did one pass... still not perfect}
+% \jhanote{The rationale behind dynamic BJ is that for the same
+%   application scenario different BJ with different
+%   properties/characteristics may be required. Thus dynamic BJ maybe
+%   comprised of either homogeneous or heterogeneous atomic BJs}
+% \alnote{did one pass... still not perfect}
 
-
-
+\jhanote{I propose the next 3 subsections -- bigjob-cloud, bigjob-aws
+  and bigjob-azure, be removed}
 
 \subsubsection{BigJob for Cloud Computing}
 
