@@ -1,7 +1,7 @@
 
 TEX=pdflatex
 BIBTEX=bibtex
-VIEW=evince
+VIEW=xpdf
 
 SOURCE:=$(shell egrep -l '^[^%]*\\begin\{document\}' *.tex)
 PDFS=$(SOURCE:.tex=.pdf)
@@ -11,6 +11,8 @@ all:
 	echo $$item ; \
 	make $$item ; \
 	done
+
+again: all
 
 %.pdf: %.tex
 	echo $*
