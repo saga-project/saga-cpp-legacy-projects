@@ -323,15 +323,6 @@ to the basic concept of a pilot-job.
 % using the Pilot-Job abstraction provide the strongest confirmation of
 % this assertion~\cite{} \jhanote{Need good citation}.
 
-In general, there exist multiple reasons why distributed applications
-have not been able to utilize distributed cyberinfrastructure
-effectively and without immense effort~\cite{dpa_surveypaper}.  At the
-root of the problem is the fact that developing large-scale
-distributed applications is fundamentally a difficult process. The
-range of proposed tools, programming systems and environments is
-bewildering large, making integration, extensibility and
-interoperability difficult.
-
 Interestingly there exists many implementations of the Pilot-Job
 abstraction, wherein different projects and users have rolled-out
 their own. The fact that users have voted with their feet for
@@ -445,53 +436,68 @@ demonstration of interoperation of different Pilot-Jobs.
 \label{sec:pilot-model}
 
 
-The uptake of distributed infrastructures by scientific applications
-has been limited by the availability of extensible, pervasive and
-simple-to-use abstractions which are required at multiple levels –
-development, deployment and execution stages of scientific
-applications. The Pilot-Job abstraction has been shown to be an
-effective abstraction to address many requirements of scientific
-applications. Specifically, Pilot-Jobs support the decoupling of
-workload submission from resource assignment; this results in a
-flexible execution model, which in turn enables the distributed
-scale-out of applications on multiple and possibly heterogeneous
-resources. Most Pilot-Job implementations however, are tied to a
-specific infrastructure. In this paper, we describe the design and
-implementation of a SAGA-based Pilot-Job, which supports a wide range
-of application types, and is usable over a broad range of
-infrastructures, i.e., it is general-purpose and extensible, and as we
-will argue is also interoperable with Clouds.
+In general, there exist multiple reasons why distributed applications
+have not been able to utilize distributed cyberinfrastructure
+effectively and without immense effort~\cite{dpa_surveypaper}.  At the
+root of the problem is the fact that developing large-scale
+distributed applications is fundamentally a difficult process. The
+range of proposed tools, programming systems and environments is
+bewildering large, making integration, extensibility and
+interoperability difficult.
+ 
+Additionally, the uptake of distributed infrastructures by scientific
+applications has been limited by the availability of extensible,
+pervasive and simple-to-use abstractions which are required at
+multiple levels – development, deployment and execution stages of
+scientific applications.
+
+% Specifically, Pilot-Jobs support the decoupling of workload
+% submission from resource assignment; this results in a flexible
+% execution model, which in turn enables the distributed scale-out of
+% applications on multiple and possibly heterogeneous resources.
+
+The Pilot-Job abstraction has been shown to be an effective
+abstraction to address many requirements of distributed scientific
+applications. Although they are all functionally equivalent -- they
+support the decoupling of workload submission from resource
+assignment, it is often impossible to use them interoperably --- most
+Pilot-Job implementations however, are tied to a specific
+infrastructure, or even to compare and contrast them.
+
+In an attempt to provide a common analytical framework using which
+most, if not all commonly used pilot-jobs can be understood, we
+present the P-* Model of Pilot-Abstractions. The P-* Model is derived
+from an analysis of many pilot-jobs; based upon this analysis, we
+first present the common {\it elements} of the P-* Model, followed by
+a description of the properties that must be assigned and that
+determine the interaction of these elements and the overall
+functioning of any pilot-job based upon the P-* Model.
 
 \subsection{Elements of the P-* Model}
 
+\alnote{Remark from AndreM: we need to careful when talking about
+  Pilot-Job as a framework and Pilot-Job as the placeholder job
+  (agent).}
 
 \begin{enumerate}[A.]
 
-\item \textbf{Pilot-Job Framework:} The PJ framework provides the abstraction of 
-a container for multiple Unit of Works that may be dynamically added to it 
-independently from the underlying resource pool.  It provides a mechanism to 
-decouple unit of works (the compute ``tasks'') from being  hard-coded to a 
-specific ``resource'' or delay the binding. 
+\item \textbf{Pilot-Job Framework:} The PJ framework provides the
+  abstraction of a container for multiple Unit of Works that may be
+  dynamically added to it independently from the underlying resource
+  pool.  It provides a mechanism to decouple unit of works (the
+  compute ``tasks'') from being hard-coded to a specific ``resource''
+  or delay the binding.
 
-  \note{Tasks are ultimately loaded onto specific resources using the
-    pilot-job and late-binding. In other words} \note{PJ provides a
-    mechanism to decouple “task coordination” from “resource
-    mapping”.}
+\item \textbf{Pilot-Job:} The PJ (also referred to as pilot) is the
+  entity that actually gets submitted and scheduled on a resource
+  (\ref{resource}). Commonly, the PJ utilizes an agent to manage the
+  set of allocated resources.
 
-  \note{Facilities provided include the creation of a PJ, insertion of
-    tasks, and attachment to a CPU resource pool for late-binding task
-    execution.}
-	\alnote{Remark from AndreM: we need to careful when talking about Pilot-Job 
-	as a framework and Pilot-Job as the placeholder job (agent).}
-
-\item \textbf{Pilot-Job:} The PJ (also referred to as pilot) is the entity that 
-actually gets submitted and scheduled on a resource (\ref{resource}). Commonly, 
-the PJ utilizes an agent to manage the set of allocated resources.
-
-\item \textbf{Unit of Work (UW):} A unit of work is the workload that 
-    encapsulates a self-contained piece of work and will be assigned to a 
-    resource indirectly via a Pilot-Job.  The PJ in turn has flexibility in 
-    determining when and how-many resources the UW will receive.
+\item \textbf{Unit of Work (UW):} A unit of work is the workload that
+  encapsulates a self-contained piece of work and will be assigned to
+  a resource indirectly via a Pilot-Job.  The PJ in turn has
+  flexibility in determining when and how-many resources the UW will
+  receive.
 
 \item \textbf{Unit of Scheduling (US):} are entities 
   that get scheduled to the resource, and to which UWs are assigned
@@ -501,9 +507,10 @@ the PJ utilizes an agent to manage the set of allocated resources.
 % are the unit of works that are sent down to \ref{pilot-agent} to be
 %   executed.  Sub-jobs/jobs are used to reserve the resources required
 %   by a task.
+%\jhanote{I changed the US description significantly} 
 
-\jhanote{I changed the US description significantly} 
-
+\item \textbf{Pilot-Manager:} The element responsible for coordinating
+  the different UW, US and other elements.
 
 \item \textbf{Resource:} A storage/compute resource that has a common
   entry point (like a queue). Commonly, a resource is accessed by a 
@@ -526,24 +533,6 @@ the PJ utilizes an agent to manage the set of allocated resources.
     \caption{Relationship between Unit of Work and Scheduleable Entity}
     \label{fig:figures_task-job1}
 \end{figure}    
-
-\note{to be moved to end}
-\noindent
-Example usage mode of a pilot job:
-\begin{enumerate}
-    \item The pilot is executed on a certain resource.
-    \item UW gets bound to a pilot-job via the central manager. 
-    \alnote{I think at this point we must 
-    clearly differentiate between pilot (aka the submitted agent) and pilot (aka 
-    the framework)}
-    \item UW gets scheduled to a US  (either one or multiple UW can be 
-     scheduled to a US). The properties of the US are dependent on the pilot job 
-     which they are running in. Scheduling has in addition to the spatial 
-     component (which US?) also a temporal component (at what time?).
-    \item US gets scheduled to a physical resource on which the pilot is 
-     operating.
-\end{enumerate}
-
 
 % \textbf{Diane Definition of Terms: } The computation consists of many worker
 % processes which communicate with one master process (the worker processes do not
@@ -694,6 +683,29 @@ Pilot-Job is done.
 %   BigJob -- we should be talking implementation independent, e.g., must
 %   not have sub-job and bigjob agent}
 
+
+\subsubsection*{Bringing it all together}
+
+\jhanote{To generalise the previous point,
+  we need to have a few sentences that aims to put all the elements,
+  characteristics together and presents a {\it unified} view of the
+  working of the P-* Model.}
+  
+\noindent
+Example usage mode of a pilot job:
+\begin{enumerate}
+    \item The pilot is executed on a certain resource.
+    \item UW gets bound to a pilot-job via the central manager. 
+    \alnote{I think at this point we must 
+    clearly differentiate between pilot (aka the submitted agent) and pilot (aka 
+    the framework)}
+    \item UW gets scheduled to a US  (either one or multiple UW can be 
+     scheduled to a US). The properties of the US are dependent on the pilot job 
+     which they are running in. Scheduling has in addition to the spatial 
+     component (which US?) also a temporal component (at what time?).
+    \item US gets scheduled to a physical resource on which the pilot is 
+     operating.
+\end{enumerate}
 
 
 
@@ -910,6 +922,13 @@ enables the concurrent usage of multiple Pilot-Job
 implementations. Further, we show in section~\ref{sec:bigdata} how
 TROY is extended to support dynamic data and affinity-based
 scheduling.
+
+\jhanote{In this paper, we describe the design and implementation of a
+  SAGA-based Pilot-Job, which supports a wide range of application
+  types, and is usable over a broad range of infrastructures, i.e., it
+  is general-purpose and extensible, and as we will argue is also
+  interoperable with Clouds.}
+ 
 
 \begin{figure}[htbp]
 	\centering
@@ -1507,3 +1526,11 @@ Mark Santcroos is sponsored by the program of BiG Grid, the Dutch e-Science Grid
 \bibliographystyle{plain}
 \bibliography{pilotjob,saga.bib,saga-related}
 \end{document}
+
+
+\note{Facilities provided include the creation of a PJ, insertion of
+  tasks, and attachment to a CPU resource pool for late-binding task
+  execution.}  \note{Tasks are ultimately loaded onto specific
+  resources using the pilot-job and late-binding. In other words}
+\note{PJ provides a mechanism to decouple “task coordination” from
+  “resource mapping”.}
