@@ -527,12 +527,7 @@ functioning of any pilot-job based upon the P-* Model.
 	
 \end{enumerate}
 
-\begin{figure}[htbp]
-    \centering    
-    \includegraphics[width=0.5\textwidth]{figures/pstar_model.pdf}
-    \caption{P*-Model: Elements and Interactions}
-    \label{fig:figures_pstar}
-\end{figure}    
+ 
 
 % \textbf{Diane Definition of Terms: } The computation consists of many worker
 % processes which communicate with one master process (the worker processes do not
@@ -635,10 +630,10 @@ binding), whereas late-late binding can occur if the UW is bound after
 the Pilot-Job has been assigned to a resource.  Depending upon the
 type of binding supported, the workload is either specified completely
 independent of a (specific) resource or just partially.
-\jhanote{Andre L: there was something we wanted to about the
-  advantages of late or late-late binding} \alnote{Question: Is the time of 
-binding is independent of wether the PJ has resources or not? Late-late binding 
-can also occur if a PJ has resources.}
+\jhanote{Andre L: there was something we wanted to about the advantages of late
+or late-late binding} \alnote{Question: Is the time of binding is independent of
+wether the PJ has resources or not? Late-late binding can also occur if a PJ has
+resources.}
 Furthermore, the time of binding describes the point at which the
 binding decision is made, e.\,g.\ in the case of early binding, the
 decision could be made by the application, while in late binding mode
@@ -658,7 +653,7 @@ the decision is made by the middleware framework. \jhanote{should we
     %       \end{itemize}
     % \end{itemize}
 
-\jhanote{Difference between mapping and assignment}
+\jhanote{Difference between mapping and assignment}\alnote{in this case both terms are used very synonymous.}
 
 \textbf{UW Scheduling:} Task scheduling describes i) the process of
 mapping UW to US (pilot internal) and ii) of mapping US to physical
@@ -710,29 +705,38 @@ decisions can be made on basis of a defined set of policies
 %   not have sub-job and bigjob agent}
 
 
-\subsubsection*{Bringing it all together}
+\subsection*{Summary}
 
 \jhanote{To generalise the previous point, we need to have a few
   sentences that aims to put all the elements, characteristics
   together and presents a {\it unified} view of the working of the P-*
   Model.}
-  
-\noindent
-Example usage mode of a pilot job:
-\begin{enumerate}
-    \item The pilot is executed on a certain resource.
-    \item UW gets bound to a pilot-job via the central manager. 
-    \alnote{I think at this point we must 
-    clearly differentiate between pilot (aka the submitted agent) and pilot (aka 
-    the framework)}
-    \item UW gets scheduled to a US  (either one or multiple UW can be 
-     scheduled to a US). The properties of the US are dependent on the pilot job 
-     which they are running in. Scheduling has in addition to the spatial 
-     component (which US?) also a temporal component (at what time?).
-    \item US gets scheduled to a physical resource on which the pilot is 
-     operating.
-\end{enumerate}
+ 
 
+\begin{figure}[htbp]
+    \centering    
+    \includegraphics[width=0.5\textwidth]{figures/pstar_model.pdf}
+    \caption{P*-Model: Elements and Interactions}
+    \label{fig:figures_pstar}
+\end{figure}
+
+Figure~\ref{fig:figures_pstar} illustrates the interactions between the
+components of the P* framework. A typical usage mode consists of the following
+steps: The application specifies the number of resources required using a UW
+description (step 1). During the instantiation of a PJ and the assignment of
+resources to the PJ, pilots are queued and started via the local resource
+manager (step 1-4). The pilot is then executed on a certain resource (step 5).
+Most PJs utilize a Master/Worker coordination model, i.\,e.\ the manager tightly
+controls the actions of the worker (the agent). However, it is feasible to
+include more logic and decision capabilities into the agent. Generally, the
+application assigns a UW to the PJ framework in most cases via the Manager
+component, which is then responsible for scheduling the UW. Scheduling has a
+spatial component (which US?) and a temporal component (at what time?). To
+optimize execution, the Manager can group multiple UWs into a US. In the
+simplest case one UW corresponds to one US. The manager then binds a US to
+specific PJ according to a specified policy or a user provided scheduler
+function (step 6). The US gets executed to a physical resource on which the
+pilot is operating (step 7).
 
 
 \subsection{Pilot-Data: Extension of P* to Dynamic Data}
@@ -1474,14 +1478,13 @@ DIANE~\cite{Moscicki:908910} is a task coordination framework which implements
 the Master/Worker pattern. Table~\ref{table:bigjob-saga-diane} compares the
 BigJob-SAGA and Diane. DIANE follows the master-worker coordination model and
 utilizes a single hierarchy of Worker Agents. The manager process is referred to
-as RunMaster. For the spawning of PJs a separate script, the so-called submitter
-script, is required. Once the worker agents are started they register themselves
-at the RunMaster. For communication between the RunMaster and Worker Agents
-point-to-point messaging based on CORBA (omniORB) is used. DIANE includes a simple capability matcher and FIFO-based task scheduler. Applications can implement
-
-
-There is also a multi-master extensions, which addressed
-
+as RunMaster. Further, there is ongoing work on a multi-master extensions. For
+the spawning of PJs a separate script, the so-called submitter script, is
+required. Once the worker agents are started they register themselves at the
+RunMaster. For communication between the RunMaster and Worker Agents
+point-to-point messaging based on CORBA (omniORB) is used. DIANE includes a
+simple capability matcher and FIFO-based task scheduler. Applications can
+implement a custom application-level scheduler.
 
 
 
@@ -1511,20 +1514,19 @@ data- and execution management capabilities are provided via abstract
 interfaces. SWIFT supports e.\,g.\ Globus, Condor and PBS resources. The pool of
 resources that is used for an application is statically defined in a
 configuration file. While this configuration file can refer to highly dynamic
-resources (such as OSG resources), there is no way to manage this resource pool
-programmatically. By default a 1:1 mapping for UW and jobs is used. However,
-SWIFT supports the clustering of UWs into a single large job as well as
-pilot-jobs for which the term Coaster~\cite{coasters} is used. Coaster relies on
-a master-worker coordination model; communication is implemented using
+resources (such as OSG resources), there is no possibility to manage this
+resource pool programmatically. By default a 1:1 mapping for UW and jobs is
+used. However, SWIFT supports the clustering of UWs into a large US as
+well as PJs for which the term Coaster~\cite{coasters} is used. Coaster
+relies on a master-worker coordination model; communication is implemented using
 GSI-secured TCP sockets.
 
-Clustering features: multiple UW can be mapped to a US
 
 
-\jhanote{It should probably be Coasters -- which is their notion of a pilot-job. Just
-to keep life interesting, they call it head-job and not pilot-job!}
-
-\url{http://www.ci.uchicago.edu/swift/guides/release-0.92/userguide/coasters.php}
+\jhanote{It should probably be Coasters -- which is their notion of a pilot-job.
+Just to keep life interesting, they call it head-job and not pilot-job!}
+\url{http://www.ci.uchicago.edu/swift/guides/release-0.92/userguide/coasters.php
+}
 
 
 \alnote{SWIFT eval: no standard resource abstraction (SAGA), proprietary 
@@ -1542,21 +1544,28 @@ frameworks and promotes easy-of-use.
 In addition to the three Pilot-Job framework discussed in this section, various
 other frameworks exist.
 \begin{itemize}
-    \item MyCluster
+    \item MyCluster~\cite{1652061} enables the 
+	creation of a Condor, PBS or SGE clusters on-demand.
     \item Falkon~\cite{1362680} is a Pilot-Job framework that emphasizes the 
 	performance of its task dispatcher.
-    \item Nimrod/G
+    \item Nimrod/G~\cite{10.1109/HPC.2000.846563}
     \item DIRAC~\cite{1742-6596-219-6-062049} is another pilot-job framework 
 	used by the LHCb community.
-    \item Topos
-    \item Panda    
+    \item ToPoS~\cite{topos} is a REST-based web service primarily designed with 
+	respect to parameter sweep applications. Internally, ToPoS utilizes PJ 
+	capabilities to efficiently manage resources.
+    \item The Production and Distributed Analysis System 
+	(PanDA)~\cite{1742-6596-219-6-062041} is the workload management system of 
+	the ATLAS experiment. PanDA utilizes multi-user PJs for resource management. 
+	The PJ component is built on top of Condor-G and referred to as AutoPilot. 
+	It can also be used independently of the ATLAS environment. 	
 \end{itemize}
 
 
 \jhanote{Can we add some structure to these *other* PJ.. this will be
   ambitious and time-consuming, but if we can, that'll be (i) a great
   service to the community, (ii) a strong intellectual addition to the
-  paper by virtue of validation of the P*-model}
+  paper by virtue of validation of the P*-model} \alnote{which are the minimal P* elements and characteristics we should discuss here?}
 
 
 
@@ -1573,12 +1582,12 @@ Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &Ma
 	
 Communication &Advert Service &CORBA &TCP &GSI-enabled TCP \\ \hline
 
-UW Binding &Late &Late &Late &Late\\
+UW Binding &Late/Late-Late &Late-Late &Late-Late &Late-Late\\
 % \hline
 % MPI/Multinode Applications &yes &no (yes with custom implementation of ApplicationWorker)\\
 \hline
 UW Scheduling &FIFO, custom &FIFO, custom &Matchmaking, priority-based scheduler 
-&Load-aware scheduler\\
+&Load-aware scheduler, UW clustering\\
 \hline
 
 Security &Middleware dependent (GSI, Advert DB Login) &GSI &Multiple (GSI, 
@@ -1594,7 +1603,7 @@ Agent Submission &API &Ganga Submission Script &Condor CLI
 % Management\linebreak[4] Master/Worker API (\texttt{ITaskScheduler}, 
 % \texttt{IApplicationManager}, \texttt{IApplicationWorker}) &&\\
 \hline
-Fault Tolerance &Error Propagation &Error Propagation, Retries &Error Propagation, Retries &Retries, replication\\
+Fault Tolerance &Error propagation &Error propagation, Retries &Error propagation, Retries &Error propagation, retries, replication\\
 \hline
 	
 \end{tabular}
@@ -1606,6 +1615,12 @@ Fault Tolerance &Error Propagation &Error Propagation, Retries &Error Propagatio
 In this section we discuss the TROY API. Further, (i) we show that the TROY API 
 can be used to  marshall DIANE stand-alone as well as (ii) that the TROY API 
 can be used stand alone with both BigJob and DIANE concurrently.
+
+
+Multinode DIANE not used?
+
+\note{Call, 26.06.: DIANE must be installed at every run. Setup time vs. startup
+time How does this scale with the number of nodes? }
 
 \section{Conclusion and Future Work}
 
