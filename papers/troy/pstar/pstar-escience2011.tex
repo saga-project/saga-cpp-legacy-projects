@@ -656,7 +656,7 @@ the decision is made by the middleware framework. \jhanote{should we
 \jhanote{Difference between mapping and assignment}\alnote{in this case both terms are used very synonymous.}
 
 \textbf{UW Scheduling:} Task scheduling describes i) the process of
-mapping UW to US (pilot internal) and ii) of mapping US to physical
+assigning UW to US (pilot internal) and ii) of assigning US to physical
 resources (pilot external).  The different scheduling decisions that
 need to be made are representative of multi-level scheduling decisions
 that are often required in distributed environments.  Scheduling
@@ -830,96 +830,87 @@ associated with the PS.
   affinity be demoted from elements, and be put under
   characteristics?}
 
-Different of the in the PJ model established characteristics can be used
-to describe Pilot-Data, e.\,g. the communication and coordination characteristic 
-also describes important properties of a Pilot-Data implementation.
+The in the PJ model established characteristics can be used
+to describe Pilot-Data: 
+\begin{compactitem}
+   \item \textbf{Coordination:} Components of the PD framework must be 
+   internally coordinated, e.\,g.\ using a master/worker scheme or a more 
+   decentralized decision making scheme based on smart agents.
+   \item \textbf{Communication:} Common known communication patterns, such as 
+    point-to-point and all-to-all, are used for implementing PD. A   
+	 critical task is the management of file transfers.
+   \item \textbf{Binding} describes the intelligent grouping and assignment of 
+   PDs and UWs to facilitate an optimal performance. 
+   \item \textbf{Scheduling} is extended to affinities, i.\,e.\ user-defined 
+   relationships between PJs and/or PDs, e.\,g.\ data-data  
+   affinities exist if different DU must be present at the same compute element, 
+   data-compute affinities arise if data and compute must be co-located for a 
+   computation, but their current location is different. The decision of where 
+   to place the data and compute is made by the scheduler based on the defined 
+   policies, affinities, available static and dynamic resource information. 
+\end{compactitem}  
+
+Pilot-Job and Pilot-Data encapsulate cross-cutting properties across data and
+computation. Both PJ and PD can be used to express different kind of affinities.
+The P* implementation will optimize data- and computing according to the defined
+affinities and policies. In the following, we discuss further implementation
+considerations for P*.
 
 
-\begin{itemize}
-    \item \textbf{Data Characteristics:}
-    \begin{itemize}
-    \item Static data refers to data that is infrequently changed and
-does not need to be moved.
-    \item Dynamic data refers to different spatial and temporal
-properties of data:
-    \begin{itemize}
-    	\item Data that is generated or changing at runtime
-(temporal).
-    	\item Data that is in place or needs to be moved (spatial).
-\end{itemize}
-\item Streaming data
-\end{itemize}  
-
-\item \textbf{Data Access Patterns: } While the P* is primarily
-concerned with capturing aspects of distributed coordination, this
-elements is extended to include patterns of data access, e.\,g. co-access or gather/scatter that is e.\,g.\ used by MapReduce.
-
-\item \textbf{Affinities:} 
-\begin{itemize}
-\item Data-Data affinity arises when different
-data-sets/elements are required to be at the same compute element.
-		\item Compute-Compute may arise, for example, either
-if C1 and C2 are related by a data-element D, which could be the
-output of C1 and is the required input for C2 (Case-I), or if both C1
-and C2 need to operate on (replicas of) the same data-element
-(Case-II)
-\item Data-Compute
-\end{itemize}
-	\item \textbf{Data management:} Managing input and output
-files can be critical in particular with the current increase of data
-volumes.  Pilot-Jobs can support different kinds of data management,
-e.\,g.\ file stage-in and out. Data and UW must be efficiently
-scheduled obeying data-data and data-compute affinities.
 
 
-   \item \textbf{Data Unit Binding and Scheduling:}
-   \begin{itemize}
-        \item Affinity-based scheduling
-        \item Data-transfer scheduling
-    \end{itemize}
-%     \item \textbf{Data Unit Binding and Scheduling:}
+% \subsection*{Not sure what to with this yet}
+% 
+% In summary, Pilot-Data is a set of abstractions for expressing data localities 
+% and affinities. Pilot-Data can be used to create groups of file clustered
+% together using a quantifiable property, such as affinity ($\alpha$)
+% e.g., $\alpha = 1.0$ would imply that files are always stored
+% together.
+% 
+% 
+% Pilot-Data provides a set of basic operations on top of these file
+% groups, whilst Pilot Store is a container that represents a logical
+% group of physical files that share the same affinity. Pilot-Store
+% containers can be used to express data-data affinities. The
+% abstraction supports basic management tasks (create, delete, update,
+% move, list).
+% 
+% The Pilot-Data abstraction serves the following needs:
+% \begin{itemize}
+% \item Reservation of physical disk space: acquisition of data storage
+%   (advanced reservation, place holder)
+% \item Virtual destination: dynamically mapping of data to pilot
+%   stores.
+% \item Runtime environment for $\alpha$ based data
+% \item Automatic data partitioning and distribution
+% \end{itemize}
+% 
+% \jhanote{This could be eliminated?} While the application-level
+% abstraction enables application developers to model data affinities,
+% dependencies etc., the runtime framework will be responsible for
+% managing data-compute co-allocations, data-transfers, the dynamic
+% expansion of storage pools etc.
+% 
+% 
+% \subsubsection*{PD Impl. Cons.}
+% 
+% 
+% \textbf{Data Characteristics:}
 %     \begin{itemize}
-%         \item Affinity-based scheduling
-%         \item Data-transfer scheduling
-%     \end{itemize}
-\end{itemize}
-
-
-\subsection*{Not sure what to with this yet}
-
-Pilot-Data is a set of abstractions for expressing data localities and
-affinities. Pilot-Data can be used to create groups of file clustered
-together using a quantifiable property, such as affinity ($\alpha$)
-e.g., $\alpha = 1.0$ would imply that files are always stored
-together.
-
- 
-Pilot-Job and Pilot-Data encapsulate cross-cutting properties across data and 
-computation. Both Pilot-Job and Pilot-Data can be used to express affinities 
-between data and compute elements. 
-
-Pilot-Data provides a set of basic operations on top of these file
-groups, whilst Pilot Store is a container that represents a logical
-group of physical files that share the same affinity. Pilot-Store
-containers can be used to express data-data affinities. The
-abstraction supports basic management tasks (create, delete, update,
-move, list).
-
-The Pilot-Data abstraction serves the following needs:
-\begin{itemize}
-\item Reservation of physical disk space: acquisition of data storage
-  (advanced reservation, place holder)
-\item Virtual destination: dynamically mapping of data to pilot
-  stores.
-\item Runtime environment for $\alpha$ based data
-\item Automatic data partitioning and distribution
-\end{itemize}
-
-\jhanote{This could be eliminated?} While the application-level
-abstraction enables application developers to model data affinities,
-dependencies etc., the runtime framework will be responsible for
-managing data-compute co-allocations, data-transfers, the dynamic
-expansion of storage pools etc.
+%     \item Static data refers to data that is infrequently changed and
+% does not need to be moved.
+%     \item Dynamic data refers to different spatial and temporal
+% properties of data:
+%     \begin{itemize}
+%     	\item Data that is generated or changing at runtime
+% (temporal).
+%     	\item Data that is in place or needs to be moved (spatial).
+% 	\end{itemize}
+% 	\item Streaming data
+% \end{itemize}
+% \textbf{Data Access Patterns: } While the P* is primarily
+% concerned with capturing aspects of distributed coordination, this
+% elements is extended to include patterns of data access, e.\,g. co-access or gather/scatter that is e.\,g.\ used by MapReduce.
 
 \subsection{Implementation Considerations}
 
