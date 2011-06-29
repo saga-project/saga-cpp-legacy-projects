@@ -233,6 +233,7 @@ Introduction.
 
 \section{Introduction and Overview}
 
+
 Distributed infrastructure almost by definition is comprised of a set
 of resources that are fluctuating -- growing, shrinking, changing in
 load and capability.  The ability to respond to such changes is thus
@@ -280,7 +281,7 @@ smaller tasks.
 \alnote{not sure why do we need week and strong model? Determinism and 
 distributed systems don't go together well. Also, I wouldn't claim that
 the prob. of adv. rerv. is 1 (it might be 0.99...). PJ are more in line
-w/ the weak model. Do we say that Advance Reserv. are better?}
+with the weak model. Do we say that Advance Reserv. are better?}
 There exist two models of dynamic resource utilization, which we refer
 to as the weak (probabilistic) model of Dynamic Execution (DE) and the
 strong (deterministic) model of DE. In the former, there exists a
@@ -760,12 +761,12 @@ pilot is operating (step 7).
 % The concept of correlated access originates in
 % Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
 
-\begin{figure}[t]
-    \centering
-        \includegraphics[width=0.4\textwidth]{figures/pilotstore.pdf}
-    \caption{Pilot Data and Store Overview}
-    \label{fig:figures_pilotstore}
-\end{figure}
+% \begin{figure}[t]
+%     \centering
+%         \includegraphics[width=0.4\textwidth]{figures/pilotstore.pdf}
+%     \caption{Pilot Data and Store Overview}
+%     \label{fig:figures_pilotstore}
+% \end{figure}
 
 \jhanote{Motivation for PD: We have discussed the importance of DE for
   compute; there exist similar and important considerations for DE for
@@ -924,7 +925,7 @@ model, the type of communication (API or service) etc.
 %TROY -- implementation of the P* model.
 
 \jhanote{I propose we remove ``framework'' ; if anything it should be
-  Model?} The PJ framework must define the usage model, i.\,e.\ how are
+  Model?} The PJ implemenation must define the usage model, i.\,e.\ how are
 resources allocated, UW specified and assigned, as well as the way how
 the framework can be accessed, e.\,g.\ via a service or
 API. Pilot-Jobs can be run on different types of homogeneous and
@@ -1042,22 +1043,23 @@ scheduling.
 %   core bigjob}
 
 
-BigJob is a Pilot-Job implementation of the TROY
+BigJob (BJ) is a pilot-job implementation of the TROY
 framework~\cite{bigjob_web}. It supports a wide range of application
 types, and is usable over a broad range of infrastructures, i.\,e.\ it
 is general-purpose and extensible.
 
-\alnote{not sure how deep we should go here or in sec V} The framework
-\jhanote{Is the ``framework'' a reference to BigJob or TROY?} consists
-of the API package and a runtime environment. The API utilizes the
-framework \jhanote{Is framework here P-* ?} and elements defined in
-section~\ref{sec:pilot-model}. We define two description classes that
-extend the known SAGA Job Description object, the pilot-job
-description and the UW description. A TROY manager represents a pool
-of resources. Resources can be added by submitting a pilot-job
-description to the TROY manager using the \texttt{add\_resource()}
-method.  Subsequently, UW can be assigned to the TROY manager. At
-runtime resources can be added and removed at any time.
+\alnote{This paragraph focuses on TROY abstraction, it refers to BJ as the
+implementation. Should we move it on top of the BJ section?} The TROY framework
+\jhanote{Is the ``framework'' a reference to BigJob or TROY?}\alnote{TROY}
+consists of the API package, the runtime environment and different PJ
+implementations referred to as BigJob. The TROY API is based on the artifacts
+defined by the P* model \jhanote{Is framework here P-* ?} defined in
+section~\ref{sec:pilot-model}. It defines two description classes that extend
+the known SAGA Job Description, the PJ description and the UW description. A
+TROY manager represents a pool of resources. Resources can be added by
+submitting a pilot-job description to the TROY manager using the
+\texttt{add\_resource()} method. Subsequently, UW can be assigned to the TROY
+manager. At runtime resources can be added and removed at any time.
 
 
 \begin{figure*}[htbp]
@@ -1068,71 +1070,95 @@ runtime resources can be added and removed at any time.
 	\label{fig:figures_distributed_pilot_job}
 \end{figure*}
 
-Pilot-Job implementations are plugged into the TROY runtime environment via a
-thin adaptor layer. Figure~\ref{fig:figures_distributed_pilot_job} shows the
-various layers of the SAGA TROY framework. While BigJob-DIANE provides dynamic
-capabilities out-of-the-box, the traditional BigJob
-implementation~\cite{saga_bigjob_condor_cloud} utilizes two layers: the
-\emph{Core BigJob} and the so called \emph{BigJob Pool} layer. Core BigJobs are
-confined to a single resource and represented by a single master process
-(i.\,e.\ a single BigJob Manager). Generally, Core BigJobs are used to
-encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
-(Condor, Cloud, etc.). A BigJob Pool manages multiple Core BigJobs.
+% General overview of BJ implementations
+The BigJob implementations are plugged into the TROY runtime environment via a
+thin adaptor layer (see Figure~\ref{fig:figures_distributed_pilot_job}).
+BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a implementation of TROY built on
+top of the SAGA API. The framework utilizes a master/worker coordination model:
+The BigJob Manager is responsible for the orchestration and scheduling of the
+PJs represented by the BigJob Agent. For submission of the pilots, BigJob-SAGA
+relies the SAGA Job API and thus, can be used in conjunction with different SAGA
+adaptors, e.\,g.\ the Globus, PBS, Amazon Web Service and local adaptor. The
+SAGA Advert Service and API are used for communication between manager and
+agent. The binding between UW and PJ takes places at submission. In addition to
+the vanilla BigJob SAGA various other BigJob implementation exist, e.\,g. there
+are specific BJ flavors for cloud resources as Amazon EC2 and Microsoft Azure 
+that are capable of managing set of
+VMs as well as as a BJ with a Condor-G based backend.
 
-\jhanote{Should Table I be zapped?} Table~\ref{tab:pilotjob_overview}
-summarizes the different TROY implementations and their
-characteristics: BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a
-implementation of TROY built on top of the SAGA API. The framework
-utilizes a Master/Worker coordination model: The BigJob Manager is
-responsible for the orchestration and scheduling of the Pilot-Jobs
-represented by the BigJob Agent.  For submission of the Pilot-Jobs,
-BigJob-SAGA utilizes the SAGA Job API and thus, can be used in
-conjunction with different SAGA adaptors, e.\,g.\ the Globus, PBS,
-Amazon Web Service and local adaptor. The SAGA Advert Service and API
-are used for communication between manager and agent. The binding
-between UW and pilot-job takes places at submission.
+%paragraph on dynamic capabilities
+In many scenarios it is beneficial to utilize multiple resources respectively a
+dynamic pool of resources, e.\,g.\ to accelerate the time-to-completion or to
+provide resilience to resource failures and/or unexpected delays. The TROY API
+allows for dynamic resource additions and removals. The support of this feature
+depends on the backend used. BigJob-SAGA utilizes the concept of a BigJob pool
+to support elasticity: A BigJob pool consists of multiple BigJob-SAGA that can
+be potentially distributed across several resources and types of
+infrastructures. Each BigJob manages it's own resources. An extensible scheduler
+is used for dispatching UWs to the different BigJobs that are managed by a
+BigJob pool. BigJob pools are elastic, i.\,e.\ resources can added or be removed
+at runtime. Various other backends support resource elasticity out-of-the-box,
+e.\,g.\ DIANE and Condor.
+
+% For this
+% purpose, the dynamic BigJob provides an introspection API that applications can
+% utilize to query the manager for a list of current resources.
+
+%  Thus, BigJob-DIANE provides dynamic
+% capabilities out-of-the-box, the traditional BigJob
+% implementation~\cite{saga_bigjob_condor_cloud} utilizes two layers: the
+% \emph{Core BigJob} and the so called \emph{BigJob Pool} layer. Core BigJobs are
+% confined to a single resource and represented by a single master process
+% (i.\,e.\ a single BigJob Manager). Generally, Core BigJobs are used to
+% encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
+% (Condor, Cloud, etc.). A BigJob Pool manages multiple Core BigJobs.
 
 
 
-\begin{table}[t]
-\centering
-\begin{tabular}{|p{1.8cm}|p{1.7cm}|p{1.7cm}|p{1.7cm}|}
-	\hline
-	&\textbf{UW Binding} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} \\
-	%\hline
-	%\textbf{BigJob} & &&&&\\
-	\hline
-	BigJob-SAGA &&&\\
-	\hline
-	\hspace{2mm} Globus/PBS   &at UW submission
-									  &Master/Worker &SAGA Advert \\  
-	\hline
-	\hspace{2mm} Cloud (EC2)  &at UW submission 
-									  &Master/Worker &SAGA Advert \\ 
-    \hline
-   BigJob-Condor &after UW submission &Master/Worker &Condor-internal \\
-	\hline
- 	BigJob-Cloud &at UW submission   &Master/Worker 
-				 &local Python queue / SAGA Job (SSH adaptor) \\ 
-	\hline
-	BigJob-Azure &at UW submission
-	             &Master/Worker &Azure Storage \\ 
-	\hline
-    BigJob-Diane &after UW submission  &Master/Worker &CORBA  \\ 
-	\hline	
-	% \textbf{Dynamic BigJob} & &&&&\\
-	% 	\hline
-	%     Dynamic BigJob &late binding (after job submission) &same as BJ &central decision making &same as BJ &(yes in future)\\
-	%     \hline
-    %   ManyJob-Cloud &late binding (after job submission) &no &central decision making &SAGA Job (SSH) (push) &no\\
-    % \hline 
-    % ManyJob-Affinity &late binding (after job submission)
-    % &yes &central decision making &SAGA Advert (push/pull) &no\\
-    % \hline
-\end{tabular}
-\caption{SAGA-based Troy Implementations: Characteristics According to
-  Defined Vectors} \label{tab:pilotjob_overview}
-\end{table}		
+
+\jhanote{Should Table I be zapped?} \alnote{gone}  
+
+
+
+% \begin{table}[t]
+% \centering
+% \begin{tabular}{|p{1.8cm}|p{1.7cm}|p{1.7cm}|p{1.7cm}|}
+% 	\hline
+% 	&\textbf{UW Binding} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} \\
+% 	%\hline
+% 	%\textbf{BigJob} & &&&&\\
+% 	\hline
+% 	BigJob-SAGA &&&\\
+% 	\hline
+% 	\hspace{2mm} Globus/PBS   &at UW submission
+% 									  &Master/Worker &SAGA Advert \\  
+% 	\hline
+% 	\hspace{2mm} Cloud (EC2)  &at UW submission 
+% 									  &Master/Worker &SAGA Advert \\ 
+%     \hline
+%    BigJob-Condor &after UW submission &Master/Worker &Condor-internal \\
+% 	\hline
+%  	BigJob-Cloud &at UW submission   &Master/Worker 
+% 				 &local Python queue / SAGA Job (SSH adaptor) \\ 
+% 	\hline
+% 	BigJob-Azure &at UW submission
+% 	             &Master/Worker &Azure Storage \\ 
+% 	\hline
+%     BigJob-Diane &after UW submission  &Master/Worker &CORBA  \\ 
+% 	\hline	
+% 	% \textbf{Dynamic BigJob} & &&&&\\
+% 	% 	\hline
+% 	%     Dynamic BigJob &late binding (after job submission) &same as BJ &central decision making &same as BJ &(yes in future)\\
+% 	%     \hline
+%     %   ManyJob-Cloud &late binding (after job submission) &no &central decision making &SAGA Job (SSH) (push) &no\\
+%     % \hline 
+%     % ManyJob-Affinity &late binding (after job submission)
+%     % &yes &central decision making &SAGA Advert (push/pull) &no\\
+%     % \hline
+% \end{tabular}
+% \caption{SAGA-based Troy Implementations: Characteristics According to
+%   Defined Vectors} \label{tab:pilotjob_overview}
+% \end{table}		
 
 
 % Aspects that need to be addressed:
@@ -1147,15 +1173,6 @@ between UW and pilot-job takes places at submission.
 %     versus big-job agent
 % \end{itemize}
 
-In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
-accelerate the time-to-completion or to provide resilience to resource failures
-and/or unexpected delays. A BigJob Pool consists of multiple Core
-BigJobs potentially distributed across several resources and types of
-infrastructures. Each BigJob manages it's own resources. An extensible scheduler
-is used for dispatching UWs to the different BigJobs that are managed by a
-BigJob Pool. BigJob Pools are malleable, i.\,e.\ resources can added or be
-removed. For this purpose, the dynamic BigJob provides an introspection API that 
-applications can utilize to query the manager for a list of current resources.
 
 
 
@@ -1197,80 +1214,80 @@ applications can utilize to query the manager for a list of current resources.
 % \alnote{did one pass... still not perfect}
 
 \jhanote{I propose the next 3 subsections -- bigjob-cloud, bigjob-aws
-  and bigjob-azure, be removed}
+  and bigjob-azure, be removed}\alnote{gone, there was no news anyhow}
 
-\subsubsection{BigJob for Cloud Computing}
-
-\jhanote{Once again -- why do differences in execution details between
-  grids and clouds result in the need for different atomic BJs needs
-  to be explained. Must emphasis that the API remains the same.}
-
-At the execution level, clouds differ from Clusters/Grids in at least a couple
-of different ways. In cloud environments, user-level jobs are not typically
-exposed to a scheduling system; a user-level job consists of requesting the
-instantiation of a virtual machine (VM). Virtual machines are either assigned to
-the user or not (this is an important attribute that provides the illusion of
-infinite resources). The assignment of job to a VM must be done by the user (or
-a middleware layer as BigJob). In contrast, user-level jobs on grids and 
-clusters are exposed to a scheduling system and are
-assigned to execute at a later stage. Also a description of a grid job typically
-contains an explicit description of the workload; in contrast for Clouds a user
-level job usually contains the container (description of the resource
-requested), but does not necessarily include the workload. In other words, the
-physical resources are not provisioned to the workload but are provisioned to
-the container.  Interestingly, at this level of formulation, pilot-jobs attempt 
-to provide a similar model of resource provisioning as clouds natively offer. 
-
-\subsubsection{BigJob and SAGA AWS Adaptor}
-
-BigJob provides support for various cloud computing environment. The SAGA BigJob
-implementation can be used in conjunction with the AWS adaptor for SAGA to run
-on EC2-based cloud infrastructures, such as FutureGrid. However, there are some 
-limitations mainly caused by the restrictions of SAGA/AWS adaptor for the SAGA 
-Job package. The SAGA job service object e.\,g.\ does not provide a mean to 
-specify a set of resources. Using the AWS adaptor it is only possible to utilize 
-a single VM instance, which must be configured prior to the run in a 
-configuration file. If multiple VMs are required, the dynamic BigJob 
-implementation must be used. In this case however, it is still not possible to 
-run MPI jobs across multiple VMs. 
-\smnote {why is it not possible to run MPI jobs across Multiple VM's?} \alnote{MPI jobs are (unless you do something outside of BJ) constraint to run
-on resources managed by a single BJ agent. The agent must generate a nodefile
-from this list of resource it is managing. The agent is not aware of resources
-managed by another BJ)}
-
-\subsubsection{BigJob Cloud \& BigJob Azure}
-
-To address this limitation, BigJob-Cloud~\cite{saga_bigjob_condor_cloud} was
-developed. BigJob-Cloud provides an implementation of the BigJob API, which is
-completely independent from the SAGA (and thus, the SAGA AWS adaptor). It
-directly utilizes the Amazon tools to access cloud resources. It can manage
-cluster of VM; for this purpose BigJob provides a rich interface for describing
-cloud resources. For this purpose a Python dictionary is used (see
-section~\ref{sec:api}). The VMs can be managed centrally by the BigJob manager:
-All VMs have a public IP and there is no need to interface with a local resource
-manager (SAGA BigJob e.\,g.\ evaluates the \texttt{\$PBS\_NODEFILE} to obtain a
-list of resources). Thus, it is not necessary to deploy an agent on the VM - all
-necessary metadata can be obtained from the AWS backend. Job are spawned via
-SSH.
-
-% \begin{itemize}
-%   \item ManyJob is required to manage the set of VMs. The BigJob-Cloud can manage a set of VMs without the need of ManyJob.
-%   \item Bigjob uses advert server for communication between BigJob-agent and BigJob whereas BigJob-Cloud does not use an advert server.
-%   \item Bigjob-cloud does not require SAGA-AWS adaptors as opposed to requirement in original Bigjob. 
-% \end{itemize} 
-
-
-BigJob-Azure~\cite{10.1109/CloudCom.2010.85} utilizes a similar approach as
-BigJob-Cloud. It utilizes the Azure REST interface to startup VM Worker Roles.
-However, since Azure does not support SSH access it is necessary to utilize an
-agent-based approach. For communication between the agent and the manager the
-Azure Storage is used.
-
-\msnote{If BigJob is the atomic unit, it should not differ per
-  backend}\alnote{That's mainly a restriction of the job package which
-  does not really map to AWS. There is no common way in the job
-  package to specify the \# of resources that suppose to be
-  used. Thus, this limitation}
+% \subsubsection{BigJob for Cloud Computing}
+% 
+% \jhanote{Once again -- why do differences in execution details between
+%   grids and clouds result in the need for different atomic BJs needs
+%   to be explained. Must emphasis that the API remains the same.}
+% 
+% At the execution level, clouds differ from Clusters/Grids in at least a couple
+% of different ways. In cloud environments, user-level jobs are not typically
+% exposed to a scheduling system; a user-level job consists of requesting the
+% instantiation of a virtual machine (VM). Virtual machines are either assigned to
+% the user or not (this is an important attribute that provides the illusion of
+% infinite resources). The assignment of job to a VM must be done by the user (or
+% a middleware layer as BigJob). In contrast, user-level jobs on grids and 
+% clusters are exposed to a scheduling system and are
+% assigned to execute at a later stage. Also a description of a grid job typically
+% contains an explicit description of the workload; in contrast for Clouds a user
+% level job usually contains the container (description of the resource
+% requested), but does not necessarily include the workload. In other words, the
+% physical resources are not provisioned to the workload but are provisioned to
+% the container.  Interestingly, at this level of formulation, pilot-jobs attempt 
+% to provide a similar model of resource provisioning as clouds natively offer. 
+% 
+% \subsubsection{BigJob and SAGA AWS Adaptor}
+% 
+% BigJob provides support for various cloud computing environment. The SAGA BigJob
+% implementation can be used in conjunction with the AWS adaptor for SAGA to run
+% on EC2-based cloud infrastructures, such as FutureGrid. However, there are some 
+% limitations mainly caused by the restrictions of SAGA/AWS adaptor for the SAGA 
+% Job package. The SAGA job service object e.\,g.\ does not provide a mean to 
+% specify a set of resources. Using the AWS adaptor it is only possible to utilize 
+% a single VM instance, which must be configured prior to the run in a 
+% configuration file. If multiple VMs are required, the dynamic BigJob 
+% implementation must be used. In this case however, it is still not possible to 
+% run MPI jobs across multiple VMs. 
+% \smnote {why is it not possible to run MPI jobs across Multiple VM's?} \alnote{MPI jobs are (unless you do something outside of BJ) constraint to run
+% on resources managed by a single BJ agent. The agent must generate a nodefile
+% from this list of resource it is managing. The agent is not aware of resources
+% managed by another BJ)}
+% 
+% \subsubsection{BigJob Cloud \& BigJob Azure}
+% 
+% To address this limitation, BigJob-Cloud~\cite{saga_bigjob_condor_cloud} was
+% developed. BigJob-Cloud provides an implementation of the BigJob API, which is
+% completely independent from the SAGA (and thus, the SAGA AWS adaptor). It
+% directly utilizes the Amazon tools to access cloud resources. It can manage
+% cluster of VM; for this purpose BigJob provides a rich interface for describing
+% cloud resources. For this purpose a Python dictionary is used (see
+% section~\ref{sec:api}). The VMs can be managed centrally by the BigJob manager:
+% All VMs have a public IP and there is no need to interface with a local resource
+% manager (SAGA BigJob e.\,g.\ evaluates the \texttt{\$PBS\_NODEFILE} to obtain a
+% list of resources). Thus, it is not necessary to deploy an agent on the VM - all
+% necessary metadata can be obtained from the AWS backend. Job are spawned via
+% SSH.
+% 
+% % \begin{itemize}
+% %   \item ManyJob is required to manage the set of VMs. The BigJob-Cloud can manage a set of VMs without the need of ManyJob.
+% %   \item Bigjob uses advert server for communication between BigJob-agent and BigJob whereas BigJob-Cloud does not use an advert server.
+% %   \item Bigjob-cloud does not require SAGA-AWS adaptors as opposed to requirement in original Bigjob. 
+% % \end{itemize} 
+% 
+% 
+% BigJob-Azure~\cite{10.1109/CloudCom.2010.85} utilizes a similar approach as
+% BigJob-Cloud. It utilizes the Azure REST interface to startup VM Worker Roles.
+% However, since Azure does not support SSH access it is necessary to utilize an
+% agent-based approach. For communication between the agent and the manager the
+% Azure Storage is used.
+% 
+% \msnote{If BigJob is the atomic unit, it should not differ per
+%   backend}\alnote{That's mainly a restriction of the job package which
+%   does not really map to AWS. There is no common way in the job
+%   package to specify the \# of resources that suppose to be
+%   used. Thus, this limitation}
 
 
 \subsection{BigData: A SAGA-based Pilot-Data Implementation}
@@ -1278,16 +1295,23 @@ Azure Storage is used.
 % \jhanote{theory goes upfront; implementation and architecture stays
 %   here} \alnote{ok}
 
-BigData is the SAGA-based implementation of the Pilot Data abstraction.
-Figure~\ref{fig:figures_distributed_pilot_job} gives an overview of the
-architecture. The system consists of two components: the Pilot Data manager and
-the agents deployed on a specific physical storage resource. The manager is
-responsible for 1) meta-data management, i.\,e.\ it keeps track of the pilot
-stores that a pilot data object is associated with and 2) it schedules data
-movements and data replications taking into account the application requirements 
-defined via affinities. Data placement and locality is the key for a optimal 
-performance of data-intensive applications. The architecture is designed to 
-function as a \textbf{user-level overlay} on top of existing storage resources.
+BigData is the SAGA-based implementation of the Pilot-Data abstraction.
+Figure~\ref{fig:pilot-data-architecture} gives an overview of the
+architecture. The system consists of two components: the PD manager and
+the agents deployed on a specific physical storage resource. The coordination 
+scheme used is master/worker with some intelligent that is lying de-centrally at 
+the BD agent. As communication mechanism the SAGA Advert Service is used.
+
+
+The PD manager is responsible for 1) meta-data management, i.\,e.\ it keeps
+track of the pilot stores that a pilot data object is associated with, 2) it
+schedules data movements and data replications taking into account the
+application requirements defined via affinities and 3) for managing data
+movements. The PD and PJ manager work closely together to manage compute-/data-affinities for applications
+
+% Data placement and locality is the key for a optimal 
+% performance of data-intensive applications. The architecture is designed to 
+% function as a \textbf{user-level overlay} on top of existing storage resources.
 
 
 \jhanote{Need to explain/describe architecture of BigData? using the
@@ -1296,8 +1320,9 @@ function as a \textbf{user-level overlay} on top of existing storage resources.
 \begin{figure}[htbp]
     \centering
         \includegraphics[width=0.49\textwidth]{figures/pilot-data-manager.pdf}
-    \caption{Pilot Data Architecture}
-    \label{fig:figures_distributed_pilot_job}
+    \caption{\textbf{Pilot-Data Architecture:} The PD-Manager is exposing the TROY the core of 
+    BigData. The application can access the TROY API}
+    \label{fig:pilot-data-architecture}
 \end{figure}
 
 Each pilot store is managed by an agent. The agent can be started manually or 
@@ -1305,99 +1330,90 @@ using the Pilot Data API. A possible implementation option would be the
 integration of the PD and BigJob agent, which is particularly useful for 
 managing data-/compute-affinities.
 
-A core part of the data manager is the data scheduler. The scheduler aims for a 
-optimum of data and compute locality for an applications.
-\begin{itemize}
-	\item Move data to compute
-	\item Move computer to data
-	\item Streaming of data
-	\item Data prefetching 
-	\item Replication
-\end{itemize}
+A core part of the data manager is the data scheduler. The scheduler aims for a
+optimum of data and compute locality for an applications: it selects the storage
+and compute elements for a UW submitted. For this purpose the PJ scheduler was
+extended to support affinities, i.\,e.\ when scheduling UW it considers
+dependencies toward PDs. The manager is then responsible for managing necessary
+file transfer, the pre-fetching of files if applicable, as well as the executing
+the actual UW. For file-transfer management BigData utilizes SAGA and thus, is
+infrastructure independent. It supports all underlying SAGA adaptors (SSHFS,
+GridFTP) and future adaptors such as Globus Online.
 
 
 
-\subsubsection{Data Movement}
-
-The Pilot Data implementation is based on SAGA and thus, is infrastructure
-independent. It supports all underlying SAGA adaptors (SSHFS, GridFTP) and
-future adaptors such as Globus Online.
-
-Work on optimizing file transfers: Kosar[2011]
-
-Work on reliable file transfer: RFT, Globus Online
-
-\subsubsection{BigJob and BigData Integration}
-
-In particular for data-intensive applications data locality is an important
-concern. Different types of affinity, e.\,g.\ data-data or data-compute, exists.
-Dynamic BigJob provides support for data-compute affinities. Each resource
-(i.\,e.\ each big-job) can be assigned to a certain affinity. The affinity-aware
-scheduler then ensures that sub-jobs that demand a certain affinity are only
-executed on resources that fulfill this constraint.
+% \subsubsection{BigJob and BigData Integration}
+% 
+% In particular for data-intensive applications data locality is an important
+% concern. Different types of affinity, e.\,g.\ data-data or data-compute, exists.
+% Dynamic BigJob provides support for data-compute affinities. Each resource
+% (i.\,e.\ each big-job) can be assigned to a certain affinity. The affinity-aware
+% scheduler then ensures that sub-jobs that demand a certain affinity are only
+% executed on resources that fulfill this constraint.
 
 
-\subsubsection{Related Work}
+% \subsubsection{Related Work}
+% 
+% Work on optimizing file transfers: Kosar[2011]
+% Work on reliable file transfer: RFT, Globus Online
+% 
+% \emph{iRods}
+% \emph{Stork}
+% 
+% 
+% \emph{BitDew}
+% 
+% Random Notes
+% \begin{itemize}
+% 	\item Focus on Desktop Grid
+% 	\item Java-based implementation (ie difficult to interface with Python-based PS/SAGA)
+% 	\item highly distributed: stable and volatile nodes
+% 	\item pull model, i.e. a node pulls for new data
+% \end{itemize}
+% 
+% 
+% Mapping to BitDew:
+% \begin{itemize}
+% 	\item Pilot Store in its current implementation covers Bitdew Data Catalog and Repository
+% 	\item For data management and placement the Active Data API and the Bitdew data scheduler could be used
+% 	\item Transfer Management is done via SAGA File API	
+% \end{itemize}
 
-\emph{iRods}
+% How to evolve pilot data/store?
+% \begin{itemize}
+% 	\item Active management of data (e.g. replication, automatic affinity management) requires an active component:
+% 	\begin{itemize}
+% 		\item Manager/Agent model as in BigJob?
+% 		\item Who runs active components? Started as part of batch job or separate install/start?
+% 	\end{itemize}
+% \end{itemize}
+% 
+% Questions:
+% \begin{itemize}
+%     \item How should
+%     we store data in order to effectively cope with non-uniform demand for
+%     data? 
+%     \item How many copies of popular data objects do we need? 
+%     \item Where should we store them for effective load balancing?
+% \end{itemize}
 
-
-\emph{Stork}
-
-
-\emph{BitDew}
-
-Random Notes
-\begin{itemize}
-	\item Focus on Desktop Grid
-	\item Java-based implementation (ie difficult to interface with Python-based PS/SAGA)
-	\item highly distributed: stable and volatile nodes
-	\item pull model, i.e. a node pulls for new data
-\end{itemize}
-
-
-Mapping to BitDew:
-\begin{itemize}
-	\item Pilot Store in its current implementation covers Bitdew Data Catalog and Repository
-	\item For data management and placement the Active Data API and the Bitdew data scheduler could be used
-	\item Transfer Management is done via SAGA File API	
-\end{itemize}
-
-How to evolve pilot data/store?
-\begin{itemize}
-	\item Active management of data (e.g. replication, automatic affinity management) requires an active component:
-	\begin{itemize}
-		\item Manager/Agent model as in BigJob?
-		\item Who runs active components? Started as part of batch job or separate install/start?
-	\end{itemize}
-\end{itemize}
-
-Questions:
-\begin{itemize}
-    \item How should
-    we store data in order to effectively cope with non-uniform demand for
-    data? 
-    \item How many copies of popular data objects do we need? 
-    \item Where should we store them for effective load balancing?
-\end{itemize}
-
-\textbf{TODO/Future Work}
-The current framework provides building blocks for expressing data localities and operation on file groups (similar to filecules).
-
-Limitations:
-\begin{itemize}
-    \item No active agent that monitors state of files
-    \item No placement policy support or autonomic behavior
-    \item Infrastructures generally expose insufficient locality/topology information
-    \item Compute – Data Affinity: Dynamic BigJob with affinity only provides a very coarse-grained affinity
-    \item No policy for what’s happening if data is not available in right location:
-    \begin{itemize}
-        \item Run anyways – affinity is just an hint
-    \end{itemize}
-    \item When to move pilot stores? Move or copy?
-    \item Move data to compute or visa versa?
-    \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
-\end{itemize}
+% \textbf{TODO/Future Work}
+% 
+% 
+% Limitations:
+% \begin{itemize}
+%     \item No active agent that monitors state of files
+%     \item No placement policy support or autonomic behavior
+%     \item Infrastructures generally expose insufficient locality/topology information
+%     \item Compute – Data Affinity: Dynamic BigJob with affinity only provides a very coarse-grained affinity
+%     \item No policy for what’s happening if data is not available in right location:
+%     \begin{itemize}
+%         \item Run anyways – affinity is just an hint
+%     \end{itemize}
+%     \item When to move pilot stores? Move or copy?
+%     \item Move data to compute or visa versa?
+%     \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
+% \end{itemize}
 
 \subsection{Conclusion}
 
