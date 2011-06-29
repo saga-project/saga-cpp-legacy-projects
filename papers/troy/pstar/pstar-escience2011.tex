@@ -1455,18 +1455,50 @@ Unit of Scheduling &Sub-Job &Task &Job &Job\\
 
 \subsection{DIANE}
 
+% Coordination and Communication
 DIANE~\cite{Moscicki:908910} is a task coordination framework which implements
-the Master/Worker pattern. Table~\ref{table:bigjob-saga-diane} compares the
-BigJob-SAGA and Diane. DIANE follows the master-worker coordination model and
-utilizes a single hierarchy of Worker Agents. The manager process is referred to
-as RunMaster. Further, there is ongoing work on a multi-master extensions. For
-the spawning of PJs a separate script, the so-called submitter script, is
+the Master/Worker pattern. DIANE was originally designed for master/worker
+application, but also provides PJ functionality for job-style executions. By
+nature DIANE follows the master-worker coordination model and utilizes a single
+hierarchy of worker agents. The manager process is referred to as
+\texttt{RunMaster}. Further, there is ongoing work on a multi-master extensions.
+For the spawning of PJs a separate script, the so-called submitter script, is
 required. Once the worker agents are started they register themselves at the
-RunMaster. For communication between the RunMaster and Worker Agents
-point-to-point messaging based on CORBA (omniORB) is used. DIANE includes a
-simple capability matcher and FIFO-based task scheduler. Applications can
-implement a custom application-level scheduler.
+RunMaster. In contrast to BJ-SAGA, a worker agent generally manages only a
+single core and thus, by default is not able to run parallel applications
+(e.\,g.\ based on MPI). In contrast to BJ-SAGA, DIANE worker agents possess less
+local autonomy and are directly controlled by the master. BJ-SAGA delegates the
+management of the local resources from the BJ manager to the BJ agent. The agent
+collects information about local resources and manages the allocation of these
+resources locally. For communication between the RunMaster and worker
+agents point-to-point messaging based on CORBA (omniORB) is used. CORBA is also 
+used for file staging, a feature currently not fully supported by BJ-SAGA.
 
+% Binding 
+DIANE is primarily designed with respect to HTC environments (such as
+EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the size
+of 1 core. BJ-SAGA in contrast is designed for HPC systems such as TG, where a
+job usually allocates multiple nodes and cores. To address this issue a
+so-called multinodes submitter script can be used: the scripts starts a defined
+number of worker agents on a certain resource. However, UWs will be constrained
+to the specific number of cores managed by a worker agent. A flexible allocation
+of resource chunks as with BJ-SAGA is not possible. By default a UW is mapped to
+a US; application can however implement smarter allocation schemes, e.\,g.\ the
+clustering of multiple UWs into a US.
+
+%Scheduling
+DIANE includes a simple capability matcher and FIFO-based task scheduler.
+Plugins for other workloads, e.\,g.\ DAGs or for data-intensive
+application, exists or are under development. The framework is extensible:
+applications can implement a custom application-level scheduler.
+
+
+%Other impl. related issues: FT and security
+DIANE is as BJ-SAGA a single-user PJ, i.\,e.\ each PJ is executed with the
+privileges of the respective user. Also, only UWs of this respective user can be
+executed by DIANE. For communication, DIANE currently relies CORBA/TCP. The 
+implementation of GSI is on TCP-level is possible, but currently not yet 
+implemented. Further, DIANE supports fault tolerance: basic error detection and propagation mechanisms are in place. Further, an automatic re-execution of UWs is possible.
 
 
 \subsection{Condor-G}
@@ -1477,10 +1509,14 @@ jobs can be submitted to this pool using the standard Condor tools and APIs.
 
 Condor Flocking lets multiple Condor pools share resources.
 
-different authentication schemes, e.g. GSI, Kerberos
-hostname based auth
 
-no AES encryption
+
+% Security
+Condor supports different security schemes: for authentication it integrates
+both with local account management systems (such as Kerberos) as well as grid
+authentication systems such as GIS. Communication traffic can be encrypted.
+
+
 
 \subsection{SWIFT and Coaster}
 
@@ -1597,8 +1633,21 @@ In this section we discuss the TROY API. Further, (i) we show that the TROY API
 can be used to  marshall DIANE stand-alone as well as (ii) that the TROY API 
 can be used stand alone with both BigJob and DIANE concurrently.
 
+Paragraph how TROY and BJ-DIANE work together goes in here...
 
-Multinode DIANE not used?
+
+Figure~\ref{fig:perf_perf-bfast-bj} compares the performance of BJ-DIANE, BJ-SAGA. Further, it shows that both PJ implementations can be used concurrently. This is particularly useful if the time-to-completion can be reduced in cases where resources on another infrastructure are available.
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
+	\caption{Performance BJ-SAGA versus BJ-DIANE}
+	\label{fig:perf_perf-bfast-bj}
+\end{figure}
+
+
+
+Multinode DIANE not used? 1 worker agent always only starts one bfast run, correct?
 
 \note{Call, 26.06.: DIANE must be installed at every run. Setup time vs. startup
 time How does this scale with the number of nodes? }
