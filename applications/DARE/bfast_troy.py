@@ -94,7 +94,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
 
             print jd_executable_use
             uowd.set_attribute('Executable', jd_executable_use)
-            uowd.set_attribute('NumberOfProcesses', jd_number_of_processes)
+            uowd.set_attribute('NumberOfProcesses', str(jd_number_of_processes))
 
             uowd.set_attribute('SPMDVariation', 'single')
             
@@ -118,7 +118,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                          "-f",  "%s/%s.fa" %( bfast_ref_genome_dir[affinity], refgenome) , 
                          "-A", encoding_space, 
                          "-r",  "%s/%s.%s.fastq"%(bfast_reads_dir[affinity], shortreads_name,i+1),
-                         "-n" ,"8" ,
+                         "-n" ,str(jd_number_of_processes) ,
                          "-T" , "%s" %(bfast_tmp_dir[affinity]),
                          ">" , "%s/bfast.matches.file.%s.%s.%s.bmf" %(bfast_matches_dir[affinity],dare_uuid,refgenome,i+1)])  
 
@@ -137,6 +137,12 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                                 "-A",  encoding_space,
                                 "-i", "%s/bfast.aligned.file.%s.%s.%s.baf" %(bfast_localalign_dir[affinity],dare_uuid,refgenome,i+1),
                                 ">", "%s/bfast.postprocess.file.%s.%s.%s.sam" %(bfast_postprocess_dir[affinity],dare_uuid,refgenome,i+1)])     
+            
+            elif job_type == "hostname":
+                uowd.set_vector_attribute('Arguments', \
+                               ['-f', '>', 'hostname%s.txt'%i, ';', '/bin/sleep', '15'])
+                 
+            
             else:
                 uowd.set_vector_attribute('Arguments', [""])
             
@@ -154,7 +160,7 @@ def sub_jobs_submit( jd_executable, job_type, affinity ,  subjobs_start,  number
                      
           
             logger.info( job_type + "subjob " + str(i))
-            logger.info( "jd.number_of_processes " + str(jd.number_of_processes))
+            logger.info( "jd.number_of_processes " + str(jd_number_of_processes))
             print "jd.arguments"
            
             logger.info("affinity%s"%(affinity))
@@ -181,7 +187,7 @@ def wait_for_jobs(number_of_jobs):
 
 if __name__ == "__main__":
     config = {}
-
+    print "DARE started at ", time.time()
     #get the current working directory
     cwd = os.getcwd()
 
@@ -194,6 +200,10 @@ if __name__ == "__main__":
     
     resources_used = []
     global shortreads_name
+
+    
+    # Start BigJob
+    bj = troy.Bigjob()
 
     #parse job conf file
     job_conf = options.job_conf
@@ -316,22 +326,41 @@ if __name__ == "__main__":
             if (cbnc*crjc%ccpn !=0):
                k =1
             number_nodes = ccpn * (cbnc*crjc/ccpn +k ) 
-                        
+
+
+            
             jd = troy.bj_description()
-            RESOURCE_URL = "gram://painter1.loni.org/jobmanager-pbs"
+             
+            print "hello"             
+            RESOURCE_URL = "gram://oliver1.loni.org/jobmanager-pbs"
             DEPLOYMENT_LOCATION = '/work/smaddi2/bigjob/'
-            jd.set_attribute('NumberOfProcesses', '4') # total number of agents
+            jd.set_attribute('NumberOfProcesses', '8') # total number of agents
             jd.set_attribute('ProcessesPerHost', '4') # Ignored?
             jd.set_attribute('Queue', 'workq')
-            jd.set_vector_attribute('JobProject', ['randomstring'])
+            jd.set_vector_attribute('JobProject', ['loni_jhabig12'])
             jd.set_attribute('WorkingDirectory', DEPLOYMENT_LOCATION)
-            jd.set_attribute('WallTimeLimit', '12')
-            #jd.set_attribute('bigjob_agent', '2')
+            jd.set_attribute('WallTimeLimit', '30')
             bj.add_resource(troy.bigjob_type.SAGA, RESOURCE_URL, jd)
+            print "Pilot Job/BigJob URL: ", bj.list_resources()
+            logger.info("resource_url" + resource_url[i])
+            print "Create manyjob service "
+            
+            RESOURCE_URL = "gram://oliver1.loni.org/jobmanager-pbs"
+            DEPLOYMENT_LOCATION = 'gsiftp://oliver1.loni.org/work/smaddi2/bigjob/'
+            jd.set_attribute('NumberOfProcesses', '2') # total number of nodes/agents
+            jd.set_attribute('ProcessesPerHost', '2') # Ignored? number of workers per node
+            jd.set_attribute('Queue', 'workq')
+            jd.set_vector_attribute('JobProject', ['loni_jhabig12'])
+            jd.set_attribute('WorkingDirectory', DEPLOYMENT_LOCATION)
+            jd.set_attribute('WallTimeLimit', '30')
+            bj.add_resource(troy.bigjob_type.DIANE, RESOURCE_URL, jd)
             print "Pilot Job/BigJob URL: ", bj.list_resources()
             logger.info("resource_url" + resource_url[i])
             logger.info("affinity%s"%(i))            
             print "Create manyjob service "
+            
+            
+
 
         
         """
@@ -381,33 +410,31 @@ if __name__ == "__main__":
         #sample sub_jobs_submit for reference
         #sub_jobs_submit( jd_executable, job_type, affinity = 0,  subjobs_start = 0 
         #                 ,  number_of_jobs = 0, jd_number_of_processes = 0 ):
-        
-        
-        
+               
         matches_starttime = time.time()
-    
-        for i in range (0, len(resources_used)):         
-            sub_jobs_submit("bfast","matches", i , total_number_of_jobs 
+        total_number_of_jobs =0
+        
+        #dummy job
+        #sub_jobs_submit("/bin/hostname","hostname", i , total_number_of_jobs #subjobs starts here 
+           #                , resources_job_count[i],int(bfast_num_cores[i]))
+         
+        i  = 0
+        resources_job_count[i] = 8
+        bfast_num_cores[i] = 2
+        sub_jobs_submit("bfast","matches", i , total_number_of_jobs #subjobs starts here 
                            , resources_job_count[i],int(bfast_num_cores[i]))
-            logger.info( " resource " + str(i))
-            logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
-            logger.info( "resources_job_count " + str(resources_job_count[i]))
-            logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))
+        logger.info( "resource " + str(i))
+        logger.info( "total_number_of_jobs " + str(total_number_of_jobs))
+        logger.info( "resources_job_count " + str(resources_job_count[i]))
+        logger.info( "int(bfast_num_cores" + str(bfast_num_cores[i]))
             
-            total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])     
+        total_number_of_jobs = total_number_of_jobs + int(resources_job_count[i])     
 
-        wait_for_jobs(total_number_of_jobs)
+        wait_for_jobs(1)
         
         matches_runtime = time.time()-matches_starttime
-        logger.info("Matches Runtime: " + str( matches_runtime) )       
-        
-        
-        
-        
-        total_number_of_jobs=0
-        
-        
-        
+        logger.info("Matches Runtime: " + str( matches_runtime) )               
+                
         bj.cancel()
 
     except:
