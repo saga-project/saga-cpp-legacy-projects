@@ -1,7 +1,7 @@
 set terminal postscript eps enhanced "Helvetica,18" 
 set output 'troyperf.eps'
 
-set ylabel "Time (seconds)" font "Helvetica,18"
+set ylabel "Time to completion(seconds)" font "Helvetica,18"
 set bmargin 3
 
 #set datafile separator "," 
