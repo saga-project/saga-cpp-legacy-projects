@@ -1637,45 +1637,89 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 
 \section{Implementations and Results}
 
-In this section we discuss the TROY API. Further, (i) we show that the TROY API 
-can be used to  marshall DIANE stand-alone as well as (ii) that the TROY API 
-can be used stand alone with both BigJob and DIANE concurrently.
+In this section we discuss the TROY API. Further, (i) we show that the TROY API
+can be used to marshal DIANE stand-alone as well as (ii) that the TROY API can
+be used stand alone with both BigJob and DIANE concurrently. In the following we
+utilize the DARE~\cite{dare-tg11} framework in conjunction with TROY to execute
+BFAST~\cite{bfast2009} - a genome sequencing application -- on LONI. For the
+purpose of this evaluation we define 8 UWs that run BFAST. The UWs are
+run on three different backends: (i) BJ-SAGA only, (ii) BJ-DIANE only and (iii)
+both BJ-SAGA and BJ-DIANE. In case (iii) on each backend 4 UWs are executed.
 
-For demonstrating the capabilities of TROY API  eight Bfast matching step UOWs were chosen.
-and the same UOW's were ran in following three type of experiments with different backends.
-(i) Only BJ-SAGA backend will be used to run all the eight UOWs
-(ii) Only BJ-DIANE backend will be used to run all the eight UOWs
-(iii)Both BJ-SAGA and BJ-DIANE backend are used to run 4 UOWs each.
+For each scenarios one respectively two PJ descriptions are prepared. Depending
+on the specified backend the respective BJ implementation is used for
+dispatching the actual pilots. While the BJ-SAGA utilizes one BJ agent on the
+resource, for DIANE it is necessary to spawn one worker agent per UW that is
+executed in parallel. The BJ implementations marshal these differences: for each
+backend the right number of agents is started and the requested number of
+resources is allocated. For this experiment we utilize the LONI resource Oliver
+and a total of 16 cores distributed across 4 nodes.
 
-To perform the above experiments we built an application \smnote{this application is DARE. do we need mention it here?} 
-using TROY API  to submit Bfast UOW's with different input files to different backend implementations. 
-The UOW's are completely handled and submitted to different backends by TROY and the
-co-ordination of UOW's was made simple for the application. Further, application can also continuously monitor 
-status of remote agents and UOWs.
-
-And the machine used was Oliver one of  the LONI machine.
-Oliver has 4 cores per each node. So, for all these three experiments the 4 nodes
-will be used to run 8 UOWs since each  Bfast UOW uses 2 cores.
+Each BFAST match run requires two cores; a total of 8 UWs allocating two cores
+each is specified and assigned to TROY. Each UW is associated with a different
+set of input files. After assignment the TROY runtime takes care of binding and
+scheduling the UWs to the pilots. The application, i.\,e.\ DARE, can monitor the
+state of the PJs and UWs using the TROY API.
 
 
-Figure~\ref{fig:perf_perf-bfast-bj} compares the performance of BJ-DIANE, BJ-SAGA. Further, it shows that both PJ implementations can be used concurrently. 
-This is particularly useful if the time-to-completion can be reduced in cases where resources on another infrastructure are available.
+% To perform the above experiments we built an application \smnote{this
+% application is DARE. do we need mention it here?} using TROY API to submit Bfast
+% UW's with different input files to different backend implementations. The UW's
+% are completely handled and submitted to different backends by TROY and the
+% co-ordination of UW's was made simple for the application. Further, applications
+% can also continuously monitor status of remote agents and UOWs.
 
-In the case of BJ-DIANE backend Multinode submitter was not used/not implemented yet.
-As a result it submits job request's for each node separately and there is also some delay between actual launch and
-startup time of UOW. Further, DIANE  was installed separately for every agent/node requested.
-
+% Further, it shows that both PJ implementations can be used
+% concurrently. This is particularly useful if the time-to-completion can be
+% reduced in cases where resources on another infrastructure are available.
 
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
-	\caption{Performance BJ-SAGA versus BJ-DIANE}
+	\caption{Performance TROY with BJ-SAGA and BJ-DIANE}
 	\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
 
 
+Figure~\ref{fig:perf_perf-bfast-bj} shows the result of the experiment. The
+time-to-completion for BJ-DIANE is about 207\,sec longer than for BJ-SAGA. The
+main contributor for this increased runtime is the deployment time required for
+DIANE. In a multi-node setup multiple work agents must be used (8 in this case).
+For each worker agent DIANE must be downloaded, installed and started
+separately. In total this requires about 178\,sec. BJ-SAGA in contrast requires
+a pre-run installation on each site, but only shows a startup time of 28\,sec.
+Further, we also observed a runtime overhead of about 17\,sec for the BJ-DIANE
+scenario. This overhead is likely caused by the additional agents that need to
+be run.
+
+% % In the case of BJ-DIANE backend Multinode submitter was not used/not % yet. As
+% a result it submits job request's for each node separately and there % also some
+% delay between actual launch and startup time of UOW. Further, DIANE % was
+% installed separately for every agent/node requested.
+
+
+Finally scenario iii) demonstrates that two BJ implementations (BJ-SAGA and
+BJ-DIANE) can be utilized concurrently using the TROY API. The performance in
+this scenario is slightly better than in the DIANE only case, mainly due to
+the fact that only 4 DIANE worker agents need to be started. Also, only half of
+the UWs are executed on a DIANE node and thus, show a longer runtime. While
+there a some limitations in the current BJ-DIANE implementation, the aim of this
+experiment is to emphasizes the possibilities that the TROY API provides to
+dynamic applications. TROY enables applications to utilize a dynamic resource
+pool consisting of resources of different distributed infrastructures, e.\,g.\
+EGI and TG resources. Dynamic applications can utilize the elasticity of the
+TROY resource pool e.\,g.\ to improve the time-to-completion and/or to scale the
+accuracy of their computations.
+
+
+
+
 \section{Conclusion and Future Work}
+
+introduced P*
+introduced TROY impl. of P* model
+
 
 
 implement a more decentral distributed control mechanism in TROY
