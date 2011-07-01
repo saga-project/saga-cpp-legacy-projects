@@ -31,7 +31,7 @@
 \definecolor{brown}{rgb}{0.5, 0.5, 0}
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
@@ -137,19 +137,19 @@
 \maketitle
 
 \begin{abstract}
-  Distributed Cyberinfrastructure and Applications require dynamical
+  Distributed Cyberinfrastructure and applications require dynamical
   resource utilization models and not static resources.  Pilot-Jobs
   have been one notable success -- in the scope of usage and number of
   CI that support them and applications that use them.  However, in
   spite of broad uptake, there does not exist a well defined, unifying
   theoretical framework for Pilot-Job using which different
   implementations can be compared, contrasted and defined. This paper
-  is an attempt to (i) provide a minimal but complete model/framework
+  is an attempt to (i) provide a minimal but complete model
   of Pilot-Jobs, (ii) extend the basic framework from compute jobs to
-  data, (iii) introduce TROY (tiered resource overlay) as an
-  implementation of this framework using SAGA, i.e., consistent with
-  its API, job-model etc., (iv) mapping DIANE -- an existing and well
-  known PJ -- to P*, we establish the generality of the
+  data, (iii) introduce TROY  as an
+  implementation of this model using SAGA, i.\,e.\ consistent with
+  its API, job-model etc., (iv) by mapping various existing and well
+  known PJ such as DIANE to P*, we establish the generality of the
   model/framework (P*), (v) establish and validate the implementation
   of the TROY API by concurrently using BigJob and DIANE across
   multiple infrastructures.
@@ -157,40 +157,6 @@
 \end{abstract}
 
 \section*{Outline}
-
-\jhanote{Need consistency in the way Pilot-Job is written: currently
-  we have pilot-job, Pilot-Job, pilot job, and possibly more...}
-\alnote{Would Pilot-Job and Pilot-Data be ok?}
-
-% \begin{footnotesize}
-% \begin{verbatim}
-% 1. Introduction:
-% - Distributed CI and the need/role of Dynamic 
-% Execution 
-% - PJs as an effective abstraction for DE
-% - Brief Overview of the status of PJ
-% -- Many PJ out there but no consistent terminology, 
-% framework to compare/contrast
-% - Basis for extension of Pilot concepts to 
-% other dimensions
- 
-% 2. A Conceptual FW for Pilot-abstractions for DE
-
-% 3 TROY: SAGA-based implementation of Pilot-abstractions
-
-% TROY = Pilot-Job (BigJob) + Pilot-Data (BigData)
-
-% 4 Analysing other PJs using the Conceptual FW
-
-% 5 Experiments/Implementation/Comparision:
-% - PJ interop using the TROY API using DARE
-% -- this is where DIANE, BigJob will be used together
-% using TROY API (effectively just BigJob)
-% -- all other experiments, measurements 
-% and validation tests
-
-% \end{verbatim}
-% \end{footnotesize}
 
 The primary objectives of this work are:
 
@@ -1081,7 +1047,7 @@ is general-purpose and extensible.
 The BigJob implementations are plugged into the TROY runtime environment via a
 thin adaptor layer (see Figure~\ref{fig:figures_distributed_pilot_job}).
 BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a implementation of TROY built on
-top of the SAGA API. The framework utilizes a master/worker coordination model:
+top of the SAGA API. BJ-SAGA utilizes a master/worker coordination model:
 The BigJob Manager is responsible for the orchestration and scheduling of the
 PJs represented by the BigJob Agent. For submission of the pilots, BigJob-SAGA
 relies on the SAGA Job API and thus, can be used in conjunction with different
@@ -1105,22 +1071,17 @@ neither elasticity nor late-late binding.
 
 %paragraph on dynamic capabilities
 
-In many scenarios it is beneficial to utilize multiple resources
-respectively a dynamic pool of resources, e.\,g.\ to accelerate the
-time-to-completion or to provide resilience to resource failures
+In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
+accelerate the time-to-completion or to provide resilience to resource failures
 and/or unexpected delays. The TROY API allows for dynamic resource
-additions/removals as well as late-late binding. The support of this
-feature depends on the backend used. To address the deficit of the
-core BJ, the concept of a BigJob pool is introduced; A BigJob pool
-consists of multiple core BJs that can be distributed across several
-resources and types of infrastructures. Each BigJob manages it's own
-resources. An extensible scheduler is used for dispatching UWs to the
-different BigJobs that are managed by a BigJob pool (late-late
-binding). BigJob pools are elastic, i.\,e.\ resources can added or be
-removed at runtime. Various other backends support resource elasticity
-out-of-the-box, e.\,g.\ DIANE and Condor. The BJ pool framework
-provides an extensible scheduler. By default a FIFO and an
-affinity-aware scheduler are provided.
+additions/removals as well as late-late binding. The support of this feature
+depends on the backend used. To support this feature on top of various core
+BigJobs, the concept of a BigJob pool is introduced. A BigJob pool consists of
+multiple core BJs. Each BigJob manages a particular resources. An extensible
+scheduler is used for dispatching UWs to one of the BJs of the pool (late-late
+binding). For this purpose an extensible scheduler is used. By default a FIFO
+and an affinity-aware scheduler are provided. Various other backends support
+resource elasticity natively, e.\,g.\ DIANE and Condor. 
 
 % For this purpose, the dynamic BigJob provides an introspection API
 % that applications can utilize to query the manager for a list of
@@ -1315,7 +1276,7 @@ affinity-aware scheduler are provided.
 BigData is the SAGA-based implementation of the Pilot-Data abstraction.
 Figure~\ref{fig:pilot-data-architecture} gives an overview of the
 architecture. The system consists of two components: the PD manager and
-the agents deployed on a specific physical storage resource. The coordination 
+the agents deployed on the physical resources. The coordination 
 scheme used is master/worker with some intelligent that is lying de-centrally at 
 the BD agent. As communication mechanism the SAGA Advert Service is used.
 
@@ -1324,7 +1285,17 @@ The PD manager is responsible for 1) meta-data management, i.\,e.\ it keeps
 track of the pilot stores that a pilot data object is associated with, 2) it
 schedules data movements and data replications taking into account the
 application requirements defined via affinities and 3) for managing data
-movements. The PD and PJ manager work closely together to manage compute-/data-affinities for applications
+movements. The PD scheduler particularly supports affinity-aware scheduling.
+Similar to BigJob, an agent on each resource is used to manage the physical
+storage on a resource. Both PJ and PD are tightly integrated to efficiently support the compute- and data-related aspects of dynamic execution. 
+
+
+% For this purpose, the PD and PJ manager work closely together to manage compute-/data-affinities for applications. 
+% 
+% For this purpose the PJ scheduler was
+% extended to support affinities, i.\,e.\ when scheduling UW it considers
+% dependencies toward PDs.
+
 
 % \jhanote{Need to explain/describe architecture of BigData? using the
 %   terminology of Section II and P*-Model}
@@ -1341,20 +1312,21 @@ movements. The PD and PJ manager work closely together to manage compute-/data-a
 %     \label{fig:pilot-data-architecture}
 % \end{figure}
 
-Each pilot store is managed by an agent. The agent can be started manually or 
-using the Pilot Data API. A possible implementation option would be the 
-integration of the PD and BigJob agent, which is particularly useful for 
-managing data-/compute-affinities.
 
-A core part of the data manager is the data scheduler. The scheduler aims for a
-optimum of data and compute locality for an applications: it selects the storage
-and compute elements for a UW submitted. For this purpose the PJ scheduler was
-extended to support affinities, i.\,e.\ when scheduling UW it considers
-dependencies toward PDs. The manager is then responsible for managing necessary
-file transfer, the pre-fetching of files if applicable, as well as the executing
-the actual UW. For file-transfer management BigData utilizes SAGA and thus, is
-infrastructure independent. It supports all underlying SAGA adaptors (SSHFS,
-GridFTP) and future adaptors such as Globus Online.
+
+% A possible implementation option would be the 
+% integration of the PD and BigJob agent, which is particularly useful for 
+% managing data-/compute-affinities.
+
+% A core part of the data manager is the data scheduler. The scheduler aims for a
+% optimum of data and compute locality for an applications: it selects the storage
+% and compute elements for a UW submitted. For this purpose the PJ scheduler was
+% extended to support affinities, i.\,e.\ when scheduling UW it considers
+% dependencies toward PDs. The manager is then responsible for managing necessary
+% file transfer, the pre-fetching of files if applicable, as well as the executing
+% the actual UW. For file-transfer management BigData utilizes SAGA and thus, is
+% infrastructure independent. It supports all underlying SAGA adaptors (SSHFS,
+% GridFTP) and future adaptors such as Globus Online.
 
 
 
@@ -1764,13 +1736,14 @@ accuracy of their computations.
 
 \section{Conclusion and Future Work}
 
-We established PJ and PD as abstraction for supporting dynamic execution. The P*
-model provides a common framework for describing and characterizing PJ
-frameworks. The P* model was used to demonstrate that the most widely used PJ
-implementations, such DIANE, Condor-G and SWIFT, share different important
-properties e.\,g.\ with respect to the commonly used communication and
-coordination schemes. TROY is an implementation of the P* that exposes the
-commonalities between the different PJ implementations via a common API.
+We established PJ and PD as abstraction for supporting dynamic execution by
+decoupling workload and resource assignment/scheduling. The P* model provides a
+common framework for describing and characterizing PJ frameworks. The P* model
+was used to demonstrate that the most widely used PJ implementations, such
+DIANE, Condor-G and SWIFT, share different important properties e.\,g.\ with
+respect to the commonly used communication and coordination schemes. TROY is an
+implementation of the P* that exposes the commonalities between the different PJ
+implementations via a common API.
 
 In the future, we will align the TROY API with the emerging SAGA Resource
 Management API~\cite{saga_rm}. We will further refine the TROY API, e.\,g.\ by
