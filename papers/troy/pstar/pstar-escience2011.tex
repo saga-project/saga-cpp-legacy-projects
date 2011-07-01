@@ -127,7 +127,7 @@
 \fi
 
 \author{
-  Andr\'e Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Shantenu Jha$^{3,1*}$\\
+  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Andre Merzky$^{1}$, Shantenu Jha$^{3,1*}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
  \small{\emph{$^{2}$Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, The Netherlands}}\\
  \small{\emph{$^{3}$ Rutgers University, Piscataway, NJ 08854, USA}}\\
@@ -765,19 +765,21 @@ resource on which the pilot is operating (step 7).
   data. Analogous challenges of DE for data as DE for Compute, e.g.,
   importance of issues of (late) binding and decision making} 
 
-Dynamic Execution is at least equal important for data-intensive
-applications: applications must cope with various challenging issues
-e.\,g.\ varying data sources (such as sensors and/or other application
-components), fluctuating data rates, optimizations for different
-queries, data-/compute co-location etc. Thus, having defined the P*
-Model, we propose to extend it to dynamic data so as to facilitate an
-understanding of DE. This will motivate an analogous abstraction that
-we call \emph{Pilot-Data}. Pilot-Data provides late-binding
-capabilities for data by separating the allocation of physical storage
-and application-level units of data. Further, it provides an
-abstraction for expressing both data/data and in conjunction with
-Pilot-Job data/compute affinities. \jhanote{difficult to use affinity
+Dynamic Execution is at least equal important for data-intensive applications:
+applications must cope with various challenging issues e.\,g.\ varying data
+sources (such as sensors and/or other application components), fluctuating data
+rates, optimizations for different queries, data-/compute co-location etc. Thus,
+having defined the P* Model, we propose to extend it to data so as to facilitate
+an understanding of DE. This will motivate an analogous abstraction that we call
+\emph{Pilot-Data (PD)}. PD provides late-binding capabilities for data by
+separating the allocation of physical storage and application-level units of
+data. Further, it provides an abstraction for expressing and managing
+relationships between DU as well as DUs and UWs. These relationships are
+referred to as
+\emph{affinities}.
+\jhanote{difficult to use affinity
   without defining it..}
+\alnote{tried to describe affinities a little bit better}
 
 \subsubsection*{Extension of P*-Model Elements}
 
@@ -828,25 +830,20 @@ associated with the PS.
   affinity be demoted from elements, and be put under
   characteristics?}
 
-The in the PJ model established characteristics can be used
-to describe Pilot-Data: 
-\begin{compactitem}
-   \item \textbf{Coordination:} Components of the PD framework must be 
-   internally coordinated, e.\,g.\ using a master/worker scheme or a more 
-   decentralized decision making scheme based on smart agents.
-   \item \textbf{Communication:} Common known communication patterns, such as 
-    point-to-point and all-to-all, are used for implementing PD. A   
-	 critical task is the management of file transfers.
-   \item \textbf{Binding} describes the intelligent grouping and assignment of 
-   PDs and UWs to facilitate an optimal performance. 
-   \item \textbf{Scheduling} is extended to affinities, i.\,e.\ user-defined 
-   relationships between PJs and/or PDs, e.\,g.\ data-data  
-   affinities exist if different DU must be present at the same compute element, 
-   data-compute affinities arise if data and compute must be co-located for a 
-   computation, but their current location is different. The decision of where 
-   to place the data and compute is made by the scheduler based on the defined 
-   policies, affinities, available static and dynamic resource information. 
-\end{compactitem}  
+While the PD model introduces new elements, the characteristics remain to a
+great extent the same. The coordination characteristic describes how the
+elements of PD interact; the communication characteristic maps the identified
+communication patterns to the PD framework. The remaining two characteristics
+can be extended with respect to data: Binding describes the intelligent grouping
+and assignment of PDs and UWs to facilitate an optimal performance. The
+scheduling particularly needs to consider affinities, i.\,e.\ user-defined
+relationships between PJs and/or PDs, e.\,g.\ data-data affinities exist if
+different DU must be present at the same compute element, data-compute
+affinities arise if data and compute must be co-located for a computation, but
+their current location is different. The decision of where to place the data and
+compute is made by the scheduler based on the defined policies, affinities,
+available static and dynamic resource information.
+
 
 Pilot-Job and Pilot-Data encapsulate cross-cutting properties across
 data and computation. Both PJ and PD can be used to express different
@@ -909,9 +906,6 @@ following, we discuss further implementation considerations for P*.
 
 \subsection{Implementation Considerations}
 
-To implement the P* model, there are additional consideration that
-must be taken, e.\,g.\ the exposed end-user abstraction and usage
-model, the type of communication (API or service) etc.
 
 %In the following we will discuss how we implement
 %use the % developed framework
@@ -920,34 +914,31 @@ model, the type of communication (API or service) etc.
 
 % \jhanote{I propose we remove ``framework'' ; if anything it should be
 %   Model?}
-The PJ implementation must define the usage model, i.\,e.\ how are
-resources allocated, UW specified and assigned, as well as the way how
-the framework can be accessed, e.\,g.\ via a service or
-API. Pilot-Jobs can be run on different types of homogeneous and
-heterogeneous resources. Generally, the Local Resource Manager (LRM)
-is the gateway to local resources. This can be e.\,g.\ a PBS/Torque or
-WMS service. HPC resources are specifically designed for high-end
-parallel jobs, while HTC resources are particularly suited for
-independent ensemble of tasks. Different applications require a mix of
-HTC and HPC, e.\,g.\ when running an ensemble of MPI jobs.  Different
-workload characteristics (UW heterogeneities, parallelism, UW
-dependencies, etc.) can be supported by a Pilot-Job, e.\,g.\ via
-special information collector and scheduler capabilities.
 
-Further, non-functional properties must be considered:
-\begin{compactitem}
-		\item \textbf{Fault tolerance:} Large, distributed Grids are highly dynamic 
-		and inherently prone to failures and thus unreliable. To deal with failures, 
-		systems can deploy strategies, such as automatic resubmission etc.
-		\item \textbf{Security} describes the security measures taken by the P* 
-		implementation, e.\,g.\ the supported authorization, authentication and 
-		accounting (AAA) mechanisms (e.\,g.\   GSI, VOMS, MyProxy, etc.). 
-		Further, it can be differentiated between single- and multi-user: The 
-		former PJ runs under the identity of a single user and is only able to 
-		accept jobs from this user, while the latter is able to accept jobs from 
-	   different users.		
-		% \item \textbf{Resource abstraction} describes the framework that is used for accessing distributed resources (e.\,g.\ SAGA, GANGA, JGlobus etc.).
-\end{compactitem}
+To implement the P* model, there are additional consideration that must be
+taken, e.\,g.\ the exposed end-user abstraction and usage model etc. The API
+usage model defines how resources are allocated as well as how UWs are
+described, assigned and monitored. Further, non-functional properties such as
+fault tolerance and security must be considered. PJ implementations differ in
+their support for authorization, authentication and accounting. Commonly grid
+technologies e.\,g.\ GSI, VOMS, MyProxy, etc. are used. Further, it can be
+differentiated between single- and multi-user: The former PJ runs under the
+identity of a single user and is only able to accept jobs from this user, while
+the latter is able to accept jobs from different users.
+
+% Pilot-Jobs can be run on different types of homogeneous and
+% heterogeneous resources. Generally, the Local Resource Manager (LRM)
+% is the gateway to local resources. This can be e.\,g.\ a PBS/Torque or
+% WMS service. HPC resources are specifically designed for high-end
+% parallel jobs, while HTC resources are particularly suited for
+% independent ensemble of tasks. Different applications require a mix of
+% HTC and HPC, e.\,g.\ when running an ensemble of MPI jobs.  Different
+% workload characteristics (UW heterogeneities, parallelism, UW
+% dependencies, etc.) can be supported by a Pilot-Job, e.\,g.\ via
+% special information collector and scheduler capabilities.
+
+	
+
 
 
 \section{TROY: A SAGA-based Implementation of the P* Model}
@@ -974,9 +965,9 @@ Further, non-functional properties must be considered:
 
 TROY is an implementation of the P* model (section~\ref{sec:pilot-model}) using
 SAGA (see Figure~\ref{fig:figures_pstar_troy}). SAGA~\cite{saga_url,saga_gfd90}
-provides a simple, POSIX-style API to the most common Grid functions (e.\,g.\
+provides a simple, POSIX-style API to the most common grid functions (e.\,g.\
 file, job management and distributed coordination) at a sufficiently high-level
-of abstraction so as to be independent of the diverse and dynamic Grid
+of abstraction so as to be independent of the diverse and dynamic grid
 environments. As shown in Figure~\ref{fig:figures_pstar_troy} TROY is located on
 top of the SAGA API and runtime environment, which is utilized for job
 management, data transfer and distributed coordination. The TROY API maintains
@@ -1001,7 +992,8 @@ the known SAGA Job Description, the PJ description and the UW description. A
 TROY manager represents a pool of resources. Resources can be added by
 submitting a pilot-job description to the TROY manager using the
 \texttt{add\_resource()} method. Subsequently, UW can be assigned to the TROY
-manager. At runtime resources can be added and removed at any time.
+manager. At runtime resources can be added and removed at any time. 
+The TROY API is available at~\cite{troy_api}.
 
 
 % \jhanote{In this paper, we describe the design and implementation of a
@@ -1037,7 +1029,7 @@ manager. At runtime resources can be added and removed at any time.
   argument is that if you need these properties, then you need to do
   it the SAGA way..}
 
-\subsection{BigJob: A SAGA-based Pilot-Job}
+\subsection{BigJob: A Pilot-Job for TROY}
 
 \jhanote{MUST provide SAGA URL for updated BigJob API and
   documentation}
@@ -1315,7 +1307,7 @@ affinity-aware scheduler are provided.
 %   used. Thus, this limitation}
 
 
-\subsection{BigData: A SAGA-based Pilot-Data Implementation}
+\subsection{BigData: Pilot-Data for TROY}
 \label{sec:bigdata}
 % \jhanote{theory goes upfront; implementation and architecture stays
 %   here} \alnote{ok}
@@ -1439,12 +1431,6 @@ GridFTP) and future adaptors such as Globus Online.
 %     \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
 % \end{itemize}
 
-\subsection{Conclusion}
-
-In the future we plan to further refine the TROY API, e.\,g.\ by generically supporting different security models via a context API (similar to the SAGA Context API).
-
-The TROY API is available at~\cite{troy_api}.
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Understanding Other Pilot-Jobs}
@@ -1468,11 +1454,40 @@ The TROY API is available at~\cite{troy_api}.
 
 As more applications take advantage of dynamic execution, the Pilot-Job concept
 has grown in popularity and has been extensively researched and implemented for
-different usage scenarios and infrastructure. The aim of this section is to show
-that our P* Model can be used to explain/understand DIANE as well as other
-Pilot-Job frameworks such as Condor-G and Swift.
+different usage scenarios and infrastructure. There is a variety of PJ
+implementations: Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
+DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
+PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
+Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
+MyCluster~\cite{1652061} to name a few. The aim of this section is to show that
+our P* Model can be used to explain/understand some of these PJ implementations,
+in particular DIANE as well as Condor-G and Swift.
 Table~\ref{table:bigjob-saga-diane} shows how the elements P* model can be
-mapped to these frameworks.
+mapped to these frameworks. Table~\ref{table:pilot-job-comparison} compares the
+characteristics of the four PJ implementations.
+
+
+% In addition to the three Pilot-Job framework discussed in this section, various
+% other frameworks exist.
+% \begin{itemize}
+%     \item MyCluster~\cite{1652061} enables the 
+% 	creation of a Condor, PBS or SGE clusters on-demand.
+%     \item Falkon~\cite{1362680} is a Pilot-Job framework that emphasizes the 
+% 	performance of its task dispatcher.
+%     \item Nimrod/G~\cite{10.1109/HPC.2000.846563}
+%     \item DIRAC~\cite{1742-6596-219-6-062049} is another pilot-job framework 
+% 	used by the LHCb community.
+%     \item ToPoS~\cite{topos} is a REST-based web service primarily designed with 
+% 	respect to parameter sweep applications. Internally, ToPoS utilizes PJ 
+% 	capabilities to efficiently manage resources.
+%     \item The Production and Distributed Analysis System 
+% 	(PanDA)~\cite{1742-6596-219-6-062041} is the workload management system of 
+% 	the ATLAS experiment. PanDA utilizes multi-user PJs for resource management. 
+% 	The PJ component is built on top of Condor-G and referred to as AutoPilot. 
+% 	It can also be used independently of the ATLAS environment. 	
+% \end{itemize}
+
+
 
 \begin{table*}[t]
 \centering
@@ -1593,32 +1608,11 @@ language (not Python), TODO: check how coasters work! 1 coaster == 1 Condor-G
 job?}
 
 
-\subsection{Other Pilot-Jobs and Conclusion}
-
-Table~\ref{table:pilot-job-comparison} compares the three PJ frameworks
-discussed in this section. TROY enables the interoperability of different PJ
-frameworks and promotes easy-of-use.
+%\subsubsection*{Other Pilot-Jobs and Conclusion}
 
 
-In addition to the three Pilot-Job framework discussed in this section, various
-other frameworks exist.
-\begin{itemize}
-    \item MyCluster~\cite{1652061} enables the 
-	creation of a Condor, PBS or SGE clusters on-demand.
-    \item Falkon~\cite{1362680} is a Pilot-Job framework that emphasizes the 
-	performance of its task dispatcher.
-    \item Nimrod/G~\cite{10.1109/HPC.2000.846563}
-    \item DIRAC~\cite{1742-6596-219-6-062049} is another pilot-job framework 
-	used by the LHCb community.
-    \item ToPoS~\cite{topos} is a REST-based web service primarily designed with 
-	respect to parameter sweep applications. Internally, ToPoS utilizes PJ 
-	capabilities to efficiently manage resources.
-    \item The Production and Distributed Analysis System 
-	(PanDA)~\cite{1742-6596-219-6-062041} is the workload management system of 
-	the ATLAS experiment. PanDA utilizes multi-user PJs for resource management. 
-	The PJ component is built on top of Condor-G and referred to as AutoPilot. 
-	It can also be used independently of the ATLAS environment. 	
-\end{itemize}
+
+
 
 
 \jhanote{Can we add some structure to these *other* PJ.. this will be
@@ -1666,7 +1660,7 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \hline
 	
 \end{tabular}
-\caption{P* Characteristics and Pilot-Job Frameworks}\label{table:pilot-job-comparison}
+\caption{P* Characteristics and Pilot-Job Impelementations}\label{table:pilot-job-comparison}
 \end{table*}
 
 \section{Implementations and Results}
@@ -1766,11 +1760,13 @@ properties e.\,g.\ with respect to the commonly used communication and
 coordination schemes. TROY is an implementation of the P* that exposes the
 commonalities between the different PJ implementations via a common API.
 
-
 In the future, we will align the TROY API with the emerging SAGA Resource
-Management API~\cite{saga_rm}. Further, we will investigate autonomic resource
+Management API~\cite{saga_rm}. We will further refine the TROY API, e.\,g.\ by
+generically supporting different security models via a context API (similar to
+the SAGA Context API). Further, we will investigate autonomic resource
 management strategies, e.\,g.\ by deploying more decentral decision logic into
 the agents of our framework.
+
 
 
 \note{do something with BigData, make sense, improve the world}
