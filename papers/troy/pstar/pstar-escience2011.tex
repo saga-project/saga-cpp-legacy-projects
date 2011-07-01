@@ -1513,11 +1513,10 @@ Unit of Scheduling &Sub-Job &Task &Job &Job\\
 \subsection{DIANE}
 
 % Coordination and Communication
-DIANE~\cite{Moscicki:908910} is a task coordination framework which implements
-the Master/Worker pattern. DIANE was originally designed for master/worker
-application, but also provides PJ functionality for job-style executions. By
-nature DIANE follows the master-worker coordination model and utilizes a single
-hierarchy of worker agents. The manager process is referred to as
+DIANE~\cite{Moscicki:908910} is a task coordination framework, which was
+originally designed for implementing master/worker applications, but 
+also provides PJ functionality for job-style executions. DIANE utilizes a single
+hierarchy of worker agents as well as a PJ manager referred to as
 \texttt{RunMaster}. Further, there is ongoing work on a multi-master extensions.
 For the spawning of PJs a separate script, the so-called submitter script, is
 required. Once the worker agents are started they register themselves at the
@@ -1527,9 +1526,9 @@ single core and thus, by default is not able to run parallel applications
 local autonomy and are directly controlled by the master. BJ-SAGA delegates the
 management of the local resources from the BJ manager to the BJ agent. The agent
 collects information about local resources and manages the allocation of these
-resources locally. For communication between the RunMaster and worker
-agents point-to-point messaging based on CORBA (omniORB) is used. CORBA is also 
-used for file staging, a feature currently not fully supported by BJ-SAGA.
+resources locally. For communication between the RunMaster and worker agents
+point-to-point messaging based on CORBA (omniORB) is used. CORBA is also used
+for file staging, a feature currently not fully supported by BJ-SAGA.
 
 % Binding 
 DIANE is primarily designed with respect to HTC environments (such as
@@ -1560,18 +1559,31 @@ implemented. Further, DIANE supports fault tolerance: basic error detection and 
 
 \subsection{Condor-G}
 
-Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. Using Condor-G 
-a complete Condor pool can be initiated using the GRAM service; subsequently 
-jobs can be submitted to this pool using the standard Condor tools and APIs.
+Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. The pilot-job is
+actually represented by a complete Condor pool that is started using the Globus
+GRAM service of a resource (this feature is referred to as Condor Glide-In);
+subsequently jobs can be submitted to this Glide-In pool using the standard
+Condor tools and APIs. Condor utilizes a master/worker coordination model. The
+PJ manager is referred to as the Condor Central Manager. The functionality of
+the Central Manager is provided by several daemons: the conder\_master that is
+generally responsible for managing all daemons on a machine, the
+conder\_collector which collects resource information, the conder\_negotiator
+that does the matchmaking and the condor\_schedd that is responsible for
+managing the binding and scheduling process. Condor generally does not
+differentiate between workload, i.\,e.\ UW, and schedulable entity, i.\,e.\ US.
+Both entities are referred to as job. However, it supports late-late binding,
+i.\,e.\ resources a job is submitted to must generally not be available at
+submission time. The scheduler matches the capabilities required by a UW to the
+available resources. This process is referred to as matchmaking. Further, a
+priority-based scheduler is used. For communication between the identified
+elements Condor utilizes point-to-point messaging using a binary protocol on top
+of TCP.
 
-Condor Flocking lets multiple Condor pools share resources.
-
-
-
-% Security
-Condor supports different security schemes: for authentication it integrates
-both with local account management systems (such as Kerberos) as well as grid
-authentication systems such as GIS. Communication traffic can be encrypted.
+Different fault tolerance mechanisms, such as automatic retries, are supported.
+Further, Condor supports different security schemes: for authentication it
+integrates both with local account management systems (such as Kerberos) as well
+as grid authentication systems such as GIS. Communication traffic can be
+encrypted.
 
 
 
