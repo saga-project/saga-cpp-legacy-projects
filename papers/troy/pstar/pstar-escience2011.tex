@@ -106,7 +106,7 @@
 % \title{Towards A Framework for Pilot-Abstractions for Production
 %   Cyberinfrastructure}
 
-\title{A Framework for Pilot-Abstractions for Dynamic Execution}
+\title{P*: An Extensible Model for Pilot-Abstractions For Dynamic Execution}
 
 % \jhanote{Alternate title: The Tiered Resource OverlaY framework
 %   (TROY): An Empirical Framework for Pilot-* Abstractions}
@@ -388,18 +388,18 @@ the need to treat data as a first-class schedulable entity, is a
 concept analogous to Pilot-Job: the Pilot-Data. Given the consistent
 treatment of data and compute, as potentially equal components in a
 framework to support dynamic resource and execution, we refer this
-model as the P-* Model ("P-star").
+model as the P* Model ("P-star").
 
 In \S3 we introduce TROY -- A Tiered Resource Overlay framework, as an
-implementation of the P-* Model using the SAGA API. The Pilot-Job and
+implementation of the P* Model using the SAGA API. The Pilot-Job and
 Pilot-Data concepts in TROY are referred to as BigJob and BigData. As
 we will discuss, consistent with the goals and aims of SAGA, there can
 be multiple {\it atomic} instances of BigJob for different backends.
 Thus we posit that the TROY API is a general purpose API that can be
 used for all Pilot-Jobs. Before validating this claim, in \S4 of this
-paper, we discuss the mapping of DIANE to the P-* Model and outline
+paper, we discuss the mapping of DIANE to the P* Model and outline
 briefly how other well known Pilot-Jobs can be understood using the
-{\it vectors}~\cite{dpa_surveypaper} of the P-* Model.
+{\it vectors}~\cite{dpa_surveypaper} of the P* Model.
 
 In \S5 we validate the TROY API by demonstrating how DIANE -- an
 existing and widely used Pilot-Job, can be given a well defined API
@@ -418,7 +418,7 @@ demonstration of interoperation of different Pilot-Jobs.
 %\section{Pilot-* : An abstraction for Dynamic Execution}
 %\section{TROY: A Model of Pilot-Abstractions for Dynamic Execution}
 
-\section{P-* Model: A Conceptual Framework for Pilot-Abstractions for
+\section{P* Model: A Conceptual Framework for Pilot-Abstractions for
   Dynamic Execution}
 \label{sec:pilot-model}
 
@@ -453,28 +453,25 @@ infrastructure, or even to compare and contrast them.
 
 In an attempt to provide a common analytical framework using which
 most, if not all commonly used pilot-jobs can be understood, we
-present the P-* Model of Pilot-Abstractions. The P-* Model is derived
+present the P* Model of Pilot-Abstractions. The P* Model is derived
 from an analysis of many pilot-jobs; based upon this analysis, we
-first present the common {\it elements} of the P-* Model, followed by
+first present the common {\it elements} of the P* Model, followed by
 a description of the properties that must be assigned and that
 determine the interaction of these elements and the overall
-functioning of any pilot-job based upon the P-* Model.
+functioning of any pilot-job based upon the P* Model. Further, we will show
+that these elements and interactions can be used to describe pilot-data
+model.
 
-\subsection{Elements of the P-* Model}
+\subsection{Elements of the P* Model}
 
-\alnote{Remark from AndreM: we need to careful when talking about
-  Pilot-Job as a framework and Pilot-Job as the placeholder job
-  (agent).}
+In this section we define the elements of a Pilot-Job framework. The PJ
+framework provides the abstraction of a container for compute ``tasks''
+that may be dynamically added to it independently from the underlying resource
+pool. It provides a mechanism to decouple compute ``tasks'' from being
+hard-coded to a specific ``resource'' or delay the binding. Commonly, PJ 
+frameworks consist of the following elements:
 
-\begin{compactenum}[A.]
-
-\item \textbf{Pilot-Job Framework:} The PJ framework provides the
-  abstraction of a container for multiple Unit of Works that may be
-  dynamically added to it independently from the underlying resource
-  pool.  It provides a mechanism to decouple unit of works (the
-  compute ``tasks'') from being hard-coded to a specific ``resource''
-  or delay the binding.
-
+\begin{compactitem}
 \item \textbf{Pilot-Job:} The PJ (also referred to as pilot) is the
   entity that actually gets submitted and scheduled on a resource. 
   Commonly, the PJ utilizes an agent to manage the
@@ -486,33 +483,38 @@ functioning of any pilot-job based upon the P-* Model.
   flexibility in determining when and how-many resources the UW will
   receive.
 
-\item \textbf{Unit of Scheduling (US):} are entities 
+\item \textbf{Unit of Scheduling (US):} US are the entities 
   that get scheduled to the resource, and to which UWs are assigned
-  (inside the PJ framework). A sub-job runs an instance of the application
-  kernel~\ref{application-program}.
-
+  (inside the PJ framework). 
+  % A sub-job runs an instance of the application
+  %   kernel~\ref{application-program}.
+  
 % are the unit of works that are sent down to \ref{pilot-agent} to be
 %   executed.  Sub-jobs/jobs are used to reserve the resources required
 %   by a task.
 %\jhanote{I changed the US description significantly} 
 
-\item \textbf{Pilot-Manager:} The element responsible for coordinating
-  the different UW, US and other elements.
 
 % \item \textbf{Resource:} A storage/compute resource that has a common
 %   entry point (like a queue). Commonly, a resource is accessed by a 
 %   LRM. \alnote{move to impl. section} \label{resource}
 
+\item \textbf{Pilot-Manager:} The PJ manager is responsible for coordinating
+	  the different components of the framework, i.\,e.\ the pilots, UWs and 
+	  USs.
+\end{compactitem}
+The application itself is not strictly part of the core P* elements. Nevertheless, to aid the understanding we define the following application-related elements.
+\begin{compactitem}
 \item \textbf{Application:} is upper layer on the stack
-  e.g. DARE-NGS. The application utilizes the BigJob API to execute
-  instances of \ref{application-program}. \label{application}
+  e.g. DARE~\cite{dare-tg11}. The application utilizes the TROY API to execute
+  instances of an application binary. \label{application}
 
 \item \textbf{Application Kernel:} An application kernel is actual
-  binary that gets run, e.g. \texttt{/usr/local/bin/bfast}
-  (Alternative terms: Program, Executable,
-  Software). \label{application-program}
-	
-\end{compactenum}
+  binary that gets run, e.g. \texttt{/usr/local/bin/bfast}.
+  % (Alternative terms: Program, Executable,
+  %   Software). \label{application-program}
+\end{compactitem}	
+
 
  
 
@@ -541,15 +543,15 @@ understand the degrees of freedom that any specific pilot-job
 implementation must constraint as well as the functioning of
 pilot-jobs implementation, we propose a set of fundamental
 properties/characteristics. These characteristics are integral
-components of the P-* Model, in that they describe the interactions
+components of the P* Model, in that they describe the interactions
 between the elements, and thus aid in the description of P*
-frameworks. 
+model. 
 
 % Further, these properties are important for the implementation of
-% P-*.  list several characteristics.
+% P*.  list several characteristics.
 
-\textbf{Coordination:} describes how the various components of the
-pilot-job framework are internally coordinated. Coordination between
+\textbf{Coordination:} describes how the various elements of a
+PJ framework are internally coordinated. Coordination between
 different elements is required to understand:
 
 \begin{compactitem}
@@ -597,13 +599,10 @@ or a set of distributed software agents are utilized.
 	% objects that are pushed/pulled)
 
 \textbf{Communication:} describes the mechanisms for data exchange
-between the components of the framework, can be used (e.\,g.\
-point-to-point, all-to-all, one-to-all, all-to-one, or
+between the components of the framework, can be used: e.\,g.\ messaging 
+(point-to-point, all-to-all, one-to-all, all-to-one, or
 group-to-group), stream (potentially unicast or multicast),
-publish/subscribe or shared data spaces. Shared data spaces (e.\,g.\
-tuple spaces) as used by BigJob are associated with a push/pull
-coordination schema, i.e. the central manager pushes something to the
-shared data space and the agents periodically check for new data.
+publish/subscribe or shared data spaces. 
 		
 % \textbf{Dynamic Resources:} Dynamic resources describes the ability 
 % 	to acquire and release resources at runtime of the pilot-job.
@@ -694,7 +693,7 @@ decisions can be made on basis of a defined set of policies
 
 % \jhanote{To generalise the previous point, we need to have a few
 %   sentences that aims to put all the elements, characteristics
-%   together and presents a {\it unified} view of the working of the P-*
+%   together and presents a {\it unified} view of the working of the P*
 %   Model.}
  
 
@@ -741,7 +740,7 @@ resource on which the pilot is operating (step 7).
 % \jhanote{Ideally the background/underlying theory of Pilot Data/Store
 %   should be presented outside of TROY -- not sure this will be
 %   possible, or where, possibly in the \S II? Maybe as an explicit \S
-%   II-D, where we say, ``having defined a P-* model, we extend it to
+%   II-D, where we say, ``having defined a P* model, we extend it to
 %   Dynamic Data..''}
 
 
@@ -802,7 +801,7 @@ elements which can be used to define the Pilot-Data abstraction:
 \end{compactenum}
 
 % \jhanote{Are these the elements of Pilot-Data? If so, please make
-% connection of above elements to earlier defined elements of P-* Model
+% connection of above elements to earlier defined elements of P* Model
 % explicit, e.g. is Pilot-Data = UW, PS = US etc. Either way, needs
 % integration with the following elements} 
 \alnote{I would equate a PS with a pilot-job (the placeholder). US is
@@ -946,7 +945,7 @@ Further, non-functional properties must be considered:
 \end{compactitem}
 
 
-\section{TROY: A SAGA-based Implementation of the P-* Model}
+\section{TROY: A SAGA-based Implementation of the P* Model}
 
 %Pilot-Abstraction for Dynamic Execution 
 
@@ -991,7 +990,7 @@ scheduling.
 
 The TROY framework consists of the API package, the runtime environment and
 different PJ implementations referred to as BigJob. The TROY API is based on the
-artifacts defined by the P* model \jhanote{Is framework here P-* ?}\alnote{yes} defined in
+artifacts defined by the P* model \jhanote{Is framework here P* ?}\alnote{yes} defined in
 section~\ref{sec:pilot-model}. It defines two description classes that extend
 the known SAGA Job Description, the PJ description and the UW description. A
 TROY manager represents a pool of resources. Resources can be added by
@@ -1016,7 +1015,7 @@ manager. At runtime resources can be added and removed at any time.
 
 
 \subsection{What is Unique about a SAGA-based Implementation of the
-  P-* Model?}
+  P* Model?}
 \alnote{these points should be addressed in the introduction above}
 \begin{itemize}
 \item Consistent with based API and job/file/data model
@@ -1047,7 +1046,6 @@ manager. At runtime resources can be added and removed at any time.
 %   differences go away from the end user!}  \alnote{Since we were not
 %   sure about the term ``atomic'', we could also use base bigjob, or
 %   core bigjob}
-
 
 BigJob (BJ) is a pilot-job implementation within the TROY
 framework~\cite{bigjob_web}. It supports a wide range of application
@@ -1082,26 +1080,31 @@ is general-purpose and extensible.
 	
 
 
-% General overview of BJ implementations
-The BigJob implementations are plugged into the TROY runtime
-environment via a thin adaptor layer (see
-Figure~\ref{fig:figures_distributed_pilot_job}).
-BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a implementation of
-TROY built on top of the SAGA API. The framework utilizes a
-master/worker coordination model: The BigJob Manager is responsible
-for the orchestration and scheduling of the PJs represented by the
-BigJob Agent. For submission of the pilots, BigJob-SAGA relies on the
-SAGA Job API and thus, can be used in conjunction with different SAGA
-adaptors, e.\,g.\ the Globus, PBS, Amazon Web Service and local
-adaptor. The SAGA Advert Service and API are used for communication
-between manager and agent. The binding between UW and PJ takes places
-at submission (late binding).  In addition to the vanilla BigJob SAGA
-various other BigJob implementation exist, e.\,g. there are specific
-BJ flavors for cloud resources as Amazon EC2 and Microsoft Azure that
-are capable of managing set of VMs as well as as a BJ with a Condor-G
-based backend. The mentioned BJ implementations are referred to as
-core BigJobs. Core BJs are confined to a single resource and don't
-allow neither elasticity nor late-late binding.
+% General overview of BJ implementations & P* model
+The BigJob implementations are plugged into the TROY runtime environment via a
+thin adaptor layer (see Figure~\ref{fig:figures_distributed_pilot_job}).
+BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a implementation of TROY built on
+top of the SAGA API. The framework utilizes a master/worker coordination model:
+The BigJob Manager is responsible for the orchestration and scheduling of the
+PJs represented by the BigJob Agent. For submission of the pilots, BigJob-SAGA
+relies on the SAGA Job API and thus, can be used in conjunction with different
+SAGA adaptors, e.\,g.\ the Globus, PBS, Amazon Web Service and local adaptor.
+The SAGA Advert Service and API are used for communication between manager and
+agent. The Advert Service exposes a shared data spaces that can be accessed by
+the manager and agent, which follow a push/pull communication pattern, i.\,e.\
+the manager pushes a US to the Adverts Service while the agents periodically
+pull for new data. Results and state updates are pushed back from the agent to
+the manager in the same way. The binding between UW and US \& PJ takes places at
+submission (late binding). Currently, only a simple binding scheme exists,
+i.\,e.\ each UW (a task) is mapped to a single US (a so called sub-job). For
+scheduling a simple FIFO scheduler is used.
+
+In addition to the vanilla BigJob SAGA various other BigJob implementations
+exist, e.\,g. there are specific BJ flavors for cloud resources as Amazon EC2
+and Microsoft Azure that are capable of managing set of VMs as well as as a BJ
+with a Condor-G based backend. The mentioned BJ implementations are referred to
+as core BigJobs. Core BJs are confined to a single resource and don't allow
+neither elasticity nor late-late binding.
 
 %paragraph on dynamic capabilities
 
