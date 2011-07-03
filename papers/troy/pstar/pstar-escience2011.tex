@@ -31,7 +31,7 @@
 \definecolor{brown}{rgb}{0.5, 0.5, 0}
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
@@ -364,8 +364,8 @@ In this section we define the elements of a pilot-job framework. The PJ
 framework provides the abstraction of a container for compute ``tasks''
 that may be dynamically added to it independently from the underlying resource
 pool. It provides a mechanism to decouple compute ``tasks'' from being
-hard-coded to a specific ``resource'' or at least to delay that binding. Commonly, PJ 
-frameworks consist of the following elements:
+hard-coded to a specific ``resource'' or at least to delay that binding. 
+Commonly, PJ frameworks consist of the following elements:
 
 \begin{compactitem}
 \item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is
@@ -377,12 +377,12 @@ frameworks consist of the following elements:
 
 \item \textbf{Unit of Work (UW):} A unit of work is the workload that
   encapsulates a self-contained piece of work and will be assigned to
-  a resource indirectly via a PJ.  The PJ in turn has
+  a resource indirectly via a PJ.  The PJ framework in turn has
   flexibility in determining when and how-many resources the UW will
   receive.
 
 \item \textbf{Unit of Scheduling (US):} US are the entities 
-  that get scheduled to the resource, and to which UWs are assigned
+  that get scheduled to the resource via a PJ, and to which UWs are assigned
   (inside the PJ framework). 
   % A sub-job runs an instance of the application
   %   kernel~\ref{application-program}.
@@ -391,7 +391,6 @@ frameworks consist of the following elements:
 %   executed.  Sub-jobs/jobs are used to reserve the resources required
 %   by a task.
 %\jhanote{I changed the US description significantly} 
-
 
 % \item \textbf{Resource:} A storage/compute resource that has a common
 %   entry point (like a queue). Commonly, a resource is accessed by a 
@@ -408,7 +407,9 @@ utilizes the PJ framework to execute multiple instances of an application kernel
 kernels (a workflow). An application kernel is the actual binary that gets run.
 To execute an application kernel, an application must define a UW specifying the
 application kernel as well as other parameters. This UW can then be assigned to
-the PJ framework.
+the PJ framework. Typically this is done via the Pilot-Manager who is then 
+responsible for mapping one or more UWs to a US.
+
 	
 As we will see in \S4, the above elements can be mapped to specific
 entities in many pilot-jobs in existence and use.
@@ -610,7 +611,7 @@ resource. \upp\upp}
 {\it Putting it all together:} Figure~\ref{fig:figures_pstar}
 illustrates the interactions between the elements of the P* model. A
 typical usage mode consists of the following steps: The application
-specifies the number of resources required using a UW description
+specifies the capabilities of the resources required in a UW
 (step 1). During the instantiation of a PJ and the assignment of
 resources to the PJ, pilots are queued and started via the local
 resource manager (step 1-4). Having initialized the PJ, UWs can be
@@ -691,7 +692,7 @@ elements which can be used to define the Pilot-Data abstraction:
 \item \textbf{Pilot-Data Framework} facilitates the late-binding between data 
  units that can dynamically associated with a Pilot-Data object, which is 
  associated with a physical resources. 
-\item \textbf{Data Unit (DU):} The base unit of data used by the framework,
+\item \textbf{Data-Unit (DU):} The base unit of data used by the framework,
   e.\,g.\ a data file or chunk. 
 \item \textbf{Pilot-Data (PD):} Allows the logical grouping of files
   and the expression of data-data affinities. This collection of files
@@ -860,23 +861,21 @@ the latter is able to accept jobs from different users.
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
-TROY is an implementation of the P* model
-(section~\ref{sec:pilot-model}) using SAGA (see
-Figure~\ref{fig:figures_pstar_troy}). SAGA~\cite{saga_url,saga_gfd90}
-provides a simple, POSIX-style API to the most common grid functions
-(e.\,g.\ file, job management and distributed coordination) at a
-sufficiently high-level of abstraction so as to be independent of the
-diverse and dynamic grid environments. As shown in
-Figure~\ref{fig:figures_pstar_troy} TROY is located on \jhanote{need a
-  better expression. ``located on top'' is too colloquial} top of the
-SAGA API and runtime environment, which is utilized for job
-management, data transfer and distributed coordination. The TROY API
-maintains the SAGA {\it Look \& Feel} and was designed to be similar
-to SAGA in appearance \jhanote{isn't appearance covered in
-  look-and-feel?} and philosophy: it re-uses many of the well defined
-(and standardized) semantics and syntax of the File, Job and Advert
-API. Further, we aimed for a simple-to-use API exposing the least
-amount of detail necessary.\jhanote{can we call it minimally
+TROY is an implementation of the P* model (section~\ref{sec:pilot-model}) using
+SAGA (see Figure~\ref{fig:figures_pstar_troy}). SAGA~\cite{saga_url,saga_gfd90}
+provides a simple, POSIX-style API to the most common grid functions (e.\,g.\
+file, job management and distributed coordination) at a sufficiently high-level
+of abstraction so as to be independent of the diverse and dynamic grid
+environments. As shown in Figure~\ref{fig:figures_pstar_troy} TROY is based on
+\jhanote{need a better expression. ``located on top'' is too colloquial} \alnote{changed, maybe someone has a more fancy word?}
+the SAGA API and runtime environment, which is utilized for job management, data
+transfer and distributed coordination. The TROY API maintains the SAGA {\it Look
+\& Feel} and was designed to be similar to SAGA in appearance \jhanote{isn't
+appearance covered in look-and-feel?} \alnote{Look \& Feel incl. the appearance,
+but also some non-functional classes such as context} and philosophy: it re-uses
+many of the well defined (and standardized) semantics and syntax of the File,
+Job and Advert API. Further, we aimed for a minimally, complete API exposing the
+least details necessary. \jhanote{can we call it minimally
   complete?}
 
 TROY supports different usage modes i) it provides stand-alone
@@ -997,27 +996,28 @@ submission (early binding). Currently, only a simple binding scheme exists,
 i.\,e.\ each UW (a task) is mapped to a single US (a so called sub-job). For
 scheduling a simple FIFO scheduler is used.
 
-In addition to the vanilla BigJob SAGA various other BigJob
+In addition to the BigJob-SAGA various other BigJob
 implementations exist, e.\,g. there are specific BJ flavors for cloud
 resources as Amazon EC2 and Microsoft Azure that are capable of
 managing set of VMs as well as as a BJ with a Condor Glide-In based
-backend. The mentioned BJ implementations are referred to as core
-BigJobs. Core BJs are confined to a single resource and don't allow
-neither elasticity nor late binding.
+backend. 
+% All core BJ are confined to a single resource and don't allow
+% neither elasticity nor late binding.
 
 %paragraph on dynamic capabilities
 
 In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
 accelerate the time-to-completion or to provide resilience to resource failures
 and/or unexpected delays. The TROY API allows for dynamic resource
-additions/removals as well as late binding. The support of this feature
-depends on the backend used. To support this feature on top of various core
-BigJobs, the concept of a BigJob pool is introduced. A BigJob pool consists of
-multiple core BJs. Each BigJob manages a particular resources. An extensible
+additions/removals as well as late binding. The support of this feature depends
+on the backend used. To support this feature on top of various BigJob
+implementations that are by default restricted to single resource use (e.\,g.\
+BJ-SAGA), the concept of a BigJob pool is introduced. A BigJob pool consists of
+multiple BJs. Each BigJob manages a particular resources. An extensible
 scheduler is used for dispatching UWs to one of the BJs of the pool (late
 binding). For this purpose an extensible scheduler is used. By default a FIFO
 and an affinity-aware scheduler are provided. Various other backends support
-resource elasticity natively, e.\,g.\ DIANE and Condor. 
+resource elasticity natively, e.\,g.\ DIANE and Condor.
 
 % For this purpose, the dynamic BigJob provides an introspection API
 % that applications can utilize to query the manager for a list of
