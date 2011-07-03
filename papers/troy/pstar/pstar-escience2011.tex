@@ -31,7 +31,7 @@
 \definecolor{brown}{rgb}{0.5, 0.5, 0}
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
@@ -216,7 +216,6 @@ in response to the demand.  For the purposes of this paper, we will
 focus on the latter, wherein the availability and utilization of
 resources changes.  As a consequence, we will not consider dynamic
 execution arising from internal application changes.
-% distributed cyberinfrastructure and applications  
 In other words, we will concern and confine ourselves to the case
 where applications have the ability to respond to a fluctuating
 resource pool, i.\,e., the set of resources utilized at $T=0$ is not
@@ -224,15 +223,6 @@ the same as $T>0$.
 % Typically, this will involve a single ``large'' distributed
 % application, that is comprised of many smaller tasks.\alnote{it
 %   would be good if we could relate to our DARE use case here}
-
-% Additionally, existing development and execution models and
-% abstractions are mostly remnants of cluster and high-performance
-% computing -- which almost by definition impose and imply a static
-% resource utilization model. \jhanote{Define/elaborate on static
-%   resource model.}  
-
-% At this point, it is worth elaborating upon dynamic resource
-% utilization;
 
 \alnote{not sure why do we need week and strong model? Determinism and
   distributed systems don't go together well. Also, I wouldn't claim
@@ -376,11 +366,11 @@ hard-coded to a specific ``resource'' or delay the binding. Commonly, PJ
 frameworks consist of the following elements:
 
 \begin{compactitem}
-\item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is the
-  entity that actually gets submitted and scheduled on a resource. 
-  Commonly, the PJ utilizes an agent to manage the
-  set of allocated resources. Depending on the context, PJ also refers to the 
-  concept of utilizing a placeholder job to which at a later step the user's 
+\item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is
+  the entity that actually gets submitted and scheduled on a resource.
+  Commonly, the PJ utilizes an agent to manage the set of allocated
+  resources. Depending on the context, PJ also refers to the concept
+  of utilizing a placeholder job to which at a later step the user's
   workload is submitted to as well as to the PJ abstraction.
 
 \item \textbf{Unit of Work (UW):} A unit of work is the workload that
@@ -454,20 +444,22 @@ model.
 % P*.  list several characteristics.
 
 \textbf{Coordination:} describes how the various elements of a PJ framework are
-internally coordinated. The way the coordination between the different elements
-is handled is required to understand a PJ implementation. A distributed
-coordination mechanisms, such as master/worker or a set of distributed software
-agents, can be utilized. A property for describing coordination is the point and
-process of decision making (e.\,g.\ concerning the binding and scheduling of
-compute tasks): In the \textbf{central} model information about available
-resources (aka pilots) are collected by a central manager. Decisions are
-centrally made by a manager process, which decides which UW is executed on what
-resource. In the \textbf{hierarchical} model the decision making process is
-divided up into a hierarchy of distributed agents. Each of them coordinates a
-coordinates a defined aspect (e.\,g.\ a certain set of resources). In the
-\textbf{decentral} model, control is distributed among the different components.
-PJs with decentralized decision making often utilize autonomic agents that
-accepts respectively pull UWs according to a set of defined policies.
+internally coordinated. % The way the coordination between the different elements
+% is handled is required to understand a PJ implementation.
+A distributed coordination mechanisms, such as master/worker or a set
+of distributed software agents, can be utilized. A property for
+describing coordination is the point and process of decision making
+(e.\,g.\ concerning the binding and scheduling of compute tasks): In
+the \textbf{central} model information about available resources (aka
+pilots) are collected by a central manager. Decisions are centrally
+made by a manager process, which decides which UW is executed on what
+resource. In the \textbf{hierarchical} model the decision making
+process is divided up into a hierarchy of distributed agents. Each of
+them coordinates a defined aspect (e.\,g.\ a certain set of
+resources). In the \textbf{decentral} model, control is distributed
+among the different components.  PJs with decentralized decision
+making often utilize autonomic agents that accepts respectively pull
+UWs according to a set of defined policies.
 
 
 
@@ -515,20 +507,19 @@ publish/subscribe or shared data spaces.
 % 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 % 	    resources, the external coordination is the same for both BJ.}
 
-\textbf{Binding} defines how and at what time the assignment of a
-UW to a PJ is done.  For example, a UW can be bound to a
-PJ either before the PJ has in turn been scheduled (late
-binding), whereas late-late binding can occur if the UW is bound after
-the PJ has been assigned to a resource.  Depending upon the
-type of binding supported, the workload is either specified completely
-independent of a (specific) resource or just partially.
-\alnote{Question: Is the time of binding independent of wether the PJ
-  has resources or not? Late-late binding can also occur if a PJ has
-  resources.}  Furthermore, the time of binding describes the point at
-which the binding decision is made, e.\,g.\ in the case of early
-binding, the decision could be made by the application, while in late
-binding mode the decision is made by the middleware
-framework. 
+\textbf{Binding} defines how and at what time the assignment of a UW
+to a PJ is done.  For example, a UW can be bound to a PJ either before
+the PJ has in turn been scheduled (early binding), whereas late
+binding can occur if the UW is bound after the PJ has been assigned to
+a resource.  Depending upon the type of binding supported, the
+workload is either specified completely independent of a (specific)
+resource or just partially.  \alnote{Question: Is the time of binding
+  independent of wether the PJ has resources or not? Late binding
+  can also occur if a PJ has resources.}  Furthermore, the time of
+binding describes the point at which the binding decision is made,
+e.\,g.\ in the case of early binding, the decision could be made by
+the application, while in late binding mode the decision is made by
+the middleware framework.
 
     %   \begin{itemize}
     %       \item In the traditional early binding approach a job carries
@@ -614,12 +605,13 @@ resource. \upp\upp}
     \label{fig:figures_pstar}
 \end{figure}
 
-{\it Putting it all together:} Figure~\ref{fig:figures_pstar} illustrates the
-interactions between the elements of the P* model. A typical usage mode consists
-of the following steps: The application specifies the number of resources
-required using a UW description (step 1). During the instantiation of a PJ and
-the assignment of resources to the PJ, pilots are queued and started via the
-local resource manager (step 1-4). Having initialized the PJ, UWs can be
+{\it Putting it all together:} Figure~\ref{fig:figures_pstar}
+illustrates the interactions between the elements of the P* model. A
+typical usage mode consists of the following steps: The application
+specifies the number of resources required using a UW description
+(step 1). During the instantiation of a PJ and the assignment of
+resources to the PJ, pilots are queued and started via the local
+resource manager (step 1-4). Having initialized the PJ, UWs can be
 assigned to it (step 5).
 
 % The pilot is then executed on a
@@ -677,7 +669,7 @@ sources (such as sensors and/or other application components), fluctuating data
 rates, optimizations for different queries, data-/compute co-location etc. Thus,
 having defined the P* Model, we propose to extend it to data so as to facilitate
 an understanding of DE. This will motivate an analogous abstraction that we call
-\emph{Pilot-Data (PD)}. PD provides late-binding capabilities for data by
+\emph{Pilot-Data (PD)}. PD provides delayed-binding capabilities for data by
 separating the allocation of physical storage and application-level units of
 data. Further, it provides an abstraction for expressing and managing
 relationships between DU as well as DUs and UWs. These relationships are
@@ -997,23 +989,24 @@ submission (late binding). Currently, only a simple binding scheme exists,
 i.\,e.\ each UW (a task) is mapped to a single US (a so called sub-job). For
 scheduling a simple FIFO scheduler is used.
 
-In addition to the vanilla BigJob SAGA various other BigJob implementations
-exist, e.\,g. there are specific BJ flavors for cloud resources as Amazon EC2
-and Microsoft Azure that are capable of managing set of VMs as well as as a BJ
-with a Condor Glide-In based backend. The mentioned BJ implementations are referred to
-as core BigJobs. Core BJs are confined to a single resource and don't allow
-neither elasticity nor late-late binding.
+In addition to the vanilla BigJob SAGA various other BigJob
+implementations exist, e.\,g. there are specific BJ flavors for cloud
+resources as Amazon EC2 and Microsoft Azure that are capable of
+managing set of VMs as well as as a BJ with a Condor Glide-In based
+backend. The mentioned BJ implementations are referred to as core
+BigJobs. Core BJs are confined to a single resource and don't allow
+neither elasticity nor late binding.
 
 %paragraph on dynamic capabilities
 
 In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
 accelerate the time-to-completion or to provide resilience to resource failures
 and/or unexpected delays. The TROY API allows for dynamic resource
-additions/removals as well as late-late binding. The support of this feature
+additions/removals as well as late binding. The support of this feature
 depends on the backend used. To support this feature on top of various core
 BigJobs, the concept of a BigJob pool is introduced. A BigJob pool consists of
 multiple core BJs. Each BigJob manages a particular resources. An extensible
-scheduler is used for dispatching UWs to one of the BJs of the pool (late-late
+scheduler is used for dispatching UWs to one of the BJs of the pool (late
 binding). For this purpose an extensible scheduler is used. By default a FIFO
 and an affinity-aware scheduler are provided. Various other backends support
 resource elasticity natively, e.\,g.\ DIANE and Condor. 
@@ -1482,7 +1475,7 @@ conder\_collector which collects resource information, the conder\_negotiator
 that does the matchmaking and the condor\_schedd that is responsible for
 managing the binding and scheduling process. Condor generally does not
 differentiate between workload, i.\,e.\ UW, and schedulable entity, i.\,e.\ US.
-Both entities are referred to as job. However, it supports late-late binding,
+Both entities are referred to as job. However, it supports late binding,
 i.\,e.\ resources a job is submitted to must generally not be available at
 submission time. The scheduler matches the capabilities required by a UW to the
 available resources. This process is referred to as matchmaking. Further, a
@@ -1553,7 +1546,7 @@ Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &Ma
 	
 Communication &Advert Service &CORBA &TCP &GSI-enabled TCP \\ \hline
 
-UW Binding &Late/Late-Late &Late-Late &Late-Late &Late-Late\\
+UW Binding &Early/Late &Late &Late &Late\\
 % \hline
 % MPI/Multinode Applications &yes &no (yes with custom implementation of ApplicationWorker)\\
 \hline
