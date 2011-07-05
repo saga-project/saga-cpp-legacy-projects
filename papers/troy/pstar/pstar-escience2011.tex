@@ -356,7 +356,8 @@ applications. Although they are all functionally equivalent -- they
 support the decoupling of workload submission from resource
 assignment, it is often impossible to use them interoperably --- most
 PJ implementations however, are tied to a specific
-infrastructure, or even to compare and contrast them.
+infrastructure, or even to compare and contrast them.\alnote{previous sentence
+is a potential candidate for improvement.}
 
 In an attempt to provide a common analytical framework using which
 most, if not all commonly used pilot-jobs can be understood, we
@@ -370,21 +371,20 @@ elements and interactions can be used to describe a pilot-data model.
 
 \subsection{Elements of the P* Model \upp\upp}
 
-\jhanote{(i) definition of pilot-job and SU very similar. (ii)
-  highlight relation between WU/SU, (iii) symmetry: WU for PJ, DU for
-  PD, (iv) make explicit that Pilot-Data is the analogue of SU, (v)
-  shouldn't SU cover data.. (vi) address in the conclusion that they
-  will merge, but we have shown/named them different for
-  motivation.(vii) US--> SU, US --> WU.} \jhanote{AL: Are these all
-  addressed?}\alnote{not, yet, working on them}
+\jhanote{(i) definition of pilot-job and SU very similar. \alnote{ok} (ii)
+highlight relation between WU/SU, \alnote{ok} (iii) symmetry: WU for PJ, DU for
+PD, \alnote{see comments in C} (iv) make explicit that Pilot-Data is the
+analogue of SU, \alnote{see C} (v) shouldn't SU cover data.. \alnote{see C} (vi)
+address in the conclusion that they will merge, but we have shown/named them
+different for motivation.(vii) US--> SU, US --> WU.} \alnote{ok} \jhanote{AL:
+Are these all addressed?}\alnote{see above}
 
-In this section we define the elements of a pilot-job framework. The
-PJ framework provides the abstraction of a container for compute
-tasks that may be dynamically added to it independently from the
-underlying resource pool. It provides a mechanism to decouple compute
-tasks from being hard-coded to a specific resource or at least
-to delay that binding.  Commonly, PJ frameworks consist of the
-following elements:
+% In this section we define the elements of a pilot-job framework. The
+% PJ framework provides the abstraction of a container for compute
+% tasks that may be dynamically added to it independently from the
+% underlying resource pool. It provides a mechanism to decouple compute
+% tasks from being hard-coded to a specific resource or at least
+% to delay that binding. 
 
 In this section we define the elements of a pilot-job framework. The
 PJ framework provides the abstraction of a container for compute
@@ -394,18 +394,32 @@ tasks from being hard-coded to a specific resource or at least
 to delay that binding. Commonly, PJ frameworks consist of the
 following elements:
 
+\alnote{I think our elements currently do not sufficiently represent the ability 
+to have a dynamic PJ spawned across multiple resources. Added on sentence to the PJ manager. Not sure whether this is enough}
+\alnote{Is a WU is assigned to a PJ (colloquial for the whole thing and not a specific PJ) or PJ framework?}
 \begin{compactitem}
-\item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is the entity that actually gets submitted and scheduled onto a resource using whatever mechanism that is provided by the resource. Commonly, the PJ utilizes an agent to manage the set of resources allocated to it. Depending on the context, PJ also refers to the concept of utilizing a placeholder job to which at a later step the user's workload is submitted to as well as to the PJ abstraction.
+\item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is the entity
+that actually gets submitted and scheduled onto a resource using the local
+resource management system that is provided by the resource. The pilot is often
+referred to as an agent: It collects local information, manages the resources
+allocated to it and exchanges data (such as resource information, states) with
+the other elements of the PJ framework. Depending on the context, PJ also refers
+to the concept of utilizing a placeholder job to which at a later step the
+user's workload is submitted to as well as to the PJ abstraction.
 
-\item \textbf{Work Unit (WU):} A work unit is the workload that
-  encapsulates a self-contained piece of work and will be assigned to
-  a resource indirectly via a PJ.  The PJ framework in turn has
-  flexibility in determining when and how-many resources the WU will
-  receive.
+\alnote{Terms: assign -- binding of a wu to a specific pilot (see binding
+characteristic); submit -- add a WU to a PJ framework (does not need to get
+assigned at this moment)}
+\item \textbf{Work Unit (WU):} A work unit is the workload that encapsulates a
+self-contained piece of work that is submitted to the PJ framework. The PJ
+framework in turn has flexibility in determining when and how-many resources the
+WU will receive.
 
-\item \textbf{Scheduling Unit (SU):} SUs are the entities that get scheduled to the resource via a PJ. They represent one or more WUs that are combined inside the PJ framework. Note that that this can either be a simple grouping or a smarter aggregation of WUs (e.g. two sets of parameters merged into one).
-  % A sub-job runs an instance of the application
-  %   kernel~\ref{application-program}.
+\item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling used inside the PJ framework. They get scheduled and
+executed on a resource via the pilot. An SU consists of one or more WUs that are
+combined inside the PJ framework. Note that that this can either be a simple
+grouping or a smarter aggregation of WUs (e.g. two sets of parameters merged
+into one).
   
 % are the unit of works that are sent down to \ref{pilot-agent} to be
 %   executed.  Sub-jobs/jobs are used to reserve the resources required
@@ -418,7 +432,7 @@ following elements:
 
 \item \textbf{Pilot-Manager:} The PJ manager is responsible for coordinating
 	  the different components of the framework, i.\,e.\ the pilots, WUs and 
-	  SUs.
+	  SUs. A PJ manager can generally manage multiple pilots.
 \end{compactitem}
 The application itself is not strictly part of the core P* elements. The term
 application generally refers to the upper layer of the stack. The application
@@ -530,20 +544,19 @@ publish/subscribe or shared data spaces.
 % 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 % 	    resources, the external coordination is the same for both BJ.}
 
-\textbf{Binding} defines how and at what time the assignment of a WU
-to a PJ is done.  For example, a WU can be bound to a PJ either before
-the PJ has in turn been scheduled (early binding), whereas late
-binding can occur if the WU is bound after the PJ has been assigned
-\jhanote{should this assigned really be scheduled?} to a resource.
-Depending upon the type of binding supported, the workload
-\jhanote{what is worload? WU?} is either specified completely or just
-independent of a (specific) resource.  \alnote{Question: Is the time
-  of binding independent of wether the PJ has resources or not? Late
-  binding can also occur if a PJ has resources.} \jhanote{Sorry, but
-  the question is unclear to me ..lets discuss} Furthermore, the time
-of binding influences the point at which the binding decision is made,
-e.\,g.\ in the case of early binding, the decision could be made by
-the application, while in late binding mode the decision is often made
+\textbf{Binding} defines how and at what time the assignment of a WU to a PJ is
+done. For example, a WU can be bound to a PJ either before the PJ has in turn
+been scheduled (early binding), whereas late binding can occur if the WU is
+bound after the PJ has available resources. \jhanote{should this assigned really
+be scheduled?} \alnote{refined a bit. But we should talk about binding again.}
+Depending upon the type of binding supported, the WU \jhanote{what is workload?
+WU?} \alnote{yes} is either specified completely or just independent of a
+(specific) resource. \alnote{Question: Is the time of binding independent of
+wether the PJ has resources or not? Late binding can also occur if a PJ has
+resources.} \jhanote{Sorry, but the question is unclear to me ..lets discuss}
+Furthermore, the time of binding influences the point at which the binding
+decision is made, e.\,g.\ in the case of early binding, the decision could be
+made by the application, while in late binding mode the decision is often made
 by the middleware framework.
 
     %   \begin{itemize}
@@ -562,9 +575,9 @@ by the middleware framework.
 % \jhanote{Difference between mapping and assignment}\alnote{in this
 %   case both terms are used very synonymous.}
 
-\textbf{Scheduling:} Scheduling describes the process of assigning a SU to
+\textbf{Scheduling:} Scheduling describes the process of mapping a SU to
 physical resources via a pilot. Scheduling has a spatial component (which SU is
-assigned to which pilot?) and a temporal component (at what time?). To optimize
+executed on which pilot?) and a temporal component (at what time?). To optimize
 execution, the manager can group WUs into a SU. The different scheduling
 decisions that need to be made are representative of multi-level scheduling
 decisions that are often required in distributed environments. Commonly a set of
@@ -625,7 +638,7 @@ etc.) or the implementation of a custom scheduler is supported.
     \includegraphics[width=0.5\textwidth]{figures/pstar_model.pdf}
     \caption{\textbf{P*-Model: Elements and Interactions:} The core of
       the model is the manager who is responsible for managing
-      pilot-jobs and WUs. After a WU is assigned to the manager it
+      pilot-jobs and WUs. After a WU is assigned to the manager, the manager
       binds it to a SU and schedule the SU to an available
       resource. \jhanote{Please don't forget to change UW-->WU in the
         figure}\alnote{done}\upp\upp}
@@ -710,13 +723,13 @@ referred to as \emph{affinities}.  % \jhanote{difficult to use affinity
 \subsubsection*{Extension of P*-Model Elements}
 
 % The P* model can in many parts be applied to pilot-data.
-The elements defined by P* (in section~\ref{sec:p_star_elements}) can be
-extended by the following elements, which are by symmetry, the
-elements which can be used to define the Pilot-Data abstraction:
+
+A Pilot-Data Framework facilitates the late-binding between data units and
+physical storage resources, the so called pilot-stores. The elements defined by
+P* (in section~\ref{sec:p_star_elements}) can be extended by the following
+elements, which are by symmetry, the elements which can be used to define the
+Pilot-Data abstraction:
 \begin{compactenum}[A.]
-\item \textbf{Pilot-Data Framework} facilitates the late-binding between data 
- units that can dynamically associated with a Pilot-Data object, which is 
- associated with a physical resources. 
 \item \textbf{Data Unit (DU):} The base unit of data used by the framework,
   e.\,g.\ a data file or chunk. 
 \item \textbf{Pilot-Data (PD):} Allows the logical grouping of DUs
@@ -725,10 +738,10 @@ elements which can be used to define the Pilot-Data abstraction:
   properties is affinity. A PD containing a set of DUs forms the PJ
   equivalent of a WU.
 \item \textbf{Pilot-Store (PS):} Binds a pilot-data object to an actual
-  physical resource. A pilot-store object can function as a
-  placeholder object that reserves the space for a pilot-data object. A PS  
-  facilitates the late-binding of data and resource and is equivalent to the 
-  pilot-job.
+	  physical resource. A pilot-store object can function as a
+	  placeholder object that reserves the space for a pilot-data object. A PS  
+	  facilitates the late-binding of data and resource and is equivalent to the 
+	  pilot-job.
 \item \textbf{Pilot-Data Manager} is analogous to the PJ-Manager responsible for 
   managing DU, PD and PS elements. 
 \end{compactenum}
@@ -742,10 +755,18 @@ elements which can be used to define the Pilot-Data abstraction:
   PD-Manager framework could e.g. use multiple PS to replicate the
   data}
 
+\alnote{please check whether we all can agree on this mapping between PJ and PD or whether we should extend the PD model, e.g. by SU and the PJ model by a WU container?}
 In summary, a PD is a logical container that describes the properties of a group
-of DUs. A PS is a placeholder reserving a certain amount of storage. By
-associating a PD to a PS the data is actually moved to the physical location
-associated with the PS.  
+of DUs. A DU correspond to a WU in the PJ model. The PD object provides a
+higher level of semantics to the end-user for expressing relationships between
+DUs for which there is currently no equivalent in the PJ model. Users of a PJ
+must manage WU-level dependencies on application-level. Further, the PD model
+does not assume an internal scheduling unit. While there is some value in
+introducing a SU to PD, we currently assume that a PD object is
+the unit of internal scheduling. Having instantiated a PD, it can be assigned to
+a PS. A PS is a placeholder reserving a certain amount of storage, i.\,e.\ it
+corresponds to a pilot in the pilot-job model. By associating a PD to a PS the
+data is actually moved to the physical location associated with the PS.
 
 %\alnote{insert Millau figure}
 
@@ -775,11 +796,14 @@ information.
 %sowetatic \alnote{what does this word mean?} \jhanote{it means
 %  citatewos :)}
 
-PJ and PD encapsulate cross-cutting properties across data and
-computation. Both PJ and PD can be used to express different kind of
-affinities.  The P* implementation will optimize data- and computing
-according to the defined affinities and policies. In the following, we
-discuss further implementation considerations for P*.
+PJ and PD encapsulate cross-cutting properties across data and computation. Both
+PJ and PD can be used to express different kind of affinities. The P*
+implementation will optimize data- and computing according to the defined
+affinities and policies. Both the PJ and PD define similar elements that can be
+mapped to each other. Nevertheless, compute and data model sometimes require a
+different treatment. With the maturing of both models and implementations, we
+expect that both the PJ and PD model converge in the future. In the following,
+we discuss further implementation considerations for P*.
 
 % \subsection*{Not sure what to with this yet}
 % 
@@ -834,7 +858,7 @@ discuss further implementation considerations for P*.
 % concerned with capturing aspects of distributed coordination, this
 % elements is extended to include patterns of data access, e.\,g. co-access or gather/scatter that is e.\,g.\ used by MapReduce.
 
-\subsection{Implementation Considerations\upp\upp}
+\subsection{Considerations\upp\upp}
 
 
 %In the following we will discuss how we implement
