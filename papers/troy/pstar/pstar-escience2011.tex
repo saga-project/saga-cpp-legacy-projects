@@ -1038,24 +1038,27 @@ is available at~\cite{troy_api}.
 % General overview of BJ implementations & P* model
 BigJob (BJ)~\cite{bigjob_web} is a pilot-job implementation that supports a wide
 range of application types, and is usable over a broad range of infrastructures,
-i.\,e.\ it is general-purpose and extensible. BigJob is integrated into the TROY 
+i.\,e.\ it is general-purpose and extensible. BigJob is integrated into the TROY
 runtime environment via a thin adaptor layer (see
 Figure~\ref{fig:figures_distributed_pilot_job}).
 BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a implementation of TROY built on
 top of the SAGA API. BJ-SAGA utilizes a master/worker coordination model: The
-BigJob Manager is responsible for the orchestration and scheduling of the PJs
+BigJob Manager is responsible for the orchestration and scheduling of pilots.
 represented by the BigJob Agent. For submission of the pilots, BigJob-SAGA
 relies on the SAGA Job API and thus, can be used in conjunction with different
 SAGA adaptors, e.\,g.\ the Globus, PBS, Amazon Web Service and local adaptor.
-The SAGA Advert Service and API are used for communication between manager and
-agent. The Advert Service exposes a shared data space that can be accessed by
-the manager and agent, which follow a push/pull communication pattern, i.\,e.\
-the manager pushes a SU to the Adverts Service while the agents periodically
-pull for new data. Results and state updates are pushed back from the agent to
-the manager in the same way. Currently, a simple binding mechanism is used: each
-WU (a task) submitted to the BigJob framework is mapped to one SU (a so called
-sub-job). Binding takes places at submission (early binding). For scheduling a
-simple FIFO scheduler is used (see also Table~\ref{table:pilot-job-comparison}).
+Each pilot initializes a so called BigJob agent component. The agent is
+responsible for gathering local information and for executing tasks (SUs) on the
+local resource. The SAGA Advert Service and API are used for communication
+between manager and agent. The Advert Service exposes a shared data space that
+can be accessed by the manager and agent, which follow a push/pull communication
+pattern, i.\,e.\ the manager pushes a SU to the Adverts Service while the agents
+periodically pull for new data. Results and state updates are pushed back from
+the agent to the manager in the same way. Currently, a simple binding mechanism
+is used: each WU (a task) submitted to the BigJob framework is mapped to one SU
+(a so called sub-job). Binding takes places at submission (early binding). For
+scheduling a simple FIFO scheduler is used (see also
+Table~\ref{table:pilot-job-comparison}).
 
 In addition to the BigJob-SAGA various other BigJob
 implementations exist, e.\,g. there are specific BJ flavors for cloud
@@ -1074,7 +1077,7 @@ additions/removals as well as late binding. The support of this feature depends
 on the backend used. To support this feature on top of various BigJob
 implementations that are by default restricted to single resource use (e.\,g.\
 BJ-SAGA), the concept of a BigJob pool is introduced. A BigJob pool consists of
-multiple BJs. Each BigJob manages a particular resources. An extensible
+multiple BJs. Each BigJob manages a particular resource. An extensible
 scheduler is used for dispatching WUs to one of the BJs of the pool (late
 binding). For this purpose an extensible scheduler is used. By default a FIFO
 and an affinity-aware scheduler are provided. Various other backends support
