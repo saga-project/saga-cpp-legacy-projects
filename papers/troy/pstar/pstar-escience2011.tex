@@ -349,35 +349,27 @@ interoperation of different pilot-job implementations.
 % bewildering large, making integration, extensibility and
 % interoperability difficult. Additionally, 
 
-The uptake of distributed infrastructures by scientific
-applications has been limited by the availability of extensible,
-pervasive and simple-to-use abstractions which are required at
-multiple levels – development, deployment and execution stages of
-scientific applications.
+\alnote{Framework, Implementation vs. Abstraction? When do we use what word?}
+The uptake of distributed infrastructures by scientific applications has been
+limited by the availability of extensible, pervasive and simple-to-use
+abstractions which are required at multiple levels – development, deployment and
+execution stages of scientific applications. The PJ abstraction has been shown
+to be an effective abstraction to address specific requirements of distributed
+scientific applications. There are many implementations of the PJ abstraction. 
+Although they are all for the most parts functionally equivalent -- they
+support the decoupling of workload submission from resource assignment -- it is
+often impossible to use them interoperably or even just to compare and contrast
+them. 
 
-% Specifically, Pilot-Jobs support the decoupling of workload
-% submission from resource assignment; this results in a flexible
-% execution model, which in turn enables the distributed scale-out of
-% applications on multiple and possibly heterogeneous resources.
-
-The PJ abstraction has been shown to be an effective
-abstraction to address specific requirements of distributed scientific
-applications. Although they are all functionally equivalent -- they
-support the decoupling of workload submission from resource
-assignment, it is often impossible to use them interoperably --- most
-PJ implementations however, are tied to a specific
-infrastructure, or even to compare and contrast them.\alnote{previous sentence
-is a potential candidate for improvement.}
-
-In an attempt to provide a common analytical framework using which
-most, if not all commonly used pilot-jobs can be understood, we
-present the P* model of pilot-abstractions. The P* model is derived
-from an analysis of many pilot-job implementations; based upon this analysis, we
-first present the common {\it elements} of the P* model, followed by
-a description of the properties that must be assigned and that
-determine the interaction of these elements and the overall functioning of any
-pilot-job that is described by the P* model. Further, we will show that these
-elements and interactions can be used to describe a pilot-data model.
+In an attempt to provide a common analytical framework which most, if not all
+commonly used pilot-jobs can be understood, we present the P* model of
+pilot-abstractions. The P* model is derived from
+an analysis of many pilot-job implementations; based upon this analysis, we
+first present the common {\it elements} of the P* model, followed by a
+description of the properties that must be assigned and that determine the
+interaction of these elements and the overall functioning of any pilot-job that
+is described by the P* model. Further, we will show that these elements and
+interactions can be used to describe a pilot-data model.
 
 \subsection{Elements of the P* Model \upp\upp}
 
@@ -396,13 +388,13 @@ Are these all addressed?}\alnote{see above}
 % tasks from being hard-coded to a specific resource or at least
 % to delay that binding. 
 
-In this section we define the elements of a pilot-job framework. The
-PJ framework provides the abstraction of a container for compute
-tasks that may be dynamically added to it independently from the
-underlying resource pool. It provides a mechanism to decouple compute
-tasks from being hard-coded to a specific resource or at least
-to delay that binding. Commonly, PJ frameworks consist of the
-following elements:
+In this section we define the elements that an implementation of a pilot-job
+abstraction must provide. In general, the PJ framework provides the abstraction
+of a container for compute tasks that may be dynamically added to it
+independently from the underlying resource pool. It provides a mechanism to
+decouple compute tasks from being hard-coded to a specific resource or at least
+to delay that binding. Commonly, PJ frameworks consist of the following
+elements:
 
 \alnote{I think our elements currently do not sufficiently represent the ability 
 to have a dynamic PJ spawned across multiple resources. Added on sentence to the PJ manager. Not sure whether this is enough}
@@ -410,26 +402,26 @@ to have a dynamic PJ spawned across multiple resources. Added on sentence to the
 \begin{compactitem}
 \item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is the entity
 that actually gets submitted and scheduled onto a resource using the local
-resource management system that is provided by the resource. The pilot is often
-referred to as an agent: It collects local information, manages the resources
-allocated to it and exchanges data (such as resource information, states) with
-the other elements of the PJ framework. Depending on the context, PJ also refers
-to the concept of utilizing a placeholder job to which at a later step the
-user's workload is submitted to as well as to the PJ abstraction.
+resource management system. The pilot often has to role of an agent: it collects
+local information, manages the resources allocated to it and exchanges data
+(such as resource information, states) with the other elements of the PJ
+framework. Depending on the context, PJ also refers to the PJ concept or the PJ
+abstraction. \alnote{or the framework?}
 
 \alnote{Terms: assign -- binding of a wu to a specific pilot (see binding
 characteristic); submit -- add a WU to a PJ framework (does not need to get
 assigned at this moment)}
 \item \textbf{Work Unit (WU):} A work unit is the workload that encapsulates a
 self-contained piece of work that is submitted to the PJ framework. The PJ
-framework in turn has flexibility in determining when and how-many resources the
-WU will receive.
+framework in turn has flexibility to bind and schedule to WU, i.\,e.\ to
+determining when and how-many resources the WU will receive.
 
 \item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling used inside the PJ framework. They get scheduled and
 executed on a resource via the pilot. An SU consists of one or more WUs that are
 combined inside the PJ framework. Note that that this can either be a simple
 grouping or a smarter aggregation of WUs (e.g. two sets of parameters merged
-into one).
+into one).\alnote{What is the difference between simple and smart? grouping and 
+aggregation?}
   
 % are the unit of works that are sent down to \ref{pilot-agent} to be
 %   executed.  Sub-jobs/jobs are used to reserve the resources required
@@ -450,9 +442,9 @@ utilizes the PJ framework to execute multiple instances of an application kernel
 (an ensemble) or alternatively instances of multiple different application
 kernels (a workflow). An application kernel is the actual binary that gets run.
 To execute an application kernel, an application must define a WU specifying the
-application kernel as well as other parameters. This WU can then be assigned to
-the PJ framework. Typically this is done via the Pilot-Manager who is then 
-responsible for mapping one or more WUs to a SU.
+application kernel as well as other parameters. This WU can then be submitted to
+the PJ framework. Typically this is done by the PJ-Manager who is then 
+responsible for binding one or more WUs to a SU and for scheduling the SU.
 
 	
 As we will see in \S4, the above elements can be mapped to specific
@@ -490,7 +482,7 @@ model.
 % Further, these properties are important for the implementation of
 % P*.  list several characteristics.
 
-\textbf{Coordination:} describes how the various elements of a PJ framework are
+\textbf{Coordination:} The coordination characteristic describes how the various elements of a PJ framework are
 coordinated. % The way the coordination between the different elements
 % is handled is required to understand a PJ implementation.
 A distributed coordination mechanism, such as master/worker or a set
@@ -543,7 +535,7 @@ WUs according to a set of defined policies.
 	% \item Sub-Job pull vs. push applies to control and data flow (different 
 	% objects that are pushed/pulled)
 
-\textbf{Communication:} describes the mechanisms for data exchange
+\textbf{Communication:} The communication characteristic describes the mechanisms for data exchange
 between the elements of the framework: e.\,g.\ messaging 
 (point-to-point, all-to-all, one-to-all, all-to-one, or
 group-to-group), stream (potentially unicast or multicast),
@@ -554,7 +546,7 @@ publish/subscribe or shared data spaces.
 % 	    \alnote{By definition a BJ should be dynamic. After acquiring additional 
 % 	    resources, the external coordination is the same for both BJ.}
 
-\textbf{Binding} defines how and at what time the assignment of a WU to a PJ is
+\textbf{Binding:} The binding characteristic defines how and at what time the assignment of a WU to a PJ is
 done. For example, a WU can be bound to a PJ either before the PJ has in turn
 been scheduled (early binding), whereas late binding can occur if the WU is
 bound after the PJ has available resources. \jhanote{should this assigned really
@@ -585,14 +577,15 @@ by the middleware framework.
 % \jhanote{Difference between mapping and assignment}\alnote{in this
 %   case both terms are used very synonymous.}
 
-\textbf{Scheduling:} Scheduling describes the process of mapping a SU to
-physical resources via a pilot. Scheduling has a spatial component (which SU is
-executed on which pilot?) and a temporal component (at what time?). To optimize
-execution, the manager can group WUs into a SU. The different scheduling
-decisions that need to be made are representative of multi-level scheduling
-decisions that are often required in distributed environments. Commonly a set of
-(user-defined) policies (e.g. resource capabilities, data/compute affinities,
-etc.) or the implementation of a custom scheduler is supported.
+\textbf{Scheduling:} The scheduling characteristic describes the process of
+mapping a SU to physical resources via a pilot. Scheduling has a spatial
+component (which SU is executed on which pilot?) and a temporal component (at
+what time?). To optimize execution, the manager can group WUs into a SU. The
+different scheduling decisions that need to be made are representative of
+multi-level scheduling decisions that are often required in distributed
+environments. Commonly a set of (user-defined) policies (e.g. resource
+capabilities, data/compute affinities, etc.) or the implementation of a custom
+scheduler is supported.
 
 %\begin{itemize}
 % \item Multi-level scheduling: In a distributed environment often
