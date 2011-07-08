@@ -31,7 +31,7 @@
 \definecolor{brown}{rgb}{0.5, 0.5, 0}
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
@@ -139,6 +139,7 @@
 \maketitle
 
 \begin{abstract}
+  \up
   Distributed cyberinfrastructures (CI) and applications require the
   ability to determine and utilize resource selection at runtime (dynamically),
   and not just before execution (statically).
@@ -150,7 +151,7 @@
   be used to define, compare and contrast different
   implementations. This paper is an attempt to (i) provide a minimal
   but complete model (P*) of Pilot-Jobs, (ii) extend the basic model
-  from compute jobs to data, (iii) introduce TROY as an implementation
+  from compute to data, (iii) introduce TROY as an implementation
   of this model using SAGA, i.\,e.\ consistent with its API, job-model
   etc., (iv) establish the generality of the P* model by mapping
   various existing and well known pilot-jobs such as DIANE to P*, (v)
@@ -285,9 +286,9 @@ extension.
 Our work is
 motivated by the status of the usage and availability of the pilot
 abstraction vis-a-vis the current landscape of distributed
-applications and CI.  To achieve our objectives, we begin this work
-with an attempt to provide a minimal, but complete model for the pilot
-abstraction, which in turn can be used to provide an analytical
+applications and CI.  To achieve our objectives, we 
+attempt to provide a minimal, but complete model for the pilot
+abstraction, which can be used to provide an analytical
 framework to compare and contrast different pilot
 implementations. This is, to the best of our knowledge, the first such
 attempt.
@@ -437,10 +438,11 @@ be used to describe a pilot-data model.
 \alnote{Is a WU is assigned to a PJ (colloquial for the whole thing
   and not a specific PJ) or PJ framework?}
 
-In this sub-section we define the elements of the P* model:
+\noindent
+This sub-section defines the elements of the P* model:
 
 \begin{compactitem}
-\item \textbf{Pilot-Job (PJ):} The PJ (also referred to as pilot) is
+\item \textbf{Pilot-Job (PJ):} The PJ (or `pilot') is
   the entity that actually gets submitted and scheduled onto a
   resource using the local resource management system. The pilot often
   has the role of an agent: it collects local information, manages the
@@ -547,15 +549,15 @@ description of P* model.
 % P*.  list several characteristics.
 
 \textbf{Coordination:} The coordination characteristic describes how
-the various elements of the P* Model are coordinated.
+various elements of the P* Model are coordinated.
 % The way the coordination between the different elements
 % is handled is required to understand a PJ implementation.
-Commonly, a distributed coordination mechanism, such as master/worker,
-(M/W) is utilized. A property for describing coordination is the point and
-process of decision making (e.\,g.\ concerning the binding and
-scheduling of compute tasks): In the \textbf{central} model
-information about available resources (aka pilots) are collected by a
-central manager and decisions are centrally made by a manager
+Commonly, a distributed coordination mechanism such as master/worker
+(M/W) is utilized. A metric for describing coordination is the point and
+process of decision making (e.\,g.\ about binding and
+scheduling of compute tasks): in the \textbf{central} model,
+information about available resources (aka pilots) are collected
+centrally, and decisions are centrally made by a manager
 process. % , which decides which SU is executed on what
 % resource.
 In the \textbf{hierarchical} model the decision making process is
@@ -719,19 +721,6 @@ custom scheduler is supported.
 
 % \msnote{Something for discussion: relationship of binding and scheduling.}
 
-\begin{figure}[htbp]
-    \centering    
-    \includegraphics[width=0.5\textwidth]{figures/pstar_model.pdf}
-    \caption{\textbf{P* Model: Elements and Interactions:} The core of
-      the model is the manager who is responsible for managing
-      pilot-jobs and WUs. After a WU is assigned to the manager, the manager
-      binds it to a SU and schedule the SU to an available
-      resource. % \jhanote{Please don't forget to change UW-->WU in the
-%         figure}\alnote{done}
-      \upp\upp}
-    \label{fig:figures_pstar}
-\end{figure}
-
 {\it Putting it all together:} Figure~\ref{fig:figures_pstar}
 illustrates the interactions between the elements of the P*
 model. Although there can be variations, a typical usage scenario
@@ -754,6 +743,20 @@ simplest case one WU corresponds to one SU. The Manager then schedules a SU to
 specific PJ according to a specified policy or a user provided scheduler
 function (step 6). The SU gets executed to a physical resource on which the
 pilot is operating (step 7).
+
+\begin{figure}[htbp]
+    \centering\up
+    \includegraphics[width=0.5\textwidth]{figures/pstar_model.pdf}
+    \caption{
+      \textbf{P* Model: Elements and Interactions:} The core of
+      the model is the manager who is responsible for managing
+      pilot-jobs and WUs. After a WU is assigned to the manager, the manager
+      binds it to a SU and schedule the SU to an available
+      resource. % \jhanote{Please don't forget to change UW-->WU in the
+%         figure}\alnote{done}
+      \upp\upp}
+    \label{fig:figures_pstar}
+\end{figure}
 
 
 \subsection{Pilot-Data: Extension of P* to Dynamic Data\upp\upp}
@@ -944,6 +947,7 @@ considerations for P*.
 % concerned with capturing aspects of distributed coordination, this
 % elements is extended to include patterns of data access, e.\,g. co-access or gather/scatter that is e.\,g.\ used by MapReduce.
 
+\upp
 \subsection{Considerations\upp\upp}
 
 
@@ -993,15 +997,15 @@ the latter PJ is able to accept jobs from different users.
 	\centering
 		\includegraphics[width=0.35\textwidth]{figures/pstar_troy.pdf}
 	\caption{\textbf{TROY -- An Implementation of the P* Model:}  TROY provides 
-	a SAGA-based API for the management of PJs and PD. BigJob and BigData are 
-	the realization of the actual PJ and PD functionality. BJ-SAGA and BigData 
-	heavily rely on SAGA for implementation of the PJ.\upp
+	an API for managing PJs and PDs. BigJob and BigData are 
+	realizations of the actual PJ and PD functionality. BJ-SAGA and BD-SAGA 
+	rely on SAGA for implementation of the PJ/PD.\up\up
 	}
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
-TROY is an implementation of the P* model
-(section~\ref{sec:pilot-model}).  
+TROY is an implementation of the P* Model
+(\S\ref{sec:pilot-model}).  
 It consists of the TROY API, a runtime
 environment and a set of PJ implementation referred to as BigJobs. 
 \amnote{I disagree with the term runtime environment, but that is
@@ -1009,16 +1013,15 @@ probably not very important in the context of this paper.}
 
 As shown in Figure~\ref{fig:figures_pstar_troy}, the TROY
 implementation is based on SAGA, which is utilized for job management,
-data transfer and distributed coordination.
+data transfer and coordination.
 SAGA~\cite{saga_url,saga_gfd90} provides a simple, POSIX-style API to
-the most common grid functions (e.\,g.\ file, job management and
-distributed coordination) at a sufficiently high-level of abstraction
+the most common grid functions at a sufficiently high-level of abstraction
 so as to be independent of the diverse and dynamic grid environments.
-The TROY API itself was also designed to be similar to SAGA in
-appearance and philosophy: it re-uses many of the well defined (and
-standardized) semantics and syntax of the File, Job and Advert API.
-Further, we aimed for a minimally, complete API exposing the least
-details necessary.  
+The TROY API itself was designed to be similar to SAGA in
+appearance and philosophy: it re-uses many of the well defined and
+standardized semantics and syntax of the File, Job and Advert API.
+Further, we aimed for a minimal but complete API.% exposing the least
+% details necessary.  
 
 The TROY API renders the artifacts defined by the P* model, as defined
 in \S\ref{sec:pilot-model}. It defines two description classes that
@@ -1074,23 +1077,22 @@ future work, \S6).
 
 
 \begin{figure*}[t]
-	\begin{minipage}[b]{0.475\linewidth}
+  \up\up\up
+	\begin{minipage}[t]{0.475\linewidth}
 	\centering
 	\includegraphics[width=\textwidth]{figures/distributed_pilot_job.pdf}
 	\caption{\textbf{BigJob -- SAGA-based TROY Implementation:} BigJob is the implementation of the actual PJ functionality for TROY. Various BJ implementation for different grid and cloud backends exist.}
 	\label{fig:figures_distributed_pilot_job}
 	\end{minipage}
 	\hspace{0.035\linewidth}
-	\begin{minipage}[b]{0.475\linewidth}
+	\begin{minipage}[t]{0.475\linewidth}
 	\centering
    	\includegraphics[width=\textwidth]{figures/pilot-data-manager.pdf}
-    \caption{\textbf{BigData Architecture:} The BD Manager is exposing the
-      TROY Pilot-Data API. Application can create group of files and assign 
-      files to storage. The BD manager tracks files and physical locations in
-      the data catalog. The data scheduler optimizes the co-locations
-      of files and compute (in conjunction with BJ). The transfer
-      manager initiates and monitors the actual data
-      movements. \upp\upp}
+    \caption{\textbf{BigData Architecture:} The BD Manager exposes
+      TROY's PD API. Application can create group of files and assign 
+      files to storage. The BD manager tracks file locations in
+      the data catalog. The scheduler optimizes data-compute co-location.
+      The transfer manager initiates and monitors data movements. \up\up}
 	\label{fig:pilot-data-architecture}
 	\end{minipage}
 \end{figure*}
@@ -1126,8 +1128,7 @@ Service API is used for communication between manager and agent. The Advert
 Service (AS) exposes a shared data space that can be accessed by manager and
 agent, which use the AS to realize a push/pull communication pattern,
 i.\,e.\ the manager pushes a SU to the AS while the agents periodically pull for
-new SUs. Results and state updates are pushed back from the agent to the manager
-in the same way. 
+new SUs. Results and state updates are similarly pushed back from the agent to the manager.
 
 BJ-SAGA currently uses a simple binding mechanism: each WU (a task)
 submitted to the BigJob framework is mapped to one SU (a so called
@@ -1154,9 +1155,8 @@ scheduler is used for dispatching WUs to one of the BJs of the pool
 (late binding). By default a FIFO scheduler and an affinity-aware
 scheduler (i.\,e.\ a scheduler that considers relationships between
 work and data units managed by BigJob and BigData, see below) are
-provided. Various other backends support resource elasticity natively,
-e.\,g.\ DIANE and Condor, but can be combined into a BJ pool
-nevertheless.
+provided. Other backends (such as DIANE and Condor) natively support elasticity,
+but can nevertheless be combined into a BJ pool.
 
 % For this purpose, the dynamic BigJob provides an introspection API
 % that applications can utilize to query the manager for a list of
@@ -1342,7 +1342,7 @@ nevertheless.
 %   package to specify the \# of resources that suppose to be
 %   used. Thus, this limitation}
 
-
+\upp
 \subsection{BigData: Pilot-Data for TROY\upp\upp}
 \label{sec:bigdata}
 % \jhanote{theory goes upfront; implementation and architecture stays
@@ -1366,7 +1366,7 @@ into account the application requirements defined via affinities), and
 agent on each resource is used to manage the physical storage on a
 resource.  The BD scheduler particularly supports affinity-aware
 scheduling: both BigJob and BigData are tightly integrated to
-efficiently support the compute- and data-related aspects of dynamic
+efficiently support compute- and data-related aspects of dynamic
 execution (see also \S{IIIA}).
 
 
@@ -1559,9 +1559,10 @@ Unit of Scheduling &Sub-Job &Task &Job &Job\\
 % Dynamic Resources &no/yes &yes (AgentFactories)\\
 \hline
 \end{tabular}
-\caption{P* Elements and Pilot-Job Frameworks} \label{table:bigjob-saga-diane}
+\caption{P* Elements and Pilot-Job Frameworks\up} \label{table:bigjob-saga-diane}
 \end{table*}
 
+\upp
 \subsection{DIANE\upp\upp}
 
 % Coordination and Communication
@@ -1581,8 +1582,8 @@ run parallel applications (e.\,g.\ based on MPI). BJ-SAGA utilizes
 an agent that is able manage a set of local resources (e.\,g.\ a certain number
 of nodes and cores) and thus, is capable of running parallel applications. For
 communication between the RunMaster and worker agents point-to-point messaging
-based on CORBA (omniORB) is used. CORBA is also used for file staging, a feature
-currently not fully supported by BJ-SAGA.
+based on CORBA is used. CORBA is also used for file staging, which is
+not fully supported by BJ-SAGA, yet.
 
 % Binding 
 DIANE is primarily designed with respect to HTC environments (such as
@@ -1613,7 +1614,7 @@ implemented. Further, DIANE supports fault tolerance: basic error detection and
 propagation mechanisms are in place. Further, an automatic re-execution of WUs
 is possible.
 
-
+\upp
 \subsection{Condor Glide-In\upp\upp}
 
 Condor GlideIn pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
@@ -1642,7 +1643,7 @@ as grid authentication systems such as GIS. Communication traffic can be
 encrypted.
 
 
-
+\upp
 \subsection{SWIFT-Coaster\upp\upp}
 
 SWIFT~\cite{Wilde2011} is a scripting language designed for expressing abstract
@@ -1725,9 +1726,10 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \hline
 	
 \end{tabular}
-\caption{P* Characteristics and Pilot-Job Implementations}\label{table:pilot-job-comparison}
+\caption{P* Characteristics and Pilot-Job Implementations\up}\label{table:pilot-job-comparison}
 \end{table*}
 
+\upp
 \section{Experiments and Results\upp\upp}
 % In this section we discuss the TROY API. Further, (i) we show that the TROY API
 % can be used to marshal DIANE stand-alone as well as (ii) that the TROY API can
@@ -1780,7 +1782,7 @@ PJs and WUs using the TROY API.
 	on a 4 node cluster with a total of 16 cores. The time-to-completion for 
 	BJ-DIANE is higher than for BJ-SAGA mainly due to the higher startup 
 	time required and some light runtime overhead caused by the additional 
-	agents required on the resource.\upp \upp}
+	agents required on the resource.\up\up}
 	\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
@@ -1865,6 +1867,7 @@ multiple independent tasks
 
 %\note{work on scalability: Repex proposal?}
 
+\up
 \section*{Acknowledgements\upp\upp}
 \footnotesize{This work is funded by Cybertools project
   (http://cybertools .loni.org; PI Jha) NSF/LEQSF
@@ -1881,6 +1884,8 @@ multiple independent tasks
   Weissman (Minnesota) and Dan Katz (Chicago). This work has also been
   made possible thanks to computer resources provided by TeraGrid TRAC
   award TG-MCB090174 (Jha). We thank Ole Weidner for useful feedback.}
+
+\up
 \bibliographystyle{plain}
 \bibliography{pilotjob,saga.bib,saga-related}
 \end{document}
