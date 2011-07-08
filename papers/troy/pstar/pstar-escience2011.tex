@@ -366,7 +366,7 @@ they support the decoupling of workload submission from resource
 assignment -- it is often impossible to use them interoperably or even
 just to compare and contrast them.
 
-\emph{Terms and Usage:} It is important to emphasise that the terms
+\emph{Terms and Usage:} It is important to emphasize that the terms
 abstraction, model, framework, and implementation are overloaded and
 often used inconsistently; thus we establish their usage in this
 paper. The pilot \emph{ abstractions} generalizes the reoccuring
@@ -455,12 +455,22 @@ assigned at this moment)}
 \item \textbf{Work Unit (WU):} A work unit %is the workload that
   encapsulates a self-contained piece of work that is submitted to the
   PJ framework. \jhanote{Andre: Can we not use just ``pilot'' here,
-    i.e. WU gets submitted to the pilot/pilot-job?} The PJ framework
+    i.e. WU gets submitted to the pilot/pilot-job?} \alnote{IMHO, the WU is
+    submitted to the framework. The PJ framework groups WUs, binds and schedules   
+    them. A WU is not directly submitted to the pilot (the agent) - the binding 
+    and 
+    scheduling process is in between.
+  } The PJ framework
   in turn has flexibility to bind and schedule to WU, i.\,e.\ to
   determining when and how-many resources the WU will receive.
   \jhanote{the last sentence is unclear, i'm sorry} \jhanote{naively,
-    i would say either say WU binds to PJ or PJ has flexibilty to bind
-    / schedule WU to another entity..}
+    i would say either say WU binds to PJ or PJ has flexibility to bind
+    / schedule WU to another entity..} \alnote{This refers to the issue that
+    we assume at this point that a PJ framework manages multiple pilots (we 
+    removed the comment yesterday). This is probably not clear enough for a 
+    first-time reader. We 
+    don't talk about simple WU submission, rather it is assumed that a 
+    meta-scheduling between multiple pilots takes place. }
 
 
 \item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling
@@ -832,16 +842,16 @@ elements. By symmetry each element can be mapped to an element in the PJ model.
 
 \alnote{please check whether we all can agree on this mapping between PJ and PD or whether we should extend the PD model, e.g. by SU and the PJ model by a WU container?}
 In summary, a PD is a logical container that describes the properties of a group
-of DUs. A DU correspond to a WU in the PJ model. The PD object provides a
-higher level of semantics to the end-user for expressing relationships between
-DUs for which there is currently no equivalent in the PJ model. Users of a PJ
-must manage WU-level dependencies on application-level. Further, the PD model
-does not assume an internal scheduling unit. While there is some value in
-introducing a SU to PD, we currently assume that a PD object is
-the unit of internal scheduling. Having instantiated a PD, it can be assigned to
-a PS. A PS is a placeholder reserving a certain amount of storage, i.\,e.\ it
-corresponds to a pilot in the pilot-job model. By associating a PD to a PS the
-data is actually moved to the physical location associated with the PS.
+of DUs. A DU correspond to a WU in the PJ model. The PD object provides a higher
+level of semantics to the end-user for expressing relationships between DUs for
+which there is currently no equivalent in the PJ model. Users of a PJ must
+manage WU-level dependencies on application-level. Further, the PD model does
+not assume an internal scheduling unit. While there is some value in introducing
+a SU to PD, we assume that a PD is the unit of internal scheduling. Having
+instantiated a PD, it can be assigned to a PS. A PS is a placeholder reserving a
+certain amount of storage, i.\,e.\ it corresponds to a pilot in the pilot-job
+model. By associating a PD to a PS the data is actually moved to the physical
+location associated with the PS.
 
 %\alnote{insert Millau figure}
 
@@ -861,7 +871,7 @@ Binding describes the intelligent grouping and assignment of PDs and
 WUs to facilitate an optimal performance. The scheduling component particularly
 needs to consider affinities, i.\,e.\ user-defined relationships
 between PJs and/or PDs, e.\,g.\ data-data affinities exist if
-different DU must be present at the same compute element, data-compute
+different DUs must be present at the same compute element; data-compute
 affinities arise if data and compute must be co-located for a
 computation, but their current location is different. The decision of
 where to place the data and compute is made by the scheduler based on
@@ -945,9 +955,9 @@ considerations for P*.
 % \jhanote{I propose we remove ``framework'' ; if anything it should be
 %   Model?}
 
-To implement the P* model, there are additional considerations that must be
-taken, e.\,g.\ the exposed end-user abstraction and usage model etc. The API
-usage model defines how resources are allocated as well as how WUs are
+To implement the P* model, there are additional considerations are necessary,
+e.\,g.\ the definition of the exposed end-user abstraction and usage model etc.
+The API usage model defines how resources are allocated as well as how WUs are
 described, submitted and monitored. Further, non-functional properties such as
 fault tolerance and security must be considered. PJ implementations differ in
 their support for authorization, authentication and accounting. Commonly grid
@@ -1014,35 +1024,31 @@ semantics and syntax of the File, Job and Advert API. Further, we
 aimed for a minimally, complete API exposing the least details
 necessary.  
 
-\alnote{can we move this paragraph - 2 paragraphs below?}  That SAGA
-inspired approach to TROY's API design leverages on the design
-experiences of SAGA, and seems to appeal to at least our own pilot job
-user community.  Also, the chosen design allows to very easily
-exchange the actual PJ implementation, or to concurrently use multiple
-PJ implementations, on the layer below the TROY API, as will be shown
-below.  To some extent, the TROY API can be considered to be a
-prototype of a pilotjob-like API extension to SAGA (see future work,
-\S6).
+That SAGA inspired approach to TROY's API design leverages on the design
+experiences of SAGA, and seems to appeal our pilot-job user
+community. Also, the chosen design allows to very easily exchange the actual PJ
+implementation, or to concurrently use multiple PJ implementations, on the layer
+below the TROY API, as will be shown below. To some extent, the TROY API can be
+considered to be a prototype of a PJ-like API extension to SAGA (see future
+work, \S6).
 
+
+TROY consists of the API, the runtime
+environment and a PJ implementation referred to as BigJob. 
+The TROY API is based on the artifacts defined by the P* model
+defined in section~\ref{sec:pilot-model}. It defines two description
+classes that extend SAGA's Job Description: the PJ description
+and the WU description. A TROY manager class represents a pool of
+resources -- resources can be added by submitting a PJ
+description to the TROY manager, using the \texttt{add\_resource()}
+method. Subsequently, WUs can be submitted to the TROY manager. 
+Resources can be added and removed at any time (i.e. at runtime).  
 TROY supports different usage modes i) it provides stand-alone PJ
 functionalities, ii) it provides a unified API to various PJ
 implementations (e.\,g.\ Condor Glide-In and DIANE) and iii) enables
 the concurrent usage of multiple PJ implementations. Further, we show
 in section~\ref{sec:bigdata} how TROY is extended to support dynamic
-data and affinity-based scheduling.
-
-\alnote{TODO: refine relationship between TROY, PJ and BigJob}
-The TROY framework consists of the API, the runtime
-environment and a PJ implementations referred to as BigJob. 
-The TROY API is based on the artifacts defined by the P* model
-defined in section~\ref{sec:pilot-model}. It defines two description
-classes that extend SAGA's Job Description: the PJ description
-and the WU description. A TROY manager class represents a pool of
-resources -- resources can be added by submitting a pilot-job
-description to the TROY manager, using the \texttt{add\_resource()}
-method. Subsequently, WUs can be assigned to the TROY manager. 
-Resources can be added and removed at any time (i.e. at runtime).  
-The TROY API is available at~\cite{troy_api}.
+data and affinity-based scheduling. The TROY API is available at~\cite{troy_api}.
 
 
 % \jhanote{In this paper, we describe the design and implementation of a
@@ -1129,32 +1135,33 @@ not a topic in the section above.}
 BigJob (BJ)~\cite{bigjob_web} is a pilot-job implementation that supports a wide
 range of application types, and is usable over a broad range of infrastructures,
 i.\,e.\ it is general-purpose and extensible. BigJob is integrated into the TROY
-runtime environment via a thin adaptor layer (see
+runtime environment via a adaptor layer (see
 Figure~\ref{fig:figures_distributed_pilot_job}).
-BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is an implementation of TROY built
-on top of the SAGA API. \msnote{This confuses me.} BJ-SAGA utilizes a
-M/W coordination model: The BigJob Manager is responsible for the
-orchestration of pilots, for the binding of WUs and for the scheduling of SUs.
-For submission of the pilots, BigJob-SAGA relies on the SAGA Job API, and thus
-can be used in conjunction with different SAGA adaptors, e.\,g.\ the Globus,
-PBS, Amazon Web Service and other adaptors. Each pilot initializes a so called
-BigJob agent component. The agent is responsible for gathering local information
-and for executing tasks (SUs) on its local resource. The SAGA Advert Service API
-is used for communication between manager and agent. The Advert Service (AS)
-exposes a shared data space that can be accessed by manager and agent, which
-which use the AS to realize a push/pull communication pattern, i.\,e.\ the
-manager pushes a SU to the AS while the agents periodically pull for new SUs.
-Results and state updates are pushed back from the agent to the manager in the
-same way. Currently, a simple binding mechanism is used: each WU (a task)
+BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a PJ implementation for TROY
+built using the SAGA API. \msnote{This confuses me.} In addition to BJ-SAGA,
+various other BigJob implementations exist, e.\,g. there are specific BJ flavors
+for cloud resources such as Amazon EC2 and Microsoft Azure that are capable of
+managing set of VMs, as well as a BJ with a Condor Glide-In based backend.
+
+
+BJ-SAGA utilizes a M/W coordination model: The BigJob Manager is responsible for
+the orchestration of pilots, for the binding of WUs and for the scheduling of
+SUs. For submission of the pilots, BigJob-SAGA relies on the SAGA Job API, and
+thus can be used in conjunction with different SAGA adaptors, e.\,g.\ the
+Globus, PBS, Amazon Web Service and other adaptors. Each pilot initializes a so
+called BigJob agent component. The agent is responsible for gathering local
+information and for executing tasks (SUs) on its local resource. The SAGA Advert
+Service API is used for communication between manager and agent. The Advert
+Service (AS) exposes a shared data space that can be accessed by manager and
+agent, which which use the AS to realize a push/pull communication pattern,
+i.\,e.\ the manager pushes a SU to the AS while the agents periodically pull for
+new SUs. Results and state updates are pushed back from the agent to the manager
+in the same way. Currently, a simple binding mechanism is used: each WU (a task)
 submitted to the BigJob framework is mapped to one SU (a so called sub-job).
 Binding takes places at submission time (early binding). For scheduling, a
 simple FIFO scheduler is used (see also Table~\ref{table:pilot-job-comparison}).
 
-In addition to the BigJob-SAGA, various other BigJob
-implementations exist, e.\,g. there are specific BJ flavors for cloud
-resources such as Amazon EC2 and Microsoft Azure that are capable of
-managing set of VMs, as well as a BJ with a Condor Glide-In based
-backend. 
+
 % All core BJ are confined to a single resource and don't allow
 % neither elasticity nor late binding.
 
@@ -1585,17 +1592,15 @@ provides PJ functionality for job-style executions. DIANE utilizes a single
 hierarchy of worker agents as well as a PJ manager referred to as
 \texttt{RunMaster}. Further, there is ongoing work on a multi-master extension.
 For the spawning of PJs a separate script, the so-called submitter script, is
-required. For the access to the physical resources the GANGA 
-framework~\cite{DBLP:journals/corr/abs-0902-2685} can be used. GANGA
-provides a unified interface for job submissions to various resource types,
-e.\,g.\ EGI resources or TG resources via a SAGA backend. Once the worker agents
-are started they register themselves at the RunMaster. In contrast to BJ-SAGA, a
-worker agent generally manages only a single core and thus, by default is not
-able to run parallel applications (e.\,g.\ based on MPI). In contrast to
-BJ-SAGA, DIANE worker agents possess less local autonomy and are directly
-controlled by the master. BJ-SAGA delegates the management of the local
-resources from the BJ manager to the BJ agent. The agent collects information
-about local resources and manages the allocation of these resources locally. For
+required. For the access to the physical resources the GANGA
+framework~\cite{DBLP:journals/corr/abs-0902-2685} can be used. GANGA provides a
+unified interface for job submissions to various resource types, e.\,g.\ EGI
+resources or TG resources via a SAGA backend. Once the worker agents are started
+they register themselves at the RunMaster. In contrast to BJ-SAGA, a worker
+agent generally manages only a single core and thus, by default is not able to
+run parallel applications (e.\,g.\ based on MPI). BJ-SAGA utilizes
+an agent that is able manage a set of local resources (e.\,g.\ a certain number
+of nodes and cores) and thus, is capable of running parallel applications. For
 communication between the RunMaster and worker agents point-to-point messaging
 based on CORBA (omniORB) is used. CORBA is also used for file staging, a feature
 currently not fully supported by BJ-SAGA.
@@ -1622,36 +1627,37 @@ applications can implement a custom application-level scheduler.
 %Other impl. related issues: FT and security
 DIANE is as BJ-SAGA a single-user PJ, i.\,e.\ each PJ is executed with the
 privileges of the respective user. Also, only WUs of this respective user can be
-executed by DIANE. The implementation of GSI on TCP-level is possible, but
-currently not yet implemented. Further, DIANE supports fault tolerance: basic
-error detection and propagation mechanisms are in place. Further, an automatic
-re-execution of WUs is possible.
+executed by DIANE. DIANE supports various middleware security mechanisms
+(e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
+implementation of GSI on TCP-level is possible, but currently not yet
+implemented. Further, DIANE supports fault tolerance: basic error detection and
+propagation mechanisms are in place. Further, an automatic re-execution of WUs
+is possible.
 
 
 \subsection{Condor Glide-In\upp\upp}
 
-Condor GlideIn pioneered the Pilot-Job concept~\cite{condor-g}. The pilot-job is
-actually represented by a complete Condor pool that is started using the Globus
-GRAM service of a resource (this feature is referred to as Condor Glide-In);
-subsequently jobs can be submitted to this Glide-In pool using the standard
-Condor tools and APIs. Condor utilizes a master/worker coordination model. The
-PJ manager is referred to as the Condor Central Manager. The functionality of
-the Central Manager is provided by several daemons: the conder\_master that is
-generally responsible for managing all daemons on a machine, the
-conder\_collector which collects resource information, the conder\_negotiator
-that does the matchmaking and the condor\_schedd that is responsible for
-managing the binding and scheduling process. Condor generally does not
-differentiate between workload, i.\,e.\ WU, and schedulable entity, i.\,e.\ SU.
-Both entities are referred to as job. However, it supports late binding,
-i.\,e.\ resources a job is submitted to must generally not be available at
-submission time. The scheduler matches the capabilities required by a WU to the
-available resources. This process is referred to as matchmaking. Further, a
+Condor GlideIn pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
+actually a complete Condor pool that is started using the Globus service of a
+resource. Subsequently, jobs can be submitted to this Glide-In pool using the
+standard Condor tools and APIs. Condor utilizes a master/worker coordination
+model. The PJ manager is referred to as the Condor Central Manager. The
+functionality of the Central Manager is provided by several daemons: the
+conder\_master that is generally responsible for managing all daemons on a
+machine, the conder\_collector which collects resource information, the
+conder\_negotiator that does the matchmaking and the condor\_schedd that is
+responsible for managing the binding and scheduling process. Condor generally
+does not differentiate between workload, i.\,e.\ WU, and schedulable entity,
+i.\,e.\ SU. Both entities are referred to as job. However, it supports late
+binding, i.\,e.\ resources a job is submitted to must generally not be available
+at submission time. The scheduler matches the capabilities required by a WU to
+the available resources. This process is referred to as matchmaking. Further, a
 priority-based scheduler is used. For communication between the identified
 elements Condor utilizes point-to-point messaging using a binary protocol on top
 of TCP.
 
 Different fault tolerance mechanisms, such as automatic retries, are supported.
-Further, Condor supports different security schemes: for authentication it
+Further, Condor supports different security mechanisms: for authentication it
 integrates both with local account management systems (such as Kerberos) as well
 as grid authentication systems such as GIS. Communication traffic can be
 encrypted.
@@ -1660,23 +1666,24 @@ encrypted.
 
 \subsection{SWIFT-Coaster\upp\upp}
 
-SWIFT~\cite{Wilde2011} relies on its scripting language to describe abstract
+SWIFT~\cite{Wilde2011} is a scripting language designed for expressing abstract
 workflows and computations. The language provides among many things capabilities
 for executing external application as well as the implicit management of data
 flows between application tasks. For this purpose, SWIFT formalizes the way that
-applications can define data-dependencies. Using so called mappers dependencies
-can be easily extended to files or groups of files. The runtime environment
-handles the allocation of resources and the spawning of the compute tasks. Both
-data- and execution management capabilities are provided via abstract
-interfaces. SWIFT supports e.\,g.\ Globus, Condor and PBS resources. The pool of
-resources that is used for an application is statically defined in a
+applications can define data-dependencies. Using so called mappers, these
+dependencies can be easily extended to files or groups of files. The runtime
+environment handles the allocation of resources and the spawning of the compute
+tasks. Both data- and execution management capabilities are provided via
+abstract interfaces. SWIFT supports e.\,g.\ Globus, Condor and PBS resources.
+The pool of resources that is used for an application is statically defined in a
 configuration file. While this configuration file can refer to highly dynamic
 resources (such as OSG resources), there is no possibility to manage this
 resource pool programmatically. By default a 1:1 mapping for WU and jobs is
-used. However, SWIFT supports the clustering of WUs into a large SU as
-well as PJs for which the term Coaster~\cite{coasters} is used. Coaster
-relies on a master/worker coordination model; communication is implemented using
-GSI-secured TCP sockets.
+used. However, SWIFT supports the grouping SUs as well as PJs. For the PJ
+functionality the Coaster~\cite{coasters} framework is used. Coaster relies on a
+master/worker coordination model; communication is implemented using GSI-secured
+TCP sockets. SWIFT and Coaster supports various scheduling mechanisms, e.\,g.\ 
+a FIFO and a load-aware scheduler.
 
 
 
@@ -1710,7 +1717,7 @@ GSI-secured TCP sockets.
 	\textbf{SWIFT Coaster} \\ \hline
 End User Environment &API &API and Master/Worker Framework &CLI Tools &Swift script\\ \hline
 
-Coordination &Master/Worker (push) &Master/Worker (pull/push) &Master/Worker &Master/Worker \\ \hline
+Coordination &Master/Worker  &Master/Worker  &Master/Worker &Master/Worker \\ \hline
 	
 Communication &Advert Service &CORBA &TCP &GSI-enabled TCP \\ \hline
 
@@ -1722,13 +1729,13 @@ WU Scheduling &FIFO, custom &FIFO, custom &Matchmaking, priority-based scheduler
 &Load-aware scheduler, WU grouping\\
 \hline
 
-Security &Middleware dependent (GSI, Advert DB Login) &Middleware dependent (GSI) &Multiple (GSI, 
+Security &Multiple (GSI, Advert DB Login) &Multiple (GSI) &Multiple (GSI, 
 Kerberos) &GSI\\ \hline
 
-Resource Abstraction &SAGA &Ganga/SAGA &Globus &Resource Provider API/Globus CoG 
+Resource Abstraction &SAGA &GANGA/SAGA &Globus &Resource Provider API/Globus CoG 
 Kit \\ 
 \hline
-Agent Submission &API &Ganga Submission Script &Condor CLI 
+Agent Submission &API &GANGA Submission Script &Condor CLI 
 &Resource Provider API\\
 % \hline
 % Application Interfaces &Big-Job/Sub-job Management &Big-Job/Sub-job 
@@ -1752,7 +1759,6 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 
 To validate the abstractions we have presented we conducted a series of experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing application.
 To manage the workflow we use the DARE~\cite{dare-tg11} framework which builds upon TROY.  On the LONI~\cite{loni} cluster Oliver we utilize a total of 16 cores distributed across four nodes.
-
 We make use of two BigJob implementations: BJ-SAGA and BJ-DIANE. We define eight WUs for BFAST. We run the experiments in three different setups: (i) BJ-SAGA only, (ii) BJ-DIANE only and (iii) both BJ-SAGA and BJ-DIANE. In case (iii) on each backend four WUs are
 executed.
 
@@ -1769,9 +1775,9 @@ backend.
   is similar, semantics of implementation and execution remain
   different, and that TROY backend handles them?}\alnote{well said}
 
-Each BFAST instance requires two cores; a total of eight WUs
+Each BFAST application-kernel requires two cores; a total of eight WUs
 allocating two cores each is specified and assigned to TROY. Each WU
-is associated with a set of input files. After assignment of the WU to
+is associated with a set of input files. After submission of the WU to
 the PJ manager, the TROY runtime takes care of binding and scheduling
 the WUs to the pilots. The application can monitor the state of the
 PJs and WUs using the TROY API.
