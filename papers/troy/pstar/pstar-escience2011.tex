@@ -1743,7 +1743,6 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \end{table*}
 
 \section{Experiments and Results\upp\upp}
-\msnote{Shouldn't this be called experiments and results?}
 % In this section we discuss the TROY API. Further, (i) we show that the TROY API
 % can be used to marshal DIANE stand-alone as well as (ii) that the TROY API can
 % be used stand alone with both BigJob and DIANE concurrently. 
@@ -1751,26 +1750,18 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \jhanote{MS: The experiment section needs tighter and more focussed
   writing in general}
 
-In these experiments we execute BFAST~\cite{bfast2009} - a genome
-sequencing application. To manage the workflow, we use the
-DARE~\cite{dare-tg11} framework, which in turn uses TROY.  We utilize
-the LONI~\cite{loni}  resource Oliver and a total of 16 cores
-distributed across four nodes.
+To validate the abstractions we have presented we conducted a series of experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing application.
+To manage the workflow we use the DARE~\cite{dare-tg11} framework which builds upon TROY.  On the LONI~\cite{loni} cluster Oliver we utilize a total of 16 cores distributed across four nodes.
 
-In these experiments, we use two BigJob implementations BJ-SAGA and
-BJ-DIANE. We define eight WUs that run BFAST. The WUs are run on three
-different backends: (i) BJ-SAGA only, (ii) BJ-DIANE only and (iii)
-both BJ-SAGA and BJ-DIANE. In case (iii) on each backend four WUs are
+We make use of two BigJob implementations: BJ-SAGA and BJ-DIANE. We define eight WUs for BFAST. We run the experiments in three different setups: (i) BJ-SAGA only, (ii) BJ-DIANE only and (iii) both BJ-SAGA and BJ-DIANE. In case (iii) on each backend four WUs are
 executed.
 
-For each scenarios respectively two PJ descriptions are prepared. Depending on
-the specified backend the respective BJ implementation is used for dispatching
-the actual pilots. While BJ-SAGA utilizes one BJ agent on the resource, BJ-DIANE
-requires the spawning of one worker agent per WU that must be executed in
-parallel. \jhanote{What is executed in parallel to what?} \smnote{In the
-experiments we run all the BFAST WUs (8) concurrently. To run these 8 WUs
-concurrently with BJ-DIANE implementation we have to start 8 different DIANE
-agents since a DIANE agent can run only one task at a time}The TROY API marshals
+%Depending on the specified backend the respective BJ implementation is used for dispatching
+%the actual pilots.
+While BJ-SAGA utilizes one BJ agent on the resource, BJ-DIANE
+currently requires the spawning of one worker agent per WU that must be executed in
+parallel.
+The TROY API marshals
 these differences, i.\,e.\ while the API remains the same for both backends,
 the different semantics in the PJ implementation are handled by the TROY 
 backend.
@@ -1810,8 +1801,8 @@ PJs and WUs using the TROY API.
 
 
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the result of the
-experiment. The time-to-completion for BJ-DIANE is about 207\,sec
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
+experiments. The time-to-completion for BJ-DIANE is about 207\,sec
 longer than for BJ-SAGA. The main contributor for this increased
 runtime is the deployment time required for DIANE. In a multi-node
 setup multiple work agents must be used (8 in this case).  For each
@@ -1819,7 +1810,7 @@ worker agent DIANE must be downloaded, installed and started
 separately. In total this requires about 178\,sec. Further, each DIANE
 worker agent is queued as a separate job at the local resource manager
 -- this contributes the the higher deviation in the measured
-runtimes. While BJ-SAGA requires a pre-run installation on each site,
+runtimes. Because BJ-SAGA requires a pre-run installation on each site,
 it only shows a startup time of 28\,sec. Additionally, we also
 observed a runtime overhead of about 17\,sec for the BJ-DIANE
 scenario. This overhead is likely caused by the additional agents
@@ -1831,7 +1822,7 @@ required.
 % installed separately for every agent/node requested.
 
 Finally scenario iii) demonstrates that two BJ implementations
-(BJ-SAGA and BJ-DIANE) can be utilized concurrently using the TROY
+can be utilized concurrently using the TROY
 API. The performance in this scenario is slightly better than in the
 DIANE only case, mainly due to the fact that only four DIANE worker
 agents need to be started. Also, only half of the WUs are executed on
