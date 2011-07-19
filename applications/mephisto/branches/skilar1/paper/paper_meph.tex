@@ -14,7 +14,7 @@
 \usepackage{subfigure}
 \usepackage{color}
 \usepackage{xspace}
-
+\usepackage{multicol}
 %\documentclass{rspublic}
 
 \usepackage{ifpdf}
@@ -87,19 +87,264 @@
 %to be delveoped into continuous integration with buildbot and later developed further into a SAGA deployment tool. 
 %Present paper details the working of mephisto that could be generalized for automated building. 
 
+%Failed attempt to write introduction
+%SAGA is an API package for building grid applications, tools and framework. Similar to some of the traditional API packages, SAGA library set 
+%depends on various other packages. It is very important for these dependency packages to be installed accurately on any working environments.
+%Some of the applications using SAGA requires SAGA installations to be completed in multiple environments which are sometimes geographically separated 
+%or can be virtual. Manual installations on every resource available can be very tedious. Testing SAGA for bug detection and fixing
+%requires installations to be automated and notifications sent to developers which would speed up the bug fixing process and release. SAGA team
+%employed an automated test bed tool named Buildbot which triggers compatibility test with each revision made to the SAGA library and
+%also send notifications after each build. Thus the testing phase was partially taken care of since it still needed all the dependency
+%packages to be installed in the system running the test. To be able to continuously integrate testing and efficiently deploy SAGA on any machine 
+%geographically apart contributes best to the efficiently manage SAGA and its evolution. This led to writing a simple perl script which when integrated with 
+%buildbot would initiate installations and building in succession. This perl script in a combination with Buildbot  can later be developed to be 
+%used as a software deployment tool on not only testing environments but also production environments i.e., resources using SAGA. The script was
+%called 'mephisto.pl' and section 2 of this paper will give more insight into its functionalities. The paper will proceed to try to explain the existing 
+%methods of software deployment and ways of integrating the developed script in section 3.1. Section 3.2 would envision possible modifications that can be done to 
+%the existing script to make it versatile and then end with a conclusion. 
+\begin{multicols}{2}
 \section*{\normalsize \textbf{Abstract}}
 \textbf{Developing, testing and debugging of software packages before making them available for the production environment should be well 
-tested on various testing platforms.  Packages to be released in future, in this case an update made for the previous version, again are
+tested on various testing platforms. Packages to be released in future, in this case an update made for the previous version, again are
 made bug-free and versatile to the changing environments and dependent packages. Above noted steps involved in software deployment of 
-any software package often can be complex and is made short through automated build systems, and continuous integration frameworks. 
+any software package can often be complex and is made short through automated build systems, and continuous integration frameworks. 
 The best case however is to have a software deployment tool that automates every single step of deployment - developing, bug tracking and distribution. 
 Present paper deals with a simple perl script (mephisto.pl) that automates build process of SAGA (Simple API for Grid Applications), 
-a tool that can be generalized for any developing software package. The paper will also go through the working model of mephisto and 
-discuss its future work to be able to develop it into a continuous integration tool and later serve as a software deployment tool for SAGA. 
+a tool that can be generalized for any developing software package. The paper would also go through the working model of mephisto and 
+discuss its future work of featuring as a continuous integration tool and later serve as a software deployment tool for SAGA. 
 The paper will also try to explore some of the existing software deployment tools such as NMI-GRIDS testing, NMI build and test lab, 
 and automated building tools such as Buildbot to try to explain its standing with respect to the script being developed. 
 }
+\section*{\normalsize 1. Introduction}
+Developing software packages requires immediate bug fixes and tools for faster deployment. Like many other software packages, SAGA 
+was required to be installed on different platforms to carry out version compatibility tests of its dependency packages, bug fixes and running applications . 
+In the beginning manual installations was employed to get a working copy of SAGA on different machines. This was time consuming 
+since installations required its dependencies to be taken care of, which deferred with every working platform. Also any version update made to SAGA 
+or its dependencies should be tested on different platform but installations of the newer versions were necessary prior testing. Tracking and reporting 
+bugs from testing for software betterment was important before deploying bug free SAGA version on production environment or for applications
+to be carried out. This cyclic process required repeated installations and manually installing them every time would slower the development
+cycle. Also extra care was to be taken to make sure the development community were on the same page with respect to different bugs suspected,
+their logs, change already made and tested. This required a central administrator for co-ordinating all the work, which lacked
+a distributed framework essential for a smooth and exponential development process. Hence the problem was to develop a tool that automated 
+installations, bug tracking and maintain a log record for the developers which would in turn facilitate parallel independent research work into
+developing SAGA. This is practiced in many software development process for faster development and to be compatible with the dependency 
+packages updates on all platform alike. Thus 'mephisto.pl', a perl script was developed to fill in for automated installations.  
+A simple command line option would install SAGA and all its dependencies irrespective of the underlying computer resource used. 
+This was later hoped to be integrated with Buildbot, an automated software testing tool, which would then automate both development and testing. 
+The paper will proceed to explain more about mephisto and its working in Section 2 followed by some of the existing deployment tools and possible 
+alterations to mephisto in Section 3. 
+\section*{\normalsize 2. Working of mephisto}
+Mephisto is a tool that is aimed at  automating the building process of SAGA, installing all its dependencies specified for SAGA and SAGA adaptors too.  
+The version number of all the packages and the type of packages can be specified by the user at the command line. The description of all the command 
+line options available are described in the next section.\\*
+Example of the command line statement: 
+\begin{verbatim} perl mephisto install --target-dir=/home/user/saga --tmp-dir=/home/user/tmp-saga \end{verbatim} 
+This will be followed by few random examples of mephisto usage and screenshots taken during the
+process. Refer to the last section for common errors found and suggestions to counter them\\*
+\subsection*{\normalsize 2.1 Download mephisto.pl and other information}
+A copy of mephisto.pl can be obtained from \emph{http://faust.cct.lsu.edu/trac/mephisto}. 
+Other details and documentation can be found on the same website. 
+An installed version of perl would be necessary on your system to run mephisto.pl 
+\subsection*{\normalsize 2.2 Command line options}
+This section discusses all the various options available at 
+users disclosure. By default if no option is specified, mephisto 
+pulls up the packages listed on the repositories listed at
+\begin{verbatim} 
+http://static.saga.cct.lsu.edu/
+mephisto/repository/latest/INDEX. 
+\end{verbatim}
+Expanded version of the Command to run mephisto
+\begin{verbatim} 
+perl mephisto install/test 
+--target-dir=/path/to/folder 
+--tmp-dir=/path/to/folder 
+--with-saga-version= 
+--with-boost-version= 
+--with-globus-version= 
+--repository= --with-adaptors= 
+--with-python-version= 
+--with-postgresql-version=
+\end{verbatim} 
+\emph{install} \\*
+ This can be used to install a working copy of SAGA and all its 
+ dependencies specified. \\*
+\emph{test} \\*
+ This option not only installs SAGA but also runs the command 
+ 'make check' to check the installation. It creates a log file displaying 
+ the test results. \\*
+\emph{target-dir} \\*
+ This option is used to specify the path you need to install SAGA and all 
+ packages libraries. By default, it creates a folder at tmp/meph\_inst.\\*
+\emph{tmp-dir} \\*
+ This option is used to specify the path for a temporary folder to 
+ download all the packages and create log files. If not mentioned, it 
+ creates a folder at /tmp/meph\_tmp\\*
+\emph{repository} \\*
+ Can be used to choose different repositories to install SAGA from. 
+ Two repositories available as of now are 'latest' (default) and svn\_trunk. 
+ Recommended svn\_trunk for the most recent SAGA version. \\*
+\emph{with-saga-version}\\*
+ Choose saga versions available.\\*
+\emph{with-boost-version}\\*
+Choose boost versions available $>$=1.40.0\\*
+\emph{with-globus-version} \\*
+ Choose globus version available $>$=4.0. This option would automatically 
+ invoke installations of X509, globus adaptors too. \\*
+\emph{with-adaptors}\\*
+ Mention any adaptors to install that would invoke globus installations along with 
+ saga-adaptors too. \\*
+ \emph{with-python-version}\\*
+ Choose from the list of python versions available. Must be 
+ $>$=2.6.2 \\*
+ \emph{with-postgresql-version}\\*
+ Choose from postgresql versions available. Should be $>$=8.4.1
+\subsection*{\normalsize 2.3 Repositories for Mephisto} 
+Mephisto uses two different repositories for SAGA packages which have been
+pre-defined by the SAGA group, namely: 
+\begin{verbatim}
+(i) http://static.saga.cct.lsu.edu/
+mephisto/repository/latest/
+\end{verbatim}
+\begin{verbatim}
+(ii) http://static.saga.cct.lsu.edu/mephisto/
+repository/svn_trunk
+\end{verbatim}
+When the user doesn't define any repository, the default 
+repository taken by mephisto will be \emph {http://static.saga.cct.lsu.edu/
+mephisto/repository/latest/}. \\*
+The list of packages pre-defined for (i) are: \\*
+SAGA= 1.5.2; \\*
+Boost= 1.40.0; \\*
+Python=2.6.2; \\*
+Post-gre-sql=8.4 .1 ; \\*
+Sqlite=3.6.18;   \\*
+SAGA-PYTHON; \\*
+SAGA-ADAPTORS-X509; \\*
+SAGA-ADAPTORS-SSH.  \\*\\*
+The list of packages pre-defined for (ii) are: \\*
+SAGA= 1.5.4 (updated as of now); \\*
+Boost= 1.40.0; \\*
+Python=2.6.2; \\*
+Post-gre-sql=8.4 .1 ; \\*
+Sqlite=3.6.18;   \\*
+SAGA-PYTHON. \\*\\*
+The suggested repository to be utilized by the user will be \emph{svn\_trunk} 
+that is updated with the latest version of SAGA as and when
+new version is released with bug fixes. Example to switch between 
+repositories follows in the next section. 
+\subsection*{\normalsize 2.4 Example Command line options}
+\emph{NOTE: All examples here are tackled one at a time. They can be used interchangeably.
+Choice has to be made between 'install' and 'test'}
+\subsection*{\normalsize 2.4.1 Basic Default command}
+\begin{verbatim}
+perl mephisto install 
+\end{verbatim}
+This would install SAGA. All the default options will be loaded as no
+option was chosen here. As of now the default options are as foretold 
+from the repository given below. As no directory was mentioned all the 
+packages will be stored in a temporary folder created by the script.
+%\begin{verbatim}
+http://static.saga.cct.lsu.edu/mephisto/repository/latest/
+%\end{verbatim}
+\subsection*{\normalsize 2.4.2 Command with paths to folders}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+\end{verbatim}
+This will install all packages in the folder specified. 
+\subsection*{\normalsize 2.4.3 Install SAGA from svn\_trunk repository}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--repository=svn_trunk
+\end{verbatim}
+Choose snv\_trunk repository to install SAGA. This will have the most
+recent and tested working SAGA version. 
+\subsection*{\normalsize 2.4.4 Install SAGA will all saga, globus, boost versions specified}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-saga-version=1.5.3 
+--with-boost-version=1.44.0 
+--with-globus-version=5.0.2
+(or)
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-saga=1.5.3 
+--with-boost=1.44 
+--with-globus=5.0.2
+\end{verbatim}
+To install SAGA with different boost, SAGA and globus versions.
+Given here are two ways of defining the versions. Using all the three 
+is not compulsory and any combination can be used. Any version 
+not mentioned will infer default options. 
+\subsection*{\normalsize 2.4.5 Globus installations}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-globus-version=5.0.2
+\end{verbatim}
+Specifying any globus installations will also invoke globus adaptors
+installations which are required and necessary with globus.
+\subsection*{\normalsize 2.4.6 Install SAGA with Globus adaptors}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-adaptors=globus
+\end{verbatim}
+To install globus adaptors. Automatically invokes globus installations which 
+is required for adaptors. Also automates x509 adaptors installations too.
+This is similar to what we have in the previous example but different 
+command line options have been given for easy usage.  
+\subsection*{\normalsize 2.4.7 How to install a SAGA Core Pre-Release with a specific Boost version (for developers)}
+\begin{verbatim}
+perl mephisto install 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-saga=1.5.3-pre
+\end{verbatim}
+For developers, this would install the pre-release version from the given 
+link shared in the email with boost and all other dependencies creating log 
+files necessary for debugging. 
+\subsection*{\normalsize 2.4.8 Install with Python versions}
+\begin{verbatim}
+perl mephisto test 
+--target-dir=/path/to/any/dest/ 
+--tmp-dir=/path/to/temp/folder 
+--with-python-version=2.7.1
+\end{verbatim}
+Install with any python version $>$=2.6.2. Please note that you may 
+be thrown an error and break from the build for versions incompatibility.
+\subsection*{\normalsize 2.4.9 Install with postgresql version}
+\begin{verbatim}
+perl mephisto test 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-postgresql-version=8.4.2
+\end{verbatim}
+Similar to what was described earlier for python versions right above.
+\subsection*{\normalsize 2.4.10 Install and proceed to TEST the installations}
+\begin{verbatim}
+perl mephisto test 
+--target-dir=/path/to/any/destination/ 
+--tmp-dir=/path/to/temp/folder 
+--with-saga-version=1.5.3 
+--with-boost-version=1.44.0 
+--with-globus-version=5.0.2
+\end{verbatim}
+Choose 'test' option to first install SAGA and its dependencies and then have it
+continuously perform 'make check' operation and create a log file in the end.
+\section*{\normalsize 3. Present methods and possible developments}
+buildbot, NMI scripts like -> mephisto
+\section*{\normalsize 4. Conclusion}
 
+\end{multicols}
 %\section*{\normalsize Introduction}
 %% talk about prior installations/solutions & disadv; reason for writing this script; structure and command line tools; 
 %% some advantages; adjustments can be made; conclusions.
