@@ -218,6 +218,17 @@ between concurrently running softwares.
 \subsection{Design}
 We design the concrete structure of a coupled multi-component 
 simulation framework as presented in Fig.~\ref{Fig:Multicomponent_Framework}.
+Looking at the default operation flow, the updated source code is copied to
+the remote computing resource and the individual source code is linked with
+the coupling interface during the compilation. These distinct yet coupled
+executables run concurrently by the help of a runtime environment. The solution
+is referenced by a third-party and the decision is made to accept/decline
+the numerical solution (either through the visualization or 
+the experimental measurement). The acceptable solution is archived 
+in the local server, or the new computation is performed using different
+parameter/modified source codes. In case the computation and 
+the experimential measurement are coupled in sequence, 
+compilation and job submission processes become simpler.
 
 
 %%%%% FIGURE %%%%%
@@ -235,25 +246,59 @@ coupled simulation procedure.}
 %%%%% FIGURE %%%%%
 
 
-, based on the investigation on the overall procedure of coupled 
-multi-component simulations and required services.
+Data management service provides the data sharing among distributed computing
+facilities, updating the source codes between local and remote machines, and
+archiving final solutions. These functions can be implemented by running 
+a couple of secure FTP commands;
+Installing a versioning service such as 
+CVS (Concurrent Versioning System:~\cite{CVS}), 
+SVN (Apache Subversion:~\cite{SVN}), or 
+GIT (The fast version control system:~\cite{GIT})
+on a central repository server is another way; Using a data Grid service
+such as PetaShare~\cite{PetaShare} can be helpful if sharing large-scale
+data on a distributed environment is of particular interest.
 
+Coupling system provides the data exchange between distinct application codes
+and helps the compiling procedure. The coupling interface can be supported
+either in the form of a library which opens a file-based channel between
+distributed executables, or as a separate binary which binds all MPI
+communicators under a single MPI runtime environment. In either case,
+the interface function calls should be deployed in coupled source codes.
+Compilation system handles all compilations including individual source
+codes and the coupler. It wraps up compiling options on users' makefiles
+to link the coupling library with the executable and 
+to apply optimal options for specific systems. A single wrap-up script
+can provide these capabilities up to some extent; Some compilation systems
+such as the Simulation Factory~\cite{SimFactory} can provide more generality
+independent of different system architectures and configurations.
 
-- Library form (lighter), none-resource usage
-- Distribution, data sharing between local development system and production system + make system for compiling in different architectures
-- Co-scheduling and load balancing
+A runtime environment is designed to co-schedule and load-balance between
+coupled distinct tasks. The above issue is easily resolved by allocating
+a pilot-job in which coupled subtasks are effectively scheduled. A number of
+pilot-job implementations such as a Condor Glidein Job~\cite{Condor},
+a BigJob~\cite{saga_royalsoc}, or a Pilot Factory~\cite{PilotFactory},
+are present. Also, some supercomputing centers provide the capability of
+concurrently starting multiple jobs in the basic level.
 
 % -------------------------------------------------------------------------
 \section{Implementation}
 \label{sec:implementation}
 
-\subsection{Interface between Coupled Tasks}
+\subsection{Data Management and Archiving}
 
-\subsection{Compilation System}
+\subsection{Coupling System}
+- Library form (lighter), none-resource usage
 
 \subsection{Runtime Environment}
+We apply the previously-developed BigJob runtime environment for coupled
+multi-physics applications~\cite{CCGrid_Hybrid}. The load balancing function
+is turned off since it requires relevant changes (time checking function and
+checkpointing capability) in the application code.
+We directly submit a job to the remote batch queue system in case the
+sequential feedback process between a computation and an experiment is
+of interest.
 
-\subsection{Data Management and Archiving}
+\subsection{Workflow Engine}
 
 % -------------------------------------------------------------------------
 \section{Numerical Experiments}
