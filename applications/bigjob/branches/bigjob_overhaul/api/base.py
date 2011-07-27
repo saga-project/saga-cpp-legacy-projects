@@ -1,166 +1,164 @@
-""" Bigjob API
+""" 
 
-This Module contains the API of the Bigjob framework.
-All Bigjob implementation must be derived from this API.
+This Module contains the frontend of the TROY framework.
 
 """
 
+#
+# Supported list of PilotJobs. Static for now.
+#
+class TROY_TYPE():
+    UNKNOWN = 0
+    BIGJOB = 1
+    DIANE = 2
 
-# Dict to pass Resource descriptions values around. 
-#Resource = {
-#        'name' : None,
-#        'type' : None,
-#        'url' : None,
-#        'queue' : None,
-#        'project' : None,
-#        'working_directory' : None,
-#        'walltime': 0,
-#        'userproxy' : None,
-#        'agent_executable' : None
-#        }
-
-# Dict to pass Resource capabilities around.
-#Capabilities = {
-#        'number_of_cores' : 0,
-#        'number_of_nodes' : 0,
-#        'time_to_live' : 0,
-#        'local_diskspace_available' : 0,
-#        'shared_filesystem' : False
-#        }
-
-# Dict to pass UoW requirements around.
-#Requirements = {
-#        'number_of_cores' : 0,
-#        'minimum_runtime' : 0,
-#        }
-
-# Dict to describe action to be passed to UoW
-#Action = {
-#        'application_kernel' : None,
-#        'input' : None,
-#        'output' : None
-#        }
 
 #
-# Bigjob class
+# TROY PilotJobService class
 #
-class Bigjob(object):
-    """ This class represents the Bigjob. """
+class PilotJobService():
+    """ This class represents the TROY PilotJobService. """
 
-    def __init__(self, resource_url, job_desc):
-        """ Create a Bigjob object.
-
-            Keyword arguments:
-            resource_url -- URL pointing to resource
-            job_desc -- SAGA job description
-        """
-        # self.__uuid = getuuid()
-        pass
-
-    def add_resource(self, resource_url, job_desc):
-        """ Add a (list of) resource(s) to the Bigjob
+    def __init__(self, troy_type=None, rm=None, job_desc=None, context=None):
+        """ Create a PilotJobService object.
 
             Keyword arguments:
-            resource_url -- URL pointing to resource
+            troy_type -- Pilot type
+            rm -- URL pointing to resource management backend
             job_desc -- SAGA job description
+            context -- security context
+
+            TODO: name/label?
+
+            Return value:
+            If resource_url and job_desc are supplied, return a job service.
+            Otherwise return None
+
         """
         pass
 
-    def get_resource(self):
-        """ Return the resource(s) that is/are under this BigJob.  """
-        pass
 
-    def remove_resource(self, resource):
-        """ Remove the resource(s) from the Bigjob
+    def add_resource(self, troy_type, rm, job_desc, context=None):
+        """ Add a (list of) resource(s) to the PilotJobService
 
             Keyword arguments:
+            troy_type -- Backend type
+            rm -- URL pointing to resource management backend
+            job_desc -- SAGA job description
+            context -- a security context
+        """
+        pass
 
-            resource -- a (list of) resource description(s)
+
+    def list_resources(self):
+        """ Return the resources that are managed by this PilotJobService.  
+
+            Keyword arguments:
+            None
+
+            Return value:
+            A list of resources of type job_service
+        """
+        pass
+
+    def remove_resource(self, rm):
+        """ Remove the resource from the Pilot Job Service
+
+            Keyword arguments:
+            rm -- a resource description
         """
         pass
          
-    def get_capabilities(self, resource=None):
-        """ Return the capabilities that this Bigjob provides.
+    def get_capabilities(self, rm=None):
+        """ Return the capabilities that this Pilot Job Service or resource provides.
        
             Keyword arguments:
 
-            resource -- The (optional) resource to act upon.
+            rm -- The (optional) resource to act upon.
         """
         pass
     
-    def get_uows(self):        
-        """ Return the list of UoWs that are assigned to this Bigjob. """
+    def list_workunits(self, rm=None):        
+        """ Return the list of WUs that are assigned to the specified Pilot Job. """
         pass
 
-    def resize_resource(self, resource):        
-        """ (re-)Calibrate the resouce in the Bigjob to the given 'size'.
+    def resize_resource(self, rm):        
+        """ (re-)Calibrate the Pilot Job to the given 'size'.
         
             Keyword arguments:
-            resource -- The resource to act upon.
+            rm -- The resource to act upon.
         """
         pass
 
-    def assign_uow(self, uow):
-        """ Assign a UoW to this Bigjob.
+    def submit(self, wu):
+        """ Submit a WU to this Pilot Job Service.
 
             Keyword argument:
-            uow -- The Unit of Work from the application
+            wu -- The Work Unit from the application
 
         """
         pass
 
-    def cancel(self, resource=None):        
-        """ Cancel the a resource in the BigJob.
+    def cancel(self, rm=None):        
+        """ Cancel the a resource in the Pilot Job Service.
 
             Keyword arguments:
-            resource -- The optional resource(s) to act upon.
+            rm -- The optional resource(s) to act upon.
         """
         pass
+
+#
+# Work Unit Description (for now just a saga job description)
+# 
+class WorkUnit_Description():
+    pass
 
 
 #
-# Unit of Work class
+# Work Unit (WU) class
 # 
-class UoW(object):
-    """ This class represents the Unit of Work concept in the Bigjob framework. """
+class WorkUnit():
+    """ This class represents the Work Unit concept in the P* model. """
 
-    def __init__(self, action, requirements=None):
-        """ Create a new Unit of Work.
+    def __init__(self, pjs, wu, requirements=None):
+        """ Create a new WorkUnit
 
             Keyword arguments:
-            action -- the description of the action for this UoW
-            requirements -- the (optional) application requirements for this UoW
+            pjs -- the troy pilotservice this corresponds to
+            wu -- the description of this WU
+            requirements -- the (optional) application requirements for this WU
 
         """
+        pass
 
-        # self.__uuid = getuuid()
-        # self.state = New
-        # self.action = action.application_kernel
-        # self.input = action.input
-        # self.output = action.output
-        # self.requirements = requirements
+    def run(self, rm):
+        """ run the WU """
+        pass
+
+    def get_description(self):        
+        """ Return the description of this WU. """
         pass
 
     def get_requirements(self):        
-        """ Return the requirements that this UoW has. """
+        """ Return the requirements that this WU has. """
         pass
 
     def get_state(self):        
-        """ Return the state of the UoW. """
+        """ Return the state of the WU. """
         pass
 
     def get_input(self):        
-        """ Return the input(s) of this UoW. """
+        """ Return the input(s) of this WU. (convenience function) """
         pass
 
     def get_output(self):        
-        """ Return the output(s) of this UoW. """
+        """ Return the output(s) of this WU. (convenience function) """
         pass
 
-    def get_action(self):        
-        """ Return the action of this UoW. """
+    def get_error(self):        
+        """ Return the error(s) of this WU. """
         pass
 
     def cancel(self):
-        """ Cancel the Task. """
+        """ Cancel the WU. """
         pass
