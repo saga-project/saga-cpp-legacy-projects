@@ -275,7 +275,7 @@ if __name__ == "__main__":
         bfast_localalign_dir.append(config.get(resource, 'bfast_localalign_dir'))
         bfast_postprocess_dir.append(config.get(resource, 'bfast_postprocess_dir'))                
     
-    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, dare_uuid))
+    LOG_FILENAME = os.path.join(cwd, 'darefiles/logfiles/', '%s_%s_log_bfast.txt'%(job_id, dare_uuid))
 
     logger = logging.getLogger('dare_bfast_manyjob')
     hdlr = logging.FileHandler(LOG_FILENAME)
@@ -349,7 +349,7 @@ if __name__ == "__main__":
             # transfer the read file count file, might not work should debug it first
             output = saga.filesystem.file("%s/%s/out.%s.txt"%(ft_name[0],bfast_raw_reads_dir[i]
                                          , dare_uuid))
-            output.copy("file://localhost//%s/dare_files/"%(cwd))        
+            output.copy("file://localhost//%s/darefiles/"%(cwd))        
         
             f = open(r'%s/logfiles/out.%s.txt'%(cwd, dare_uuid))
             num_reads=f.readline()

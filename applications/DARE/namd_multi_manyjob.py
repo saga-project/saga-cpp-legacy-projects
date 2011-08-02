@@ -236,7 +236,7 @@ if __name__ == "__main__":
         app_exe.append(config.get(resource, 'app_exe'))       
         
     
-    LOG_FILENAME = os.path.join(cwd, 'dare_files/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
+    LOG_FILENAME = os.path.join(cwd, 'darefiles/logfiles/', '%s_%s_log_bfast.txt'%(job_id, bfast_uuid))
 
     logger = logging.getLogger('dare_bfast_manyjob')
     hdlr = logging.FileHandler(LOG_FILENAME)
