@@ -21,7 +21,7 @@ class PilotDescription():
 #
 # Pilot (for now just a saga job description)
 #
-class PilotDescription():
+class Pilot():
     pass
 
 #
