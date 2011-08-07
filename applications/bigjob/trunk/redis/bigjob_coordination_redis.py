@@ -12,13 +12,14 @@ import pickle
 import pdb
 
 
-sys.path.append(os.path.dirname( __file__ ) + "/../ext/redis-2.4.9/redis")
-import redis
+sys.path.insert(0, (os.path.dirname(os.path.abspath( __file__) ) + "/../ext/redis-2.4.9/"))
+from redis import *
 
 if sys.version_info < (2, 5):
-    sys.path.append(os.path.dirname( __file__ ) + "/../ext/uuid-1.30/")
+    sys.path.append(os.path.dirname( os.path.abspath( __file__) ) + "/../ext/uuid-1.30/")
     sys.stderr.write("Warning: Using unsupported Python version\n")
     
+logging.debug(str(sys.path))
 import uuid
 
 REDIS_SERVER="localhost"
@@ -35,7 +36,7 @@ class bigjob_coordination_redis(object):
         '''
         Constructor
         '''
-        self.redis = redis.Redis(host=REDIS_SERVER, port=REDIS_SERVER_PORT, db=0)
+        self.redis = Redis(host=REDIS_SERVER, port=REDIS_SERVER_PORT, db=0)
         self.redis_pubsub = self.redis.pubsub() # redis pubsub client       
         self.resource_lock = threading.RLock()
         self.pipe = self.redis.pipeline()

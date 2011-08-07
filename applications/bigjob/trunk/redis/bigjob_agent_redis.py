@@ -63,7 +63,7 @@ class bigjob_agent:
         # conf_file = os.path.dirname(args[0]) + "/" + CONFIG_FILE
         conf_file = os.path.dirname(os.path.abspath( __file__ )) + "/" + CONFIG_FILE
         config = ConfigParser.ConfigParser()
-        print ("read configfile: " + conf_file)
+        logging.debug ("read configfile: " + conf_file)
         config.read(conf_file)
         default_dict = config.defaults()        
         self.CPR = default_dict["cpr"]
@@ -246,7 +246,8 @@ class bigjob_agent:
 
 
                 if(machinefile==None):
-                    print "Not enough resources to run: " + job_dict.get_url().get_string() 
+                    print "Not enough resources to run: " + job_url
+                    self.coordination.queue_job(self.base_url, job_url)
                     return # job cannot be run at the moment
 
                 # start application process
