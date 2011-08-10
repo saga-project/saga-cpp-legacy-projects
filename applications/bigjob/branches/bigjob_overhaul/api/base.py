@@ -5,7 +5,7 @@ This Module contains the frontend of the TROY framework.
 """
 
 #
-# Supported list of PilotJobs. Static for now.
+# Supported list of Pilots. Static for now.
 #
 class TROY_TYPE():
     UNKNOWN = 0
@@ -22,15 +22,29 @@ class PilotDescription():
 # Pilot (for now just a saga job description)
 #
 class Pilot():
-    pass
+    def cancel_pilot(self, rm=None):        
+        """ Cancel the a resource in the Pilot Service.
+
+            Keyword arguments:
+            rm -- The optional resource(s) to act upon.
+        """
+        pass
+
+    def resize_pilot(self, pilot):        
+        """ (re-)Calibrate the Pilot to the given 'size'.
+        
+            Keyword arguments:
+            rm -- The resource to act upon.
+        """
+        pass
 
 #
-# TROY PilotService class
+# TROY Pilot Service class
 #
-class PilotJobService():
+class PilotService():
     """ This class represents the TROY PilotService. """
 
-    def __init__(self)
+    def __init__(self):
         """ Create a PilotService object.
 
             Keyword arguments:
@@ -69,23 +83,6 @@ class PilotJobService():
         """
         pass
 
-    def resize_pilot(self, rm):        
-        """ (re-)Calibrate the Pilot to the given 'size'.
-        
-            Keyword arguments:
-            rm -- The resource to act upon.
-        """
-        pass
-
-
-    def cancel_pilot(self, rm=None):        
-        """ Cancel the a resource in the Pilot Service.
-
-            Keyword arguments:
-            rm -- The optional resource(s) to act upon.
-        """
-        pass
-
     def get_capabilities(self, rm=None):
         """ Return the capabilities that this Pilot Job Service or resource provides.
        
@@ -100,10 +97,10 @@ class PilotJobService():
 #
 # WorkService class
 # 
-class WorkService():
+class WorkUnitService():
     """ This class manages WorkUnit's """
 
-    def __init__(self)
+    def __init__(self):
         """ Create a Work Service object.
 
             Keyword arguments:
@@ -116,7 +113,7 @@ class WorkService():
         pass
 
     def submit(self, wu):
-        """ Submit a WU to this Pilot Job Service.
+        """ Submit a WU to this Pilot Service.
 
             Keyword argument:
             wu -- The Work Unit from the application
