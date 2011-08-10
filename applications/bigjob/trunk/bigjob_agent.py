@@ -203,10 +203,11 @@ class bigjob_agent:
                         
                 environment = os.environ
                 if (job_dir.attribute_exists("Environment") == True):
-                    for i in job_dir.get_vector_attribute("Environment"):
-                        env = i.split("=")
-                        environment[env[0]]=env[1]                        
-                 
+                   envi = "" 
+                   for i in job_dir.get_vector_attribute("Environment"):
+                        envi_1 = "export " + i +"; " 
+                        envi = envi + envi_1 
+                    
                 executable = job_dir.get_attribute("Executable")
                 
                 workingdirectory = os.getcwd() 
@@ -230,7 +231,7 @@ class bigjob_agent:
                 print "stdout: " + output_file + " stderr: " + error_file + " env: " + str(environment)
                 stdout = open(output_file, "w")
                 stderr = open(error_file, "w")
-                command = executable + " " + arguments
+                command = envi + executable + " " + arguments    
                 
                 # special setup for MPI NAMD jobs
                 machinefile = self.allocate_nodes(job_dir)
