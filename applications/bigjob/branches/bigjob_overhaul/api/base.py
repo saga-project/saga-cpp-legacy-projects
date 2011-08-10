@@ -1,48 +1,60 @@
 """ 
 
-This Module contains the frontend of the TROY framework.
+This Module contains the API for the TROY framework.
 
 """
 
 #
-# Supported list of Pilots. Static for now.
+# TROY Resource Description
 #
-class TROY_TYPE():
-    UNKNOWN = 0
-    BIGJOB = 1
-    DIANE = 2
+class ResourceDescription():
+    """ TROY Resource Description. Describes a resource that is available to the user. """
 
-#
-# Pilot Description (for now just a saga job description)
-#
-class PilotDescription():
+    # Properties:
+    resource_manager_url = None
+    scheduling_constraints = None # Performance, Cost, Priority, etc.
+
     pass
 
+
 #
-# Pilot (for now just a saga job description)
+# TROY Resource
 #
-class Pilot():
-    def cancel_pilot(self, rm=None):        
-        """ Cancel the a resource in the Pilot Service.
+class Resource():
+    """ TROY Resource. A by the TROY framework instantiated handle. """
+
+    def __init__(self):
+        """ Create a Resource object.
 
             Keyword arguments:
-            rm -- The optional resource(s) to act upon.
+            None
+
+            Return value:
+            Handle to a Resource
+
         """
         pass
 
-    def resize_pilot(self, pilot):        
-        """ (re-)Calibrate the Pilot to the given 'size'.
+    def cancel(self):        
+        """ Remove the resource from the Pilot Service.
+
+            Keyword arguments:
+        """
+        pass
+
+    def resize_resource(self ):        
+        """ (re-)Calibrate the Resource to the given 'size'.
         
             Keyword arguments:
-            rm -- The resource to act upon.
         """
         pass
 
+
 #
-# TROY Pilot Service class
+# TROY Pilot Service
 #
 class PilotService():
-    """ This class represents the TROY PilotService. """
+    """ TROY PilotService. Dealing with the Pilot Resources. Is used by the WorkUnitService. """
 
     def __init__(self):
         """ Create a PilotService object.
@@ -56,55 +68,42 @@ class PilotService():
         """
         pass
 
-
-    def create_pilot(self, type, rm, pilot_desc, context=None):
-        """ Add a (list of) resource(s) to the PilotService
+    def add_resource(self, resource_desc, context=None):
+        """ Add a resource to the PilotService
 
             Keyword arguments:
-            type -- TROY Backend type
-            rm -- URL pointing to resource management backend
-            pilot_desc -- Pilot Description
-            context -- a security context
+            resource_desc -- Resource Description
+            context -- Security context
 
             Return value:
-            A Pilot handle
+            A Resource handle
         """
         pass
 
-
     def list(self):
-        """ Return the pilots that are managed by this PilotService.  
+        """ Return the Resources that are managed by this PilotService.  
 
             Keyword arguments:
             None
 
             Return value:
-            A list of pilots
+            A list of Resources
         """
         pass
 
-    def get_capabilities(self, rm=None):
-        """ Return the capabilities that this Pilot Job Service or resource provides.
-       
-            Keyword arguments:
-
-            rm -- The (optional) resource to act upon.
-        """
-        pass
-    
 
 
 #
-# WorkService class
+# TROY WorkUnitService
 # 
 class WorkUnitService():
-    """ This class manages WorkUnit's """
+    """ The WorkUnitService is the application's access to the Pilot resources. """
 
-    def __init__(self):
+    def __init__(self, pilot_service):
         """ Create a Work Service object.
 
             Keyword arguments:
-            None
+            pilot_service -- The Pilot Service to which this Work Unit Service will connect
 
             Return value:
             Handle to Work Service
@@ -118,34 +117,46 @@ class WorkUnitService():
             Keyword argument:
             wu -- The Work Unit from the application
 
-            Return: WorkUnit
+            Return:
+            WorkUnit object
              
 
         """
         pass
 
-    def get_workunits(self):        
-        """ Return the list of WUs that are assigned to the specified Pilot Job. """
+    def list(self):        
+        """ Return the list of WUs that are assigned to the specified Pilot Job.
+
+            Keyword argument:
+
+            Return:
+            List of WorkUnit objects
+
+        """
         pass
 
+
 #
-# Work Unit Description (for now just a saga job description)
+# TROY Work Unit Description
 # 
 class WorkUnitDescription():
+    """ The Work Unit Description is a job/task/call description. """
     pass
 
 
+
 #
-# Work Unit (WU) class
+# TROY Work Unit (WU)
 # 
 class WorkUnit():
-    """ This class represents the Work Unit concept in the P* model. """
+    """ The WorkUnit is the instantiated task that is now handled by the TROY framework. """
 
-    def __init__(self, wu):
+    def __init__(self):
         """ Create a new WorkUnit
 
             Keyword arguments:
-            wu -- the description of this WU
+
+            Return value: Handle to WorkUnit
 
         """
         pass
@@ -156,6 +167,10 @@ class WorkUnit():
 
     def get_state(self):        
         """ Return the state of the WU. """
+        pass
+
+    def get_state_detail(self):        
+        """ Return the detailed (application specific) state of the WU. """
         pass
 
     def cancel(self):
