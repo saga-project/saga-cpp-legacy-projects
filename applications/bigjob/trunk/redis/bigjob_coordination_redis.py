@@ -32,11 +32,12 @@ class bigjob_coordination_redis(object):
     Implementation based on Redis (http://redis.io)
     '''
 
-    def __init__(self, redis_server=REDIS_SERVER, redis_server_port=REDIS_SERVER_PORT):
+    def __init__(self, server=REDIS_SERVER, server_port=REDIS_SERVER_PORT, server_connect_url=""):
         '''
         Constructor
         '''
-        self.redis = Redis(host=REDIS_SERVER, port=REDIS_SERVER_PORT, db=0)
+        self.address = "redis://%s:%i"%(server, server_port)
+        self.redis = Redis(host=server, port=server_port, db=0)
         self.redis_pubsub = self.redis.pubsub() # redis pubsub client       
         self.resource_lock = threading.RLock()
         self.pipe = self.redis.pipeline()
@@ -46,11 +47,13 @@ class bigjob_coordination_redis(object):
             logging.error("Please start Redis server!")
             raise e
         
+    def get_address(self):
+        return ("redis://")
     #####################################################################################
     # Pilot-Job State
-    def set_pilot_state(self, pilot_url, new_state, stopped="false"):     
+    def set_pilot_state(self, pilot_url, new_state, stopped=False):     
         logging.debug("update state of pilot job to: " + str(new_state))
-        self.redis.hmset(pilot_url, {"state":str(new_state), "stopped":stopped})
+        self.redis.hmset(pilot_url, {"state":str(new_state), "stopped":str(stopped)})
         
     def get_pilot_state(self, pilot_url):
         state = self.redis.hgetall(pilot_url)

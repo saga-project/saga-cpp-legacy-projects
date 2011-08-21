@@ -31,6 +31,7 @@ logging.basicConfig(level=logging.DEBUG)
 # import API
 import api.base
 import bigjob_coordination_redis
+import bigjob_coordination_zmq
 
 if sys.version_info < (2, 5):
     sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
@@ -54,7 +55,11 @@ def get_uuid():
 APPLICATION_NAME="bigjob"
 REDIS_SERVER="localhost"
 REDIS_SERVER_PORT=6379
-CLEANUP=False
+CLEANUP=True
+
+# Support for multiple coordination backends (ZMQ and Redis)
+BACKEND = "ZMQ" #{REDIS, ZMQ}
+#BACKEND = "ZMQ" #{REDIS, ZMQ}
 
 #for legacy purposes and support for old BJ API
 pilot_url_dict={} # stores a mapping of pilot_url to bigjob
@@ -74,7 +79,10 @@ class bigjob(api.base.bigjob):
         print "init advert service session at host: " + database_host
         self.uuid = get_uuid()
         
-        self.coordination = bigjob_coordination_redis.bigjob_coordination_redis()        
+        if BACKEND == "ZMQ":
+            self.coordination = bigjob_coordination_zmq.bigjob_coordination_zmq()
+        else:
+            self.coordination = bigjob_coordination_redis.bigjob_coordination_redis()        
         
         self.app_url = APPLICATION_NAME +":" + str(self.uuid) 
         
@@ -83,7 +91,7 @@ class bigjob(api.base.bigjob):
         self.state=saga.job.Unknown
         self.pilot_url=""
         self.job = None
-        print "created advert directory for application: " + self.app_url
+        print "initialized BigJob: " + self.app_url
     
     def start_pilot_job(self, 
                  lrms_url, 
@@ -109,7 +117,7 @@ class bigjob(api.base.bigjob):
         pilot_url_dict[self.pilot_url]=self
         
         logging.debug("create pilot job entry on Redis server: " + self.pilot_url)
-        self.coordination.set_pilot_state(self.pilot_url, str(saga.job.Unknown), "false")
+        self.coordination.set_pilot_state(self.pilot_url, str(saga.job.Unknown), False)
         
         #self.redis.hmset(self.pilot_url, {"state":str(saga.job.Unknown), "stopped":"false"}) 
         
@@ -131,7 +139,7 @@ class bigjob(api.base.bigjob):
         jd.number_of_processes = str(number_nodes)
         jd.processes_per_host=str(processes_per_node)
         jd.spmd_variation = "single"
-        jd.arguments = [bigjob_agent_executable, self.database_host, self.pilot_url]
+        jd.arguments = [bigjob_agent_executable, self.coordination.get_address(), self.pilot_url]
         jd.executable = "/bin/bash"
         #jd.executable = bigjob_agent_executable
         if queue != None:
@@ -241,7 +249,7 @@ class bigjob(api.base.bigjob):
         """ mark in advert directory of pilot-job as stopped """
         try:
             print "stop pilot job: " + self.pilot_url
-            self.coordination.set_pilot_state(str(saga.job.Done), "true")
+            self.coordination.set_pilot_state(str(saga.job.Done), True)
             self.cancel()
             self.job=None
         except:

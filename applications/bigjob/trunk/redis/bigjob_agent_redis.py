@@ -10,10 +10,13 @@ import pdb
 import traceback
 import signal
 import ConfigParser
+import types
 import logging
 logging.basicConfig(level=logging.DEBUG)
 
 import bigjob_coordination_redis
+import bigjob_coordination_zmq
+
 sys.path.append(os.path.dirname(os.path.abspath(__file__)) + "/../ext/threadpool-1.2.7/src/")
 
 logging.debug(str(sys.path))
@@ -40,6 +43,7 @@ APPLICATION_NAME="bigjob"
 REDIS_SERVER="localhost"
 REDIS_SERVER_PORT=6379
 
+BACKEND = "ZMQ" #{REDIS, ZMQ}
 
 class bigjob_agent:
     
@@ -83,7 +87,13 @@ class bigjob_agent:
         # Redis initialization
         self.base_url = args[2]
         print "Initialize C&C subsystem to pilot-url: " + self.base_url
-        self.coordination = bigjob_coordination_redis.bigjob_coordination_redis()
+        #self.coordination = bigjob_coordination_redis.bigjob_coordination_redis()
+
+        if BACKEND=="ZMQ":
+            self.coordination = bigjob_coordination_zmq.bigjob_coordination_zmq(server_connect_url=self.database_host)
+        else:
+            self.coordination = bigjob_coordination_redis.bigjob_coordination_redis(server_connect_url=self.database_host)      
+
 
         # update state of pilot job to running
         self.coordination.set_pilot_state(self.base_url, str(saga.job.Running), "false")
@@ -198,7 +208,11 @@ class bigjob_agent:
                 
                 arguments = ""
                 if (job_dict.has_key("Arguments") == True):
-                    arguments_list = eval(job_dict["Arguments"])                    
+                    arguments_raw = job_dict['Arguments'];
+                    if type(arguments_raw) == types.ListType:
+                        arguments_list = arguments_raw
+                    else:
+                        arguments_list = eval(job_dict["Arguments"])                    
                     for i in arguments_list:
                         arguments = arguments + " " + i
                         
@@ -216,11 +230,11 @@ class bigjob_agent:
                 
                 output="stdout"
                 if (job_dict.has_key("Output") == True):
-                        output = job_dict["Output"]
+                    output = job_dict["Output"]
                         
                 error="stderr"
                 if (job_dict.has_key("Error") == True):
-                       error = job_dict["Error"]
+                    error = job_dict["Error"]
                
                 # append job to job list
                 self.jobs.append(job_url)
@@ -381,9 +395,10 @@ class bigjob_agent:
     def dequeue_new_jobs(self):	    
         """Subscribe to new jobs from Redis. """                
         while True and self.is_stopped(self.base_url)==False:     
-            #logging.debug("Dequeue sub-job from: " + self.base_url)       
+            logging.debug("Dequeue sub-job from: " + self.base_url)       
             job_url=self.coordination.dequeue_job(self.base_url)
             if job_url==None:
+                time.sleep(3)
                 continue
             if job_url=="STOP":
                 break
@@ -498,7 +513,11 @@ class bigjob_agent:
                     break
     
     def is_stopped(self, base_url):
-        state = self.coordination.get_pilot_state(base_url)
+        state = None
+        try:
+            state = self.coordination.get_pilot_state(base_url)
+        except:
+            pass
         if state==None or state["stopped"]==True:
             return True
         else:
