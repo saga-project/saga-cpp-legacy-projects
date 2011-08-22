@@ -224,8 +224,6 @@ class bigjob_coordination_zmq(object):
     
     #####################################################################################
     # Private functions    
-    
-    
     def __server_handler(self, messageList):
         """ server for managing job / pilot job states via ZMQ """
         msg = pickle.loads(messageList[0])

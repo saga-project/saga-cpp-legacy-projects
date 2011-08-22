@@ -395,6 +395,9 @@ class bigjob_agent:
     def dequeue_new_jobs(self):	    
         """Subscribe to new jobs from Redis. """                
         while True and self.is_stopped(self.base_url)==False:     
+            if len(self.freenodes)==0:
+                time.sleep(3)
+                continue
             logging.debug("Dequeue sub-job from: " + self.base_url)       
             job_url=self.coordination.dequeue_job(self.base_url)
             if job_url==None:
