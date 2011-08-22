@@ -51,21 +51,40 @@ class bigjob_coordination_zmq(object):
         # set up ZMQ client / server communication
         self.context = zmq.Context()
        
-                       
+        self.server = False               
         if server_connect_url==None: # role = Server
+            self.server = True
             # start eventloop
             self.startup_condition = threading.Condition()
             self.eventloop_thread=threading.Thread(target=self.__server, args=(server, server_port))
             self.eventloop_thread.start()
+            
+            # socket for sending notification
+            self.push_socket = self.context.socket(zmq.PUSH)
+            push_port = self.push_socket.bind_to_random_port("tcp://*")    
+            self.push_address = "tcp://"+server+":"+str(push_port)                
+            
+            
+            # wait for server thread to complete startup
             self.startup_condition.acquire()
-            self.startup_condition.wait()                       
+            self.startup_condition.wait()
+            self.startup_condition.release()                       
         else: # role client
-            self.address = server_connect_url
+            urls = server_connect_url.split(",")
+            self.address = urls[0]
+            self.push_address = urls[1]           
+            self.server = False
             #self.address = "tcp://"+server+":"+str(server_port)
         
+        # connect to REP server
         self.client_socket = self.context.socket(zmq.REQ)
         self.client_socket.connect(self.address)
-        logging.debug("Connect to service at: " + self.address)
+        
+        # connect to PUSH server
+        self.pull_socket = self.context.socket(zmq.PULL)
+        self.pull_socket.connect(self.push_address)
+        
+        logging.debug("Connected to REP socket at: " + self.address + " and PUSH socket at: " + self.push_address)
                 
         # state managed by server
         self.pilot_states = {}
@@ -80,7 +99,7 @@ class bigjob_coordination_zmq(object):
         
     def get_address(self):
         """ return handle to c&c subsystems """
-        return self.address
+        return self.address+"," +self.push_address
         
     #####################################################################################
     # Pilot-Job State
@@ -174,15 +193,30 @@ class bigjob_coordination_zmq(object):
         msg = message("queue_job", "", job_url)
         self.client_socket.send_pyobj(msg, zmq.NOBLOCK)
         self.client_socket.recv_pyobj()
-        self.resource_lock.release()                
+        self.resource_lock.release()  
+        
+        # notify server
+        if self.server == True:
+            msg2 = message("notification", "", job_url)
+            self.push_socket.send_pyobj(msg2)             
+             
         
     def dequeue_job(self, pilot_url):
         """ dequeue to new job  of a certain pilot """
-        logging.debug("dequeue_job " + str(self.resource_lock))
-        self.resource_lock.acquire()
-        msg = message ("dequeue_job", pilot_url, "")
-        self.client_socket.send_pyobj(msg, zmq.NOBLOCK)
-        result = self.client_socket.recv_pyobj()
+        result = None
+        while result==None:
+            # read object from queue        
+            logging.debug("dequeue_job " + str(self.resource_lock))
+            self.resource_lock.acquire()
+            msg = message ("dequeue_job", pilot_url, "")
+            self.client_socket.send_pyobj(msg, zmq.NOBLOCK)
+            result = self.client_socket.recv_pyobj()
+            
+            if result == None:
+                logging.debug("wait for notification")
+                self.pull_socket.recv_pyobj()
+                logging.debug("received notification")
+        
         self.resource_lock.release()
         return result.value
     
