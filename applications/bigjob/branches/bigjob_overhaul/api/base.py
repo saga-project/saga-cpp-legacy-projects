@@ -12,6 +12,7 @@ class PILOTJOB_TYPE():
     UNKNOWN = 0
     BIGJOB = 1
     DIANE = 2
+    CONDOR = 3
 
 #
 # TROY PilotJob Description
@@ -21,10 +22,42 @@ class PilotJobDescription():
         
         A PilotJobDescription is a based on the SAGA Job Description.
 
-        The PilotJobDescription is used by the application to specify what kind of 
-        PilotJobs it requires.
+        The PilotJobDescription is used by the application to specify 
+        what kind of PilotJobs it requires.
     """
-    pass
+    def __init__(self):
+        # Pilot / Agent description
+        self.executable = None 
+        self.arguments = None 
+        self.cleanup = None 
+        self.environment = None 
+        self.interactive = None
+        self.job_contact = None
+        self.job_project = None
+        self.job_start_time = None
+        self.working_directory = None
+
+        # I/O
+        self.input = None
+        self.error = None
+        self.output = None
+        self.file_transfer = None
+
+        # Concurrency
+        self.number_of_processes = None # Total number of processes to start
+        self.processes_per_host = None # Nr of processes per host
+        self.threads_per_process = None # Nr of threads to start per process
+        self.total_cpu_count = None # total number of cpus requested
+        self.spmd_variation = None # Type and startup mechanism
+
+        # Requirements
+  	    self.candidate_hosts = None 
+        self.cpu_architecture = None
+        self.total_physical_memory = None
+        self.operating_system_type = None
+        self.total_cpu_time = None
+        self.wall_time_limit = None
+        self.queue = None
 
 
 #
@@ -33,11 +66,14 @@ class PilotJobDescription():
 class PilotJob():
     """ TROY PilotJob. 
     
-        This is the object that is returned by the PilotJobService when a new PilotJob is created
-        based on a PilotJobDescription.
+        This is the object that is returned by the PilotJobService when a 
+        new PilotJob is created based on a PilotJobDescription.
 
-        The PilotJob object can be used by the application to keep track of PilotJobs that are active.
-        A PilotJob has state, can be queried, can be cancelled and be re-initialized.
+        The PilotJob object can be used by the application to keep track 
+        of PilotJobs that are active.
+        
+        A PilotJob has state, can be queried, can be cancelled and be 
+        re-initialized.
     """
 
     def __init__(self):
@@ -86,8 +122,11 @@ class PilotJob():
 class PilotJobService():
     """ TROY PilotJobService.
     
-        The PilotJobService is responsible for creating and managing the PilotJobs.
-        It is the application's interface to the Pilot-Manager in the P* Model.
+        The PilotJobService is responsible for creating and managing 
+        the PilotJobs.
+
+        It is the application's interface to the Pilot-Manager in the 
+        P* Model.
         
     """
 
@@ -135,16 +174,22 @@ class PilotJobService():
 class WorkUnitService():
     """ TROY WorkUnitService.
     
-        The WorkUnitService is the application's interface to submit WorkUnits to the Pilot-Manager in the P* Model.
-        It can provide the application with a list of WorkUnits that are managed by the Pilot-Manager.
-        The WorkUnitService is linked to a PilotJobService for the actual exection of the WorkUnits.
+        The WorkUnitService is the application's interface to submit 
+        WorkUnits to the Pilot-Manager in the P* Model.
+
+        It can provide the application with a list of WorkUnits that are 
+        managed by the Pilot-Manager.
+
+        The WorkUnitService is linked to a PilotJobService for the actual 
+        exection of the WorkUnits.
     """
 
     def __init__(self, pilot_service):
         """ Create a Work Service object.
 
             Keyword arguments:
-            pilotjob_service -- The PilotJob Service to which this Work Unit Service will connect
+            pilotjob_service -- The PilotJob Service to which this 
+                                Work Unit Service will connect
 
             Return value:
             Handle to Work Service
@@ -179,10 +224,47 @@ class WorkUnitService():
 class WorkUnitDescription():
     """ TROY WorkUnitDescription.
     
-        The WorkUnitDescription is a job/task/call description based on SAGA Job Description. 
-        It offers the application to describe a WorkUnit in an abstract way that is dealt with by the Pilot-Manager.
+        The WorkUnitDescription is a job/task/call description based on 
+        SAGA Job Description. 
+        
+        It offers the application to describe a WorkUnit in an abstract 
+        way that is dealt with by the Pilot-Manager.
     """
-    pass
+
+    def __init__(self):
+        # Action description
+        self.executable = None # The "action" to execute
+        self.arguments = None # Arguments to the "action"
+        self.cleanup = None # 
+        self.environment = None # "environment" settings for the "action"
+        self.interactive = None
+        self.job_contact = None
+        self.job_project = None
+        self.job_start_time = None
+        self.working_directory = None
+
+        # I/O
+        self.input = None
+        self.error = None
+        self.output = None
+        self.file_transfer = None
+
+        # Concurrency
+        self.number_of_processes = None # Total number of processes to start
+        self.processes_per_host = None # Nr of processes per host
+        self.threads_per_process = None # Nr of threads to start per process
+        self.total_cpu_count = None # Total number of cpus requested
+        self.spmd_variation = None # Type and startup mechanism
+
+        # Requirements
+  	    self.candidate_hosts = None 
+        self.cpu_architecture = None
+        self.total_physical_memory = None
+        self.operating_system_type = None
+        self.total_cpu_time = None
+        self.wall_time_limit = None
+        self.queue = None
+
 
 
 
@@ -192,10 +274,12 @@ class WorkUnitDescription():
 class WorkUnit():
     """ TROY WorkUnit.
     
-        This is the object that is returned by the WorkUnitService when a new WorkUnit is created
-        based on a WorkUnitDescription.
+        This is the object that is returned by the WorkUnitService when a 
+        new WorkUnit is created based on a WorkUnitDescription.
 
-        The WorkUnit object can be used by the application to keep track of WorkUnits that are active.
+        The WorkUnit object can be used by the application to keep track 
+        of WorkUnits that are active.
+
         A WorkUnit has state, can be queried and can be cancelled.
     """
 
