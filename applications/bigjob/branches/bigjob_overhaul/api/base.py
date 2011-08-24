@@ -94,6 +94,7 @@ class PilotJob(object):
         """ Remove the PilotJob from the PilotJob Service.
 
             Keyword arguments:
+            None
         """
         pass
 
@@ -124,6 +125,7 @@ class PilotJobService(object):
     # Class members
     __slots__ = (
         'id',           # Reference to this PJS
+        'state',       # Status of the PJS
         'pilot_jobs'    # List of PJs under this PJS
     )
 
@@ -149,6 +151,21 @@ class PilotJobService(object):
         """
         pass
 
+    def cancel(self):
+        """ Cancel the PilotJobService.
+
+            This also cancels all the PilotJobs that were under control of this PJS.
+
+            Keyword arguments:
+            None
+
+            Return value:
+            Result of operation
+        """
+        pass
+
+
+
 
 
 #
@@ -170,6 +187,7 @@ class WorkUnitService(object):
     # Class members
     __slots__ = (
         'id',                # Reference to this WUS
+        'state',             # Status of the WUS
         'pilotjob_services', # PilotJobService(s) that are connected
         'work_units'         # List of WUs that have been submitted to this WUS
     )
@@ -194,6 +212,20 @@ class WorkUnitService(object):
             WorkUnit object
         """
         pass
+
+    def cancel(self):
+        """ Cancel the WUS.
+            
+            Cancelling the WUS also cancels all the WUs submitted to it.
+
+            Keyword arguments:
+            None
+
+            Return:
+            Result
+        """
+        pass
+
 
 
 #
