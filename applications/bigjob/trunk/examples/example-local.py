@@ -14,7 +14,7 @@ import sys
 
 
 # configurationg
-advert_host = "localhost"
+advert_host = "advert.cct.lsu.edu"
 
 if os.getenv("BIGJOB_HOME")!=None:
     BIGJOB_HOME= os.getenv("BIGJOB_HOME") 

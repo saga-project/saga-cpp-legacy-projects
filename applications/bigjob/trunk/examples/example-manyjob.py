@@ -31,7 +31,7 @@ from bigjob import *
 import many_job
 
     
-NUMBER_JOBS=128
+NUMBER_JOBS=8
 
 def has_finished(state):
         state = state.lower()
@@ -47,13 +47,11 @@ if __name__ == "__main__":
         starttime=time.time()
 
         # submit via mj abstraction
-        resource_dictionary = {"resource_url" : "fork://localhost/", "number_nodes" : "32", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
-                               "working_directory": (os.getcwd() + "/agent"), "walltime":3600 }
+        #resource_dictionary = {"resource_url" : "fork://localhost/", "number_nodes" : "32", "processes_per_node":"1", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":3600 }
         resource_list = []
-        #resource_list.append( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh")})
-        #                      "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
+        resource_list.append( {"resource_url" : "gram://louie1.loni.org/jobmanager-pbs", "processes_per_node":"4","number_nodes" : "1", "allocation" : None, "queue" : "workq", "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
 
-        resource_list.append(resource_dictionary)
+        #resource_list.append(resource_dictionary)
         #resource_list.append( {"resource_url" : "pbspro://localhost/", "number_nodes" : "2", "processes_per_node":"4", "allocation" : "loni_jhabig12", "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), 
         #                       "working_directory": (os.getcwd() + "/agent"), "walltime":3600 })
 
@@ -63,7 +61,7 @@ if __name__ == "__main__":
         
 
         print "Create manyjob service "
-        mjs = many_job.many_job_service(resource_list, "localhost")
+        mjs = many_job.many_job_service(resource_list, "advert.cct.lsu.edu")
         
         jobs = []
         job_start_times = {}
@@ -76,9 +74,9 @@ if __name__ == "__main__":
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
             jd.arguments = [""]
-            jd.working_directory = "/tmp"
-            jd.output =  "/tmp/stdout-" + str(i) + ".txt"
-            jd.error = "/tmp/stderr-" + str(i) + ".txt"
+            jd.working_directory = os.getcwd();
+            jd.output =  "stdout-" + str(i) + ".txt"
+            jd.error = "stderr-" + str(i) + ".txt"
             subjob = mjs.create_job(jd)
             subjob.run()
             print "Submited sub-job " + "%d"%i + "."

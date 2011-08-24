@@ -202,8 +202,9 @@ class bigjob_agent:
                         arguments = arguments + " " + i
                         
                 environment = os.environ
+                envi = "" 
                 if (job_dir.attribute_exists("Environment") == True):
-                   envi = "" 
+
                    for i in job_dir.get_vector_attribute("Environment"):
                         envi_1 = "export " + i +"; " 
                         envi = envi + envi_1 
