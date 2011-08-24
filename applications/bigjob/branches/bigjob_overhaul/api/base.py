@@ -202,11 +202,11 @@ class WorkUnitService(object):
         """
         pass
 
-    def submit(self, wu):
+    def submit(self, wud):
         """ Submit a WU to this Work Unit Service.
 
             Keyword argument:
-            wu -- The Work Unit from the application
+            wud -- The WorkUnitDescription from the application
 
             Return:
             WorkUnit object
