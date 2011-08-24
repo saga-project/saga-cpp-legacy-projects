@@ -8,7 +8,7 @@ TROY is an implementation of the P* Model.
 #
 # Supported list of PilotJob backend types.
 #
-class PILOTJOB_TYPE():
+class PILOTJOB_TYPE(object):
     UNKNOWN = 0
     BIGJOB = 1
     DIANE = 2
@@ -17,7 +17,7 @@ class PILOTJOB_TYPE():
 #
 # TROY PilotJob Description
 #
-class PilotJobDescription():
+class PilotJobDescription(object):
     """ TROY PilotJobDescription.
         
         A PilotJobDescription is a based on the SAGA Job Description.
@@ -25,45 +25,48 @@ class PilotJobDescription():
         The PilotJobDescription is used by the application to specify 
         what kind of PilotJobs it requires.
     """
-    def __init__(self):
+
+    # Class members
+    __slots__ = (
         # Pilot / Agent description
-        self.executable = None 
-        self.arguments = None 
-        self.cleanup = None 
-        self.environment = None 
-        self.interactive = None
-        self.job_contact = None
-        self.job_project = None
-        self.job_start_time = None
-        self.working_directory = None
-
+        'executable',
+        'arguments',
+        'cleanup',
+        'environment',
+        'interactive',
+        'job_contact',
+        'job_project',
+        'job_start_time',
+        'working_directory',
         # I/O
-        self.input = None
-        self.error = None
-        self.output = None
-        self.file_transfer = None
-
+        'input',
+        'error',
+        'output',
+        'file_transfer',
         # Concurrency
-        self.number_of_processes = None # Total number of processes to start
-        self.processes_per_host = None # Nr of processes per host
-        self.threads_per_process = None # Nr of threads to start per process
-        self.total_cpu_count = None # total number of cpus requested
-        self.spmd_variation = None # Type and startup mechanism
-
+        'number_of_processes',      # Total number of processes to start
+        'processes_per_host',       # Nr of processes per host
+        'threads_per_process',      # Nr of threads to start per process
+        'total_cpu_count',          # total number of cpus requested
+        'spmd_variation',           # Type and startup mechanism
         # Requirements
-  	    self.candidate_hosts = None 
-        self.cpu_architecture = None
-        self.total_physical_memory = None
-        self.operating_system_type = None
-        self.total_cpu_time = None
-        self.wall_time_limit = None
-        self.queue = None
+  	    'candidate_hosts',
+        'cpu_architecture',
+        'total_physical_memory', 
+        'operating_system_type',
+        'total_cpu_time',
+        'wall_time_limit',
+        'queue'
+    )
 
+    def __init__(self):
+        pass
+    
 
 #
 # TROY PilotJob
 #
-class PilotJob():
+class PilotJob(object):
     """ TROY PilotJob. 
     
         This is the object that is returned by the PilotJobService when a 
@@ -76,17 +79,16 @@ class PilotJob():
         re-initialized.
     """
 
-    def __init__(self):
-        """ Create a PilotJob object.
-
-            Keyword arguments:
-            None
-
-            Return value:
-            Handle to a PilotJob
-
-        """
-        pass
+    # Class members
+    __slots__ = (
+            'id',           # Reference to this PJ
+            'description',  # Description of PilotJob
+            'context',      # SAGA context
+            'rm',           # Resource Manager URL
+            'pj_type',      # Type of TROY backend
+            'state',        # State of the PilotJob
+            'state_detail'  # Adaptor specific state of the PilotJob
+    )
 
     def cancel(self):        
         """ Remove the PilotJob from the PilotJob Service.
@@ -103,23 +105,12 @@ class PilotJob():
         """
         pass
 
-    def get_description(self):        
-        """ Return the description of this PilotJob. """
-        pass
-
-    def get_state(self):        
-        """ Return the state of the PilotJob. """
-        pass
-
-    def get_state_detail(self):        
-        """ Return the detailed state of the PilotJob. """
-        pass
 
 
 #
 # TROY PilotJob Service
 #
-class PilotJobService():
+class PilotJobService(object):
     """ TROY PilotJobService.
     
         The PilotJobService is responsible for creating and managing 
@@ -130,14 +121,17 @@ class PilotJobService():
         
     """
 
-    def __init__(self):
+    # Class members
+    __slots__ = (
+        'id',           # Reference to this PJS
+        'pilot_jobs'    # List of PJs under this PJS
+    )
+
+    def __init__(self, id=None):
         """ Create a PilotJobService object.
 
             Keyword arguments:
-            None
-
-            Return value:
-            Handle to PilotJobService
+            id -- Don't create a new, but connect to an existing (optional)
         """
         pass
 
@@ -155,23 +149,12 @@ class PilotJobService():
         """
         pass
 
-    def list(self):
-        """ Return the PilotJobs that are managed by this PilotJobService.  
-
-            Keyword arguments:
-            None
-
-            Return value:
-            A list of PilotJobs.
-        """
-        pass
-
 
 
 #
 # TROY WorkUnitService
 # 
-class WorkUnitService():
+class WorkUnitService(object):
     """ TROY WorkUnitService.
     
         The WorkUnitService is the application's interface to submit 
@@ -184,15 +167,20 @@ class WorkUnitService():
         exection of the WorkUnits.
     """
 
-    def __init__(self, pilot_service):
+    # Class members
+    __slots__ = (
+        'id',                # Reference to this WUS
+        'pilotjob_services', # PilotJobService(s) that are connected
+        'work_units'         # List of WUs that have been submitted to this WUS
+    )
+
+    def __init__(self, pilot_services):
         """ Create a Work Service object.
 
             Keyword arguments:
-            pilotjob_service -- The PilotJob Service to which this 
+            pilotjob_services -- The PilotJob Service(s) to which this 
                                 Work Unit Service will connect
 
-            Return value:
-            Handle to Work Service
         """
         pass
 
@@ -207,21 +195,11 @@ class WorkUnitService():
         """
         pass
 
-    def list(self):        
-        """ Return the list of WUs that are submitted.
-
-            Keyword argument:
-
-            Return:
-            List of WorkUnit objects
-        """
-        pass
-
 
 #
 # TROY WorkUnitDescription
 # 
-class WorkUnitDescription():
+class WorkUnitDescription(object):
     """ TROY WorkUnitDescription.
     
         The WorkUnitDescription is a job/task/call description based on 
@@ -231,39 +209,41 @@ class WorkUnitDescription():
         way that is dealt with by the Pilot-Manager.
     """
 
-    def __init__(self):
+    # Class members
+    __slots__ = (
         # Action description
-        self.executable = None # The "action" to execute
-        self.arguments = None # Arguments to the "action"
-        self.cleanup = None # 
-        self.environment = None # "environment" settings for the "action"
-        self.interactive = None
-        self.job_contact = None
-        self.job_project = None
-        self.job_start_time = None
-        self.working_directory = None
-
+        'executable',           # The "action" to execute
+        'arguments',            # Arguments to the "action"
+        'cleanup',
+        'environment',          # "environment" settings for the "action"
+        'interactive', 
+        'job_contact',
+        'job_project',
+        'job_start_time',
+        'working_directory',
         # I/O
-        self.input = None
-        self.error = None
-        self.output = None
-        self.file_transfer = None
-
+        'input',
+        'error',
+        'output',
+        'file_transfer',
         # Concurrency
-        self.number_of_processes = None # Total number of processes to start
-        self.processes_per_host = None # Nr of processes per host
-        self.threads_per_process = None # Nr of threads to start per process
-        self.total_cpu_count = None # Total number of cpus requested
-        self.spmd_variation = None # Type and startup mechanism
-
+        'number_of_processes',  # Total number of processes to start
+        'processes_per_host',   # Nr of processes per host
+        'threads_per_process',  # Nr of threads to start per process
+        'total_cpu_count',      # Total number of cpus requested
+        'spmd_variation',       # Type and startup mechanism
         # Requirements
-  	    self.candidate_hosts = None 
-        self.cpu_architecture = None
-        self.total_physical_memory = None
-        self.operating_system_type = None
-        self.total_cpu_time = None
-        self.wall_time_limit = None
-        self.queue = None
+  	    'candidate_hosts',
+        'cpu_architecture',
+        'total_physical_memory',
+        'operating_system_type',
+        'total_cpu_time',
+        'wall_time_limit',
+        'queue'
+    )
+
+    def __init__(self):
+        pass
 
 
 
@@ -271,7 +251,7 @@ class WorkUnitDescription():
 #
 # TROY WorkUnit(WU)
 # 
-class WorkUnit():
+class WorkUnit(object):
     """ TROY WorkUnit.
     
         This is the object that is returned by the WorkUnitService when a 
@@ -283,27 +263,13 @@ class WorkUnit():
         A WorkUnit has state, can be queried and can be cancelled.
     """
 
-    def __init__(self):
-        """ Create a new WorkUnit
-
-            Keyword arguments:
-
-            Return value:
-            Handle to WorkUnit
-        """
-        pass
-
-    def get_description(self):        
-        """ Return the description of this WU. """
-        pass
-
-    def get_state(self):        
-        """ Return the state of the WU. """
-        pass
-
-    def get_state_detail(self):        
-        """ Return the detailed (application specific) state of the WU. """
-        pass
+    # Class members
+    __slots__ = (
+        'id',               # Reference to this WU
+        'description',      # Description of this WU
+        'state',            # State of this WU 
+        'state_detail'      # Detailed (application specific) state of this WU
+    )
 
     def cancel(self):
         """ Cancel the WU. """
