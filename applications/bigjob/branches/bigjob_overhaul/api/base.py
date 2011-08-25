@@ -81,13 +81,13 @@ class PilotJob(object):
 
     # Class members
     __slots__ = (
-            'id',           # Reference to this PJ
-            'description',  # Description of PilotJob
-            'context',      # SAGA context
-            'rm',           # Resource Manager URL
-            'pj_type',      # Type of TROY backend
-            'state',        # State of the PilotJob
-            'state_detail'  # Adaptor specific state of the PilotJob
+        'id',           # Reference to this PJ
+        'description',  # Description of PilotJob
+        'context',      # SAGA context
+        'rm',           # Resource Manager URL
+        'pj_type',      # Type of TROY backend
+        'state',        # State of the PilotJob
+        'state_detail'  # Adaptor specific state of the PilotJob
     )
 
     def cancel(self):        
@@ -137,7 +137,7 @@ class PilotJobService(object):
         """
         pass
 
-    def create_pilotjob(self, rm, pilotjob_desc, pj_type=None, context=None):
+    def create(self, rm, pilotjob_desc, pj_type=None, context=None):
         """ Add a PilotJob to the PilotJobService
 
             Keyword arguments:
@@ -192,13 +192,38 @@ class WorkUnitService(object):
         'work_units'         # List of WUs that have been submitted to this WUS
     )
 
-    def __init__(self, pilot_services):
+    def __init__(self, id=None):
         """ Create a Work Service object.
 
             Keyword arguments:
-            pilotjob_services -- The PilotJob Service(s) to which this 
-                                Work Unit Service will connect
+            id -- Reconnect to an existing WUS (optional).
+        """
+        pass
 
+    def add(self, pjs):
+        """ Add a PilotJobService to this WUS.
+
+            Keyword arguments:
+            pilotjob_services -- The PilotJob Service(s) to which this 
+                                 Work Unit Service will connect.
+
+            Return:
+            Result
+        """
+        pass
+
+    def remove(self, pjs):
+        """ Remove a PilotJobService from this WUS.
+
+            Note that it won't cancel the PilotJobService, it will just no
+            longer be connected to this WUS.
+
+            Keyword arguments:
+            pilotjob_services -- The PilotJob Service(s) to remove from this
+                                 Work Unit Service. 
+
+            Return:
+            Result
         """
         pass
 
