@@ -34,9 +34,9 @@ class PilotJobDescription(object):
         'cleanup',
         'environment',
         'interactive',
-        'job_contact',
-        'job_project',
-        'job_start_time',
+        'contact',
+        'project',
+        'start_time',
         'working_directory',
         # I/O
         'input',
@@ -274,9 +274,9 @@ class WorkUnitDescription(object):
         'cleanup',
         'environment',          # "environment" settings for the "action"
         'interactive', 
-        'job_contact',
-        'job_project',
-        'job_start_time',
+        'contact',
+        'project',
+        'start_time',
         'working_directory',
         # I/O
         'input',
