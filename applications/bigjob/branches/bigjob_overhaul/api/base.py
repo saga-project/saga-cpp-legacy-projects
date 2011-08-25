@@ -325,9 +325,52 @@ class WorkUnit(object):
         'id',               # Reference to this WU
         'description',      # Description of this WU
         'state',            # State of this WU 
-        'state_detail'      # Detailed (application specific) state of this WU
+        'state_detail',     # Detailed (application specific) state of this WU
+        'callback'          # Callback object
     )
 
     def cancel(self):
         """ Cancel the WU. """
+        pass
+
+    def add_callback(self, member, cb):
+        """ Add a callback function to a member.
+
+            Keyword arguments:
+            member -- The member to add the callback to (state / state_detail).
+            cb -- The callback object to call.
+        """
+        pass
+
+    def remove_callback(self, member):
+        """ Remove a callback function from a member
+
+            Keyword arguments:
+            member -- The member to remove the callback from.
+        """
+        pass
+
+
+#
+# TROY Callback (Abstract) Class
+#
+class Callback(object):
+    """ Callback class.
+
+        Specifies the structure for callback classes.
+
+        Callbacks can be set for WorkUnits on the state or state_detail members.
+    """
+
+    def cb(self, wu, member, value):
+        """ This is the method that needs to be implemented by the application
+        
+            Keyword arguments:
+            wu -- The WU that is calling back.
+            member -- The member that triggered the callback.
+            value -- The new (detailed) state.
+
+            Return:
+            Keep -- Keep or remove the callback
+        """
         pass
