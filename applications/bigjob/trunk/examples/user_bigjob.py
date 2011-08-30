@@ -82,7 +82,6 @@ if __name__ == "__main__":
 
        
         print "Create manyjob service "
-        pdb.set_trace()
         mjs = many_job.many_job_service(resource_list, "advert.cct.lsu.edu")
         jobs = []
         job_start_times = {}
