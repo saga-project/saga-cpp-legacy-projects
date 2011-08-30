@@ -336,6 +336,25 @@ class sub_job():
             pass
         return "Unknown"
 
+    def get_arguments(self):
+        try:
+            arguments = self.job.get_arguments()
+            return arguments
+        except:
+            #traceback.print_stack()
+            pass
+        return ""
+
+    def get_exe(self):
+        try:
+            exe  = self.job.get_exe()
+            return exe
+        except:
+            #traceback.print_stack()
+            pass
+        return "Unknown"
+
+
     def cancel(self):
         return self.job.cancel()
 
