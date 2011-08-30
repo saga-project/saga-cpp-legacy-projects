@@ -117,7 +117,7 @@ class bigjob(api.base.bigjob):
  
         # create job description
         jd = saga.job.description()
-        jd.number_of_processes = str(number_nodes)
+        jd.number_of_processes = str(int(number_nodes) * int(processes_per_node) )
         jd.processes_per_host=str(processes_per_node)
         jd.spmd_variation = "single"
         jd.arguments = [bigjob_agent_executable, self.database_host, self.pilot_url]
@@ -298,7 +298,17 @@ class subjob(api.base.subjob):
     def get_state(self):        
         """ duck typing for get_state of saga.cpr.job and saga.job.job  """
         return self.job_dir.get_attribute("state")
-    
+
+    def get_exe(self):
+        return self.job_dir.get_attribute("Executable")
+   
+    def get_arguments(self):
+        arguments=""
+        for  i in  self.job_dir.get_vector_attribute("Arguments"):
+              arguments = arguments + " " + i
+        return arguments
+ 
+
     def cancel(self):
         print "delete job and close dirs: " + self.job_url
         try:
