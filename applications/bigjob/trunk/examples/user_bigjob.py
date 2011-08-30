@@ -95,7 +95,8 @@ if __name__ == "__main__":
             jd.executable = "/bin/date"
             jd.number_of_processes = "1"
             jd.spmd_variation = "single"
-            jd.arguments = ["/home/pmantha/hi0"]
+            if i%2 == 0:
+                jd.arguments = ["/home/pmantha/hi0"]
             jd.working_directory = "/home/pmantha/"
             jd.output =  "stdout-" + str(i) + ".txt"
             jd.error = "stderr-" + str(i) + ".txt"
