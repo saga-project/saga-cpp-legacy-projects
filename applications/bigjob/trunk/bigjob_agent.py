@@ -433,6 +433,7 @@ class bigjob_agent:
     
     def monitor_jobs(self):
         """Monitor running processes. """   
+        print " Monitoring jobs --------------------- "
         for i in self.jobs:
             if self.processes.has_key(i): # only if job has already been starteds
                 p = self.processes[i]
@@ -447,7 +448,7 @@ class bigjob_agent:
                     print self.print_job(i) + " failed.  "
                     # do not free nodes => very likely the job will fail on these nodes
                     # self.free_nodes(i)
-                    del self.processes[i]
+                    #del self.processes[i]
                     if self.restarted.has_key(i)==False:
                         print "Try to restart job " + self.print_job(i)
                         self.restarted[i]=True
@@ -455,6 +456,8 @@ class bigjob_agent:
                     else:
                         print "do not restart job " + self.print_job(i)
                         i.set_attribute("state", str(saga.job.Failed))
+                        self.free_nodes(i)
+                        del self.processes[i]
     
     def print_job(self, job_dir):
         return  ("Job: " + job_dir.get_url().get_string() + " Working Dir: " 
