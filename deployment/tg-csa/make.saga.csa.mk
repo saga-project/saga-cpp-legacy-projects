@@ -106,10 +106,11 @@ saga-core::                externals
 saga-adaptors::            saga-adaptor-x509
 saga-adaptors::            saga-adaptor-globus 
 saga-adaptors::            saga-adaptor-ssh 
+saga-adaptors::            saga-adaptor-bes 
+saga-adaptors::            saga-adaptor-glite
 
 # some adaptors are only build for trunk
 ifeq "$(SAGA_VERSION)" "trunk"
-  saga-adaptors::          saga-adaptor-bes 
   saga-adaptors::          saga-adaptor-aws 
   saga-adaptors::          saga-adaptor-drmaa
 ifneq "$(CSA_HOST)" "abe"

@@ -2,37 +2,32 @@
 
 BEGIN {
   use strict;
+  use Data::Dumper;
+
+  sub help (;$);
 }
 
 
 my $CSA_HOSTS = "./csa_hosts";
+my $CSA_PACK  = "./csa_packages";
 my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
 my %csa_hosts = ();
+my %csa_packs = ();
 my @names     = ();
 my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $use_all   = 0;
+my $fake      = 0;
 my $svnuser   = `id -un`;
 my $svnpass   = "";
+my @versions  = ('all');
 
 chomp ($svnuser);
 
 if ( ! scalar (@ARGV) )
 {
-  print <<EOT;
-
-    $0 [-l|--list] [-c|--check] [-d|--deploy] [-u|--user id] [-p|--pass pw] [-a|--all|host1 host2 ...]
-
-    -l : list available target hosts
-    -c : check access mechanism for given target host(s)
-    -d : deploy SAGA on given target host(s)
-    -a : deploy SAGA on all known target hosts.
-         if -a is not specified, an explicit list hostnames is expected.
-    -u : svn user id (defaults to local user id)
-    -p : svn password
-
-EOT
+  help (-1);
 }
 
 while ( my $arg = shift )
@@ -44,6 +39,11 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-c|--check)$/io )
   {
     $do_check = 1;
+  }
+  elsif ( $arg =~ /^(-v|--versions)$/io )
+  {
+    my $tmp = shift || "all";
+    @versions = split (/,/, $tmp);
   }
   elsif ( $arg =~ /^(-d|--deploy)$/io )
   {
@@ -61,6 +61,14 @@ while ( my $arg = shift )
   {
     $svnpass = shift || "";
   }
+  elsif ( $arg =~ /^(-n|--nothing|--noop|--no)$/io )
+  {
+    $fake = 1;
+  }
+  elsif ( $arg =~ /^(-h|--help)$/io )
+  {
+    help (0);
+  }
   elsif ( $arg =~ /^-/io )
   {
     warn "WARNING: cannot parse command line flag '$arg'\n";
@@ -77,6 +85,47 @@ if ( $svnuser ) { $SVNCI .= " --username '$svnuser'"; }
 if ( $svnpass ) { $SVNCI .= " --password '$svnpass'"; }
 $SVNCI .= " ci";
 
+
+
+# read and parse csa packages file
+{
+  my $tmp = ();
+
+  open   (TMP, "<$CSA_PACK") || die "ERROR  : cannot open '$CSA_PACK': $!\n";
+  @tmp = <TMP>;
+  close  (TMP);
+  chomp  (@tmp);
+
+  my $version = "";
+
+  LINE_P:
+  foreach my $tmp ( @tmp )
+  {
+    if ( $tmp =~ /^\s*(?:#.*)?$/io )
+    {
+      # skip comment lines and empty lines
+    }
+    elsif ( $tmp =~ /^\s*version\s*:\s*(\S+)\s*$/ )
+    {
+      $version = $1;
+      $csa_packs {$version} = ();
+      next LINE_P;
+    }
+    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s*$/io )
+    {
+      my $module  = $1;
+      my $src     = $2;
+
+      my @tmp = ($module, $src);
+
+      push (@{$csa_packs {$version}}, \@tmp);
+    }
+    else
+    {
+      warn "WARNING: Cannot parse csa package line '$tmp'\n";
+    }
+  }
+}
 
 # read and parse csa host file
 {
@@ -181,14 +230,22 @@ if ( $do_check || $do_deploy )
       printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      if ( 0 == system ("$access $host 'test -d $path && ".
-                        " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'" ) )
+      if ( $fake )
       {
-        print "ok\n" 
+        print "$access $host 'test -d $path && ".
+            " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'\n";
       }
       else
       {
-        print "error\n";
+        if ( 0 == system ("$access $host 'test -d $path && ".
+            " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'" ) )
+        {
+          print "ok\n" 
+        }
+        else
+        {
+          print "error\n";
+        }
       }
     }
   }
@@ -220,31 +277,83 @@ if ( $do_deploy )
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      print " build trunk\n";
-      system ("$access $host 'cd $path/tg-csa/                        && " .
-                             "svn up                                  && " .
-                             "env CSA_HOST=$name                         " .
-                             "    CSA_LOCATION=$path                     " .
-                             "    CSA_SAGA_VERSION=trunk                 " .
-                             "    make -f make.saga.csa.mk            ;  " . 
-                             " cp -v $path/README*trunk* $path/tg-csa && " . 
-                             " svn add  README*trunk*$name*           && " .
-                             " $SVNCI -m \"automated update\"          ' ");
-      print "\n";
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      print " build 1.5.3\n";
-      system ("$access $host 'cd $path/tg-csa/                        && " .
-                             "svn up                                  && " .
-                             "env CSA_HOST=$name                         " .
-                             "    CSA_LOCATION=$path                     " .
-                             "    CSA_SAGA_VERSION=1.5.3                 " .
-                             "    make -f make.saga.csa.mk            ;  " . 
-                             " cp -v $path/README*1.5.3* $path/tg-csa && " . 
-                             " svn add  README*1.5.3*$name*           && " .
-                             " $SVNCI -m \"automated update\"          ' ");
+
+      foreach my $version ( @versions )
+      {
+        foreach my $modver ( @{ $csa_packs{$version} } )
+        {
+          my $module = $modver->[0];
+          my $src    = $modver->[1];
+
+          print " build $module ($version)\n";
+          if ( $fake )
+          {
+            print     "$access $host 'cd $path/tg-csa/                             \n" .
+                                     "svn up                                       \n" .
+                                     "env CSA_HOST=$name                        \\ \n" .
+                                     "    CSA_LOCATION=$path                    \\ \n" .
+                                     "    CSA_SAGA_VERSION=$version             \\ \n" .
+                                     "    CSA_SAGA_SRC=$src                     \\ \n" .
+                                     "    make -f make.saga.csa.mk $module       ' \n" ;
+          }
+          else
+          {
+            system (  "$access $host 'cd $path/tg-csa/                            && " .
+                                     "svn up                                      && " .
+                                     "env CSA_HOST=$name                             " .
+                                     "    CSA_LOCATION=$path                         " .
+                                     "    CSA_SAGA_VERSION=$version                  " .
+                                     "    make -f make.saga.csa.mk $module         ' ");
+                                                                               
+          }
+
+          if ( $module eq "readme" )
+          {
+            if ( $fake )
+            {
+              print   "$access $host ' cd $path/tg-csa/                           && " .
+                                     " cp -v $path/README*$version* $path/tg-csa  && " . 
+                                     " svn add  README*$version*$name*            && " .
+                                     " $SVNCI -m \"automated update\"              ' " ;
+            }
+            else
+            {
+              system (" $access $host ' cd $path/tg-csa/                          && " .
+                                      " cp -v $path/README*$version* $path/tg-csa && " . 
+                                      " svn add  README*$version*$name*           && " .
+                                      " $SVNCI -m \"automated update\"             ' ");
+            }
+          }
+          print "\n";
+        }
+      }
     }
   }
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
   print "\n";
+}
+
+
+sub help (;$)
+{
+  my $ret = shift || 0;
+
+  print <<EOT;
+
+    $0 [-l|--list] [-c|--check] [-v|--version version=all] [-d|--deploy] [-u|--user id] [-p|--pass pw] [-a|--all|host1 host2 ...]
+
+    -h : this help message
+    -l : list available target hosts
+    -c : check access mechanism for given target host(s)
+    -v : versions to deploy (see csa_packages file)
+    -d : deploy SAGA on given target host(s)
+    -a : deploy SAGA on all known target hosts.
+         if -a is not specified, an explicit list hostnames is expected.
+    -u : svn user id (defaults to local user id)
+    -p : svn password
+    -n : run 'make -n' to show what *would* be done
+
+EOT
+  exit ($ret);
 }
 
