@@ -46,7 +46,7 @@ except:
 # Set number of jobs
 #############################################################
 
-NUMBER_JOBS=40
+NUMBER_JOBS=8
 
 #############################################################
 # Grid certificate validation
@@ -77,8 +77,8 @@ if __name__ == "__main__":
 
         resource_list = []
         #resource_list.append( {"resource_url" : "gram://qb1.loni.org/jobmanager-pbs", "number_nodes" : "64", "allocation" : "<your allocation>", "queue" : "workq", "bigjob_agent": (os.getcwd() + "/bigjob_agent_launcher.sh") , "working_directory": (os.getcwd() + "/agent"), "walltime":10 })
-        #resource_list.append({"resource_url" : "gram://oliver1.loni.org/", "number_nodes" : "1", "processes_per_node":"4", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":30 }) 
-        resource_list.append({"resource_url" : "gram://eric1.loni.org/", "number_nodes" : "1", "processes_per_node":"4", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":30 }) 
+        #resource_list.append({"resource_url" : "gram://oliver1.loni.org/jobmanager-pbs", "number_nodes" : "1", "processes_per_node":"4", "allocation" : None, "queue" : None, "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":30 }) 
+        resource_list.append({"resource_url" : "gram://eric1.loni.org/jobmanager-pbs", "number_nodes" : "2", "processes_per_node":"4", "allocation" : None, "queue" : "checkpt", "bigjob_agent": (BIGJOB_HOME + "/bigjob_agent_launcher.sh"), "working_directory": (os.getcwd() + "/agent"), "walltime":4320 }) 
 
        
         print "Create manyjob service "
@@ -88,23 +88,28 @@ if __name__ == "__main__":
         job_states = {}
         job_ids={}
         cwd = os.getcwd()
-        for i in range(0, NUMBER_JOBS):
+
+        path = "/home/pmantha/test/"
+
+        dirlist = os.listdir(path)
+        for  fname in dirlist:
             # create job description
-            jd = saga.job.description()
-            jd.executable = "/bin/date"
-            jd.number_of_processes = "1"
-            jd.spmd_variation = "single"
-            if i%2 == 0:
-                jd.arguments = ["/home/pmantha/hi0"]
-            jd.working_directory = "/home/pmantha/"
-            jd.output =  "stdout-" + str(i) + ".txt"
-            jd.error = "stderr-" + str(i) + ".txt"
-            subjob = mjs.create_job(jd)
-            subjob.run()
-            print "Submited sub-job " + "%d"%i + "."
-            jobs.append(subjob)
-            job_start_times[subjob]=time.time()
-            job_states[subjob] = subjob.get_state()
+            if fname.lower().endswith(".inp"):
+                jd = saga.job.description()
+                jd.executable = "g09"
+                jd.number_of_processes = "1"
+                jd.spmd_variation = "single"
+                jd.arguments = ["/home/pmantha/test/" + fname]
+                jd.working_directory = "/home/pmantha/"
+                jd.output =  "stdout-" + str(fname) + ".txt"
+                jd.error = "stderr-" + str(fname) + ".txt"
+                subjob = mjs.create_job(jd)
+                subjob.run()
+                print "Submited sub-job " + fname + "."
+                jobs.append(subjob)
+                job_start_times[subjob]=time.time()
+                job_states[subjob] = subjob.get_state()
+            
 
 
 
