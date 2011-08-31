@@ -19,7 +19,7 @@ pjs = troy.PilotJobService()
 # Create a PilotJob on Ranger, let the "system" decide which type
 pj1_desc = troy.PilotJobDescription()
 pj1_desc.total_cpu_count = 16
-pj1 = ps.create('gram://ranger', pj1_desc)
+pj1 = pjs.create('gram://ranger', pj1_desc)
 
 # Instantiate a WorkUnitService, 
 wus = troy.WorkUnitService()
