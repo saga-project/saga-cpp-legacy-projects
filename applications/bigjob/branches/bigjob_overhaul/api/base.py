@@ -88,6 +88,7 @@ class PilotJob(object):
         'pj_type',      # Type of TROY backend
         'state',        # State of the PilotJob
         'state_detail'  # Adaptor specific state of the PilotJob
+        'callback'      # Callback object
     )
 
     def cancel(self):        
@@ -106,6 +107,22 @@ class PilotJob(object):
         """
         pass
 
+    def add_callback(self, member, cb):
+        """ Add a callback function to a member.
+
+            Keyword arguments:
+            member -- The member to add the callback to (state / state_detail).
+            cb -- The callback object to call.
+        """
+        pass
+
+    def remove_callback(self, member):
+        """ Remove a callback function from a member
+
+            Keyword arguments:
+            member -- The member to remove the callback from.
+        """
+        pass
 
 
 #
