@@ -42,6 +42,8 @@ empty   =
 space   = $(empty) $(empty)
 nospace = $(subst $(space),$(empty),$1)
 
+J       = -j 6
+
 ########################################################################
 #
 # compiler to be used for *everything*
@@ -178,7 +180,7 @@ $(PYTHON_CHECK):
 	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
-	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make && make install
+	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make $J && make install
 
 
 ########################################################################
@@ -227,14 +229,14 @@ $(SVN):
 	cd $(CSA_LOCATION)/src/                   && $(WGET) $(SVN_SRC)
 	cd $(CSA_LOCATION)/src/                   && tar zxvf subversion-1.6.16.tgz
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && ./configure --prefix=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make clean && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make clean && make $J && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && ./configure --prefix=$(SVNLOC) --with-apr=../apr
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make clean && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make clean && make $J && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make clean && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make clean && make $J && make install
 	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make clean && make && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC) && make && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make clean && make $J && make install
+	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC) && make $J && make install
 
 
 ########################################################################
@@ -253,7 +255,7 @@ $(POSTGRESQL_CHECK):
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
 	@cd $(SRCDIR) ; tar jxvf postgresql-9.0.2.tar.bz2
-	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline && make && make install
+	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline && make $J && make install
 
 
 ########################################################################
@@ -272,7 +274,7 @@ $(SQLITE3_CHECK):
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
-	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION) && make && make install
+	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION) && make $J && make install
 
 
 ########################################################################
@@ -306,7 +308,7 @@ $(SAGA_CHECK):
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) && $(SVNUP) saga-core-$(SAGA_VERSION) ; true
 	@cd $(SRCDIR) ; test -d saga-core-$(SAGA_VERSION) || $(SVNCO) $(SAGA_SRC)/
 	@cd $(SRCDIR)/saga-core-$(SAGA_VERSION)/ ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
-		              ./configure --prefix=$(SAGA_LOCATION) && make clean && make && make install
+		              ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
 
 
 ########################################################################
@@ -327,7 +329,7 @@ $(SAGA_PYTHON_CHECK):
 	@echo "saga-bindings-python      installing"
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 && $(SVNUP) saga-bindings-python-0.9.0 ; true
 	@cd $(SRCDIR) ; test -d saga-bindings-python-0.9.0 || $(SVNCO) $(SAGA_PYTHON_SRC)
-	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./configure && make && make install
+	@cd $(SRCDIR)/saga-bindings-python-0.9.0/ ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./configure && make $J && make install
 
 
 ########################################################################
@@ -350,7 +352,7 @@ $(SA_X509_CHECK):
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk && $(SVNUP)                saga-adaptor-x509-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-x509-trunk || $(SVNCO) $(SA_X509_SRC) saga-adaptor-x509-trunk
-	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-x509-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -366,7 +368,7 @@ $(SA_GLOBUS_CHECK):
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk && $(SVNUP)                  saga-adaptor-globus-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-globus-trunk || $(SVNCO) $(SA_GLOBUS_SRC) saga-adaptor-globus-trunk
-	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-globus-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -382,7 +384,7 @@ $(SA_SSH_CHECK):
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk && $(SVNUP)               saga-adaptor-ssh-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-ssh-trunk || $(SVNCO) $(SA_SSH_SRC) saga-adaptor-ssh-trunk
-	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-ssh-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -398,7 +400,7 @@ $(SA_AWS_CHECK):
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk && $(SVNUP)               saga-adaptor-aws-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-aws-trunk || $(SVNCO) $(SA_AWS_SRC) saga-adaptor-aws-trunk
-	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-aws-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -414,7 +416,7 @@ $(SA_DRMAA_CHECK):
 	@echo "saga-adaptor-drmaa        installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk && $(SVNUP)                 saga-adaptor-drmaa-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-drmaa-trunk || $(SVNCO) $(SA_DRMAA_SRC) saga-adaptor-drmaa-trunk
-	@cd $(SRCDIR)/saga-adaptor-drmaa-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-drmaa-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -430,7 +432,7 @@ $(SA_CONDOR_CHECK):
 	@echo "saga-adaptor-condor       installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk && $(SVNUP)                  saga-adaptor-condor-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-condor-trunk || $(SVNCO) $(SA_CONDOR_SRC) saga-adaptor-condor-trunk
-	@cd $(SRCDIR)/saga-adaptor-condor-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-condor-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -446,7 +448,7 @@ $(SA_PBSPRO_CHECK):
 	@echo "saga-adaptor-pbspro       installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk && $(SVNUP)                  saga-adaptor-pbspro-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-pbspro-trunk || $(SVNCO) $(SA_PBSPRO_SRC) saga-adaptor-pbspro-trunk
-	@cd $(SRCDIR)/saga-adaptor-pbspro-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-pbspro-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -462,7 +464,7 @@ $(SA_TORQUE_CHECK):
 	@echo "saga-adaptor-torque       installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk && $(SVNUP)                  saga-adaptor-torque-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-torque-trunk || $(SVNCO) $(SA_TORQUE_SRC) saga-adaptor-torque-trunk
-	@cd $(SRCDIR)/saga-adaptor-torque-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-torque-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -478,7 +480,7 @@ $(SA_BES_CHECK):
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk && $(SVNUP)               saga-adaptor-ogf-trunk ; true
 	@cd $(SRCDIR) ; test -d saga-adaptor-ogf-trunk || $(SVNCO) $(SA_BES_SRC) saga-adaptor-ogf-trunk
-	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make && make install
+	@cd $(SRCDIR)/saga-adaptor-ogf-trunk/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
 
 
 ########################################################################
@@ -496,7 +498,7 @@ $(SC_MANDELBROT_CHECK):
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot && $(SVNUP)                      saga-client-mandelbrot ; true
 	@cd $(SRCDIR) ; test -d saga-client-mandelbrot || $(SVNCO) $(SC_MANDELBROT_SRC) saga-client-mandelbrot
-	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure --disable-master && make clean && make && make install
+	@cd $(SRCDIR)/saga-client-mandelbrot/ ; $(ENV) $(SAGA_ENV) ./configure --disable-master && make clean && make $J && make install
 
 
 ########################################################################
