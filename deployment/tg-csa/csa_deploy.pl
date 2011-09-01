@@ -232,13 +232,11 @@ if ( $do_check || $do_deploy )
 
       if ( $fake )
       {
-        print "$access $host 'test -d $path && ".
-            " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'\n";
+        print "$access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
       }
       else
       {
-        if ( 0 == system ("$access $host 'test -d $path && ".
-            " (cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn)'" ) )
+        if ( 0 == system ("$access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'" ) )
         {
           print "ok\n" 
         }
