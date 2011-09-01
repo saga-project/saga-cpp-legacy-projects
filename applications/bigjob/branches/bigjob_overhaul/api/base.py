@@ -107,20 +107,20 @@ class PilotJob(object):
         """
         pass
 
-    def add_callback(self, member, cb):
-        """ Add a callback function to a member.
+    def set_callback(self, member, cb):
+        """ Set a callback function for a member.
 
             Keyword arguments:
-            member -- The member to add the callback to (state / state_detail).
+            member -- The member to set the callback for (state / state_detail).
             cb -- The callback object to call.
         """
         pass
 
-    def remove_callback(self, member):
-        """ Remove a callback function from a member
+    def unset_callback(self, member):
+        """ Unset a callback function from a member
 
             Keyword arguments:
-            member -- The member to remove the callback from.
+            member -- The member to unset the callback from.
         """
         pass
 
@@ -350,20 +350,20 @@ class WorkUnit(object):
         """ Cancel the WU. """
         pass
 
-    def add_callback(self, member, cb):
-        """ Add a callback function to a member.
+    def set_callback(self, member, cb):
+        """ Set a callback function for a member.
 
             Keyword arguments:
-            member -- The member to add the callback to (state / state_detail).
+            member -- The member to set the callback for (state / state_detail).
             cb -- The callback object to call.
         """
         pass
 
-    def remove_callback(self, member):
-        """ Remove a callback function from a member
+    def unset_callback(self, member):
+        """ Unset a callback function from a member
 
             Keyword arguments:
-            member -- The member to remove the callback from.
+            member -- The member to unset the callback from.
         """
         pass
 
