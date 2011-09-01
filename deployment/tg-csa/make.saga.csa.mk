@@ -191,7 +191,7 @@ $(BOOST_CHECK):
 															 --with-python=$(PYTHON_LOCATION)/bin/python \
 															 --with-python-root=$(PYTHON_LOCATION) \
 															 --with-python-version=2.7 \
-                               --prefix=$(BOOST_LOCATION) && ./bjam && ./bjam install
+                               --prefix=$(BOOST_LOCATION) && ./bjam $J && ./bjam install
 
 
 ########################################################################
