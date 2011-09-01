@@ -88,40 +88,40 @@ SVNUP      = $(SVN) up
 #
 # target dependencies
 #
-.PHONY: all
-all::                      saga-core saga-adaptors saga-bindings saga-clients readme
-
-.PHONY: externals
-externals::                boost postgresql sqlite3
-boost::                    python
-
-.PHONY: saga-core
-saga-core::                externals
-
-.PHONY: saga-adaptors
-saga-adaptors::            saga-adaptor-x509
-saga-adaptors::            saga-adaptor-globus 
-saga-adaptors::            saga-adaptor-ssh 
-saga-adaptors::            saga-adaptor-bes 
-saga-adaptors::            saga-adaptor-glite
-saga-adaptors::            saga-adaptor-aws 
-saga-adaptors::            saga-adaptor-drmaa
-saga-adaptors::            saga-adaptor-torque
-saga-adaptors::            saga-adaptor-pbspro
-saga-adaptors::            saga-adaptor-condor
-
-
-.PHONY: saga-bindings
-saga-bindings::            saga-core
-saga-bindings::            saga-bindings-python
-
-.PHONY: saga-bindings-python
-saga-bindings-python::     python
-
-.PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
-saga-clients::             saga-client-mandelbrot saga-client-bigjob
-saga-client-mandelbrot::   saga-core
-saga-client-bigjob::       saga-core saga-bindings-python            
+## .PHONY: all
+## all::                      saga-core saga-adaptors saga-bindings saga-clients readme
+## 
+## .PHONY: externals
+## externals::                boost postgresql sqlite3
+## boost::                    python
+## 
+## .PHONY: saga-core
+## saga-core::                externals
+## 
+## .PHONY: saga-adaptors
+## saga-adaptors::            saga-adaptor-x509
+## saga-adaptors::            saga-adaptor-globus 
+## saga-adaptors::            saga-adaptor-ssh 
+## saga-adaptors::            saga-adaptor-bes 
+## saga-adaptors::            saga-adaptor-glite
+## saga-adaptors::            saga-adaptor-aws 
+## saga-adaptors::            saga-adaptor-drmaa
+## saga-adaptors::            saga-adaptor-torque
+## saga-adaptors::            saga-adaptor-pbspro
+## saga-adaptors::            saga-adaptor-condor
+## 
+## 
+## .PHONY: saga-bindings
+## saga-bindings::            saga-core
+## saga-bindings::            saga-binding-python
+## 
+## .PHONY: saga-binding-python
+## saga-binding-python::     python
+## 
+## .PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
+## saga-clients::             saga-client-mandelbrot saga-client-bigjob
+## saga-client-mandelbrot::   saga-core
+## saga-client-bigjob::       saga-core saga-binding-python            
 
 
 ########################################################################
@@ -164,7 +164,8 @@ $(PYTHON_CHECK):
 	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
-	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make $J && make install
+	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; \
+                ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make $J && make install
 
 
 ########################################################################
@@ -188,9 +189,9 @@ $(BOOST_CHECK):
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
 	@cd $(SRCDIR)/boost_1_44_0 ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
-															 --with-python=$(PYTHON_LOCATION)/bin/python \
-															 --with-python-root=$(PYTHON_LOCATION) \
-															 --with-python-version=2.7 \
+                               --with-python=$(PYTHON_LOCATION)/bin/python \
+                               --with-python-root=$(PYTHON_LOCATION) \
+                               --with-python-version=2.7 \
                                --prefix=$(BOOST_LOCATION) && ./bjam $J && ./bjam install
 
 
@@ -266,7 +267,7 @@ $(SQLITE3_CHECK):
 # saga-core
 #
 SAGA_LOCATION   = $(CSA_LOCATION)/saga/$(CSA_SAGA_VERSION)/$(CC_NAME)/
-SAGA_CHECK      = $(SAGA_LOCATION)/include/saga/saga.hpp
+SAGA_CORE_CHECK = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
 
@@ -280,15 +281,15 @@ endif
 SAGA_SRC = $(CSA_SAGA_SRC)  saga-core-$(SAGA_CSA_VERSION)
 
 .PHONY: saga-core
-saga-core:: base $(SAGA_CHECK)
+saga-core:: base $(SAGA_CORE_CHECK)
 	@echo "saga-core                 ok"
 
-$(SAGA_CHECK):
+$(SAGA_CORE_CHECK):
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)             $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(SAGA_SRC) $(CSA_SAGA_TGT) 
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
-		              ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
+                 ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
 
 
 ########################################################################
@@ -300,16 +301,16 @@ SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages
 
 SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
 
-.PHONY: saga-bindings-python
-saga-bindings-python:: base python $(SAGA_PYTHON_CHECK)
-	@echo "saga-bindings-python      ok"
+.PHONY: saga-binding-python
+saga-binding-python:: base $(SAGA_PYTHON_CHECK)
+	@echo "saga-binding-python      ok"
 
 $(SAGA_PYTHON_CHECK):
-	@echo "saga-bindings-python      installing"
+	@echo "saga-binding-python      installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
-		               ./configure && make clean && make $J && make install
+                   ./configure && make clean && make $J && make install
 
 
 ########################################################################
@@ -499,7 +500,7 @@ CSA_README_SRC   = $(CSA_LOCATION)/tg-csa/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: readme
-readme:: saga-core $(CSA_README_CHECK)
+readme:: $(CSA_README_CHECK)
 	@echo "README                    ok"
 
 $(CSA_README_CHECK): $(CSA_README_SRC)
@@ -517,6 +518,6 @@ $(CSA_README_CHECK): $(CSA_README_SRC)
 	@echo "fixing permissions"
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	@$(CHMOD) -R a+rX $(EXTDIR)
-	-@$(CHMOD)   a+rX $(CSA_LOCATION)
+	@$(CHMOD)    a+rX $(CSA_LOCATION) || true
 	
 

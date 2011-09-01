@@ -292,6 +292,7 @@ if ( $do_deploy )
                                      "    CSA_LOCATION=$path                    \\ \n" .
                                      "    CSA_SAGA_VERSION=$version             \\ \n" .
                                      "    CSA_SAGA_SRC=$src                     \\ \n" .
+                                     "    CSA_SAGA_tgt=$module-$version         \\ \n" .
                                      "    make -f make.saga.csa.mk $module       ' \n" ;
           }
           else
