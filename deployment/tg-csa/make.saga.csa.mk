@@ -73,10 +73,10 @@ $(shell echo "make info: make     version : $(MAKE_VERSION)"     1>&2 )
 #
 # basic tools
 #
-SED        = sed
-ENV        = env
-WGET       = wget --no-check-certificate
-CHMOD      = chmod
+SED        = $(shell which sed)
+ENV        = $(shell which env)
+WGET       = $(shell which wget) --no-check-certificate
+CHMOD      = $(shell which chmod)
 
 
 SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_NAME)/bin/svn')
@@ -278,16 +278,14 @@ ifeq "$(CSA_HOST)" "abe"
   SAGA_ENV_VARS += CPPFLAGS="-D__NR_eventfd=323"
 endif
 
-SAGA_SRC = $(CSA_SAGA_SRC)  saga-core-$(SAGA_CSA_VERSION)
-
 .PHONY: saga-core
 saga-core:: base $(SAGA_CORE_CHECK)
 	@echo "saga-core                 ok"
 
 $(SAGA_CORE_CHECK):
 	@echo "saga-core                 installing"
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)             $(CSA_SAGA_TGT) ; true
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(SAGA_SRC) $(CSA_SAGA_TGT) 
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
                  ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
 

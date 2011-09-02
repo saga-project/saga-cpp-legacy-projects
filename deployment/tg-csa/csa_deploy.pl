@@ -10,6 +10,7 @@ BEGIN {
 
 my $CSA_HOSTS = "./csa_hosts";
 my $CSA_PACK  = "./csa_packages";
+my $ENV       = `which env`;
 my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
 my %csa_hosts = ();
 my %csa_packs = ();
@@ -24,6 +25,7 @@ my $svnpass   = "";
 my @versions  = ('all');
 
 chomp ($svnuser);
+chomp ($ENV);
 
 if ( ! scalar (@ARGV) )
 {
@@ -85,8 +87,6 @@ if ( $svnuser ) { $SVNCI .= " --username '$svnuser'"; }
 if ( $svnpass ) { $SVNCI .= " --password '$svnpass'"; }
 $SVNCI .= " ci";
 
-
-
 # read and parse csa packages file
 {
   my $tmp = ();
@@ -123,6 +123,16 @@ $SVNCI .= " ci";
     else
     {
       warn "WARNING: Cannot parse csa package line '$tmp'\n";
+    }
+  }
+
+
+  foreach my $version ( @versions )
+  {
+    if ( ! exists $csa_packs{$version} )
+    {
+      print "Version '$version' is not defined in '$CSA_PACK'\n";
+      exit -1;
     }
   }
 }
@@ -284,43 +294,37 @@ if ( $do_deploy )
           my $src    = $modver->[1];
 
           print " build $module ($version)\n";
+
+          my $cmd = "$access $host '$ENV CSA_HOST=$name                 " .
+                                   "     CSA_LOCATION=$path             " .
+                                   "     CSA_SAGA_VERSION=$version      " .
+                                   "     CSA_SAGA_SRC=\"$src\"          " .
+                                   "     CSA_SAGA_TGT=$module-$version  " .
+                                   "     make -C $path/tg-csa/          " .
+                                   "          -f make.saga.csa.mk       " .
+                                   "          $module -n '                  ";
           if ( $fake )
           {
-            print     "$access $host 'cd $path/tg-csa/                             \n" .
-                                     "svn up                                       \n" .
-                                     "env CSA_HOST=$name                        \\ \n" .
-                                     "    CSA_LOCATION=$path                    \\ \n" .
-                                     "    CSA_SAGA_VERSION=$version             \\ \n" .
-                                     "    CSA_SAGA_SRC=$src                     \\ \n" .
-                                     "    CSA_SAGA_tgt=$module-$version         \\ \n" .
-                                     "    make -f make.saga.csa.mk $module       ' \n" ;
+            print "$cmd\n";
           }
           else
           {
-            system (  "$access $host 'cd $path/tg-csa/                            && " .
-                                     "svn up                                      && " .
-                                     "env CSA_HOST=$name                             " .
-                                     "    CSA_LOCATION=$path                         " .
-                                     "    CSA_SAGA_VERSION=$version                  " .
-                                     "    make -f make.saga.csa.mk $module         ' ");
-                                                                               
+            system ($cmd);
           }
 
           if ( $module eq "readme" )
           {
-            if ( $fake )
-            {
-              print   "$access $host ' cd $path/tg-csa/                           && " .
+            my $cmd = "$access $host ' cd $path/tg-csa/                           && " .
                                      " cp -v $path/README*$version* $path/tg-csa  && " . 
                                      " svn add  README*$version*$name*            && " .
-                                     " $SVNCI -m \"automated update\"              ' " ;
+                                     " $SVNCI -m \"automated update\"              ' ";
+            if ( $fake )
+            {
+              print "$cmd\n";
             }
             else
             {
-              system (" $access $host ' cd $path/tg-csa/                          && " .
-                                      " cp -v $path/README*$version* $path/tg-csa && " . 
-                                      " svn add  README*$version*$name*           && " .
-                                      " $SVNCI -m \"automated update\"             ' ");
+              system ($cmd);
             }
           }
           print "\n";
