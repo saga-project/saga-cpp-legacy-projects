@@ -1,0 +1,44 @@
+
+  1. Install SAGA on engage-submit3 (in your home directory)
+
+      * download the bootstrap script:
+        $engage-submit3> wget http://faust.cct.lsu.edu/extenci/saga-extenci-bootstrap.sh
+        
+      * run the saga-extenci-bootstrap.sh script. it will install everything in $HOME/saga/:
+        $engage-submit3> ./saga-extenci-bootstrap.sh
+        
+      * source the environment:
+        $engage-submit3> source $HOME/saga/saga-env.sh
+
+      * make sure saga + python bindings + adaptors are installed properly:
+        $engage-submit3> saga-config --version
+        $engage-submit3> saga-config --adaptors
+        $engage-submit3> python -c "import saga"
+
+
+  2. Submit and monitor a simple "/bin/sleep" job to a condor-g resource
+
+      * initialize voms proxy
+        $engage-submit3> voms-proxy-init -voms Engage
+
+      * get a list of available Condor-G resource within Engage:
+        $engage-submit 3> ldapsearch -LLL -h is.grid.iu.edu -p 2170 -x -b 'o=grid' '(&(objectClass=GlueCE)(GlueCEAccessControlBaseRule=VO:Engage))' GlueCEInfoHostName GlueCEInfoGatekeeperPort GlueCEInfoJobManager
+
+        (Yes, this is the actual command. Not very user friendly. Also, not all machines that show up in the list seem to work properly. I mostly use belhaven-1.renci.org:2119/jobmanager-condor for my tests since it seems to be pretty stable.)
+
+      * submit job via the saga-job cmd-line tool
+        $engage-submit3> saga-job submit condorg://belhaven-1.renci.org:2119/jobmanager-condor /bin/sleep 60Job ID: [condorg://belhaven-1.renci.org:2119/jobmanager-condor]-[1709981]
+     
+      * check for job status using the condor_q tool 
+        $engage-submit3> condor_q -globus -- Submitter: engage-submit3.renci.org : <152.54.1.174:35106> : engage-submit3.renci.org
+
+        ID      OWNER          STATUS  MANAGER  HOST                EXECUTABLE       
+        1709981.0   oweidner      PENDING condor   belhaven-1.renci.o  /bin/sleep
+
+        (Condor will also send you an email, once your job has finished or failed. You can read your local mail on engage-submit3 simply by typing 'mail'. )
+
+      * check for job status using the saga-job cmd-line tool (replace job id): 
+        $engage-submit3> saga-job state condorg://belhaven-1.renci.org:2119/jobmanager-condor [condorg://belhaven-1.renci.org:2119/jobmanager-condor]-[1709981]
+        
+        (if the job has already finished, the command will fail with a 'job id doesn't exist' exception. I guess this is proper behavior, since the condor command line tools don't show your job anymore after it has finished.)
+
