@@ -88,40 +88,39 @@ SVNUP      = $(SVN) up
 #
 # target dependencies
 #
-## .PHONY: all
-## all::                      saga-core saga-adaptors saga-bindings saga-clients readme
-## 
-## .PHONY: externals
-## externals::                boost postgresql sqlite3
-## boost::                    python
-## 
-## .PHONY: saga-core
-## saga-core::                externals
-## 
-## .PHONY: saga-adaptors
-## saga-adaptors::            saga-adaptor-x509
-## saga-adaptors::            saga-adaptor-globus 
-## saga-adaptors::            saga-adaptor-ssh 
-## saga-adaptors::            saga-adaptor-bes 
-## saga-adaptors::            saga-adaptor-glite
-## saga-adaptors::            saga-adaptor-aws 
-## saga-adaptors::            saga-adaptor-drmaa
-## saga-adaptors::            saga-adaptor-torque
-## saga-adaptors::            saga-adaptor-pbspro
-## saga-adaptors::            saga-adaptor-condor
-## 
-## 
-## .PHONY: saga-bindings
-## saga-bindings::            saga-core
-## saga-bindings::            saga-binding-python
-## 
-## .PHONY: saga-binding-python
-## saga-binding-python::     python
-## 
-## .PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
-## saga-clients::             saga-client-mandelbrot saga-client-bigjob
-## saga-client-mandelbrot::   saga-core
-## saga-client-bigjob::       saga-core saga-binding-python            
+.PHONY: all
+all::                      saga-core saga-adaptors saga-bindings saga-clients readme
+
+.PHONY: externals
+externals::                boost postgresql sqlite3
+boost::                    python
+
+.PHONY: saga-core
+saga-core::                externals
+
+.PHONY: saga-adaptors
+saga-adaptors::            saga-adaptor-x509
+saga-adaptors::            saga-adaptor-globus 
+saga-adaptors::            saga-adaptor-ssh 
+saga-adaptors::            saga-adaptor-bes 
+saga-adaptors::            saga-adaptor-glite
+saga-adaptors::            saga-adaptor-aws 
+saga-adaptors::            saga-adaptor-drmaa
+saga-adaptors::            saga-adaptor-torque
+saga-adaptors::            saga-adaptor-pbspro
+saga-adaptors::            saga-adaptor-condor
+
+.PHONY: saga-bindings
+saga-bindings::            saga-core
+saga-bindings::            saga-binding-python
+
+.PHONY: saga-binding-python
+saga-binding-python::     python
+
+.PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
+saga-clients::             saga-client-mandelbrot saga-client-bigjob
+saga-client-mandelbrot::   saga-core
+saga-client-bigjob::       saga-core saga-binding-python            
 
 
 ########################################################################
@@ -283,10 +282,10 @@ saga-core:: base $(SAGA_CORE_CHECK)
 	@echo "saga-core                 ok"
 
 $(SAGA_CORE_CHECK):
-	@echo "saga-core                 installing"
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
-	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
+	echo "saga-core                 installing"
+	cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+	cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
+	cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
                  ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
 
 
