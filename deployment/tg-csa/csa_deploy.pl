@@ -302,7 +302,7 @@ if ( $do_deploy )
                                    "     CSA_SAGA_TGT=$module-$version  " .
                                    "     make -C $path/tg-csa/          " .
                                    "          -f make.saga.csa.mk       " .
-                                   "          $module -n '                  ";
+                                   "          $module    '                  ";
           if ( $fake )
           {
             print "$cmd\n";
