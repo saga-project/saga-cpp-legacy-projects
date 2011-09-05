@@ -169,9 +169,9 @@ $(PYTHON_CHECK):
 
 ########################################################################
 # boost
-BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.47.0/$(CC_NAME)/
+BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
-BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.47.0/boost_1_47_0.tar.bz2
+BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
@@ -185,8 +185,8 @@ boost:: base $(BOOST_CHECK)
 $(BOOST_CHECK):
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
-	@cd $(SRCDIR) ; tar jxvf boost_1_47_0.tar.bz2
-	@cd $(SRCDIR)/boost_1_47_0 ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./bootstrap.sh \
+	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
+	@cd $(SRCDIR)/boost_1_44_0 ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
                                --with-python=$(PYTHON_LOCATION)/bin/python \
                                --with-python-root=$(PYTHON_LOCATION) \
