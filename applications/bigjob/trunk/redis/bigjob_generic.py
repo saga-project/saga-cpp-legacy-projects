@@ -50,12 +50,10 @@ def get_uuid():
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="bigjob"
-REDIS_SERVER="localhost"
-REDIS_SERVER_PORT=6379
 CLEANUP=True
 
 # Support for multiple coordination backends (ZMQ and Redis)
-BACKEND = "ZMQ" #{REDIS, ZMQ}
+BACKEND = "REDIS" #{REDIS, ZMQ}
 
 if BACKEND=="ZMQ":
     try:
@@ -66,8 +64,8 @@ if BACKEND=="ZMQ":
                       +"PYZMQ (http://zeromq.github.com/pyzmq/)")
 else:
     try:
-        import bigjob_coordination_redis
-        logging.debug("Utilizing Redis Backend")
+        import bigjob_coordination_redis        
+        logging.debug("Utilizing Redis Backend. Please make sure Redis server is configured in bigjob_coordination_redis.py")
     except:
         logging.error("Error loading pyredis.")
 
@@ -127,7 +125,7 @@ class bigjob(api.base.bigjob):
         self.pilot_url = self.app_url + ":" + lrms_saga_url.host
         pilot_url_dict[self.pilot_url]=self
         
-        logging.debug("create pilot job entry on Redis server: " + self.pilot_url)
+        logging.debug("create pilot job entry on backend server: " + self.pilot_url)
         self.coordination.set_pilot_state(self.pilot_url, str(saga.job.Unknown), False)
         
         #self.redis.hmset(self.pilot_url, {"state":str(saga.job.Unknown), "stopped":"false"}) 

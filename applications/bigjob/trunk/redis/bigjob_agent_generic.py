@@ -43,7 +43,7 @@ APPLICATION_NAME="bigjob"
 REDIS_SERVER="localhost"
 REDIS_SERVER_PORT=6379
 
-BACKEND = "ZMQ" #{REDIS, ZMQ}
+BACKEND = "REDIS" #{REDIS, ZMQ}
 
 class bigjob_agent:
     

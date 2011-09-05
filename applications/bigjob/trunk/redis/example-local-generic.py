@@ -25,7 +25,7 @@ else:
 sys.path.insert(0, BIGJOB_HOME)
 sys.path.append("..") # for api.base
 
-from bigjob_redis import bigjob, subjob
+from bigjob_generic import bigjob, subjob
 
 
 """ Test Job Submission via Advert """
