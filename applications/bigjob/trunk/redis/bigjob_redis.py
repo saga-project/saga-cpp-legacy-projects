@@ -17,11 +17,9 @@ Set environment variable BIGJOB_HOME to installation directory
 """
 
 import sys
-import getopt
 import saga
 import time
 import pdb
-import socket
 import os
 import traceback
 import logging
@@ -30,8 +28,7 @@ logging.basicConfig(level=logging.DEBUG)
 # import other BigJob packages
 # import API
 import api.base
-import bigjob_coordination_redis
-import bigjob_coordination_zmq
+
 
 if sys.version_info < (2, 5):
     sys.path.append(os.path.dirname( __file__ ) + "/ext/uuid-1.30/")
@@ -59,7 +56,21 @@ CLEANUP=True
 
 # Support for multiple coordination backends (ZMQ and Redis)
 BACKEND = "ZMQ" #{REDIS, ZMQ}
-#BACKEND = "ZMQ" #{REDIS, ZMQ}
+
+if BACKEND=="ZMQ":
+    try:
+        import bigjob_coordination_zmq
+        logging.debug("Utilizing ZMQ Backend")
+    except:
+        logging.error("ZMQ Backend not found. Please install ZeroMQ (http://www.zeromq.org/intro:get-the-software) and " 
+                      +"PYZMQ (http://zeromq.github.com/pyzmq/)")
+else:
+    try:
+        import bigjob_coordination_redis
+        logging.debug("Utilizing Redis Backend")
+    except:
+        logging.error("Error loading pyredis.")
+
 
 #for legacy purposes and support for old BJ API
 pilot_url_dict={} # stores a mapping of pilot_url to bigjob
