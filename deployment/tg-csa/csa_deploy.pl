@@ -18,6 +18,7 @@ my @names     = ();
 my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
+my $be_strict = 0;
 my $use_all   = 0;
 my $fake      = 0;
 my $svnuser   = `id -un`;
@@ -66,6 +67,10 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-n|--nothing|--noop|--no)$/io )
   {
     $fake = 1;
+  }
+  elsif ( $arg =~ /^(-e|--error|--exit)$/io )
+  {
+    $be_strict = 1;
   }
   elsif ( $arg =~ /^(-h|--help)$/io )
   {
@@ -129,10 +134,13 @@ $SVNCI .= " ci";
 
   foreach my $version ( @versions )
   {
-    if ( ! exists $csa_packs{$version} )
+    if ( $version ne "all" )
     {
-      print "Version '$version' is not defined in '$CSA_PACK'\n";
-      exit -1;
+      if ( ! exists $csa_packs{$version} )
+      {
+        print "Version '$version' is not defined in '$CSA_PACK'\n";
+        exit -1;
+      }
     }
   }
 }
@@ -246,13 +254,20 @@ if ( $do_check || $do_deploy )
       }
       else
       {
-        if ( 0 == system ("$access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'" ) )
+        my $cmd = "$access $host 'mkdir -p $path ; " .
+                  "cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'";
+
+        if ( 0 == system ($cmd) )
         {
           print "ok\n" 
         }
         else
         {
           print "error\n";
+          if ( $be_strict )
+          {
+            exit -1;
+          }
         }
       }
     }
@@ -309,7 +324,18 @@ if ( $do_deploy )
           }
           else
           {
-            system ($cmd);
+            if ( 0 == system ($cmd) )
+            {
+              print "ok\n";
+            } 
+            else
+            {
+              print "error\n";
+              if ( $be_strict )
+              {
+                exit -1;
+              }
+            }
           }
 
           if ( $module eq "readme" )
@@ -324,7 +350,18 @@ if ( $do_deploy )
             }
             else
             {
-              system ($cmd);
+              if ( 0 == system ($cmd) )
+              {
+                print "ok\n";
+              } 
+              else
+              {
+                print "error\n";
+                if ( $be_strict )
+                {
+                  exit -1;
+                }
+              }
             }
           }
           print "\n";
@@ -347,14 +384,14 @@ sub help (;$)
 
     -h : this help message
     -l : list available target hosts
-    -c : check access mechanism for given target host(s)
-    -v : versions to deploy (see csa_packages file)
-    -d : deploy SAGA on given target host(s)
-    -a : deploy SAGA on all known target hosts.
-         if -a is not specified, an explicit list hostnames is expected.
-    -u : svn user id (defaults to local user id)
-    -p : svn password
-    -n : run 'make -n' to show what *would* be done
+    -c : only check access, no deploy               (default: off)
+    -v : versions to deploy (see csa_packages file) (default: all)
+    -d : deploy SAGA on given target host(s)        (default: off)
+    -a : deploy SAGA on all known target hosts      (default: off)
+    -u : svn user id                                (default: local user id)
+    -p : svn password                               (default: "")
+    -n : run 'make -n' to show what *would* be done (default: off)
+    -e : exit on errors                             (default: off)
 
 EOT
   exit ($ret);
