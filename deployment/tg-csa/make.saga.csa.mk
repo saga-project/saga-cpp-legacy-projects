@@ -122,6 +122,12 @@ saga-clients::             saga-client-mandelbrot saga-client-bigjob
 saga-client-mandelbrot::   saga-core
 saga-client-bigjob::       saga-core saga-binding-python            
 
+ifeq "$(CSA_FORCE)" "1" 
+.PHONY: force_rebuild
+else
+force_rebuild:
+	true
+endif
 
 ########################################################################
 #
@@ -159,7 +165,7 @@ SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
 python:: base $(PYTHON_CHECK)
 	@echo "python                    ok"
 
-$(PYTHON_CHECK):
+$(PYTHON_CHECK): force_rebuild
 	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
@@ -182,7 +188,7 @@ SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 boost:: base $(BOOST_CHECK)
 	@echo "boost                     ok"
 
-$(BOOST_CHECK):
+$(BOOST_CHECK): force_rebuild
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
@@ -235,7 +241,7 @@ SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 postgresql:: base $(POSTGRESQL_CHECK)
 	@echo "postgresql                ok"
 
-$(POSTGRESQL_CHECK):
+$(POSTGRESQL_CHECK): force_rebuild
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
 	@cd $(SRCDIR) ; tar jxvf postgresql-9.0.2.tar.bz2
@@ -254,7 +260,7 @@ SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 sqlite3:: base $(SQLITE3_CHECK)
 	@echo "sqlite3                   ok"
 
-$(SQLITE3_CHECK):
+$(SQLITE3_CHECK): force_rebuild
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
@@ -281,7 +287,7 @@ endif
 saga-core:: base $(SAGA_CORE_CHECK)
 	@echo "saga-core                 ok"
 
-$(SAGA_CORE_CHECK):
+$(SAGA_CORE_CHECK): force_rebuild
 	echo "saga-core                 installing"
 	cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
@@ -302,7 +308,7 @@ SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LI
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)
 	@echo "saga-binding-python      ok"
 
-$(SAGA_PYTHON_CHECK):
+$(SAGA_PYTHON_CHECK): force_rebuild
 	@echo "saga-binding-python      installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -325,7 +331,7 @@ SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
 saga-adaptor-x509:: base $(SA_X509_CHECK)
 	@echo "saga-adaptor-x509         ok"
 
-$(SA_X509_CHECK):
+$(SA_X509_CHECK): force_rebuild
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -340,7 +346,7 @@ SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.in
 saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
 	@echo "saga-adaptor-globus       ok"
 
-$(SA_GLOBUS_CHECK):
+$(SA_GLOBUS_CHECK): force_rebuild
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -355,7 +361,7 @@ SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
 saga-adaptor-ssh:: base $(SA_SSH_CHECK)
 	@echo "saga-adaptor-ssh          ok"
 
-$(SA_SSH_CHECK):
+$(SA_SSH_CHECK): force_rebuild
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -370,7 +376,7 @@ SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
 saga-adaptor-aws:: base $(SA_AWS_CHECK)
 	@echo "saga-adaptor-aws          ok"
 
-$(SA_AWS_CHECK):
+$(SA_AWS_CHECK): force_rebuild
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -385,7 +391,7 @@ SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
 saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
 	@echo "saga-adaptor-drmaa        ok"
 
-$(SA_DRMAA_CHECK):
+$(SA_DRMAA_CHECK): force_rebuild
 	@echo "saga-adaptor-drmaa        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -400,8 +406,23 @@ SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
 	@echo "saga-adaptor-condor       ok"
 
-$(SA_CONDOR_CHECK):
+$(SA_CONDOR_CHECK): force_rebuild
 	@echo "saga-adaptor-condor       installing"
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
+	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+
+
+########################################################################
+# saga-adaptor-glite 
+SA_GLITE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_glite_sd.ini
+
+.PHONY: saga-adaptor-glite
+saga-adaptor-glite:: base $(SA_GLITE_CHECK)
+	@echo "saga-adaptor-glite        ok"
+
+$(SA_GLITE_CHECK): force_rebuild
+	@echo "saga-adaptor-glite        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
@@ -415,7 +436,7 @@ SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
 	@echo "saga-adaptor-pbspro       ok"
 
-$(SA_PBSPRO_CHECK):
+$(SA_PBSPRO_CHECK): force_rebuild
 	@echo "saga-adaptor-pbspro       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -430,7 +451,7 @@ SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
 	@echo "saga-adaptor-torque       ok"
 
-$(SA_TORQUE_CHECK):
+$(SA_TORQUE_CHECK): force_rebuild
 	@echo "saga-adaptor-torque       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -445,7 +466,7 @@ SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_hpcbp_job.ini
 saga-adaptor-bes:: base $(SA_BES_CHECK)
 	@echo "saga-adaptor-bes          ok"
 
-$(SA_BES_CHECK):
+$(SA_BES_CHECK): force_rebuild
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -462,7 +483,7 @@ SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
 saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
 	@echo "saga-client-mandelbrot    ok"
 
-$(SC_MANDELBROT_CHECK):
+$(SC_MANDELBROT_CHECK): force_rebuild
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -479,10 +500,10 @@ SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
 	@echo "saga-client-bigjob        ok"
 
-$(SC_BIGJOB_CHECK):
+$(SC_BIGJOB_CHECK): force_rebuild
 	@echo "saga-client-bigjob        installing"
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                  $(CSA_SAGA_TGT) ; true
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(SC_BIGJOB_SRC) $(CSA_SAGA_TGT)
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cp -R $(SRCDIR)/$(CSA_SAGA_TGT)/ $(SC_BIGJOB_CHECK)
 
@@ -500,7 +521,7 @@ CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(
 readme:: $(CSA_README_CHECK)
 	@echo "README                    ok"
 
-$(CSA_README_CHECK): $(CSA_README_SRC)
+$(CSA_README_CHECK): $(CSA_README_SRC) force_rebuild
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_README_CHECK)

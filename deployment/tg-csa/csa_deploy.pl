@@ -19,6 +19,7 @@ my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $be_strict = 0;
+my $force     = 0;
 my $use_all   = 0;
 my $fake      = 0;
 my $svnuser   = `id -un`;
@@ -71,6 +72,10 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-e|--error|--exit)$/io )
   {
     $be_strict = 1;
+  }
+  elsif ( $arg =~ /^(-f|--force)$/io )
+  {
+    $force = 1;
   }
   elsif ( $arg =~ /^(-h|--help)$/io )
   {
@@ -315,6 +320,7 @@ if ( $do_deploy )
                                    "     CSA_SAGA_VERSION=$version      " .
                                    "     CSA_SAGA_SRC=\"$src\"          " .
                                    "     CSA_SAGA_TGT=$module-$version  " .
+                                   "     CSA_FORCE=$force               " .
                                    "     make -C $path/tg-csa/          " .
                                    "          -f make.saga.csa.mk       " .
                                    "          $module    '                  ";
@@ -392,6 +398,7 @@ sub help (;$)
     -p : svn password                               (default: "")
     -n : run 'make -n' to show what *would* be done (default: off)
     -e : exit on errors                             (default: off)
+    -f : force re-deploy                            (default: off)
 
 EOT
   exit ($ret);
