@@ -459,7 +459,7 @@ $(SA_TORQUE_CHECK): $(FORCE_REBUILD)
 
 ########################################################################
 # saga-adaptor-bes
-SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_hpcbp_job.ini
+SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_bes_hpcbp_job.ini
 
 .PHONY: saga-adaptor-bes
 saga-adaptor-bes:: base $(SA_BES_CHECK)
