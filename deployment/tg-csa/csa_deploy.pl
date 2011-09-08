@@ -22,9 +22,10 @@ my $be_strict = 0;
 my $force     = 0;
 my $use_all   = 0;
 my $fake      = 0;
+my $do_remove = 0;
 my $svnuser   = `id -un`;
 my $svnpass   = "";
-my @versions  = ('all');
+my @versions  = ('trunk');
 
 chomp ($svnuser);
 chomp ($ENV);
@@ -76,6 +77,10 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-f|--force)$/io )
   {
     $force = 1;
+  }
+  elsif ( $arg =~ /^(-r|--remove)$/io )
+  {
+    $do_remove = 1;
   }
   elsif ( $arg =~ /^(-h|--help)$/io )
   {
@@ -230,7 +235,7 @@ if ( $do_list )
 
 
 # for each csa host, check the tg-csa installation itself (also check on deploy!)
-if ( $do_check || $do_deploy )
+if ( $do_check )
 {
   # just check if we are able to deploy
   print "\n";
@@ -241,7 +246,7 @@ if ( $do_check || $do_deploy )
   {
     if ( ! exists $csa_hosts{$name} )
     {
-      print "WARNING: Do not know how to handle host $name\n";
+      print " WARNING: Do not know how to handle host $name\n";
     }
     else
     {
@@ -255,7 +260,7 @@ if ( $do_check || $do_deploy )
 
       if ( $fake )
       {
-        print "$access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
+        print " $access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
       }
       else
       {
@@ -264,11 +269,11 @@ if ( $do_check || $do_deploy )
 
         if ( 0 == system ($cmd) )
         {
-          print "ok\n" 
+          print " ok\n" 
         }
         else
         {
-          print "error\n";
+          print " error\n";
           if ( $be_strict )
           {
             exit -1;
@@ -326,17 +331,17 @@ if ( $do_deploy )
                                    "          $module    '                  ";
           if ( $fake )
           {
-            print "$cmd\n";
+            print " $cmd\n";
           }
           else
           {
             if ( 0 == system ($cmd) )
             {
-              print "ok\n";
+              print " ok\n";
             } 
             else
             {
-              print "error\n";
+              print " error\n";
               if ( $be_strict )
               {
                 exit -1;
@@ -352,17 +357,17 @@ if ( $do_deploy )
                                      " $SVNCI -m \"automated update\"              ' ";
             if ( $fake )
             {
-              print "$cmd\n";
+              print " $cmd\n";
             }
             else
             {
               if ( 0 == system ($cmd) )
               {
-                print "ok\n";
+                print " ok\n";
               } 
               else
               {
-                print "error\n";
+                print " error\n";
                 if ( $be_strict )
                 {
                   exit -1;
@@ -379,6 +384,60 @@ if ( $do_deploy )
   print "\n";
 }
 
+if ( $do_remove )
+{
+  # ! check, so do the real deployment
+
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+
+  foreach my $name ( @names )
+  {
+    if ( ! exists $csa_hosts{$name} )
+    {
+      warn "WARNING: Do not know how to handle host '$name'\n";
+    }
+    else
+    {
+      my $host   = $csa_hosts{$name}{'host'};
+      my $path   = $csa_hosts{$name}{'path'};
+      my $access = $csa_hosts{$name}{'access'};
+
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+      foreach my $version ( @versions )
+      {
+        print " remove installation\n";
+
+        my $cmd = "$access $host 'rm -rf $path/saga/$version/'";
+
+        if ( $fake )
+        {
+          print " $cmd\n";
+        }
+        else
+        {
+          if ( 0 == system ($cmd) )
+          {
+            print " ok\n";
+          } 
+          else
+          {
+            print " error\n";
+            if ( $be_strict )
+            {
+              exit -1;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
 
 sub help (;$)
 {
@@ -386,12 +445,23 @@ sub help (;$)
 
   print <<EOT;
 
-    $0 [-l|--list] [-c|--check] [-v|--version version=all] [-d|--deploy] [-u|--user id] [-p|--pass pw] [-a|--all|host1 host2 ...]
+    $0 [-h|--help] 
+       [-l|--list] 
+       [-c|--check] 
+       [-v|--version version=all] 
+       [-d|--deploy] 
+       [-n|--no]
+       [-e|--exit|--error]
+       [-f|--force]
+       [-r|--remove]
+       [-u|--user id] 
+       [-p|--pass pw] 
+       [-a|--all|host1 host2 ...] 
 
     -h : this help message
     -l : list available target hosts
-    -c : only check access, no deploy               (default: off)
-    -v : versions to deploy (see csa_packages file) (default: all)
+    -c : check csa access and tooling               (default: off)
+    -v : versions to deploy (see csa_packages file) (default: trunk)
     -d : deploy SAGA on given target host(s)        (default: off)
     -a : deploy SAGA on all known target hosts      (default: off)
     -u : svn user id                                (default: local user id)
@@ -399,6 +469,7 @@ sub help (;$)
     -n : run 'make -n' to show what *would* be done (default: off)
     -e : exit on errors                             (default: off)
     -f : force re-deploy                            (default: off)
+    -r : remove deployment on target host           (default: off)
 
 EOT
   exit ($ret);
