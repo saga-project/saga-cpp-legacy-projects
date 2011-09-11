@@ -58,7 +58,8 @@ def get_uuid():
 
 """ Config parameters (will move to config file in future) """
 APPLICATION_NAME="BigJob/BigJob"
-ADVERT_URL_SCHEME = "advert://"
+#ADVERT_URL_SCHEME = "advert://"
+ADVERT_URL_SCHEME="advert://"
 
 class BigJobError(Exception):
     def __init__(self, value):
