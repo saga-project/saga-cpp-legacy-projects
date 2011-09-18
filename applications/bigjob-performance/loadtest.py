@@ -8,13 +8,19 @@ import datetime
 from bigjob.bigjob_manager import bigjob, subjob
 
 # configurationg
-COORDINATION_URL = ["advert://localhost", "redis://localhost/"]
-NUMBER_JOBS=[8,16]
-NUMBER_NODES=[1,2]
-NUMBER_CORES_PER_NODE=1
+#COORDINATION_URL = "advert://advert.cct.lsu.edu:8080"
+#COORDINATION_URL = "redis://i136"
+COORDINATION_URL = "redis://cyder.cct.lsu.edu:8080"
+#COORDINATION_URL = "tcp://i136"
+
+#NUMBER_JOBS=[256]
+NUMBER_JOBS=[32,64,128,256,512]
+NUMBER_NODES=[1,2,4,8,16]
+#NUMBER_NODES=[16]
+NUMBER_CORES_PER_NODE=8
 RESULT_DIR="results"
 RESULT_FILE_PREFIX="results/results-"
-LRMS_URL="fork://localhost"
+LRMS_URL="pbspro://localhost"
 
 
 def has_finished(state):
@@ -49,10 +55,12 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
                       )
         
     queueing_time = None    
-    state = str(bj.get_state())
-    if state=="Running" and queueing_time==None:
+    subjob_submission_time = None    
+    pilot_state = str(bj.get_state_detail())
+    if pilot_state=="Running" and queueing_time==None:
             queueing_time=time.time()-starttime
-    print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + state
+            print "*** Pilot State: " + pilot_state + " queue time: " + str(queueing_time)
+    print "Pilot Job/BigJob URL: " + bj.pilot_url + " State: " + pilot_state
 
     ##########################################################################################
     # Submit SubJob through BigJob
@@ -74,14 +82,20 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
         jobs.append(sj)
         job_start_times[sj]=time.time()
         job_states[sj] = sj.get_state()
-        if state=="Running" and queueing_time==None:
-            queueing_time=time.time()-starttime
 
+        if pilot_state != "Running":
+            pilot_state = str(bj.get_state_detail())
+            if pilot_state=="Running" and queueing_time==None:
+                queueing_time=time.time()-starttime
+                print "*** Pilot State: " + pilot_state + " queue time: " + str(queueing_time)
+
+    subjob_submission_time = time.time()-starttime
     # busy wait for completion
     while 1:        
         pilot_state = str(bj.get_state())
-        if str(bj.get_state())=="Running" and queueing_time==None:
+        if pilot_state=="Running" and queueing_time==None:
             queueing_time=time.time()-starttime
+            print "*** Pilot State: " + pilot_state + " queue time: " + str(queueing_time)
         finish_counter=0
         result_map = {}
         for i in range(0, number_jobs):
@@ -101,7 +115,7 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
             job_states[jobs[i]]=state
 
         print "Pilot State: %s; %d/%d jobs finished"%(pilot_state,finish_counter,number_jobs)
-        if finish_counter == number_jobs:
+        if finish_counter >= number_jobs-1 or pilot_state == "Failed":
             break
         time.sleep(2)
 
@@ -110,8 +124,8 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
     ##########################################################################################
     # Cleanup - stop BigJob
     
-    result = ("%d,%d,%d,%s,%s,%s,%s"% 
-             (number_nodes, number_cores_per_node, number_jobs, str(runtime), str(queueing_time),coordination_url, LRMS_URL))
+    result = ("%d,%d,%d,%s,%s,%s,%s,%s"% 
+             (number_nodes, number_cores_per_node, number_jobs, str(runtime), str(queueing_time),coordination_url, LRMS_URL,str(subjob_submission_time)))
     
     result_tab = ("%d\t%d\t%d\t%s\t%s\t%s\t%s"% 
              (number_nodes, number_cores_per_node, number_jobs, str(runtime), str(queueing_time), coordination_url, LRMS_URL))
@@ -119,6 +133,8 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
     print result_tab
     
     bj.cancel()
+    # hack: delete manually pbs jobs of user
+    os.system("qstat -u `whoami` | grep -o ^[0-9]* |xargs qdel")
     return result
           
     
@@ -132,9 +148,10 @@ if __name__ == "__main__":
     d =datetime.datetime.now()
     result_filename = RESULT_FILE_PREFIX + d.strftime("%Y%m%d-%H%M%S") + ".csv"
     f = open(result_filename, "w")
-    f.write("#Nodes,#cores/node,#jobs,Runtime,Queuing Time,Coordination URL,LRMS URL\n")
+    f.write("#Nodes,#cores/node,#jobs,Runtime,Queuing Time,Coordination URL,LRMS URL,SubJob Submission Time\n")
     for i in range(0, len(NUMBER_JOBS)):
-        result = load_test(COORDINATION_URL[i], NUMBER_JOBS[i], NUMBER_NODES[i], NUMBER_CORES_PER_NODE)
+        result = load_test(COORDINATION_URL, NUMBER_JOBS[i], NUMBER_NODES[i], NUMBER_CORES_PER_NODE)
         f.write(result)
         f.write("\n")
+        f.flush()
     f.close()
