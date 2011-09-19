@@ -1,0 +1,190 @@
+\documentclass[conference,final,onecolumn]{IEEEtran}
+
+\usepackage{latex8}
+\usepackage{times}
+
+\usepackage[utf8]{inputenc}
+\usepackage{url}
+\usepackage{float}
+\usepackage{times}    
+\usepackage{multirow}    
+\usepackage{listings}   
+\usepackage{times}     
+\usepackage{paralist}    
+\usepackage{wrapfig}    
+\usepackage[small,it]{caption}
+\usepackage{multirow}
+\usepackage{ifpdf}
+%\usepackage{srcltx}
+\usepackage{subfigure}
+\usepackage{paralist}
+
+\usepackage{listings}
+\usepackage{keyval}  
+\usepackage{color}
+\definecolor{listinggray}{gray}{0.95}
+\definecolor{darkgray}{gray}{0.7}
+\definecolor{commentgreen}{rgb}{0, 0.4, 0}
+\definecolor{darkblue}{rgb}{0, 0, 0.4}
+\definecolor{middleblue}{rgb}{0, 0, 0.7}
+\definecolor{darkred}{rgb}{0.4, 0, 0}
+\definecolor{brown}{rgb}{0.5, 0.5, 0}
+
+\newif\ifdraft
+\drafttrue
+\ifdraft
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***andre: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{blue} { ***andre2: #1 }}}
+\newcommand{\smnote}[1]{ {\textcolor{green} { ***sharath: #1 }}}
+\newcommand{\msnote}[1]{ {\textcolor{cyan} { ***mark: #1 }}}
+\newcommand{\note}[1]{ {\textcolor{magenta} { ***Note: #1 }}}
+\else
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\athotanote}[1]{}
+\newcommand{\smnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\newcommand{\msnote}[1]{}
+\newcommand{\note}[1]{}
+\fi
+
+\lstdefinestyle{myListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=C,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  aboveskip=0em,
+  belowskip=-2em,
+  %numbers=left, 
+  %numberstyle=\tiny
+}      
+
+\lstdefinestyle{myPythonListing}{
+  frame=single,   
+  backgroundcolor=\color{listinggray},  
+  %float=t,
+  language=Python,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  %numbers=left, 
+  %numberstyle=\tiny
+}
+
+\newcommand{\up}{\vspace*{-1em}}
+\newcommand{\upp}{\vspace*{-0.5em}}
+\newcommand{\numrep}{8 }
+\newcommand{\samplenum}{4 }
+\newcommand{\tmax}{$T_{max}$ }
+\newcommand{\tc}{$T_{C}$ }
+\newcommand{\tcnsp}{$T_{C}$}
+\newcommand{\bj}{BigJob}
+
+% This is now the recommended way for checking for PDFLaTeX:
+\usepackage{ifpdf}
+
+%\newif\ifpdf
+%\ifx\pdfoutput\undefined
+%\pdffalse % we are not running PDFLaTeX
+%\else
+%\pdfoutput=1 % we are running PDFLaTeX
+%\pdftrue
+%\fi
+
+\ifpdf
+\usepackage[pdftex]{graphicx}
+\else
+\usepackage{graphicx}
+\fi
+
+% \title{Towards A Framework for Pilot-Abstractions for Production
+%   Cyberinfrastructure}
+
+\title{P*: An Extensible Model of Pilot-Abstractions for Dynamic Execution}
+
+% \jhanote{Alternate title: The Tiered Resource OverlaY framework
+%   (TROY): An Empirical Framework for Pilot-* Abstractions}
+% 
+% \jhanote{old title: TROY -- Tiered Resource Overlay Framework: Towards
+%   a Framework for Pilot-Abstractions for Distributed
+%   Cyberinfrastructure}
+
+
+\date{}
+
+\begin{document}
+
+\ifpdf
+\DeclareGraphicsExtensions{.pdf, .jpg, .tif}
+\else
+\DeclareGraphicsExtensions{.eps, .jpg}
+\fi
+
+\author{
+  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Andre Merzky$^{1}$, Shantenu Jha$^{3,1*}$\\
+  \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
+ \small{\emph{$^{2}$Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, The Netherlands}}\\
+ \small{\emph{$^{3}$ Rutgers University, Piscataway, NJ 08854, USA}}\\
+  \small{\emph{$^{*}$Contact Author: \texttt{shantenu.jha@rutgers.edu}}}\\
+}
+
+\maketitle
+\vspace{1cm}
+
+Distributed cyberinfrastructures (CI) and applications require the ability to
+determine and utilize resource selection at runtime (dynamically), and not
+just before execution (statically). The ability to utilize such a dynamic
+resource pool is thus an important attribute of any application that needs to
+utilize distributed CI efficiently; this is in contrast to a static resource
+utilization model characteristic of parallel and cluster computing. In
+addition, the evolution or internal dynamics of an application may vary,
+thereby changing the resource requirements. For example, different solvers,
+adaptive algorithms and/or implementations, can also require applications to
+utilize different set/amounts of resources.
+
+
+Multiple approaches exist to support dynamic resource utilization, for
+example, advanced scheduling (without pre-emption) provides essentially a
+guarantee of resources at a sufficiently far out time window. Another common
+approach for decoupling workload management and resource assignment/scheduling
+are \emph{pilot-jobs (PJ)}. Pilot-Jobs have been notable in their ability to
+support dynamic resource utilization -- in the number of applications that use
+them, in the scope of usage, as well as the number of CI that support them. In
+spite of broad uptake, there does not exist however, a well defined, unifying
+conceptual framework for pilot-jobs which can be used to define, compare and
+contrast different implementations.
+
+
+Our work is motivated by the status of the usage and availability of the pilot
+abstraction vis-\`{a}-vis the current landscape of distributed applications
+and CI. To achieve our objectives, we attempt to provide a minimal, but
+complete model for the pilot abstraction, which can be used to provide an
+analytical framework to compare and contrast different pilot implementations.
+This is, to the best of our knowledge, the first such attempt. This paper is
+an attempt to (i) provide a minimal but complete model (P*) of Pilot-Jobs,
+(ii) extend the basic model from compute to data, (iii) introduce TROY as an
+implementation of this model using SAGA, i.\,e.\ consistent with its API,
+job-model etc., (iv) establish the generality of the P* model by mapping
+various existing and well known pilot-jobs such as DIANE to P*, (v) establish
+and validate the implementation of TROY by concurrently using multiple
+distinct pilot-jobs.
+
+
+A natural and logical extension of the PJ model, arising from the need to
+treat data as a first-class schedulable entity, is a concept analogous to PJ:
+the \emph{pilot-data (PD)} abstraction. Given the consistent treatment of data
+and compute, as potentially equal components in a model to support dynamic
+resource and execution, we refer this model as the P* model ("P-star").
+
+
+
+
+\end{document}
