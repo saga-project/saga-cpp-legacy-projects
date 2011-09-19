@@ -1587,27 +1587,26 @@ framework~\cite{DBLP:journals/corr/abs-0902-2685} can be used.
 %GANGA provides a
 %unified interface for job submissions to various resource types, e.\,g.\ EGI
 %resources or TG resources via a SAGA backend.
-Once the worker agents are started
-they register themselves at the RunMaster. In contrast to BJ-SAGA, a worker
-agent generally manages only a single core and thus, by default is not able to
-run parallel applications (e.\,g.\ based on MPI). BJ-SAGA utilizes
-an agent that is able manage a set of local resources (e.\,g.\ a certain number
-of nodes and cores) and thus, is capable of running parallel applications. For
-communication between the RunMaster and worker agents point-to-point messaging
-based on CORBA is used. CORBA is also used for file staging, which is
-not fully supported by BJ-SAGA, yet.
+Once the worker agents are started they register themselves at the RunMaster.
+In contrast to TROY-BigJob, a worker agent generally manages only a single
+core and thus, by default is not able to run parallel applications (e.\,g.\
+based on MPI). BJ-SAGA utilizes an agent that is able manage a set of local
+resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
+of running parallel applications. For communication between the RunMaster and
+worker agents point-to-point messaging based on CORBA is used. CORBA is also
+used for file staging, which is not fully supported by BJ-SAGA, yet.
 
 % Binding 
 DIANE is primarily designed with respect to HTC environments (such as
-EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the size
-of 1 core. BJ-SAGA in contrast is designed for HPC systems such as TG, where a
-job usually allocates multiple nodes and cores. To address this issue a
-so-called multinode submitter script can be used: the scripts starts a defined
-number of worker agents on a certain resource. However, WUs will be constrained
-to the specific number of cores managed by a worker agent. A flexible allocation
-of resource chunks as with BJ-SAGA is not possible. By default a WU is mapped to
-a SU; application can however implement smarter allocation schemes, e.\,g.\ the
-clustering of multiple WUs into a SU.
+EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
+size of 1 core. BJ-SAGA in contrast is designed for HPC systems such as TG,
+where a job usually allocates multiple nodes and cores. To address this issue
+a so-called multinode submitter script can be used: the scripts starts a
+defined number of worker agents on a certain resource. However, WUs will be
+constrained to the specific number of cores managed by a worker agent. A
+flexible allocation of resource chunks as with BJ-SAGA is not possible. By
+default a WU is mapped to a SU; application can however implement smarter
+allocation schemes, e.\,g.\ the clustering of multiple WUs into a SU.
 
 %Scheduling
 DIANE includes a simple capability matcher and FIFO-based task scheduler.
@@ -1750,14 +1749,19 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \jhanote{MS: The experiment section needs tighter and more focussed
   writing in general}
 
-To validate the abstractions we have presented we conducted a series of experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing application.
-To manage the workflow we use the DARE~\cite{dare-tg11} framework which builds upon TROY.  On the LONI~\cite{loni} cluster Oliver we utilize a total of 16 cores distributed across four nodes.
-We make use of two BigJob implementations: BJ-SAGA and BJ-DIANE. We define eight WUs for BFAST. We run the experiments in three different setups: (i) BJ-SAGA only, (ii) BJ-DIANE only and (iii) both BJ-SAGA and BJ-DIANE. In case (iii) on each backend four WUs are
-executed.
+To validate the abstractions we have presented we conducted a series of
+experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing
+application. To manage the workflow we use the DARE~\cite{dare-tg11} framework
+which builds upon TROY. On the LONI~\cite{loni} cluster Oliver we utilize a
+total of 16 cores distributed across four nodes. We make use of two BigJob
+implementations: TROY-BigJob and TROY-DIANE. We define eight WUs for BFAST. We
+run the experiments in three different setups: (i) TROY-BigJob only, (ii)
+TROY-DIANE only and (iii) both TROY-BigJob and TROY-DIANE. In case (iii) on
+each backend four WUs are executed.
 
 %Depending on the specified backend the respective BJ implementation is used for dispatching
 %the actual pilots.
-While BJ-SAGA utilizes one BJ agent on the resource, BJ-DIANE
+While BigJob utilizes one BJ agent on the resource, DIANE
 currently requires the spawning of one worker agent per WU that must be executed in
 parallel.
 The TROY API marshals
@@ -1790,7 +1794,7 @@ PJs and WUs using the TROY API.
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
-	\caption{\textbf{Performance TROY with BJ-SAGA and BJ-DIANE:} Running BFAST 
+	\caption{\textbf{Performance TROY with BigJob and DIANE:} Running BFAST 
 	on a 4 node cluster with a total of 16 cores. The time-to-completion for 
 	BJ-DIANE is higher than for BJ-SAGA mainly due to the higher startup 
 	time required and some light runtime overhead caused by the additional 
@@ -1801,17 +1805,17 @@ PJs and WUs using the TROY API.
 
 
 Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
-experiments. The time-to-completion for BJ-DIANE is about 207\,sec
-longer than for BJ-SAGA. The main contributor for this increased
+experiments. The time-to-completion for TROY-DIANE is about 207\,sec
+longer than for TROY-SAGA. The main contributor for this increased
 runtime is the deployment time required for DIANE. In a multi-node
 setup multiple work agents must be used (8 in this case).  For each
 worker agent DIANE must be downloaded, installed and started
 separately. In total this requires about 178\,sec. Further, each DIANE
 worker agent is queued as a separate job at the local resource manager
 -- this contributes the the higher deviation in the measured
-runtimes. Because BJ-SAGA requires a pre-run installation on each site,
+runtimes. Because BigJob requires a pre-run installation on each site,
 it only shows a startup time of 28\,sec. Additionally, we also
-observed a runtime overhead of about 17\,sec for the BJ-DIANE
+observed a runtime overhead of about 17\,sec for the TROY-DIANE
 scenario. This overhead is likely caused by the additional agents
 required.
 
@@ -1826,7 +1830,7 @@ API. The performance in this scenario is slightly better than in the
 DIANE only case, mainly due to the fact that only four DIANE worker
 agents need to be started. Also, only half of the WUs are executed on
 a DIANE node and thus, show a longer runtime. While there are some
-limitations in the current BJ-DIANE implementation, the aim of this
+limitations in the current TROY-DIANE implementation, the aim of this
 experiment is to emphasizes the possibilities that the TROY API
 provides to dynamic applications. TROY enables applications to utilize
 a dynamic resource pool consisting of resources of different
