@@ -232,6 +232,7 @@ and outline our approach to address them effectively.
 
 
 \subsection{Previous Hybrid CFD-MD Implementations}
+\label{sec:intro_formerworks}
 %Hybrid simulation approaches can be grouped into two according to the microscopic solution method coupled into macroscopic continuum domain.~\cite{Koumoutsakos} One is the coarse-grained particle simulations by using Direct Simulation Monte Carlo (DSMC) for dilute gas~\cite{Garcia,Sun} or Dissipative Particle Dynamics (DPD) for liquid~\cite{Fedosov1,Fedosov2}, where the simulation molecule represents a number of atoms/molecules. The coarse-grained simulation can provide better computational cost, while the state-of-the-art modeling is required to correctly impose the wall boundary condition. The other is the use of traditional Molecular Dynamics (MD) solvers that describe the motion of individual molecules based on Newtonian dynamics. The hybrid CFD-MD model is preferred in solving dense liquid systems where the accurate description of strong inter-molecular interaction near the solid obstacle is very important.
 
 %Hybrid CFD-MD simulations can be classified to constrained Lagrangian dynamics~\cite{Thompson,Nie,Nie_cavity,Cui,Wang,Yen,Liu}, alternating Schwarz method~\cite{Hadjicon1,Hadjicon2,Hadjicon3,Werder,Kotsalis}, and direct flux exchange~\cite{Flekkoy,Wagner,Delgado1,USHER,Time_Mechanism,Giupponi}, according to which variables are exchanging and how the macroscopic solution is imposed on molecular domain. O'Connell and Thompson~\cite{Thompson} first tried a hybrid CFD-MD simulation by applying constrained Lagrangian dynamics in the overlapping region between CFD and MD domains. In this method, two solvers exchange density properties (in other words, conserved variables) in the overlapping boundary and they are coupled in time space. Constrained Lagrangian dynamics equation is used to accelerate/decelerate particles in hybrid MD boundary to follow the continuum velocity, without harming the degree-of-freedom of molecular motion. This approach is refined by Nie {\it{et al.}}~\cite{Nie} by including the mass flux modeling and has been applied to the sudden-start Couette flow~\cite{Thompson}, channel flow with rough walls~\cite{Nie}, cavity flow~\cite{Nie_cavity}, Poiseuille flow~\cite{Yen} and the oscillating boundary problem~\cite{Wang,Liu}. The use of a straightforward constrained dynamics equation makes this approach easy to implement and computationally efficient. However, the absence of energy exchange modeling limits the applications to isothermal systems.~\cite{Flekkoy}
@@ -273,6 +274,8 @@ In order to be able to simulate isothermal compressible flow, Flekk$\phi$y {\it{
 
 
 \subsection{Numerical and Computational Issues Associated with Hybrid CFD-MD Methodologies}
+\label{sec:intro_issues}
+
 %Despite the clear advantage of hybrid approach over conventional CFD or MD implementations, a number of numerical and computational difficulties prohibit this technique from being widely used. The first issue is an easy and intuitive way of determining the state-of-the-art coupling condition. The solution of a hybrid simulation by the crude coupling suffers from a strong noise of spatially averaged particle velocity, which is the response of a natural physics of molecular fluctuation. So, coupling parameters such as layer size and the position of overlap region, and sampling duration with its interval, should be delicately determined to achieve an accurate numerical solution. It is impossible to design a mathematical model to determine coupling conditions, since the strength of this uninvited noise is affected by not only the flow condition but also the characteristics of fluid and solid elements along with its geometric configuration. There have been some attempts to alleviate this statistic fluctuation by introducing numerical damping terms~\cite{Thompson,Cui} or dynamic parameter for coupling intensity~\cite{Wang}, but this can break up the conservation law.
 
 %The next issue is the hybrid simulation in moderate flow conditions. So far, all experiments have been confined to the extremely high-speed flow conditions of O(100) m/s in the nano-scale systems, to maintain a strong shear rate/speed in the overlapping region.
@@ -312,6 +315,7 @@ In addition to the above mentioned issues, there are computational challenges re
 
 
 \subsection{Objectives and Outline of the Paper}
+\label{sec:intro_contents}
 
 The focus of this paper is to investigate numerical issues associated with the implementation of a typical hybrid CFD-MD methodology applied to investigate the flow in a nano/micro-fluidic system as well as with designing and developing of an efficient runtime framework for coupled multi-scale simulations. We present our implementation of a 'generic' hybrid CFD-MD interface which can be easily put together from various 'off the shelf' incompressible CFD and MD packages, as well as our model of a 'portable' framework that can be ported easily on most present day computer architectures. 
 
@@ -369,6 +373,7 @@ The accuracy of a hybrid CFD-MD solution is governed by the underlying numerical
 
 %\subsection{The Hybrid CFD-MD Approach}
 \subsection{Overview of the Continuum-Molecular Coupled Approach}
+\label{sec:numerical_hybridoverview}
 %The hybrid CFD-MD approach stands on the proposition that the molecular dynamic simulation produces more accurate solution than the continuum model and a more efficient continuum solver provides the boundary condition to particle domain without restricting the high degree-of-freedom of atomistic motion. So, the region which contains a strong flow gradient is resolved by a molecular dynamic simulation and moderate flow in macroscopic scale is captured by the continuum dynamics. Also, these problem domains overlap each other in the middle to exchange the individual information.
 
 %A detailed structure of the fluid domain for constrained Lagrangian dynamics models is described in Fig.~\ref{Fig:Couette}. CFD approach solves the external zones with the moderate flow velocity and MD analyzes the complex microscopic flow feature near the stationary obstacle or in the low-speed region. Hybrid region is placed sufficiently far from the solid obstacle to prevent the direct influence of strong fluctuation near the solid-fluid interface. Also, this region is designed sufficiently large to contain five layers with enough spacing.
@@ -416,8 +421,10 @@ The height of each layer is the same as the CFD cell height and averaged conserv
 
 %\subsection{Numerical Schemes in the Baseline CFD and MD Codes}
 \subsection{Governing Equations and Numerical Schemes}
+\label{sec:numerical_schemes}
 
 \subsubsection{Continuum Incompressible Flow Formulation (CFD)}
+\label{sec:numerical_CFDschemes}
 
 %The current in-house continuum hydrodynamics code solves the unsteady incompressible Navier-Stokes equations to demonstrate the isothermal nano-scale flow field:
 %\Nkimnote{
@@ -454,6 +461,7 @@ For time-accurate unsteady simulation, a dual time stepping method is adopted an
 
 
 \subsubsection{Molecular-Level Formulation (MD)}
+\label{sec:numerical_MDschemes}
 
 %Molecular dynamics computer simulation technique is a specified computer simulation method for molecular systems, including microscopic details of a system and macroscopic statistical properties, which are the properties of the atoms, the interactions between particles, molecular characteristics, structure of molecules, transport phenomena etc.~\cite{Allen},\cite{Haile},\cite{Rapaport}
 
@@ -522,6 +530,7 @@ In this work, the MD simulations were performed by using an appropriately modifi
 
 %\subsection{Implementation of Hybrid Interface}
 \subsection{Hybrid Interfaces and Schemes}
+\label{sec:numerical_hybridschemes}
 %The hybrid simulation requires the implementation of hybrid interfaces and schemes on individual code. In the current study, the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions.  A constrained Lagrangian dynamics model is implemented for hybrid simulation. Unit conversion routine is also implemented in the application code. These changes are summarized in table~\ref{table:interface_implementation}.
 
 Hybrid simulation requires the implementation of hybrid interfaces and schemes based on an individual code. In the current study, the file interface is designed to schedule the information exchange between continuum and discrete particle descriptions. A constrained Lagrangian dynamics model is implemented for hybrid simulation. A unit conversion routine is also implemented in the application code. These changes are summarized in Table~\ref{table:interface_implementation}. 
@@ -831,6 +840,7 @@ The current numerical approach provides more accurate time-variant solution by d
 Two important issues regarding the performance of hybrid simulations are co-scheduling and load balancing. Both can be resolved by adopting the Pilot-job concept. We explain the design of a multi-physics simulation framework that operates in the form of a single Pilot-job and contains a load-balancing function between distinct tasks.
 
 \subsection{SAGA and SAGA-based Frameworks - An Efficient Runtime Environment for Coupled Multi-component Computations}
+\label{sec:computational_SAGAandBigJob}
 
 %The Simple API for Grid Applications (SAGA)~\cite{saga_url} is an API standardization effort within the Open Grid Forum (OGF)~\cite{ogf_web}, an international standards development body concerned primarily with standards for distributed computing. SAGA provides a simple, POSIX-style API to the most common Grid functions at a sufficiently high-level of abstraction so as to be independent of the diverse and dynamic Grid environments. The SAGA specification defines interfaces for the most common Grid-programming functions grouped as a set of functional packages (Fig.~\ref{Fig:SAGA1}). Some key packages are:
 
@@ -879,6 +889,7 @@ Fig.~\ref{Fig:BigJob_Structure}  shows the structure of BigJob and its operation
 
 
 \subsection{Load-Balancing of Coupled Multi-Physics Simulation}
+\label{sec:computational_LoadBalancing}
 The load-balancing of a coupled simulation implies sufficient flexibility to re-distribute resources to an individual job according to each performance. We will discuss the implementation and algorithm of a simple load balancer (LB)~\cite{Ko}; it is important to mention that the LB functions in the context of the SAGA-BigJob framework.
 
 The idea is to assign more resources to heavier sub-jobs under the fixed resource allocation, until all sub-jobs elapse at the same execution time. As it is impossible to predict the performance of each code in advance, we let the LB monitor the wall-clock time between the information exchange points of the coupled sub-jobs and iteratively change the resource distribution until load-balancing is achieved. As the individual solver is considered as black-box, each application code is assumed to have the ideal parallel efficiency. In case the application codes are highly scalable, the LB can find the best condition after a few dynamic re-distributions. In addition, all processors in one node are assigned to one single task to prevent the interference (and performance degradation) observed when multiple MPI tasks share the node.
@@ -956,6 +967,7 @@ The above non-integer values proceed in discrete values expressed as the multipl
 
 
 \subsection{Implementation of an Execution Framework and Application-level Corrections}
+\label{sec:computational_hybridruntime}
 
 %A hybrid CFD-MD framework is evaluated by implementing an application manager in Fig.~\ref{Fig:BigJob_Structure}, which is written in PYTHON script language. By default, an application manager calls a number of SAGA functions in sequence, to get allocated a vacant job, to run individual MPI simulation, to monitor its status, and to finalize the BigJob allocation.
 
@@ -1011,7 +1023,7 @@ All applications we examine are internal flow fields filled with the liquid argo
 The channel is 52 $\sigma$ in height, which is O(10$^{-8}$) meters. Applications covered in this work are periodic systems in a perpendicular direction and the flow variation is derived by the horizontal motion of the upper plate.
 
 
-As we proposed in Sec.~\ref{sec:numerical_parameters}, we solve a stationary flow in the particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity depending on the layer size and sampling duration in the 10$^{-8}$ meter domain. Experiments were conducted with different lengths of the domain from 35 $\sigma$ to 70 and 140 $\sigma$. Noises at 0.2 non-dimensional height above the bottom wall are presented.
+As we proposed in Sec.~\ref{sec:numerical_noise}, we solve a stationary flow in the particle domain to determine coupling conditions. Table \ref{table:MD_Vel0} shows the averaged velocity depending on the layer size and sampling duration in the 10$^{-8}$ meter domain. Experiments were conducted with different lengths of the domain from 35 $\sigma$ to 70 and 140 $\sigma$. Noises at 0.2 non-dimensional height above the bottom wall are presented.
 %% New
 We observe that increasing the length of the sampling layer is more effective in suppressing the sampling noise, compared to handling the sampling duration or the height of the sampling layer. However, increasing the length results in the increase of the molecular dynamic domain, which is unfavorable in view of computational cost. Thus, other two numerical treatments should be also considered.
 
@@ -1039,7 +1051,7 @@ We observe that increasing the length of the sampling layer is more effective in
 %&L = 35 \sigma :   &a = 33.67,~b= - 0.18,~c= - 0.30,~d=0.052\nonumber \\
 %&L = 70 \sigma :   &a=25.85,~b=- 0.19,~c= - 0.27,~d=0.062\nonumber \\
 %&L = 140 \sigma : &a=17.78,~b= - 0.18,~c=-0.25,~d=0.060\nonumber
-\label{eq:Noise2}
+%\label{eq:Noise2}
 %\end{eqnarray}
 %\normalsize
 %% Deleted
@@ -1280,7 +1292,7 @@ A sudden-start Couette flow is simulated to verify the accuracy of the current f
 
 %The flow condition in above experiment is rather unrealistic, which motivates us to apply the hybrid scheme to the analysis of moderate velocity flow. As has been expressed in Sec.~\ref{sec:numerical_lowspeed}, hybrid simulation of the low-speed flow field is mathematically possible but technically bound by the computing capacity, since the computational domain becomes $u^2$ times bigger in solving $1/u$ velocity field. We instead run $u^2$ independent simulations with the initial system size and different random number seeds in LAMMPS package. %A BigJob framework helps in scheduling multiple job execution and data management.
 
-However, the flow condition in the above experiment is rather unrealistic, which motivates us to apply the hybrid scheme to the analysis of the moderate velocity flow. As discussed in Sec.~\ref{sec:numerical_lowspeed}, the hybrid simulation of the low-speed flow field is mathematically possible but technically bound by the computing capacity, since the computational domain becomes $u^2$ times bigger in solving for a $1/u$ velocity field. Instead, we ran $u^2$ independent simulations with the initial system size and different random number seeds in the LAMMPS package.
+However, the flow condition in the above experiment is rather unrealistic, which motivates us to apply the hybrid scheme to the analysis of the moderate velocity flow. As discussed in Sec.~\ref{sec:numerical_noise}, the hybrid simulation of the low-speed flow field is mathematically possible but technically bound by the computing capacity, since the computational domain becomes $u^2$ times bigger in solving for a $1/u$ velocity field. Instead, we ran $u^2$ independent simulations with the initial system size and different random number seeds in the LAMMPS package.
 
 %The Couette flow profiles with different numbers of samples are presented in Fig.~\ref{multiple_couette}. All configurations and parameters are identical to the above validation problem, except the upper plate velocity of 0.25 $\sigma/\tau$. Changing the velocity to 1/4 implies that averaging 16 samples are required to get the acceptable numerical solution. The result supports the above supposition. The solution becomes very accurate when 16 individual runs are sampled. The reduction of statistical noise by multiple replica sampling is clearly verified by the graph in Fig.~\ref{multiple_couette_temporal}. The noise is roughly seen to reduce by half with 4 times more samples and the solution of sampling 16 runs shows about 5 $\%$ of the noise compared to the analytic solution profile.
 
@@ -1408,7 +1420,7 @@ In this section, we present our numerical experiments to verify the above reason
 
 
 \subsection{Waiting Time according to the Size and Wall-time Limit of an Individual Job}
-\label{sec:preliminary}
+\label{sec:performance_preliminary}
 %\begin{itemize}
 %\item Waiting time according to the size and wall-time limit of an individual job
 %\end{itemize}
@@ -1462,6 +1474,7 @@ for showing the variance of actual queue waiting times.
 
 
 \subsection{Waiting Time for a Coupled Simulation}
+\label{sec:performance_waiting}
 %Looking back on the scenario maps in Fig.~\ref{Fig:BigJob_Structure}, the result at Sec.~\ref{sec:preliminary} provides the waiting time between a BigJob and a first-allocated conventional job. We expect more performance gain by eliminating the inactive idling time (i.e., the difference between the waiting times of the two jobs) through the use of a BigJob. 
 
 Regarding the scenario maps in Fig.~\ref{Fig:BigJob_Structure}, the result in Sec.~\ref{sec:preliminary} provides the waiting time between a BigJob and a first-allocated conventional task. We expect more performance gain by eliminating the inactive idling time (i.e., the difference between the waiting times of the two jobs) with the BigJob application. 
@@ -1533,6 +1546,7 @@ Number of Cores & Wall-time & Scenario & Time-to-start\\
 
 
 \subsection{Performance Gain through Load Balancing}
+\label{sec:performance_LoadBalancing}
 %A BigJob framework in itself does not provide any performance gain during the simulation: a load balancer (LB) in a BigJob framework provides the better parallel performance by redistributing cores to individual sub-job within a context of packaged job. LB measures the performance of individual sub-job during the temporary stop and evolves application codes with changed number of cores. So, each code is scheduled to stop-and-restart several times for the complete simulation. It necessitates the capability of the application-level checkpointing and generic domain partitioning routine in application codes (both of which are incorporated capacities in most legacy codes).
 
 A BigJob framework in itself does not provide any performance gain during the simulation: a load balancer (LB) in a BigJob framework provides better parallel performance by redistributing processors to individual tasks within the context of the packaged job. LB measures the performance of individual tasks during a temporary stop and evolves application codes with a changed number of processors. Thus, each code is scheduled to stop and restart several times for the complete simulation, necessitating the capability of a application-level check-pointing and generic domain partitioning routine in application codes (both of which are incorporated capacities in most legacy codes).
@@ -1635,7 +1649,9 @@ Two things remained for open discussion: 1) how to effectively measure the actua
 \section{Next Step: Further Refinement}
 \label{sec:futureworks}
 
-The empirical mathematical equation on sampling noise has been presented in Sec.~\ref{sec:accuracy_conditions}. We argue that this is a refined model compared to previous mathematical expressions. However, the formulation has not been verified by various systems and conditions: coefficients will be changing according to the distance from the wall, characteristics of fluid and solid elements, etc. More rigorous research is required to address a globally acceptable equation of sampling noise.
+%The empirical mathematical equation on sampling noise has been presented in Sec.~\ref{sec:accuracy_conditions}. We argue that this is a refined model compared to previous mathematical expressions. However, the formulation has not been verified by various systems and conditions: coefficients will be changing according to the distance from the wall, characteristics of fluid and solid elements, etc. More rigorous research is required to address a globally acceptable equation of sampling noise.
+
+Numerical simulations in Sec.~\ref{sec:accuracy} demonstrates that the delicate determination of coupling parameters along with the supplementary use of replica sampling approaches (in Sec.~\ref{sec:numerical_noise} is very important for the accurate hybrid simulations. Unfortunately, coupling conditions have been rather intuitively or empirically determined according to the flow physics of the target problem, and proposed mathematical expressions in statistical error~\cite{Hadjicon3,Time_Mechanism} fails to consider the variation of sampling noise depending on the geometric configuration. It is highly required to develop a mathematical model for predicting the sampling noise in wall-bounded flow systems.
 
 Unsteady flow simulation in Sec.~\ref{sec:accuracy_oscillation} verifies that the prediction-correction approach provides more accurate solution than conventional temporal coupling scheme. The new approach is especially powerful in resolving the unfavorable overshoot/undershoot phenomena. On the other hand, the slight time-lagging effect in the conventional model has not been improved by the prediction-correction approach. We expect that this phenomenon can be resolved by applying higher-order extrapolation/interpolation on hybrid boundary regions.
 
