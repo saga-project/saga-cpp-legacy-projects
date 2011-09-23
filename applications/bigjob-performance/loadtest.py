@@ -9,18 +9,20 @@ from bigjob.bigjob_manager import bigjob, subjob
 
 # configurationg
 #COORDINATION_URL = "advert://advert.cct.lsu.edu:8080"
+#COORDINATION_URL = "redis://localhost"
 #COORDINATION_URL = "redis://i136"
-COORDINATION_URL = "redis://cyder.cct.lsu.edu:8080"
-#COORDINATION_URL = "tcp://i136"
+#COORDINATION_URL = "redis://cyder.cct.lsu.edu:8080"
+#COORDINATION_URL = "redis://cyder.cct.lsu.edu:8080"
+COORDINATION_URL = "tcp://localhost"
 
 #NUMBER_JOBS=[256]
-NUMBER_JOBS=[32,64,128,256,512]
-NUMBER_NODES=[1,2,4,8,16]
+NUMBER_JOBS=[64]
+NUMBER_NODES=[2]
 #NUMBER_NODES=[16]
-NUMBER_CORES_PER_NODE=8
+NUMBER_CORES_PER_NODE=1
 RESULT_DIR="results"
 RESULT_FILE_PREFIX="results/results-"
-LRMS_URL="pbspro://localhost"
+LRMS_URL="fork://localhost"
 
 
 def has_finished(state):
