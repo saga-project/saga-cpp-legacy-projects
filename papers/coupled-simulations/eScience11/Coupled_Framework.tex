@@ -51,9 +51,7 @@
 
 
 %-------------------------------------------------------------------------
-\title{A Framework for Coupled Multi-physics Simulations \skonote{some charming title?? 
-emphasizing ''it can cover various kinds of applications in different requirement, 
-main components can be replaced by other similar softwares, etc.''} }
+\title{A Framework for Coupled Multi-physics Simulations \skonote{some charming title?? emphasizing ''it can cover various kinds of applications in different requirement, main components can be replaced by other similar softwares, etc.''} }
 
 \author{
  ~\\[-2em]
@@ -71,23 +69,18 @@ main components can be replaced by other similar softwares, etc.''} }
 \maketitle
 
 \begin{abstract}
-\skonote{It is written considering that we will develop the hybrid 
-simulation framework where multiple distinct application codes are coupled.
-We shall decide first \textbf{whether we will focus only on a framework for 
-a computationally coupled multiple executions in parallel or 
-we will also cover the workflow between computational and 
-experimental tasks scheduled in tandem.}}
-we design and develop a multi-physics framework for coupled simulations
-in which scientific components (codes) are logically separated.
-Designed framework provides the interface between scientific components,
-(compilation system for system architectures,)
-a runtime environment for scheduling of coupled tasks, and
-data management/code versioning support.
-The framework is built by developing the data exchange interface 
-between coupled codes, (providing the wrapping script to users' Makefiles,)
-adopting a BigJob abstraction, and using the PetaShare service.
-We apply this framework into the hybrid computational fluid dynamics -
-particle dynamics application to demonstrate its capability.
+\skonote{It is written considering that we will develop the hybrid simulation framework where multiple distinct application codes are coupled. We shall decide first \textbf{whether we will focus only on a framework for a computationally coupled multiple executions in parallel or we will also cover the workflow between computational and experimental tasks scheduled in tandem.}}
+we design and develop a multi-physics framework for coupled simulations 
+in which scientific components (codes) are logically separated. 
+Designed framework provides the interface between scientific 
+components, the compiling service for different system architectures, a 
+runtime environment for scheduling of coupled tasks, and data 
+management/code versioning support. The framework is built by 
+developing the data exchange interface between coupled codes, providing 
+the compilation templates for specific architectures, adopting a BigJob 
+abstraction, and using the PetaShare service. We apply this framework 
+into the hybrid computational fluid dynamics - particle dynamics 
+application to demonstrate its capability.
 \end{abstract}
 \up\up
 
@@ -95,64 +88,61 @@ particle dynamics application to demonstrate its capability.
 \section{Introduction and Motivation}
 
 ''Coupled scientific simulations'' will refer to the scientific 
-research procedure which involves the data exchange between
-different components (either in parallel or in tandem). In both cases,
+research procedure which involves the data exchange between different 
+components operating either in parallel or in tandem. In both cases, 
 whether scientific tools are synchronously exchanging the information 
-during a single run or individual tools iteratively give the feedback
-to their counterparts, scheduling the overall procedure and
-providing the data stream under the distributed computing infrastructure
-is a headache to domain scientists. It motivates the development of
-a framework for coupled multi-component applications,
-which provides the following capabilities:
-%{\it Framework} is defined as ''an abstraction in which software 
-%providing generic functionality can be selectively changed 
-%by user code, thus providing application specific software.''~\cite{Framework}
-%According to this definition, a coupled multi-component framework
-%shall provide the following functionalities: 
+during a single run or individual tools iteratively give the feedback 
+to their counterparts, scheduling the overall procedure and providing 
+the data stream under the distributed computing infrastructure is a 
+headache to domain scientists. It motivates the development of a 
+framework for coupled multi-component applications, which provides the 
+following capabilities:
+%{\it Framework} is defined as ''an abstraction in which software providing generic functionality can be selectively changed by user code, thus providing application specific software.''~\cite{Framework} According to this definition, a coupled multi-component framework shall provide the following functionalities: 
 (1) the framework provides the data interface between distinct tools,
-(2) embedded softwares should be adaptive to different users' implementations, and 
+(2) embedded softwares should be adaptive to different users' 
+implementations, and 
 (3) they should be removable/replaceable by users' preferences.
 
-Two different strategies can be applied to designing a coupled multi-component 
-framework. One is to modularize all components and bind into
-a single executable, and the other is to remain multiple standalone softwares
-and provide the interface between individual executable. 
-The former is good for scheduling on most batch queue system and 
-effectively using allocated resources, while some restrictions 
-on data structure or standard grammar may apply on users' codes.
-Also, the binary can be heavier by containing unused or non-optimized functions
-for specific target problems. The other gives much freedom in writing 
-the individual component but can cause computational headache in scheduling
-components in remote production systems.
-We consider that binding into the single binary is recommendable if
-all software packages are tightly coupled together for a single task or
-they share most memory allocations. It is preferred to provide
-the interface and the scheduling function if those packages are
+Two different strategies can be applied to designing a coupled multi-
+component framework. One is to modularize all components and bind them 
+into a single executable, and the other is to keep multiple standalone 
+softwares and provide the interface between individual executable. The 
+former is good for scheduling on most batch queue systems and 
+effectively using allocated resources, while some restrictions on data 
+structure or standard grammar may apply on users' codes. Also, the 
+binary can be heavier since the executable might contain unused or non-
+optimized functions for solving specific target applications. The other 
+gives much freedom in writing the individual component but can cause a 
+computational headache in scheduling these components in remote 
+production systems. We consider that the integration to a single binary 
+is recommendable if all software packages are tightly coupled together 
+for a single task or they share most memory allocations. It is 
+preferred to couple multiple components through the communication 
+interface and the scheduling function if those packages are 
 sequentially loaded or they have different code structures.
 %This way is desirable if one simulation package is apparently lighter than the other or multiples of components are working together for a single application target, or all elements share a very similar data structure with variables or all elements can be scheduled in a sequential/tandem order on the simulation process. Cactus framework is one such example.
 
-A runtime environment for a coupled multi-physics application
-~\cite{CCGrid_Hybrid} has been developed previously. In this work,
-two coupled yet logically distributed scientific softwares have been
-effectively scheduled under the single batch queue allocation, 
-by the use of a BigJob~\cite{saga_royalsoc} with the load balancing
-capability incorporated. It demonstrated that a Pilot-job formulation
-can ease the scheduling of a coupled application whose components are
-hardly packaged into a single binary. However this runtime environment
-lacks the reusability because it only provides the scheduling functionality
-between already-coupled distributed application codes.
+A runtime environment for a coupled multi-physics application \cite
+{CCGrid_Hybrid} has been developed previously. In this work, two 
+coupled yet logically distributed scientific softwares have been 
+effectively scheduled under the single batch queue allocation, by 
+incorporating the load balancing capability on a BigJob abstraction 
+\cite{repex_ptrsa}. It demonstrated that a Pilot-job formulation can 
+ease the scheduling of a coupled application whose components are 
+hardly packed into a single binary. However this runtime environment 
+lacks the reusability because it only provides the scheduling 
+functionality between already-coupled distinct application codes.
 
-In this work, we design and develop a coupled multi-component framework.
-Along with the runtime environment between logically separated components,
-we also provide the standard interface between these components and
-take care of the data management/versioning. The structure of
-a coupled simulation framework is introduced in Sec.~\ref{sec:design}.
-Specific softwares implemented in this framework are described in
-Sec.~\ref{sec:implementation}. A coupled multi-physics application and
-an experiment-computation integrated research procedure are presented
-in Sec.~\ref{sec:experiment}. Recommendation for future work and 
-conclusions are presented in Sec.~\ref{sec:futureworks} and
-Sec.~\ref{sec:conclusion}.
+In this work, we design and develop a coupled multi-component 
+framework. Along with the runtime environment between logically 
+separated components, we also provide the standard interface between 
+these coupled components and take care of the data 
+management/versioning. The structure of a coupled simulation framework 
+is introduced in Sec.~\ref{sec:design}. Specific softwares implemented in this framework are described in Sec.~\ref{sec:implementation}. A 
+coupled multi-physics application and an experiment-computation 
+integrated research procedure are presented in Sec.~\ref{sec:experiment}. 
+Recommendation for future work and conclusions are presented in Sec. 
+\ref{sec:futureworks} and Sec.~\ref{sec:conclusion}.
 
 
 
@@ -161,21 +151,19 @@ Sec.~\ref{sec:conclusion}.
 \label{sec:design}
 
 \subsection{Requirements}
-Multiple components in a coupled application is hard to be packaged 
-into a single binary if 
-(1) each component uses very different computational kernels 
-or 
-(2) a manual procedure is involved in one of components.
-A hybrid computational fluid dynamics (CFD) - molecular dynamics (MD) 
-simulation is an example whose data structures are completely different
-so that it is fairly hard to incorporate into a single binary.
-Another situation is occasionally observed when there is an iterative
-feedback between a numerical simulation and the experimental measurement.
-Most probably, the physical experiment involves the human labor
-of changing specimen/mockup after the numerical investigation, 
-which cannot be digitalized.
-Figure~\ref{Fig:Overall_Flow} describes the procedure for 
-these two multi-component simulations.
+Packaging multiple components into a single binary is very tough if (1) 
+each component uses very different computational kernels or (2) a 
+manual processing/decision-making is included in one of solution 
+procedures. A hybrid computational fluid dynamics (CFD) - molecular 
+dynamics (MD) simulation is an example whose data structures are 
+completely different so that it is fairly hard to incorporate 
+application modules into a single binary. Another situation is 
+occasionally observed when there is an iterative feedback between a 
+numerical simulation and the experimental measurement. Most probably, 
+the physical experiment involves the human labor of changing 
+specimen/mockup after the numerical investigation, which cannot be 
+digitalized. Figure~\ref{Fig:Overall_Flow} describes the solution 
+procedure for these two multi-component simulations.
 
 
 %%%%% FIGURE %%%%%
@@ -185,39 +173,37 @@ these two multi-component simulations.
 \vskip 0.2cm
 \includegraphics[width=0.8\linewidth]{Flow_Exp_and_Comp.jpg}
 \vskip-0.2cm
-\caption{\small {\bf Research procedure of 
-(1) coupled multi-physics simulations and 
+\caption{\small 
+{\bf Solution procedure of (1) coupled multi-physics simulations and 
 (2) successive feedback between computations and experiments.} 
-In both cases, frequent data transfer takes place between 
-local and remote systems and a manual decision making intervenes 
-(either by visualizing the numerical solution or 
-by performing the experimental measurement). In addition, 
-the framework should support the communication interface and 
-concurrent execution in case of computationally coupling 
-distinct scientific softwares.}
+In both cases, frequent data transfer takes place between local and 
+remote systems and a manual decision-making intervenes (either by 
+visualizing the numerical solution or by performing the experimental 
+measurement). In addition, the synchronous communication takes place
+between co-scheduled computational components in case scietific 
+softwares are coupled in parallel.}
 \label{Fig:Overall_Flow}
 \end{figure}
 %%%%% FIGURE %%%%%
 
 
-A coupled multi-component simulation framework should be capable of
-scheduling the overall procedure (workflow) and
-a coupled simulation between multiple tasks (runtime environment).
-The workflow shall run software components according to 
-the pre-described schedule, which includes scientific softwares 
-and middleware packages. A runtime environment takes the role of
-running coupled multiple softwares in parallel, 
-in the form of a virtually single executable 
+A coupled multi-component simulation framework should be capable of 
+scheduling the overall procedure (workflow) and providing co-scheduled 
+execution between multiple tasks (runtime environment). The workflow 
+shall run middleware and scientific software packages according to the 
+pre-described schedule. A runtime environment executes coupled multiple 
+softwares in parallel, in the form of a virtually single executable 
 under the batch queue system.
 
-The functionality to handle the data transfer/exchange provides
-more convenience for performing the coupled simulation and 
-building coupled software packages. Automated data transferring
-eases the successive feedback between distributed tools,
-and also provides the basic-level versioning service 
-of source codes into the remote computing machines.
-The coupling interface can take care of the synchronous communication
-between concurrently running softwares.
+The functionality to handle the data flow (data management/archiving) 
+and the standardised communicator for the coupled simulation (coupling 
+interface) provides more convenience in performing the coupled 
+simulation and building coupled software packages. Automated data 
+transferring accelerates the iterative feedback between distributed 
+tools, and can also provide the basic-level versioning service of 
+source codes as well as archiving of final solution. The coupling 
+interface can take care of the synchronous communication between 
+concurrently running softwares.
 
 
 \subsection{Design}
@@ -333,7 +319,7 @@ of interest.
 %\nocite{ex1,ex2}
 \bibliographystyle{latex8}
 %\bibliographystyle{IEEEtran}
-\bibliography{saga_tg08}
+\bibliography{Bibs/Hybrid,Bibs/saga,Bibs/saga-related}
 
 
 \end{document}
