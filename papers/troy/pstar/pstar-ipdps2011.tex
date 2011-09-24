@@ -1626,9 +1626,9 @@ propagation mechanisms are in place. Further, an automatic re-execution of WUs
 is possible.
 
 \upp
-\subsection{Condor Glide-In\upp\upp}
+\subsection{Condor-G\upp\upp}
 
-Condor GlideIn pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
+Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
 actually a complete Condor pool that is started using the Globus service of a
 resource. Subsequently, jobs can be submitted to this Glide-In pool using the
 standard Condor tools and APIs. Condor utilizes a master/worker coordination
@@ -1704,7 +1704,7 @@ a FIFO and a load-aware scheduler.
 \begin{tabular}{|l|p{2.5cm}|p{2.5cm}|p{2.5cm}|p{2.5cm}|}
 	\hline
 	\textbf{P* Characteristic}
-	&\textbf{SAGA BigJob} &\textbf{DIANE} &\textbf{Condor Glide-In} &   
+	&\textbf{SAGA BigJob} &\textbf{DIANE} &\textbf{Condor-G} &   
 	\textbf{SWIFT Coaster} \\ \hline
 End User Environment &API &API and Master/Worker Framework &CLI Tools &Swift script\\ \hline
 
@@ -1749,6 +1749,31 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \jhanote{MS: The experiment section needs tighter and more focussed
   writing in general}
 
+In this section we analyze the performance and scalability of of different 
+TROY-BigJob configurations. In particular we investigate the performance 
+of various communication \& coordination backends. Further, we evaluate the 
+overall performance of TROY using a genome sequencing application scenario.
+
+\subsection{Understanding Pilot-Jobs}
+
+As alluded in section~\ref{sec:pilot-model}, the realization of a P*
+implementation is associated with various degrees of freedom, e.\,g.\ in the
+design of the communication \& coordination (c\&c) mechanism. BigJob provides a flexible c\&c layer supporting the backends: a SAGA Advert API implementation based on PostgreSQL~\cite{saga_advert}, Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+
+Figure~\ref{fig:figures_coordination-schemes} illustrates different coordination scheme. Most pilot jobs follow a  master-worker model based on a simple request/response architecture, i.\,e.\ the agent e.\,g.\ sends a request for work packages to the master, which replies with a WU. A manager can manage a single agent (e.\,g.\ BigJob) or multiple agents (e.\,g.\ DIANE)
+
+\begin{figure*}[htbp]
+	\centering		
+	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
+	\caption{\textbf{Coordination \& Communication:} The primarily used 
+	coordination pattern is the utilization of a request/response server 
+	(left, middle). In the data-space model (right) all application components 
+	are connect to a central data-space. This architecture decouples manager 
+	and agent allowing both to operate on its own pace.}
+	\label{fig:figures_coordination-schemes}
+\end{figure*}
+
+\subsection{TROY - BFAST}
 To validate the abstractions we have presented we conducted a series of
 experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing
 application. To manage the workflow we use the DARE~\cite{dare-tg11} framework
