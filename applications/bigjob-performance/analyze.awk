@@ -38,14 +38,16 @@ END {
     mid = int(n/2)+1;
     median = (n % 2) ? nums[mid] : (nums[mid] + nums[mid-1])/2;
 
-    printf("n:                  %d\n", n);
-    printf("median:             %f\n", median);
-    printf("mean:               %f\n", mean);
-    printf("average_deviation:  %f\n", avg_dev);
-    printf("standard_deviation: %f\n", std_dev);
-    printf("variance:           %f\n", vari);
-    printf("skew:               %f\n", skew);
-    printf("kurtosis:           %f\n", kurt);
+    #printf("n:                  %d\n", n);
+    #printf("median:             %f\n", median);
+    #printf("mean:               %f\n", mean);
+    #printf("average_deviation:  %f\n", avg_dev);
+    #printf("standard_deviation: %f\n", std_dev);
+    #printf("variance:           %f\n", vari);
+    #printf("skew:               %f\n", skew);
+    #printf("kurtosis:           %f\n", kurt);
+
+	printf("\t%f\t%f", mean, std_dev);
 
 #     printf("#n\tmedian\tmean\taverage_deviation\tstandard_deviation\tvariance\tskew\tkurtosis\tmin\tmax\n");
 #     printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\n", n, median, mean, avg_dev, std_dev, vari, skew, kurt, min, max);
