@@ -129,7 +129,7 @@
 \fi
 
 \author{
-  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Andre Merzky$^{1}$, Shantenu Jha$^{3,1*}$\\
+  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Andre Merzky$^{1}$, Ole Weidner$^{1}$, Shantenu Jha$^{3,1*}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
  \small{\emph{$^{2}$Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, The Netherlands}}\\
  \small{\emph{$^{3}$ Rutgers University, Piscataway, NJ 08854, USA}}\\
@@ -1754,13 +1754,14 @@ TROY-BigJob configurations. In particular we investigate the performance
 of various communication \& coordination backends. Further, we evaluate the 
 overall performance of TROY using a genome sequencing application scenario.
 
-\subsection{Understanding Pilot-Jobs}
+\subsection{Understanding Pilot-Job Implementations}
 
 As alluded in section~\ref{sec:pilot-model}, the realization of a P*
 implementation is associated with various degrees of freedom, e.\,g.\ in the
-design of the communication \& coordination (c\&c) mechanism. BigJob provides a flexible c\&c layer supporting the backends: a SAGA Advert API implementation based on PostgreSQL~\cite{saga_advert}, Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
-
-Figure~\ref{fig:figures_coordination-schemes} illustrates different coordination scheme. Most pilot jobs follow a  master-worker model based on a simple request/response architecture, i.\,e.\ the agent e.\,g.\ sends a request for work packages to the master, which replies with a WU. A manager can manage a single agent (e.\,g.\ BigJob) or multiple agents (e.\,g.\ DIANE)
+design of the communication \& coordination (c\&c) mechanism. BigJob provides
+a flexible c\&c layer supporting the backends: a SAGA Advert API
+implementation based on PostgreSQL~\cite{saga_advert}, Redis~\cite{redis} and
+ZeroMQ~\cite{zmq}.
 
 \begin{figure*}[htbp]
 	\centering		
@@ -1772,6 +1773,39 @@ Figure~\ref{fig:figures_coordination-schemes} illustrates different coordination
 	and agent allowing both to operate on its own pace.}
 	\label{fig:figures_coordination-schemes}
 \end{figure*}
+
+Figure~\ref{fig:figures_coordination-schemes} illustrates different
+coordination scheme. Most pilot jobs follow a master-worker model based on a
+simple request/response architecture, i.\,e.\ the agent e.\,g.\ sends a
+request for work packages to the master, which replies with a WU. A manager
+can manage a single agent (e.\,g.\ BigJob) or multiple agents (e.\,g.\ DIANE).
+Using a central data space decouples manager and agent, i.\,e.\ both entities 
+are able to operate at its own pace. However, a disadvantage of this 
+architecture is that the intermediary also adds some performance overhead. 
+Both schemes can be combined with a publish/subscribe mechanisms, i.\,e.\ 
+instead of polling an agent can receive notifications when a new work unit 
+arrives. In the following with discuss the topologies used respectively 
+supported by TROY.
+
+
+Figure~\ref{fig:perf_bigjob-varying-wus} illustrates the performance and 
+scalability of BigJob. Clearly, the used communication \& coordination 
+abstraction and framework has a great impact of the overall performance. As 
+seen in Figure~\ref{fig:perf_bigjob-varying-wus} (left) the overhead of 
+executing WUs is minimal. When the number of WUs is low, BJ can batch WU; 
+thus, the increase is less than linear.
+
+\begin{figure*}[htbp] \centering
+\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus.pdf}\qquad
+\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores.pdf}
+\caption{\textbf{BigJob Performance and Scalability:} The time-to-completion
+for $n$ WUs running \texttt{/bin/date} increases only moderately in most cases
+(left), i.\,e.\ the coordination overhead imposed by the BJ is minimal. The
+runtime of a constant workload of 4 \texttt{/bin/date} jobs per core also
+increases only slightly up to 128 cores (right). }
+\label{fig:perf_bigjob-varying-wus} \end{figure*}
+
+\alnote{spent a paragraph on Advert limitations}
 
 \subsection{TROY - BFAST}
 To validate the abstractions we have presented we conducted a series of
