@@ -40,14 +40,15 @@ plot "results-processed/data_file_redis" using 1:2 title "Redis (Remote)" with l
      "results-processed/data_file_zmq" using 1:2 title "ZMQ" with lp  lt 5 linewidth 4
      
       
-#set output "repex-azure.eps"      
+set output "results-processed/bigjob-varying-cores.pdf" 
+set xlabel "Number of Cores"  #font "Helvetica,17"      
 #set xlabel "Number of Replicas"  font "Helvetica,24"
 #set ylabel "Runtime (in min)"   font "Helvetica,24"
-#set xrange [2:32]
+set xrange [6:130]
 #set logscale x 2 
 #set xtics (2,4,8,16,32)
 #set yrange [20:115] 
-#plot "repex-azure.txt" using 1:2 title "small (1 cores)" with lp lt 8 linewidth 4,\
-#     "repex-azure.txt" using 1:3 title "medium (2 cores)" with lp  lt 4 linewidth 4,\
-#     "repex-azure.txt" using 1:4 title "large (4 cores)" with lp  lt 5 linewidth 4,\
+plot "results-processed/data_file_cores_redis" using 1:2 title "Redis (Remote)" with lp lt 8 linewidth 4,\
+     "results-processed/data_file_cores_redis_local" using 1:2 title "Redis (Local)" with lp  lt 4 linewidth 4,\
+     "results-processed/data_file_cores_zmq" using 1:2 title "ZMQ" with lp  lt 5 linewidth 4
 #     "repex-azure.txt" using 1:5 title "extra-large (8 cores)" with lp  lt 3 linewidth 4

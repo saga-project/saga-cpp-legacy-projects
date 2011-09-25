@@ -47,7 +47,7 @@ END {
     #printf("skew:               %f\n", skew);
     #printf("kurtosis:           %f\n", kurt);
 
-	printf("\t%f\t%f", mean, std_dev);
+	printf("\t%f\t%f\t%d", mean, std_dev,n);
 
 #     printf("#n\tmedian\tmean\taverage_deviation\tstandard_deviation\tvariance\tskew\tkurtosis\tmin\tmax\n");
 #     printf("%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%d\t%d\n", n, median, mean, avg_dev, std_dev, vari, skew, kurt, min, max);
