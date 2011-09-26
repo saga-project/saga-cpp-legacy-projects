@@ -1787,17 +1787,15 @@ instead of polling an agent can receive notifications when a new work unit
 arrives. In the following with discuss the topologies used respectively 
 supported by TROY.
 
-
 Figure~\ref{fig:perf_bigjob-varying-wus} illustrates the performance and 
 scalability of BigJob. Clearly, the used communication \& coordination 
 abstraction and framework has a great impact of the overall performance. As 
 seen in Figure~\ref{fig:perf_bigjob-varying-wus} (left) the overhead of 
-executing WUs is minimal. When the number of WUs is low, BJ can batch WU; 
-thus, the increase is less than linear.
+executing WUs is minimal. When the number of WUs is low, BJ can batch WUs optimizing the overall throughput.  Thus, the overall increase is less than linear indicating a very good scalability.
 
 \begin{figure*}[htbp] \centering
-\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus.pdf}\qquad
-\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores.pdf}
+\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus-alamo.pdf}\qquad
+\includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores-alamo.pdf}
 \caption{\textbf{BigJob Performance and Scalability:} The time-to-completion
 for $n$ WUs running \texttt{/bin/date} increases only moderately in most cases
 (left), i.\,e.\ the coordination overhead imposed by the BJ is minimal. The
@@ -1806,6 +1804,15 @@ increases only slightly up to 128 cores (right). }
 \label{fig:perf_bigjob-varying-wus} \end{figure*}
 
 \alnote{spent a paragraph on Advert limitations}
+The BigJob Advert implementation currently shows some performance limitations
+mainly caused by the prototypical nature of the Advert service implementation.
+The used advert service is based on PostgreSQL; in the current architecture
+the client, i.\,e.\ the BJ manager and agent access the PostgreSQL database
+via the SOCI backend library. While this architecture provides a very flexible
+remote access to the database, running database access protocol over a WAN
+connection is not optimal. Transactions e.\,g.\ are very latency sensitive and
+require several roundtrips.
+
 
 \subsection{TROY - BFAST}
 To validate the abstractions we have presented we conducted a series of
