@@ -151,6 +151,8 @@ Recommendation for future work and conclusions are presented in Sec.
 \label{sec:design}
 
 \subsection{Requirements}
+\skonote{In this section, we shall contain \textbf{what functionality the framework should provide} in easy words.}
+
 Packaging multiple components into a single binary is very tough if (1) 
 each component uses very different computational kernels or (2) a 
 manual processing/decision-making is included in one of solution 
@@ -195,31 +197,13 @@ pre-described schedule. A runtime environment executes coupled multiple
 softwares in parallel, in the form of a virtually single executable 
 under the batch queue system.
 
-The functionality to handle the data flow (data management/archiving) 
-and the standardised communicator for the coupled simulation (coupling 
-interface) provides more convenience in performing the coupled 
-simulation and building coupled software packages. Automated data 
-transferring accelerates the iterative feedback between distributed 
-tools, and can also provide the basic-level versioning service of 
-source codes as well as archiving of final solution. The coupling 
-interface can take care of the synchronous communication between 
-concurrently running softwares.
+The functionality to handle the data flow (data management/archiving) and the standardised communicator for the coupled simulation (coupling interface) will provide more convenience in performing the coupled simulation and building coupled software packages. The framework should be capable of transerring data between distributed tools when each operation completes; Executables on remote computing facilities should be up-to-date when there is a change on the source code in the local server; Final solutions from multiple different parameter sets should be archived effectively. In addition, the capability of exchanging datasets between destinct softwares without the explicit and direct access between individual source code will ease the development of coupled scientific softwares. (or: the supprot of a standardised communicator between distinct codes will ease the development of coupled scientific softwares.)
 
 
 \subsection{Design}
-We design the concrete structure of a coupled multi-component 
-simulation framework as presented in Fig.~\ref{Fig:Multicomponent_Framework}.
-Looking at the default operation flow, the updated source code is copied to
-the remote computing resource and the individual source code is linked with
-the coupling interface during the compilation. These distinct yet coupled
-executables run concurrently by the help of a runtime environment. The solution
-is referenced by a third-party and the decision is made to accept/decline
-the numerical solution (either through the visualization or 
-the experimental measurement). The acceptable solution is archived 
-in the local server, or the new computation is performed using different
-parameter/modified source codes. In case the computation and 
-the experimential measurement are coupled in sequence, 
-compilation and job submission processes become simpler.
+\skonote{In this section, we address \textbf{what functionality each group/service will provide and how we can give these services} in more professional terms.}
+
+We design the concrete structure of a coupled multi-component simulation framework as presented in Fig.~\ref{Fig:Multicomponent_Framework}. Looking at the operation flow, the updated source code from the local machine replaces the old version in the remote computing resource and the individual source code is coupled together during the compilation, by the help of the external coupling interface. A runtime environment runs these distinct-yet-coupled executables concurrently. The solution is referenced by a scientist and the decision is made to accept/decline the numerical solution (either through the visualization or the experimental measurement). The acceptable solution is archived in the local server, or the new computation is performed by changing simulation parameters or source codes. In case the computation and the experimential measurement are coupled in sequence, compilation and job submission processes become simpler.
 
 
 %%%%% FIGURE %%%%%
@@ -237,43 +221,16 @@ coupled simulation procedure.}
 %%%%% FIGURE %%%%%
 
 
-Data management service provides the data sharing among distributed computing
-facilities, updating the source codes between local and remote machines, and
-archiving final solutions. These functions can be implemented by running 
-a couple of secure FTP commands;
-Installing a versioning service such as 
-CVS (Concurrent Versioning System:~\cite{CVS}), 
-SVN (Apache Subversion:~\cite{SVN}), or 
-GIT (The fast version control system:~\cite{GIT})
-on a central repository server is another way; Using a data Grid service
-such as PetaShare~\cite{PetaShare} can be helpful if sharing large-scale
-data on a distributed environment is of particular interest.
+Data management service provides the data sharing among distributed computing facilities, updating the source codes on local and remote machines, and archiving final solutions. These functions can be implemented by running a couple of secure FTP commands; Installing a versioning service such as CVS (Concurrent Versioning System:~\cite{CVS}), SVN (Apache Subversion:~\cite{SVN}), or GIT (The fast version control system:~\cite{GIT}) on a central repository server is another way; Using a data Grid service such as PetaShare~\cite{PetaShare} can be helpful if sharing large-scale data on a distributed environment is of particular interest.
 
-Coupling system provides the data exchange between distinct application codes
-and helps the compiling procedure. The coupling interface can be supported
-either in the form of a library which opens a file-based channel between
-distributed executables, or as a separate binary which binds all MPI
-communicators under a single MPI runtime environment. In either case,
-the interface function calls should be deployed in coupled source codes.
-Compilation system handles all compilations including individual source
-codes and the coupler. It wraps up compiling options on users' makefiles
-to link the coupling library with the executable and 
-to apply optimal options for specific systems. A single wrap-up script
-can provide these capabilities up to some extent; Some compilation systems
-such as the Simulation Factory~\cite{SimFactory} can provide more generality
-independent of different system architectures and configurations.
+Coupling system provides the interface for the information exchange between distinct application codes and helps the compiling procedure in different system architectures. The coupling interface can be supported either in the form of a library which opens a file-based channel between distributed executables, or as a separate binary which binds all MPI communicators under a single MPI runtime environment. In either case, the interface function calls should be deployed in coupled source codes. Compilation system takes care of compiling individual scientific codes and coupling interface. It wraps up compiling options on users' makefiles to add the linkage with the coupling library and to apply optimal options for specific system architectures. A single wrap-up script along with templates which store optimal compilation options for known system architectures can provide these capabilities up to some extent; Some advanced compilation systems such as the Simulation Factory~\cite{SimFactory} can provide more functionality independent of different system architectures and configurations.
 
-A runtime environment is designed to co-schedule and load-balance between
-coupled distinct tasks. The above issue is easily resolved by allocating
-a pilot-job in which coupled subtasks are effectively scheduled. A number of
-pilot-job implementations such as a Condor Glidein Job~\cite{Condor},
-a BigJob~\cite{repex_ptrsa}, or a Pilot Factory~\cite{PilotFactory},
-are present. Also, some supercomputing centers provide the capability of
-concurrently starting multiple jobs in the basic level.
+A runtime environment is designed to co-schedule and load-balance between coupled distinct tasks. The above issue is easily resolved by allocating a pilot-job in which coupled subtasks are effectively scheduled. A number of pilot-job implementations such as a Condor Glidein Job~\cite{Condor}, a BigJob abstraction~\cite{repex_ptrsa}, or a Pilot Factory~\cite{PilotFactory}, are present. Also, some supercomputing centers provide the capability of concurrently starting multiple jobs in the basic level.
 
 % -------------------------------------------------------------------------
 \section{Implementation}
 \label{sec:implementation}
+\skonote{In this section, we shall explain \textbf{how each service is implemented in our specific framework}.}
 
 \subsection{Data Management and Archiving}
 
