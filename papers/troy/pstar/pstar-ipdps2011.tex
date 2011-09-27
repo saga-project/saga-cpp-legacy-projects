@@ -450,6 +450,7 @@ be used to describe a pilot-data model.
 
 \alnote{Is a WU is assigned to a PJ (colloquial for the whole thing
   and not a specific PJ) or PJ framework?}
+\amnote{parse error: isn't the framework the 'whole thing'?}
 
 \noindent
 This sub-section defines the elements of the P* model:
@@ -458,6 +459,9 @@ This sub-section defines the elements of the P* model:
 \alnote{While I think it is useful to explain some of the external entities 
 (such as an RM) they should be not listed under core elements. Actually we had 
 a RM before, but removed it for this reason}
+\amnote{I see.  Well, if it adds clarity, I don't mind including external terms
+  -- they are marked as such...}
+
 \begin{compactitem}
 \item \textbf{Resource:} The entity which provides a Computing
 Capability, and can execute Compute jobs.  The Resource is not part of
@@ -474,22 +478,39 @@ used to manage sub-slices of a resource.
 
 \alnote{I think this description mixes to much the scheduling aspects
 external to P* (RM) and internal to P* (possible multiple levels
-of scheduling and decision making)}
+of scheduling and decision making)}  
+\amnote{That is on purpose really -- an external RM does not do anything
+different than an internal RM, only that one operated (in our case) in system 
+space, and the other one in user space, on a subset of system resources
+(slice).}
+
+
 \item\textbf{Scheduler:} A scheduler applies scheduling constraints to
 an unconstraint resource request, thereby transforming the resource
 request into a (complete or partially) constraint request.  For
-example, a scheduler can constrain a job description (i.e. a
-request for a compute resource) to run on a specific node, thereby 
-constraining it in space, but not in time.  \alnote{a job description has no 
-state and is not scheduled only WUs are. Further, there can be spatial and 
-temporal constraints.}  Downstream schedulers can
-further constrain the request, until it is completely fixed to a
-resource slice, i.e. it is \emph{assigned}.  A \emph{Scheduler} is part
-of the \emph{Resource-Manager}, i.e. it operates on a well defined set 
-of resources or resource slices.\\
+example, a Grid meta scheduler may constring a job description (i.e. a
+resource request) to a specific resource subset, e.g. to a specific
+cluster.   Downstream schedulers can further constrain the resource
+request, for example the cluster queue manager may add spatial and
+temporal constrains, by assigning it to a specific compute node and
+timeslot, so that it is completely fixed to a resource slice, i.e. it
+is \emph{assigned}.  A \emph{Scheduler} is part of the
+\emph{Resource-Manager}, i.e. it operates on a well defined set of
+resources or resource slices.\\
 \textbf{Note} that a scheduler can potentially break up an incoming resource
 request into multiple smaller resource requests, or can combine
 multiple resource requests into larger ones.
+
+\alnote{a job description has no state and is not scheduled only WUs
+are.} \amnote{I don't think state plays a role here.  Further, a WU is
+IMHO a job description -- only that the term 'job' is overloaded in
+our environment (i.e.  an instance of an executable application), and
+thus not used here.} \alnote{ Further, there can be spatial and
+temporal constraints.}\amnote{Sure. The above is an example of a
+partial constraint -- I adjusted it to make that more clear.  There
+can also be constraints on internal metrics, like on memory usage
+etc.} 
+
 
 \item \textbf{Pilot-Job (PJ):} The PJ (or `pilot') is
   the part of the PJ framework that actually gets submitted and 
@@ -504,6 +525,17 @@ multiple resource requests into larger ones.
 
 \alnote{I think we agreed in our call on 09/26 to leave this as a two step
 process: binding and scheduling}
+\amnote{I don't think there is a contradiction, not at all.  Binding
+is not done to a resource, but to a PJ, i.e. to a (sub-)resource manager.  
+For early binding, that PJ has no resources it manages, yet, so it is
+a somewhat abstract RM, but that does not matter. Binding is thus
+adding a constraint to a WU that it is handled by a specific but
+abstract PJ.  Scheduling as done by the PJ is adding additional
+constraints to the WU, by assigning it to specific resources.  Late
+binding OTOH is working on specific RMs which manage specific
+resources.  So, I think that we actually clarify the early/late
+binding :-)}
+
 \item \textbf{assign:} A resource request is \emph{assigned} to a
 resource slice when its constraints allow it to run on that, and only
 that, resource.
