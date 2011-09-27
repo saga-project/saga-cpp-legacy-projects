@@ -536,7 +536,7 @@ manager.
 %     assumed that a meta-scheduling between multiple pilots takes
 %     place. }
 
-\item \textbf{Scheduling Unit (SU):} \alnote{I think this ``contstraining''
+\item \textbf{Scheduling Unit (SU):} \alnote{I think this ``constraining''
 view of the world leaves out aspects, such as the grouping and internal 
 scheduling mechanisms} SUs are constrained WUs, i.e. they are
 WUs which have been passed through the PJ frameworks top level scheduler. SUs
@@ -746,8 +746,8 @@ component (which SU is executed on which pilot?) and a temporal component (at
 what time?). The different scheduling decisions that need to be made are
 representative of multi-level scheduling decisions that are often required in
 distributed environments. Commonly a set of (user-defined) policies (e.g.
-resource capabilities, data/compute affinities, etc.) or the implementation of a
-custom scheduler is supported.
+resource capabilities, data/compute affinities, etc.) or the implementation of 
+a custom scheduler is supported.
 
 %\begin{itemize}
 % \item Multi-level scheduling: In a distributed environment often
@@ -808,25 +808,24 @@ instantiation of a PJ and the assignment of resources to the PJ,
 pilots are queued and started via the local resource manager (step
 1-4). Having initialized the PJ, WUs can be submitted to it (step 5).
 
-
-Most PJs utilize a M/W coordination model, i.\,e.\ the manager tightly controls
-the actions of the worker (the agent). However, the integration of more decision
-capabilities into the agent can yield to a more autonomic and adaptive behavior
-as well as a better scalability. Depending on the structure and coordination of
-the P* framework, a P* framework usually consists of a hierarchy of schedulers.
-In the first step, the application submits a WU to the PJ framework in most
-cases via the manager component. A manager can be responsible for a resource
-pool consisting of multiple pilot-jobs. On this level the manager can bind one
-or multiple WU(s) to a SU. Then it schedules the SU to a resource, i.\,e.\ a 
-running pilot (step 6). In the simplest case one WU corresponds to one SU. 
-Similarly, the pilot conducts another round of binding and scheduling: The SU of 
-the manager is the WU of the pilot. The pilot WU is bound to a pilot SU (step 
-7). The SU gets executed to a physical resource on which the pilot is operating 
-(step 8).
+Most PJs utilize a M/W coordination model, i.\,e.\ the manager tightly
+controls the actions of the worker (the agent). However, the integration of
+more decision capabilities into the agent can yield to a more autonomic and
+adaptive behavior as well as a better scalability. Depending on the structure
+and coordination of the P* framework, a P* framework usually consists of a
+hierarchy of schedulers. In the first step, the application submits a WU to
+the PJ framework in most cases via the manager component. A manager can be
+responsible for a resource pool consisting of 1 or many pilot-jobs. On this
+level the manager can bind one or multiple WU(s) to a SU. Then it schedules
+the SU to a resource, i.\,e.\ a running pilot (step 6). In the simplest case
+one WU corresponds to one SU. Similarly, the pilot conducts another round of
+binding and scheduling: The SU of the manager is the WU of the pilot. The
+pilot WU is bound to a pilot SU (step 7). The SU gets executed to a physical
+resource on which the pilot is operating (step 8).
 
 \begin{figure}[htbp]
     \centering\up
-    \includegraphics[width=0.45\textwidth]{figures/pstar_model_multi.pdf}
+    \includegraphics[width=0.45\textwidth]{figures/pstar_model_single.pdf}
     \caption{
       \textbf{P* Model: Elements and Interactions:} The core of
       the model is the manager that is responsible for managing
@@ -1866,27 +1865,39 @@ are able to operate at its own pace. However, a disadvantage of this
 architecture is that the intermediary also adds some performance overhead. 
 Both schemes can be combined with a publish/subscribe mechanisms, i.\,e.\ 
 instead of polling an agent can receive notifications when a new work unit 
-arrives. In the following with discuss the topologies used respectively 
-supported by TROY.
-
-Figure~\ref{fig:perf_bigjob-varying-wus}\,/\,\ref{fig:perf_bigjob-varying-cores}
-illustrate the performance and scalability of BigJob. Clearly, the used
-communication \& coordination abstraction and framework has a great impact of
-the overall performance. As seen in Figure~\ref{fig:perf_bigjob-varying-cores}
-the overhead of executing WUs is minimal in particular with the Redis and ZMQ
-backend. When the number of WUs is low, BJ can batch WUs optimizing the
-overall throughput. Thus, the overall increase is less than linear indicating
-a very good scalability. The Redis backend shows the best performance
-providing a very natural decoupling between manager and agent. While ZeroMQ is
-very fast and lightweight by itself, it requires a very careful implementation
-in particular concerning synchronization and throughput optimization. The
-overall performance is slightly worse than for Redis.
+arrives. In the following we discuss different coordination \& communication 
+architectures. For this purpose, we conducted several experiments on FutureGrid~\cite{fg}.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus-alamo.pdf}
 \caption{\textbf{BigJob Performance:} The time-to-completion
 for $n$ WUs running \texttt{/bin/date} increases only moderately in most cases, i.\,e.\ the coordination overhead imposed by the BJ is minimal. }
 \label{fig:perf_bigjob-varying-wus} \end{figure}
+
+Figure~\ref{fig:perf_bigjob-varying-wus}\,/\,\ref{fig:perf_bigjob-varying-cores}
+illustrate the performance and scalability of BigJob. Clearly, the used
+communication \& coordination abstraction and framework has a great impact of
+the overall performance. As seen in Figure~\ref{fig:perf_bigjob-varying-cores}
+the coordination overhead imposed on a single WU is minimal in particular with 
+the Redis and ZMQ backend. The Advert backend currently has some limitations 
+which will be discussed later. When the number of WUs is low, BJ can batch WUs optimizing the
+overall throughput. Thus, the overall increase is less than linear indicating
+a very good scalability. The Redis backend shows the best performance
+providing a very natural decoupling between manager and agent. While ZeroMQ is
+very fast and lightweight by itself, it requires a very careful implementation
+in particular concerning synchronization and throughput optimization. The
+overall performance is slightly worse than for Redis. In summary, at the 
+investigated scenario does not show a significant bottleneck at the manager 
+side. If permitted by the communication backend, a single manager is also able 
+to handle larger WU counts. BigJob particularly benefits from the performance of 
+alternative backends such as Redis and ZeroMQ. Further, the TROY manager introduces another hierarchy-level which can further enhance the overall 
+scalability. 
+
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of
+BigJob. Despite the performance differences in the different PJ frameworks and
+c\&c backends, the overall scalability is good. Naturally both the manager and
+agent exhibit certain limitations in the number of WUs and cores they can
+support.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores-alamo.pdf}
