@@ -14,7 +14,7 @@
 \usepackage{wrapfig}    
 \usepackage[small,it]{caption}
 \usepackage{multirow}
-\usepackage{ifpdf}
+\usepackage{ifpdf}\
 %\usepackage{srcltx}
 \usepackage{subfigure}
 \usepackage{paralist}
@@ -383,22 +383,22 @@ just to compare and contrast them.
 \emph{Terms and Usage:} It is important to emphasize that the terms
 abstraction, model, framework, and implementation are overloaded and
 often used inconsistently; thus we establish their usage in this
-paper. The pilot \emph{ abstractions} generalizes the reoccuring
+paper. The pilot-job \emph{ abstractions} generalizes the reoccuring
 concept of utilizing a placeholder job as a container for a set of
-compute tasks. % The placeholder job is commonly referred to as a
-% \emph{pilot-job} or a \emph{pilot}.
+compute tasks -- instances of that placeholder job are commonly 
+referred to as \emph{pilot-jobs} or \emph{pilots}.
 The P* \emph{model} provides a specific, comprehensive description of
 pilot-job abstractions based on a set of identified elements and
 characteristics.
 The P* model can be used as a {\it conceptual framework}, 
 % the \emph{P* %   framework},  
-for analyzing different implementations of the pilot
+for analyzing different implementations of the pilot-job
 abstraction. \emph{TROY} is a specific implementation of the P*
-framework; it is also often referred to as {\it software framework}
+abstraction; it is also often referred to as a {\it software framework}
 for pilot-jobs.
 
-In an attempt to provide a common analytical framework using which
-most, if not all commonly used pilot-jobs can be understood, we
+In an attempt to provide a common analytical framework to understand
+most, if not all commonly used pilot-jobs, we
 present the P* model of pilot-abstractions. The P* model is derived
 from an analysis of many pilot-job implementations; based upon this
 analysis, we first present the common {\it elements} of the P* model,
@@ -455,19 +455,59 @@ be used to describe a pilot-data model.
 This sub-section defines the elements of the P* model:
 
 \begin{compactitem}
-\item \textbf{Pilot-Job (PJ):} The PJ (or `pilot') is
-  the entity that actually gets submitted and scheduled onto a
-  resource using the local resource management system. The pilot often
-  has the role of an agent: it collects local information, manages the
-  resources allocated to it and exchanges data (such as resource
-  information, states) with the other elements of the PJ
-  framework. % Depending on the context, PJ also refers to the PJ concept or the PJ
-% abstraction. \alnote{or the framework?}
 
-\alnote{Terms: assign -- binding of a wu to a SU (see binding
-characteristic); submit -- add a WU to a PJ framework (does not need to get
-assigned at this moment)}
-\item \textbf{Work Unit (WU):} A work unit %is the workload that
+\item \textbf{Resource:} The entity which provides a Computing
+Capability, and can execute Compute jobs.  The Resource is not part of
+the PJ framework.
+
+\item \textbf{Resource Slice:} A phisical or logical part (i.e.
+subset) of a \emph{Resource}.
+
+\item \textbf{Resource-Manager (RM):} A system component which manages
+the access and utilization of a \emph{Resource}.  In particular, the
+RM assigns slices of the Resource to individual Resource requests.
+The RM is not part of the PJ framework.  A hierarchy of RMs can be
+used to manage sub-slices of a resource.
+
+\item\textbf{Scheduler:} A scheduler applies scheduling constraints to
+an unconstraint resource request, thereby transforming the resource
+request into a (complete or partially) constraint request.  For
+example, a scheduler can constrain a job description (i.e. a
+request for a compute resource) to run on a specific node, thereby 
+constraining it in space, but not in time.  Downstream schedulers can
+further constrain the request, until it is completely fixed to a
+resource slice, i.e. it is \emph{assigned}.  A \emph{Scheduler} is part
+of the \emph{Resource-Manager}, i.e. it operates on a well defined set 
+of resources or resource slices.\\
+\textbf{Note} that a scheduler can potentially break up an incoming resource
+request into multiple smaller resource requests, or can combine
+multiple resource requests into larger ones.
+
+\item \textbf{Pilot-Job (PJ):} The PJ (or `pilot') is
+  the part of the PJ framework that actually gets submitted and 
+  scheduled onto a resource using the resources RM system.  The 
+  RM assigns a slice of the Resource to the pilot -- that pilot 
+  then acts as RM for that resource slice.  
+  % Often, the pilot 
+  % has the role of an agent: it collects local information, manages the
+  % resources allocated to it and exchanges data (such as resource
+  % information, states) with the other elements of the PJ
+  % framework. 
+
+\item \textbf{assign:} A resource request is \emph{assigned} to a
+resource slice when its constraints allow it to run on that, and only
+that, resource.
+
+\item \textbf{submit:} A resource request is passed to a resource
+manager, 
+
+% \alnote{Terms: assign -- binding of a wu to a SU (see binding
+% characteristic); submit -- add a WU to a PJ framework (does not need to get
+% assigned at this moment)}
+
+
+\item \textbf{Work Unit (WU):} 
+  A work unit is a resource request which
   encapsulates a self-contained piece of work that is submitted to the
   PJ framework. 
   % \jhanote{Andre: Can we not use just ``pilot'' here, i.e. WU gets
@@ -475,9 +515,9 @@ assigned at this moment)}
   %   submitted to the framework. The PJ framework groups WUs, binds
   %   and schedules them. A WU is not directly submitted to the pilot
   %   (the agent) - the binding and scheduling process is in between.}
- The PJ framework in turn has flexibility to bind and schedule the
-  WU, i.\,e.\ to determine when and how-many resources the WU will
-  receive.  % \jhanote{the last sentence is unclear, i'm sorry}
+ The PJ framework schedules that WU on the resources managed by its RMs, 
+ i.\,e.\ the framework determines what resources the WU will receive.  
+%  \jhanote{the last sentence is unclear, i'm sorry}
 %   \jhanote{naively, i would say either say WU binds to PJ or PJ has
 %     flexibility to bind / schedule WU to another entity..}
 %   \alnote{This refers to the issue that we assume at this point that a
@@ -487,12 +527,15 @@ assigned at this moment)}
 %     assumed that a meta-scheduling between multiple pilots takes
 %     place. }
 
-\item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling
-  used inside the PJ framework. They get scheduled and executed on a
-  resource via the pilot. An SU consists of one or more WUs that are
-  combined inside the PJ framework. Note that that this can either be
-  a simple grouping or a smart aggregation of WUs (e.g. two sets of
-  parameters merged into one).
+\item \textbf{Scheduling Unit (SU):} SUs are constrained WUs, i.e.
+they are WUs which have been passed through the PJ frameworks top
+level scheduler.
+  SUs at some point get executed on a
+  resource slice via that slice's pilot. 
+% An SU consists of one or more WUs that are
+% combined inside the PJ framework. Note that that this can either be
+% a simple grouping or a smart aggregation of WUs (e.g. two sets of
+% parameters merged into one).
 
 %   \alnote{What is the difference between simple and smart? grouping
 %     and aggregation? or a smarter aggregation of WUs}
@@ -507,12 +550,13 @@ assigned at this moment)}
 %   LRM. \alnote{move to impl. section} \label{resource}
 
 \item \textbf{Pilot-Manager:} The PJ manager is responsible for
-  coordinating the different components of the framework, i.\,e.\ the
-  pilots, WUs and SUs. A PJ manager can generally manage multiple
-  pilots. \jhanote{How about saying that it is responsible for
-    implementing the different characteristics of the P*
-    Model. Mention that all P* Model implementations will have these
-    elements, but will differ in its attributes/characteristics}
+  coordinating the different components of the PJ framework, i.\,e.\ the
+  pilots, schedulers, WUs and SUs. A PJ manager can generally manage multiple
+  pilots.   The Pilot-Manager is thus responsible for
+  implementing the different characteristics of the P*
+  Model.  
+  % In general, all P* Model implementations will have these
+  % elements, but will differ in its attributes/characteristics.
 \end{compactitem}
 
 The application itself is not strictly part of the core P* Model. The
