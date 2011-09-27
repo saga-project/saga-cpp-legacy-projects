@@ -1830,10 +1830,12 @@ Fault Tolerance &Error propagation &Error propagation, Retries &Error propagatio
 \jhanote{MS: The experiment section needs tighter and more focussed
   writing in general}
 
-In this section we analyze the performance and scalability of of different 
-TROY-BigJob configurations. In particular we investigate the performance 
-of various communication \& coordination backends. Further, we evaluate the 
-overall performance of TROY using a genome sequencing application scenario.
+In this section we analyze the performance and scalability of different 
+TROY configurations. In particular we investigate the performance 
+of various communication \& coordination backends in conjunction with the 
+pilot-job implementation BigJob. Further, we investigate the interoperability of 
+the TROY backends: BigJob (with SAGA/PBS and SAGA/Condor backend) and DIANE 
+using a genome sequencing application scenario.
 
 \subsection{Understanding Pilot-Job Implementations}
 
@@ -1844,29 +1846,34 @@ a flexible c\&c layer supporting the backends: a SAGA Advert API
 implementation based on PostgreSQL~\cite{saga_advert}, Redis~\cite{redis} and
 ZeroMQ~\cite{zmq}.
 
-\begin{figure*}[htbp]
-	\centering		
-	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
-	\caption{\textbf{Coordination \& Communication:} The primarily used 
-	coordination pattern is the utilization of a request/response server 
-	(left, middle). In the data-space model (right) all application components 
-	are connect to a central data-space. This architecture decouples manager 
-	and agent allowing both to operate on its own pace.}
-	\label{fig:figures_coordination-schemes}
-\end{figure*}
+% \begin{figure*}[htbp]
+% 	\centering		
+% 	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
+% 	\caption{\textbf{Coordination \& Communication:} The primarily used 
+% 	coordination pattern is the utilization of a request/response server 
+% 	(left, middle). In the data-space model (right) all application components 
+% 	are connect to a central data-space. This architecture decouples manager 
+% 	and agent allowing both to operate on its own pace.}
+% 	\label{fig:figures_coordination-schemes}
+% \end{figure*}
 
-Figure~\ref{fig:figures_coordination-schemes} illustrates different
-coordination scheme. Most pilot jobs follow a master-worker model based on a
-simple request/response architecture, i.\,e.\ the agent e.\,g.\ sends a
-request for work packages to the master, which replies with a WU. A manager
-can manage a single agent (e.\,g.\ BigJob) or multiple agents (e.\,g.\ DIANE).
-Using a central data space decouples manager and agent, i.\,e.\ both entities 
-are able to operate at its own pace. However, a disadvantage of this 
-architecture is that the intermediary also adds some performance overhead. 
-Both schemes can be combined with a publish/subscribe mechanisms, i.\,e.\ 
-instead of polling an agent can receive notifications when a new work unit 
-arrives. In the following we discuss different coordination \& communication 
-architectures. For this purpose, we conducted several experiments on FutureGrid~\cite{fg}.
+% Figure~\ref{fig:figures_coordination-schemes} illustrates different
+% coordination schemes. 
+
+Most pilot jobs utilize the master-worker pattern commonly implemented on basis
+of a simple request/response architecture, i.\,e.\ the agent sends a request for
+work packages to the master, which replies with a WU. A manager can manage a
+single agent (e.\,g.\ BigJob) or multiple agents (e.\,g.\ DIANE). An alternative
+way is the utilization of a central data space; this concept is also referred to
+as tuple space~\cite{Gelernter:1985:GCL:2363.2433}. All communication between
+manager and agent is done via the data space. The data space decouples manager
+and agent, i.\,e.\ both entities can operate at their own pace. However, a
+disadvantage of this architecture is that the intermediary also adds some
+performance overhead. Both schemes can be combined with a publish/subscribe
+mechanisms, i.\,e.\ instead of polling an agent can receive notifications when a
+new work unit arrives. In the following we discuss different coordination \&
+communication architectures. For this purpose, we conducted several experiments
+on FutureGrid~\cite{fg}.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus-alamo.pdf}
@@ -1877,27 +1884,24 @@ for $n$ WUs running \texttt{/bin/date} increases only moderately in most cases, 
 Figure~\ref{fig:perf_bigjob-varying-wus}\,/\,\ref{fig:perf_bigjob-varying-cores}
 illustrate the performance and scalability of BigJob. Clearly, the used
 communication \& coordination abstraction and framework has a great impact of
-the overall performance. As seen in Figure~\ref{fig:perf_bigjob-varying-cores}
-the coordination overhead imposed on a single WU is minimal in particular with 
-the Redis and ZMQ backend. The Advert backend currently has some limitations 
-which will be discussed later. When the number of WUs is low, BJ can batch WUs optimizing the
-overall throughput. Thus, the overall increase is less than linear indicating
-a very good scalability. The Redis backend shows the best performance
-providing a very natural decoupling between manager and agent. While ZeroMQ is
-very fast and lightweight by itself, it requires a very careful implementation
-in particular concerning synchronization and throughput optimization. The
-overall performance is slightly worse than for Redis. In summary, at the 
-investigated scenario does not show a significant bottleneck at the manager 
-side. If permitted by the communication backend, a single manager is also able 
-to handle larger WU counts. BigJob particularly benefits from the performance of 
-alternative backends such as Redis and ZeroMQ. Further, the TROY manager introduces another hierarchy-level which can further enhance the overall 
-scalability. 
+the overall performance. The Redis backend shows the best performance providing
+a very natural decoupling between manager and agent. While ZeroMQ is very fast
+and lightweight by itself, it requires a very careful implementation in
+particular concerning synchronization and throughput optimization. The overall
+performance is slightly worse than with the Redis backend. The Advert backend
+currently has some limitations which will be discussed later. The local
+coordination overhead at the manager is minimal: the framework scales linearly
+to larger WU numbers if the c\&c systems permits. At the investigated scales,
+the single manager does not represent a bottleneck. Further, the TROY manager
+introduces another hierarchy-level which can further enhance the overall
+scalability.
 
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of
-BigJob. Despite the performance differences in the different PJ frameworks and
-c\&c backends, the overall scalability is good. Naturally both the manager and
-agent exhibit certain limitations in the number of WUs and cores they can
-support.
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BigJob
+with respect to the number of cores that can be efficiently managed by a single
+manager and agent. Despite the performance differences in the different PJ
+frameworks and c\&c backends, the overall scalability is good. In particular, 
+the Redis backend show a linear scalability up to 128 cores. Similarly, the 
+Advert backend showed a significantly lower performance.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores-alamo.pdf}
