@@ -861,9 +861,9 @@ resource on which the pilot is operating (step 8).
     \caption{
       \textbf{P* Model: Elements and Interactions:} The core of
       the model is the manager that is responsible for managing
-      pilot-jobs and WUs. After a WU is assigned to the manager, the manager
-      binds it to a SU and schedules the SU to an available
-      resource. \alnote{needs simplification}
+      pilot-jobs and WUs. After a WU is submitted to the manager, it is assigned 
+	  to a pilot where it is bound to a SU. The SU is then scheduled to an 
+	  available resource. \alnote{Needs simplification. Further we need to agree somehow on i) how many layers of binding/scheduling? ii) the usage of submit/assign/bind/schedule}
       \upp\upp}
     \label{fig:figures_pstar}
 \end{figure}
@@ -1121,7 +1121,7 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 \end{figure}
 
 TROY is an implementation of the P* Model (\S\ref{sec:pilot-model}). It
-consists of the TROY API ~\cite{troy}, a runtime environment and a set of PJ
+consists of the TROY API~\cite{troy}, a runtime environment and a set of PJ
 implementation referred to as BigJobs. \amnote{I disagree with the term
 runtime environment, but that is probably not very important in the context of
 this paper.} As shown in Figure~\ref{fig:figures_pstar_troy}, the TROY
@@ -1198,7 +1198,7 @@ future work, \S{VI}).
 	\centering
 	\includegraphics[width=\textwidth]{figures/distributed_pilot_job.pdf}
 %	\includegraphics[width=\textwidth]{figures/P1140340.JPG}
-	\caption{\textbf{BigJob -- SAGA-based TROY Implementation:}
+	\caption{\textbf{BigJob -- SAGA-based Pilot-Job Implementation:}
           BigJob is the implementation of the actual PJ functionality
           for TROY. Various BJ implementation for different grid and
           cloud backends exist. \jhanote{this needs fixing. make
@@ -1225,22 +1225,22 @@ future work, \S{VI}).
 
 
 % General overview of BJ implementations & P* model
-PJ implementations in TROY are called BigJob (BJ)~\cite{bigjob_web}.
-BigJob-SAGA~\cite{saga_bigjob_condor_cloud} is a BJ implementation
-which uses SAGA for all remote activities.  BJ-SAGA supports a wide
-range of application types, and is usable over a broad range of
-infrastructures, i.\,e.\ it is general-purpose and extensible. BJ-SAGA
-is integrated into the TROY runtime environment 
-(see Figure~\ref{fig:figures_distributed_pilot_job}).  In addition to
-BJ-SAGA, various other BigJob implementations exist, e.\,g. there are
-specific BJ flavors for cloud resources such as Amazon EC2 and
-Microsoft Azure that are capable of managing set of VMs, as well as a
-BJ with a Condor Glide-In based backend.  In the scope of this paper,
-BJ generally refers to the BJ-SAGA implementation though.
+%PJ implementations in TROY are called BigJob (BJ)~\cite{bigjob_web}.
+BigJob-SAGA~\cite{bigjob_web,saga_bigjob_condor_cloud} is a pilot-job
+implementation which uses SAGA for all remote activities. BJ-SAGA supports a
+wide range of application types, and is usable over a broad range of
+infrastructures, i.\,e.\ it is general-purpose and extensible. BJ-SAGA is
+integrated into the TROY runtime environment via the described adaptor mechanism (see
+Figure~\ref{fig:figures_distributed_pilot_job}). In addition to BJ-SAGA, various
+other BigJob implementations exist, e.\,g. there are specific BJ flavors for
+cloud resources such as Amazon EC2 and Microsoft Azure that are capable of
+managing set of VMs, as well as a BJ with a Condor Glide-In based backend. In
+the scope of this paper, BJ generally refers to the BJ-SAGA implementation
+though.
 
 BJ-SAGA utilizes a M/W coordination model: The BigJob Manager is responsible for
 the orchestration of pilots, for the binding of WUs and for the scheduling of
-SUs. For submission of the pilots, BigJob-SAGA relies on the SAGA Job API, and
+SUs. For submission of the pilots, BJ-SAGA relies on the SAGA Job API, and
 thus can be used in conjunction with different SAGA adaptors, e.\,g.\ the
 Globus, PBS, Amazon Web Service and other adaptors. Each pilot initializes a so
 called BigJob agent component. The agent is responsible for gathering local
@@ -1249,7 +1249,10 @@ Service API is used for communication between manager and agent. The Advert
 Service (AS) exposes a shared data space that can be accessed by manager and
 agent, which use the AS to realize a push/pull communication pattern,
 i.\,e.\ the manager pushes a SU to the AS while the agents periodically pull for
-new SUs. Results and state updates are similarly pushed back from the agent to the manager.
+new SUs. Results and state updates are similarly pushed back from the agent to 
+the manager. Further, BJ provides a pluggable communication \& coordination 
+layer and also supports alternative c\&c systems, e.\,g.\ Redis~\cite{redis} and 
+ZeroMQ~\cite{zmq}.
 
 BJ-SAGA currently uses a simple binding mechanism: each WU (a task)
 submitted to the BigJob framework is mapped to one SU (a so called
@@ -1905,12 +1908,16 @@ performance overhead. Both schemes can be combined with a publish/subscribe
 mechanisms, i.\,e.\ instead of polling an agent can receive notifications when a
 new work unit arrives. In the following we discuss different coordination \&
 communication architectures. For this purpose, we conducted several experiments
-on FutureGrid~\cite{fg}.
+on FutureGrid~\cite{fg}. To evaluate the overall performance and throughput, we 
+execute a different number of WUs on the FuturGrid Resource Alamo utilizing up 
+to 128 cores concurrently.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus-alamo.pdf}
-\caption{\textbf{BigJob Performance:} The time-to-completion
-for $n$ WUs running \texttt{/bin/date} increases only moderately in most cases, i.\,e.\ the coordination overhead imposed by the BJ is minimal. }
+\caption{\textbf{BigJob Performance (1):} The 
+time-to-completion for $n$ WUs running \texttt{/bin/date} scales linearly
+in most cases, i.\,e.\ the coordination overhead imposed by the BJ is 
+minimal. }
 \label{fig:perf_bigjob-varying-wus} \end{figure}
 
 Figure~\ref{fig:perf_bigjob-varying-wus}\,/\,\ref{fig:perf_bigjob-varying-cores}
@@ -1932,14 +1939,15 @@ Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BigJob
 with respect to the number of cores that can be efficiently managed by a single
 manager and agent. Despite the performance differences in the different PJ
 frameworks and c\&c backends, the overall scalability is good. In particular, 
-the Redis backend show a linear scalability up to 128 cores. Similarly, the 
-Advert backend showed a significantly lower performance.
+the Redis backend show a linear scalability up to 128 cores achieving a 
+throughput of up to 4 WUs/sec. Similarly, the Advert backend showed a significantly lower performance.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-cores-alamo.pdf}
-\caption{\textbf{BigJob Scalability:}  The
-runtime of a constant workload of 4 \texttt{/bin/date} jobs per core also
-increases only slightly up to 128 cores. }
+\caption{\textbf{BigJob Performance (2):}  The
+runtime of a constant workload of 4 \texttt{/bin/date} jobs 
+increases only slightly up to 128 cores. In particular, the Redis backend shows
+an almost linear scalability achieving a throughput of up to 4 WUs/sec. }
 \label{fig:perf_bigjob-varying-cores} \end{figure}
 
 The BigJob Advert implementation currently shows some performance limitations
@@ -1955,7 +1963,7 @@ particular deeply nested namespaces exhibit an insufficient query and update
 performance.
 
 
-\subsection{TROY - BFAST}
+\subsection{Understanding TROY Interoperability}
 To validate the abstractions we have presented we conducted a series of
 experiments. We execute BFAST~\cite{bfast2009} - a genome sequencing
 application. To manage the workflow we use the DARE~\cite{dare-tg11} framework
@@ -2003,7 +2011,7 @@ PJs and WUs using the TROY API.
 		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
 	\caption{\textbf{Performance TROY with BigJob and DIANE:} Running BFAST 
 	on a 4 node cluster with a total of 16 cores. The time-to-completion for 
-	BJ-DIANE is higher than for BJ-SAGA mainly due to the higher startup 
+	TROY-DIANE is higher than for BJ-SAGA mainly due to the higher startup 
 	time required and some light runtime overhead caused by the additional 
 	agents required on the resource.\up\up}
 	\label{fig:perf_perf-bfast-bj}
