@@ -397,6 +397,33 @@ abstraction. \emph{TROY} is a specific implementation of the P*
 abstraction; it is also often referred to as a {\it software framework}
 for pilot-jobs.
 
+
+\jhanote{see note below about having these under the ``terms and
+  usage''} \textbf{Resource:} The entity which provides a Computing
+Capability, and can execute Compute jobs.  The Resource is not part of
+the PJ framework. \textbf{Resource Slice:} A physical or logical part
+(i.e.  subset) of a \emph{Resource}. \textbf{Resource-Manager (RM):} A
+system component which manages the access and utilization of a
+\emph{Resource}.  In particular, the RM assigns slices of the Resource
+to individual Resource requests.  The RM is not part of the PJ
+framework.  A hierarchy of RMs can be used to manage sub-slices of a
+resource.  \textbf{Scheduler:} A scheduler applies scheduling
+constraints to an unconstraint resource request, thereby transforming
+the resource request into a (complete or partially) constraint
+request.  For example, a Grid meta scheduler may constring a job
+description (i.e. a resource request) to a specific resource subset,
+e.g. to a specific cluster.  Downstream schedulers can further
+constrain the resource request, for example the cluster queue manager
+may add spatial and temporal constrains, by assigning it to a specific
+compute node and timeslot, so that it is completely fixed to a
+resource slice, i.e. it is \emph{assigned}.  A \emph{Scheduler} is
+part of the \emph{Resource-Manager}, i.e. it operates on a well
+defined set of resources or resource slices. \textbf{Note} that a
+scheduler can potentially break up an incoming resource request into
+multiple smaller resource requests, or can combine multiple resource
+requests into larger ones.
+ 
+
 In an attempt to provide a common analytical framework to understand
 most, if not all commonly used pilot-jobs, we
 present the P* model of pilot-abstractions. The P* model is derived
@@ -418,7 +445,7 @@ be used to describe a pilot-data model.
 % implementation of framework => TROY
 % TROY framework (SW framework): API and runtime
 
-\subsection{Elements of the P* Model \upp\upp}
+
 
 % \jhanote{(i) definition of pilot-job and SU very similar. \alnote{ok}
 %   (ii) highlight relation between WU/SU, \alnote{ok} (iii) symmetry:
@@ -452,17 +479,21 @@ be used to describe a pilot-data model.
   and not a specific PJ) or PJ framework?}
 \amnote{parse error: isn't the framework the 'whole thing'?}
 
-\noindent
-This sub-section defines the elements of the P* model:
 
 
-\alnote{While I think it is useful to explain some of the external entities 
-(such as an RM) they should be not listed under core elements. Actually we had 
-a RM before, but removed it for this reason}
-\amnote{I see.  Well, if it adds clarity, I don't mind including external terms
-  -- they are marked as such...}
+
+\alnote{While I think it is useful to explain some of the external
+  entities (such as an RM) they should be not listed under core
+  elements. Actually we had a RM before, but removed it for this
+  reason} \amnote{I see.  Well, if it adds clarity, I don't mind
+  including external terms -- they are marked as such...}  \jhanote{a
+  good resolution would be to place these terms resource/RM etc in the
+  terms and usage above, i.e. abstractoin, model etc. for conceptually
+  that is what we're trying to do: focus attention on our perspective
+  without proferring a definsition as such. }
 
 \begin{compactitem}
+
 \item \textbf{Resource:} The entity which provides a Computing
 Capability, and can execute Compute jobs.  The Resource is not part of
 the PJ framework.
@@ -511,6 +542,12 @@ partial constraint -- I adjusted it to make that more clear.  There
 can also be constraints on internal metrics, like on memory usage
 etc.} 
 
+\end{compactitem}
+
+\subsection{Elements of the P* Model \upp\upp}
+\noindent This sub-section defines the elements of the P* model:
+
+\begin{compactitem}
 
 \item \textbf{Pilot-Job (PJ):} The PJ (or `pilot') is
   the part of the PJ framework that actually gets submitted and 
@@ -535,13 +572,6 @@ constraints to the WU, by assigning it to specific resources.  Late
 binding OTOH is working on specific RMs which manage specific
 resources.  So, I think that we actually clarify the early/late
 binding :-)}
-
-\item \textbf{assign:} A resource request is \emph{assigned} to a
-resource slice when its constraints allow it to run on that, and only
-that, resource.
-
-\item \textbf{submit:} A resource request is passed to a resource
-manager.
 
 % \alnote{Terms: assign -- binding of a wu to a SU (see binding
 % characteristic); submit -- add a WU to a PJ framework (does not need to get
@@ -732,6 +762,11 @@ the PJ framework.  % \alnote{repeat, thus removed: Furthermore, the time
 %   of binding influences who makes the binding decision, i.\,e.\
 %   application or framework.}
 
+\textbf{submit/assign:} A resource request is \emph{assigned}
+  to a resource slice when its constraints allow it to run on that,
+  and only that, resource. A resource request is passed to a resource
+  manager. \jhanote{fix please}
+
 \jhanote{SJ, AL and MS: We should make this a 3 phase process --
   Assignment, Binding and Scheduling. A and B in turn can have an
   early and late}
@@ -841,30 +876,37 @@ pilots are queued and started via the local resource manager (step
 1-4). Having initialized the PJ, WUs can be submitted to it (step 5).
 
 Most PJs utilize a M/W coordination model, i.\,e.\ the manager tightly
-controls the actions of the worker (the agent). However, the integration of
-more decision capabilities into the agent can yield to a more autonomic and
-adaptive behavior as well as a better scalability. Depending on the structure
-and coordination of the P* framework, a P* framework usually consists of a
-hierarchy of schedulers. In the first step, the application submits a WU to
-the PJ framework in most cases via the manager component. A manager can be
-responsible for a resource pool consisting of 1 or many pilot-jobs. On this
-level the manager can bind one or multiple WU(s) to a SU. Then it schedules
-the SU to a resource, i.\,e.\ a running pilot (step 6). In the simplest case
-one WU corresponds to one SU. Similarly, the pilot conducts another round of
-binding and scheduling: The SU of the manager is the WU of the pilot. The
-pilot WU is bound to a pilot SU (step 7). The SU gets executed to a physical
-resource on which the pilot is operating (step 8).
+controls the actions of the worker (the agent). However, the
+integration of more decision capabilities into the agent can yield to
+a more autonomic and adaptive behavior as well as a better
+scalability. Depending on the structure and coordination of the P*
+framework, a P* framework usually consists of a hierarchy of
+schedulers. In the first step, the application submits a WU to the PJ
+framework in most cases via the manager component. A manager can be
+responsible for a resource pool consisting of 1 or many pilot-jobs. On
+this level the manager can bind one or multiple WU(s) to a SU. Then it
+schedules the SU to a resource, i.\,e.\ a running pilot (step 6). In
+the simplest case one WU corresponds to one SU. Similarly, the pilot
+conducts another round of binding and scheduling: The SU of the
+manager is the WU of the pilot. The pilot WU is bound to a pilot SU
+(step 7). The SU gets executed to a physical resource on which the
+pilot is operating (step 8).
+
+\jhanote{Mention that application/user level input/heuristics can be
+  employed at either of the two stages: binding and/or scheduling}
 
 \begin{figure}[htbp]
     \centering\up
     \includegraphics[width=0.45\textwidth]{figures/pstar_model_single.pdf}
-    \caption{
-      \textbf{P* Model: Elements and Interactions:} The core of
-      the model is the manager that is responsible for managing
-      pilot-jobs and WUs. After a WU is submitted to the manager, it is assigned 
-	  to a pilot where it is bound to a SU. The SU is then scheduled to an 
-	  available resource. \alnote{Needs simplification. Further we need to agree somehow on i) how many layers of binding/scheduling? ii) the usage of submit/assign/bind/schedule}
-      \upp\upp}
+    \caption{ \textbf{P* Model: Elements and Interactions:} The core
+      of the model is the manager that is responsible for managing
+      pilot-jobs and WUs. After a WU is submitted to the manager, it
+      is assigned to a pilot where it is bound to a SU. The SU is then
+      scheduled to an available resource. \alnote{Needs
+        simplification. Further we need to agree somehow on i) how
+        many layers of binding/scheduling? ii) the usage of
+        submit/assign/bind/schedule} \jhanote{there are two instances
+        of step 4} \upp\upp}
     \label{fig:figures_pstar}
 \end{figure}
 
