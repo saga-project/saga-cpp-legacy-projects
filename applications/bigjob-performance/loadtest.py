@@ -15,17 +15,18 @@ from bigjob.bigjob_manager import bigjob, subjob
 #COORDINATION_URL = "tcp://localhost"
 
 NUMBER_RUNS=10
-COORDINATION_URL = ["tcp://i136", "redis://cyder.cct.lsu.edu:8080", "redis://i136","advert://advert.cct.lsu.edu:8080"]
-#COORDINATION_URL = ["advert://advert.cct.lsu.edu:8080"]
+#COORDINATION_URL = ["tcp://login1", "redis://cyder.cct.lsu.edu:8080", "redis://login1","advert://advert.cct.lsu.edu:8080"]
+COORDINATION_URL = ["advert://advert.cct.lsu.edu:8080"]
 
 #NUMBER_JOBS=[256]
 # Scenario WUs
-NUMBER_JOBS=[64,128,256,512,1024,2048]
-NUMBER_NODES=[8,8,8,8,8,8]
+#NUMBER_JOBS=[64,128,256,512,1024,2048]
+#NUMBER_NODES=[8,8,8,8,8,8]
 #NUMBER_JOBS=[64]
 # Scenario cores
-#NUMBER_JOBS=[32,64,128,256,512]
-#NUMBER_NODES=[1,2,4,8,16]
+#NUMBER_JOBS=[32,64,128,256,512,64,128,256,512,1024,2048]
+NUMBER_JOBS=[1024,4096]
+NUMBER_NODES=[32,8]
 #NUMBER_NODES=[16]
 NUMBER_CORES_PER_NODE=8
 RESULT_DIR="results"
@@ -53,7 +54,7 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
     # Start BigJob
     # Parameter for BigJob
     lrms_url = LRMS_URL
-    workingdirectory=os.getcwd() +"/agent"  # working directory for agent
+    workingdirectory="/N/u/luckow/src/bigjob-performance/agent"  # working directory for agent
    
     # start pilot job (bigjob_agent)
     print "Start Pilot Job/BigJob at: " + lrms_url
