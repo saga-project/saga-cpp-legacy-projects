@@ -2085,24 +2085,31 @@ minimal. }
 Figure~\ref{fig:perf_bigjob-varying-wus} and \ref{fig:perf_bigjob-varying-cores}
 illustrate the performance and scalability of the different BigJob c\&c
 sub-systems and DIANE. Clearly, the used c\&c sub-system has a great impact of
-the overall performance. The Redis backend shows the best performance providing
-a very natural decoupling between manager and agent. While ZeroMQ is very fast
-and lightweight by itself, it requires a very careful implementation in
-particular concerning synchronization and throughput optimization. The overall
-performance is slightly worse than with the Redis backend. The Advert backend
-currently has some limitations which will be discussed later. The local
-coordination overhead at the manager is minimal: the framework scales linearly
-to larger WU numbers if the c\&c systems permits. At the investigated scales,
-the single manager does not represent a bottleneck. Further, the TROY manager
-introduces another hierarchy-level which can further enhance the overall
+the overall performance. The Redis backend shows the best performance for small
+WUs counts providing a very natural decoupling between manager and agent. A
+difference between local and distributed coordination is very small and only
+observable for larger core counts. While ZeroMQ is very fast and lightweight by
+itself, it requires a very careful implementation in particular concerning
+synchronization and throughput optimization. The overall performance is slightly
+worse than with the Redis backend. The Advert backend currently has some
+limitations which will be discussed later. While DIANE shows a higher startup
+overhead, which is particularly observable for smaller numbers of WU, the
+runtime increase only slightly (~10\,sec) when going from 64 to 2048 WUs. A
+reason for this behavior is that DIANE can aggregate SUs. At the investigated 
+scales, the single manager does not represent a bottleneck. Further, the TROY 
+manager introduces another hierarchy-level which can further enhance the overall
 scalability.
 
 Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BigJob
 with respect to the number of cores that can be efficiently managed by a single
 manager and agent. Despite the performance differences in the different PJ
 frameworks and c\&c backends, the overall scalability is good. In particular, 
-the Redis backend show a linear scalability up to 128 cores achieving a 
-throughput of up to 4 WUs/sec. Similarly, the Advert backend showed a significantly lower performance.
+the Redis c\&c sub-system show a linear scalability up to 128 cores achieving a 
+throughput of up to 4 WUs/sec. DIANE shows in particular for lower core counts a 
+longer runtime. With higher core counts both DIANE and BigJob with ZeroMQ c\&c 
+sub-system show a greater increase of the overall runtime. This increase can be 
+mainly attributed to single central manager in the client-server architecture.
+As in the last experiment, the Advert c\&c sub-system showed a significantly lower performance.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.49\textwidth]{perf/bigjob-varying-cores-alamo.pdf}
