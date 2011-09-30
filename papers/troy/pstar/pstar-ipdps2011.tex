@@ -383,7 +383,18 @@ different pilot-job implementations.
 
 %\alnote{Framework, Implementation vs. Abstraction? When do we use what word?}
 
-Before we proceed to discuss the P* Model, it is important to
+In an attempt to provide a common analytical framework to understand
+most, if not all commonly used pilot-jobs, we present the P* model of
+pilot-abstractions. The P* model is derived from an analysis of many
+pilot-job implementations; based upon this analysis, we first present
+the common {\it elements} of the P* model, followed by a description
+of the properties that must be assigned and that determine the
+interaction of these elements and the overall functioning of any
+pilot-job that is described by the P* model. Further, we will show
+that these elements and interactions can be used to describe a
+pilot-data model.
+ 
+But before we proceed to discuss the P* Model, it is important to
 emphasize that there exist a set of commonly used terms ---
 abstraction, model, framework, and implementation, that are overloaded
 and often used inconsistently; thus we establish their context and
@@ -401,15 +412,15 @@ abstraction. \emph{TROY} is a specific implementation of the P*
 abstraction; it is also often referred to as a {\it software
   framework} for pilot-jobs.
 
-\textbf{Resource:} The entity which provides a Computing Capability,
-and can execute Compute jobs.  The Resource is not part of the PJ
-framework. \textbf{Resource Slice:} A physical or logical part (i.e.
-subset) of a \emph{Resource}. \textbf{Resource-Manager (RM):} A system
+\emph{Resource:} The entity which provides a Computing Capability, and
+can execute Compute jobs.  The Resource is not part of the PJ
+framework. \emph{Resource Slice:} A physical or logical part (i.e.
+subset) of a \emph{Resource}. \emph{Resource-Manager (RM):} A system
 component which manages the access and utilization of a
 \emph{Resource}.  In particular, the RM assigns slices of the Resource
 to individual Resource requests.  The RM is not part of the PJ
 framework.  A hierarchy of RMs can be used to manage sub-slices of a
-resource.  \textbf{Scheduler:} A scheduler applies scheduling
+resource.  \emph{Scheduler:} A scheduler applies scheduling
 constraints to an unconstraint resource request, thereby transforming
 the resource request into a (complete or partially) constraint
 request.  For example, a Grid meta scheduler may constring a job
@@ -423,18 +434,8 @@ part of the \emph{Resource-Manager}, i.e. it operates on a well
 defined set of resources or resource slices. \textbf{Note} that a
 scheduler can potentially break up an incoming resource request into
 multiple smaller resource requests, or can combine multiple resource
-requests into larger ones.
+requests into larger ones. \jhanote{Lets discuss the above paragraph}
  
-In an attempt to provide a common analytical framework to understand
-most, if not all commonly used pilot-jobs, we present the P* model of
-pilot-abstractions. The P* model is derived from an analysis of many
-pilot-job implementations; based upon this analysis, we first present
-the common {\it elements} of the P* model, followed by a description
-of the properties that must be assigned and that determine the
-interaction of these elements and the overall functioning of any
-pilot-job that is described by the P* model. Further, we will show
-that these elements and interactions can be used to describe a
-pilot-data model.
 
 % Depending on the context, pilot-job can refer to the PJ concept, the
 % PJ abstraction or the pilot.
@@ -445,8 +446,6 @@ pilot-data model.
 % model with some components => conceptual framework
 % implementation of framework => TROY
 % TROY framework (SW framework): API and runtime
-
-
 
 % \jhanote{(i) definition of pilot-job and SU very similar. \alnote{ok}
 %   (ii) highlight relation between WU/SU, \alnote{ok} (iii) symmetry:
@@ -480,18 +479,11 @@ pilot-data model.
   and not a specific PJ) or PJ framework?}
 \amnote{parse error: isn't the framework the 'whole thing'?}
 
-
-
-
 \alnote{While I think it is useful to explain some of the external
   entities (such as an RM) they should be not listed under core
   elements. Actually we had a RM before, but removed it for this
   reason} \amnote{I see.  Well, if it adds clarity, I don't mind
-  including external terms -- they are marked as such...}  \jhanote{a
-  good resolution would be to place these terms resource/RM etc in the
-  terms and usage above, i.e. abstraction, model etc. for conceptually
-  that is what we're trying to do: focus attention on our perspective
-  without proferring a definition as such. }
+  including external terms -- they are marked as such...}
 
 % \begin{compactitem}
 % 
@@ -578,16 +570,24 @@ binding :-)}
 % characteristic); submit -- add a WU to a PJ framework (does not need to get
 % assigned at this moment)}
 
-\item \textbf{Work Unit (WU):} \alnote{Are we submitting to the PJ framework
-or Pilot-Manager?} A WU is a resource request which encapsulates a
-self-contained piece of work that is submitted to the PJ framework.
+\item \textbf{Work Unit (WU):} \alnote{Are we submitting to the PJ
+    framework or Pilot-Manager?} \jhanote{I don't think we should talk
+    about a PJ framework.. for amongst other reasons it has not been
+    defined. Even in SU, we have PJ Framework... maybe should also
+    change?} A WU is a resource request which encapsulates a
+  self-contained piece of work that is submitted to the PJ framework.
+  The PJ framework schedules that WU on the resources managed by its
+  RMs, i.\,e.\ the framework determines what resources the WU will
+  receive.
+
+
   % \jhanote{Andre: Can we not use just ``pilot'' here, i.e. WU gets
   %   submitted to the pilot/pilot-job?} \alnote{IMHO, the WU is
   %   submitted to the framework. The PJ framework groups WUs, binds
   %   and schedules them. A WU is not directly submitted to the pilot
   %   (the agent) - the binding and scheduling process is in between.}
- The PJ framework schedules that WU on the resources managed by its RMs, 
- i.\,e.\ the framework determines what resources the WU will receive.  
+
+
 %  \jhanote{the last sentence is unclear, i'm sorry}
 %   \jhanote{naively, i would say either say WU binds to PJ or PJ has
 %     flexibility to bind / schedule WU to another entity..}
@@ -806,24 +806,17 @@ multiple levels of scheduling. Scheduling has a spatial component
 (which SU is executed on which pilot?) and a temporal component (at
 what time?). The different scheduling decisions that need to be made
 are representative of multi-level scheduling decisions that are often
-required in distributed environments. A property
-of scheduling is \emph{binding}. Binding is defined as the time at
-which a WU \alnote{or SU?} is assigned to a resource. For example, a
-WU can be bound to a pilot either before the pilot has in turn been
-scheduled (early binding), whereas late binding can occur if the WU is
-bound after the pilot has been scheduled.  \jhanote{I propose the
-  following sentence be eliminated:} \jwave{Furthermore, the time of
-  binding influences the point at which the binding decision is made,
-  e.\,g.\ in the case of early binding, the decision could be made by
-  the application, while in late binding mode the decision is made by
-  the PJ framework.}
-
-
-\jhanote{Move to an appopriate location}\jwave{Commonly a set of
-  (user-defined) policies (e.g.  resource capabilities, data/compute
-  affinities, etc.)  or the implementation of a custom scheduler is
-  supported.}
-
+required in distributed environments. A property of scheduling is
+\emph{binding}. Binding is defined as the time at which a WU
+\alnote{or SU?} is assigned to a resource. For example, a WU can be
+bound to a pilot either before the pilot has in turn been scheduled
+(early binding), whereas late binding can occur if the WU is bound
+after the pilot has been scheduled.  \jhanote{I propose the following
+  sentence be eliminated:} \jwave{Furthermore, the time of binding
+  influences the point at which the binding decision is made, e.\,g.\
+  in the case of early binding, the decision could be made by the
+  application, while in late binding mode the decision is made by the
+  PJ framework.}
 
 
 %\begin{itemize}
@@ -885,6 +878,12 @@ instantiation of a PJ and the assignment of resources to the PJ,
 pilots are queued and started via the local resource manager (step
 1-4). Having initialized the PJ, WUs can be submitted to it (step 5).
 
+\jhanote{We should talk about ``API'' --- WU crossing P* API, ie
+  controlled by Pilot-Manager, and then becoming an SU thereafter.
+  Also talk about multi-level scheduling. Anything that focusses the
+  reader's attention on an understanding that was not covered in brief
+  description}
+
 Most PJs utilize a M/W coordination model, i.\,e.\ the manager tightly
 controls the actions of the worker (the agent). However, the
 integration of more decision capabilities into the agent can yield to
@@ -898,17 +897,20 @@ this level the manager can bind one or multiple WU(s) to a pilot (step 7).
 The pilot schedules the WUs to a SU, which is then be executed on 
 the resource (step 8). In the simplest case one WU corresponds to one SU. 
 
-\alnote{\textbf{This paragraph describes a generalization to multiple levels of
-scheduling. Do we want to keep it?:}
-Similarly, the pilot
-conducts another round of binding and scheduling: The SU of the
-manager is the WU of the pilot. The pilot WU is bound to a pilot SU
-(step 7). The SU gets executed to a physical resource on which the
-pilot is operating (step 8).
-}
+\alnote{This paragraph describes a generalization to multiple levels
+  of scheduling. Do we want to keep it?:} \jhanote{I think not; needs
+  simplification} Similarly, the pilot conducts another round of
+binding and scheduling: The SU of the manager is the WU of the
+pilot. The pilot WU is bound to a pilot SU (step 7). The SU gets
+executed to a physical resource on which the pilot is operating (step
+8).
 
-\jhanote{Mention that application/user level input/heuristics can be
-  employed at either of the two stages: binding and/or scheduling}
+\jhanote{Move to an appopriate location}\jwave{Commonly a set of
+  (user-defined) policies (e.g.  resource capabilities, data/compute
+  affinities, etc.)  or the implementation of a custom scheduler is
+  supported.}  \jhanote{Mention that application/user level
+  input/heuristics can be employed at either of the two stages:
+  binding and/or scheduling}
 
 \begin{figure}[htbp]
     \centering\up
