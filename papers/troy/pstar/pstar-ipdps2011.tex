@@ -896,7 +896,7 @@ consists of the following steps: The application specifies the
 capabilities of the resources required (step 1). During the
 instantiation of a PJ and the assignment of resources to the PJ,
 pilots are queued and started via the local resource manager (step
-1-4). 
+1-4).
 
 \jhanote{We should talk about ``API'' --- WU crossing P* API, ie
   controlled by Pilot-Manager, and then becoming an SU thereafter.
@@ -1988,6 +1988,17 @@ implementation based on PostgreSQL~\cite{saga_advert}, Redis~\cite{redis} and
 ZeroMQ~\cite{zmq}. In the following, we evaluate these backends and compare 
 the BigJob and DIANE.
 
+\jhanote{Need to motivate testing of c\&c sub-system better: There are
+  many barriers to interoperabilty and performance. primary barrier to
+  performance is not WU submission or SU scheduling to PM, but the
+  fundamental limitation of scalabilty of coordination -- with
+  increasing number of WU/SU.  Establish tradeoff between distributed
+  vs local coordination. e.g., It is easy to get consistency but has
+  overhead.  Easy to get performance but difficult to get
+  consistency. Thus we opt for centralized / persistent point. But how
+  does this single point-of-coordination behave with increasing number
+  of connections? }
+
 % \begin{figure*}[htbp]
 % 	\centering		
 % 	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
@@ -2024,7 +2035,7 @@ arrives. In the following we discuss different coordination \&
 communication architectures. For this purpose, we conducted several
 experiments on FutureGrid~\cite{fg}. To evaluate the overall
 performance and throughput, we execute a different number of WUs on
-the FuturGrid Resource Alamo utilizing up to 128 cores concurrently.
+the FutureGrid Resource Alamo utilizing up to 128 cores concurrently.
 
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.46\textwidth]{perf/bigjob-varying-wus-alamo.pdf}
@@ -2034,20 +2045,22 @@ in most cases, i.\,e.\ the coordination overhead imposed by the BJ is
 minimal. }
 \label{fig:perf_bigjob-varying-wus} \end{figure}
 
-Figure~\ref{fig:perf_bigjob-varying-wus}\,/\,\ref{fig:perf_bigjob-varying-cores}
-illustrate the performance and scalability of BigJob. Clearly, the used
-communication \& coordination abstraction and framework has a great impact of
-the overall performance. The Redis backend shows the best performance providing
-a very natural decoupling between manager and agent. While ZeroMQ is very fast
-and lightweight by itself, it requires a very careful implementation in
-particular concerning synchronization and throughput optimization. The overall
-performance is slightly worse than with the Redis backend. The Advert backend
-currently has some limitations which will be discussed later. The local
-coordination overhead at the manager is minimal: the framework scales linearly
-to larger WU numbers if the c\&c systems permits. At the investigated scales,
-the single manager does not represent a bottleneck. Further, the TROY manager
-introduces another hierarchy-level which can further enhance the overall
-scalability.
+Figure~\ref{fig:perf_bigjob-varying-wus}\&\ref{fig:perf_bigjob-varying-cores}
+illustrate the performance and scalability of BigJob. \jhanote{C\&C
+  sub-system of the BigJob?} Clearly, the used communication \&
+coordination abstraction and framework has a great impact of the
+overall performance. The Redis backend shows the best performance
+providing a very natural decoupling between manager and agent. While
+ZeroMQ is very fast and lightweight by itself, it requires a very
+careful implementation in particular concerning synchronization and
+throughput optimization. The overall performance is slightly worse
+than with the Redis backend. The Advert backend currently has some
+limitations which will be discussed later. The local coordination
+overhead at the manager is minimal: the framework scales linearly to
+larger WU numbers if the c\&c systems permits. At the investigated
+scales, the single manager does not represent a bottleneck. Further,
+the TROY manager introduces another hierarchy-level which can further
+enhance the overall scalability.
 
 Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BigJob
 with respect to the number of cores that can be efficiently managed by a single
@@ -2064,17 +2077,20 @@ increases only slightly up to 128 cores. In particular, the Redis backend shows
 an almost linear scalability achieving a throughput of up to 4 WUs/sec. }
 \label{fig:perf_bigjob-varying-cores} \end{figure}
 
-The BigJob Advert implementation currently shows some performance limitations
-mainly caused by the prototypical nature of the Advert service implementation.
-The used advert service is based on PostgreSQL; in the current architecture
-the client, i.\,e.\ the BJ manager and agent access the PostgreSQL database
-via the SOCI backend library. While this architecture provides a very flexible
-remote access to the database, running database access protocol over a WAN
-connection is not optimal. Transactions e.\,g.\ are very latency sensitive and
-require several roundtrips. Further, the API is based on a hierarchical 
-namespace, which does not naturally map well to relational databases. In 
-particular deeply nested namespaces exhibit an insufficient query and update 
-performance.
+The BigJob Advert implementation currently shows some performance
+limitations mainly caused by the prototypical nature of the Advert
+service implementation.  The used advert service is based on
+PostgreSQL; in the current architecture the client, i.\,e.\ the BJ
+manager and agent access the PostgreSQL database via the SOCI backend
+library. While this architecture provides a very flexible remote
+access to the database, running database access protocol over a WAN
+connection is not optimal. \jhanote{It is not clear why REDIS and
+  ZeroMQ are not susceptible to access over WAN delays/latency?}
+Transactions e.\,g.\ are very latency sensitive and require several
+roundtrips. Further, the API is based on a hierarchical namespace,
+which does not naturally map well to relational databases. In
+particular deeply nested namespaces exhibit an insufficient query and
+update performance.
 
 
 \subsection{Understanding TROY Interoperability}
