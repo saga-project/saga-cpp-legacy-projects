@@ -15,7 +15,7 @@ from bigjob.bigjob_manager import bigjob, subjob
 #COORDINATION_URL = "tcp://localhost"
 
 NUMBER_RUNS=10
-#COORDINATION_URL = ["tcp://login1", "redis://cyder.cct.lsu.edu:8080", "redis://login1","advert://advert.cct.lsu.edu:8080"]
+#COORDINATION_URL = ["tcp://s1", "redis://cyder.cct.lsu.edu:8080", "redis://s1"]
 COORDINATION_URL = ["advert://advert.cct.lsu.edu:8080"]
 
 #NUMBER_JOBS=[256]
@@ -24,9 +24,12 @@ COORDINATION_URL = ["advert://advert.cct.lsu.edu:8080"]
 #NUMBER_NODES=[8,8,8,8,8,8]
 #NUMBER_JOBS=[64]
 # Scenario cores
-#NUMBER_JOBS=[32,64,128,256,512,64,128,256,512,1024,2048]
-NUMBER_JOBS=[1024,4096]
-NUMBER_NODES=[32,8]
+#NUMBER_JOBS=[32,64,128,256,512]
+#NUMBER_NODES=[1,2,4,8,16]
+NUMBER_JOBS=[32,64,128,256,512,64,128,256,512,1024,2048]
+NUMBER_NODES=[1,2,4,8,16,8,8,8,8,8,8]
+#NUMBER_JOBS=[1024,4096]
+#NUMBER_NODES=[32,8]
 #NUMBER_NODES=[16]
 NUMBER_CORES_PER_NODE=8
 RESULT_DIR="results"
@@ -146,7 +149,7 @@ def load_test(coordination_url, number_jobs, number_nodes, number_cores_per_node
     bj.cancel()
     # hack: delete manually pbs jobs of user
     os.system("qstat -u `whoami` | grep -o ^[0-9]* |xargs qdel")
-    os.system("saga-advert remove_directory advert://advert.cct.lsu.edu:8080/bigjob")
+    #os.system("saga-advert remove_directory advert://advert.cct.lsu.edu:8080/bigjob")
     return result
           
     
