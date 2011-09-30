@@ -1210,7 +1210,7 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 		\includegraphics[width=0.45\textwidth]{figures/TROY_arch.pdf}
 	\caption{\textbf{TROY -- An API and Runtime System for the P* Model:}  TROY 
 	provides an API for managing PJs and PDs. BigJob and BigData are 
-	realizations of the actual PJ and PD functionality. BJ-SAGA and BD-SAGA
+	realizations of the actual PJ and PD functionality. BJ and BD
 	rely on SAGA for implementation of the PJ/PD.\alnote{figure 2 needs to 
 	make the relationship between P*, SAGA and BigJob clearer; Remove DARE
 	} \jhanote{Once we have defined BigJob and BigData, there is no need to use
@@ -1220,12 +1220,11 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 \end{figure}
 
 TROY is an implementation of the P* Model (\S\ref{sec:pilot-model}). It
-consists of the TROY API~\cite{troy}, a runtime environment and a set of PJ
-implementation referred to as BigJobs. \amnote{I disagree with the term
+consists of the TROY API~\cite{troy}, a runtime environment  and a set of 
+adaptors for various PJ implementations (see 
+Figure~\ref{fig:figures_pstar_troy}). \amnote{I disagree with the term
 runtime environment, but that is probably not very important in the context of
-this paper.} As shown in Figure~\ref{fig:figures_pstar_troy}, the TROY
-implementation is based on SAGA, which is utilized for job management, data
-transfer and coordination. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
+this paper.}. TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
 POSIX-style API to the most common grid functions at a sufficiently high-level
 of abstraction so as to be independent of the diverse and dynamic grid
 environments. The TROY API itself was designed to be similar to SAGA in
@@ -1234,20 +1233,17 @@ standardized semantics and syntax of the File, Job and Advert API. Further, we
 aimed for a minimal but complete API.% exposing the least
 % details necessary.  
 
-The TROY API renders the artifacts defined by the P* model, as defined
-in \S\ref{sec:pilot-model}. It defines two description classes that
-extend SAGA's Job Description: the PJ description and the WU
-description. A TROY manager class represents a pool of resources --
-resources can be added by submitting a PJ description to the TROY
-manager, using the \texttt{add\_resource()} method. Subsequently, WUs
-can be submitted to the TROY manager.  Resources can be added and
-removed at any time (i.e. at runtime).  TROY supports different usage
-modes i) it provides stand-alone PJ functionalities, ii) it provides a
-unified API to various PJ implementations (e.\,g.\ Condor Glide-In and
-DIANE), and iii) it enables the concurrent usage of multiple PJ
-implementations. Further, we show in section~\ref{sec:bigdata} how
-TROY is extended to support dynamic data and affinity-based
-scheduling.
+The TROY API renders the artifacts defined by the P* model, as defined in
+\S\ref{sec:pilot-model}. It defines two description classes that extend SAGA's
+Job Description: the PJ description and the WU description. A TROY manager class
+represents a pool of resources -- resources can be added by submitting a PJ
+description to the TROY manager, using the \texttt{add\_resource()} method.
+Subsequently, WUs can be submitted to the TROY manager. Resources can be added
+and removed at any time (i.e. at runtime). TROY supports different usage modes
+i) it provides a unified API to various PJ implementations (e.\,g.\ BigJob,
+DIANE and Condor-G), and ii) it enables the concurrent usage of multiple PJ
+implementations. Further, we show in section~\ref{sec:bigdata} how TROY is
+extended to support dynamic data and affinity-based scheduling.
 
 
 
@@ -1325,35 +1321,33 @@ future work, \S{VI}).
 
 % General overview of BJ implementations & P* model
 %PJ implementations in TROY are called BigJob (BJ)~\cite{bigjob_web}.
-BigJob-SAGA~\cite{bigjob_web,saga_bigjob_condor_cloud} is a pilot-job
-implementation which uses SAGA for all remote activities. BJ-SAGA supports a
-wide range of application types, and is usable over a broad range of
-infrastructures, i.\,e.\ it is general-purpose and extensible. BJ-SAGA is
-integrated into the TROY runtime environment via the described adaptor mechanism (see
-Figure~\ref{fig:figures_distributed_pilot_job}). In addition to BJ-SAGA, various
-other BigJob implementations exist, e.\,g. there are specific BJ flavors for
-cloud resources such as Amazon EC2 and Microsoft Azure that are capable of
-managing set of VMs, as well as a BJ with a Condor Glide-In based backend. In
-the scope of this paper, BJ generally refers to the BJ-SAGA implementation
-though.
+BigJob (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud} is a SAGA-based pilot-job
+implementation. BJ supports a wide range of application types, and is usable
+over a broad range of infrastructures, i.\,e.\ it is general-purpose and
+extensible. BJ is integrated into the TROY runtime environment via the described
+adaptor mechanism (see Figure~\ref{fig:figures_distributed_pilot_job}). In
+addition there are specific BJ flavors for cloud resources such as Amazon EC2
+and Microsoft Azure that are capable of managing set of VMs, as well as a BJ
+with a Condor-G based backend. 
+% In the scope of this paper, BJ generally refers
+% to the BJ-SAGA implementation though.
 
-BJ-SAGA utilizes a M/W coordination model: The BigJob Manager is responsible for
-the orchestration of pilots, for the binding of WUs and for the scheduling of
-SUs. For submission of the pilots, BJ-SAGA relies on the SAGA Job API, and
-thus can be used in conjunction with different SAGA adaptors, e.\,g.\ the
-Globus, PBS, Amazon Web Service and other adaptors. Each pilot initializes a so
-called BigJob agent component. The agent is responsible for gathering local
-information and for executing tasks (SUs) on its local resource. The SAGA Advert
-Service API is used for communication between manager and agent. The Advert
-Service (AS) exposes a shared data space that can be accessed by manager and
-agent, which use the AS to realize a push/pull communication pattern,
-i.\,e.\ the manager pushes a SU to the AS while the agents periodically pull for
-new SUs. Results and state updates are similarly pushed back from the agent to 
-the manager. Further, BJ provides a pluggable communication \& coordination 
-layer and also supports alternative c\&c systems, e.\,g.\ Redis~\cite{redis} and 
-ZeroMQ~\cite{zmq}.
+BJ utilizes a M/W coordination model: The BigJob Manager is responsible for the
+orchestration of pilots, for the binding of WUs and for the scheduling of SUs.
+For submission of the pilots, SAGA relies on the SAGA Job API, and thus can be
+used in conjunction with different SAGA adaptors, e.\,g.\ the Globus, PBS,
+Condor Amazon Web Service and other adaptors. Each pilot initializes a so called
+BigJob agent. The agent is responsible for gathering local information and for
+executing tasks (SUs) on its local resource. The SAGA Advert Service API is used
+for communication between manager and agent. The Advert Service (AS) exposes a
+shared data space that can be accessed by manager and agent, which use the AS to
+realize a push/pull communication pattern, i.\,e.\ the manager pushes a SU to
+the AS while the agents periodically pull for new SUs. Results and state updates
+are similarly pushed back from the agent to the manager. Further, BJ provides a
+pluggable communication \& coordination layer and also supports alternative c\&c
+systems, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
 
-BJ-SAGA currently uses a simple binding mechanism: each WU (a task)
+BJ currently uses a simple binding mechanism: each WU (a task)
 submitted to the BigJob framework is mapped to one SU (a so called
 sub-job).  Binding takes places at submission time (early binding).
 For scheduling, a simple FIFO scheduler is used (see also
@@ -1371,7 +1365,7 @@ to resource failures and/or unexpected delays. The TROY API allows for
 dynamic resource additions/removals as well as late binding. The
 support of this feature depends on the backend used. To support this
 feature on top of various BigJob implementations that are by default
-restricted to single resource use (e.\,g.\ BJ-SAGA), the concept of a
+restricted to single resource use (e.\,g.\ BJ), the concept of a
 BigJob pool is introduced. A BigJob pool consists of multiple BJs
 (each BigJob managing one particular resource). An extensible
 scheduler is used for dispatching WUs to one of the BJs of the pool
@@ -1805,21 +1799,21 @@ framework~\cite{DBLP:journals/corr/abs-0902-2685} can be used.
 Once the worker agents are started they register themselves at the RunMaster.
 In contrast to TROY-BigJob, a worker agent generally manages only a single
 core and thus, by default is not able to run parallel applications (e.\,g.\
-based on MPI). BJ-SAGA utilizes an agent that is able manage a set of local
+based on MPI). BJ utilizes the BJ agent that is able manage a set of local
 resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
 of running parallel applications. For communication between the RunMaster and
 worker agents point-to-point messaging based on CORBA is used. CORBA is also
-used for file staging, which is not fully supported by BJ-SAGA, yet.
+used for file staging, which is not fully supported by BJ, yet.
 
 % Binding 
 DIANE is primarily designed with respect to HTC environments (such as
 EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
-size of 1 core. BJ-SAGA in contrast is designed for HPC systems such as TG,
+size of 1 core. BJ in contrast is designed for HPC systems such as TG,
 where a job usually allocates multiple nodes and cores. To address this issue
 a so-called multinode submitter script can be used: the scripts starts a
 defined number of worker agents on a certain resource. However, WUs will be
 constrained to the specific number of cores managed by a worker agent. A
-flexible allocation of resource chunks as with BJ-SAGA is not possible. By
+flexible allocation of resource chunks as with BJ is not possible. By
 default a WU is mapped to a SU; application can however implement smarter
 allocation schemes, e.\,g.\ the clustering of multiple WUs into a SU.
 
@@ -1831,7 +1825,7 @@ applications can implement a custom application-level scheduler.
 
 
 %Other impl. related issues: FT and security
-DIANE is as BJ-SAGA a single-user PJ, i.\,e.\ each PJ is executed with the
+DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the
 privileges of the respective user. Also, only WUs of this respective user can be
 executed by DIANE. DIANE supports various middleware security mechanisms
 (e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
@@ -2165,7 +2159,7 @@ PJs and WUs using the TROY API.
 		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
 	\caption{\textbf{Performance TROY with BigJob and DIANE:} Running BFAST 
 	on a 4 node cluster with a total of 16 cores. The time-to-completion for 
-	TROY-DIANE is higher than for BJ-SAGA mainly due to the higher startup 
+	TROY-DIANE is higher than for BJ mainly due to the higher startup 
 	time required and some light runtime overhead caused by the additional 
 	agents required on the resource.\up\up}
 	\label{fig:perf_perf-bfast-bj}
