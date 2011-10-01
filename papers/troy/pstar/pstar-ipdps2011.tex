@@ -546,7 +546,7 @@ pilots. The point of decision making is the master process. In addition to the
 \emph{centralized} M/W, M/W can also be deployed \emph{hierarchically}.
 Alternatively, coordination between the elements, in particular the pilots, can
 be done in a \emph{decentral} way, i.\,e.\ without central decision making
-authority.
+point.
 
 
 % Commonly, a distributed coordination mechanism such as master/worker
@@ -753,7 +753,7 @@ manages its execution. In the simplest case one WU corresponds to one
 SU; however, SUs can be combined and aggregated to optimize
 throughputs and response times.
 
-Commonly, the M/W coordination model is used on multiple levels: On
+Commonly, a hierarchical M/W coordination model is used: On
 the first level, the PM uses M/W in order to coordinate the actions of
 the pilots that are part of its resource pool (usually 1 or
 more). Once a SU is forwarded to a pilot, the pilot is responsible for
@@ -1554,7 +1554,7 @@ execution (see also \S{IIIA}).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \section{Understanding Other Pilot-Jobs\upp\upp}
-\alnote{add Falkon to SWIFT section}
+\alnote{add Falkon to SWIFT section}\alnote{done}
 \alnote{add cross-cutting analysis}
 
 % \jhanote{Depending upon where the TROY API is discussed we can have
@@ -1576,13 +1576,13 @@ execution (see also \S{IIIA}).
 As more applications take advantage of dynamic execution, the Pilot-Job concept
 has grown in popularity and has been extensively researched and implemented for
 different usage scenarios and infrastructure. There is a variety of PJ
-implementations: Condor Glide-In~\cite{condor-g}, SWIFT~\cite{Wilde2011},
+implementations: Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
 DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
 PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
 Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
 MyCluster~\cite{1652061} to name a few. The aim of this section is to show that
 our P* Model can be used to explain/understand some of these PJ frameworks,
-in particular DIANE as well as Condor Glide-In and Swift.
+in particular DIANE as well as Condor-G and Swift.
 Table~\ref{table:bigjob-saga-diane} shows how the elements P* model can be
 mapped to these frameworks. Table~\ref{table:pilot-job-comparison} compares the
 characteristics of the four PJ frameworks.
@@ -1614,8 +1614,7 @@ characteristics of the four PJ frameworks.
 \centering
 \begin{tabular}{|p{2.5cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
 \hline
-\textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor 
-Glide-In} &\textbf{Swift-Coaster}  \\
+\textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G} &\textbf{Swift-Coaster}  \\
 \hline
 Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
 \hline
@@ -1690,7 +1689,7 @@ is possible.
 
 Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
 actually a complete Condor pool that is started using the Globus service of a
-resource. Subsequently, jobs can be submitted to this Glide-In pool using the
+resource. This mechanism is referred to as Condor Glide-In. Subsequently, jobs can be submitted to this Glide-In pool using the
 standard Condor tools and APIs. Condor utilizes a master/worker coordination
 model. The PJ manager is referred to as the Condor Central Manager. The
 functionality of the Central Manager is provided by several daemons: the
@@ -1734,7 +1733,15 @@ used. However, SWIFT supports the grouping SUs as well as PJs. For the PJ
 functionality the Coaster~\cite{coasters} framework is used. Coaster relies on a
 master/worker coordination model; communication is implemented using GSI-secured
 TCP sockets. SWIFT and Coaster supports various scheduling mechanisms, e.\,g.\ 
-a FIFO and a load-aware scheduler.
+a FIFO and a load-aware scheduler. 
+
+Further, SWIFT can be used in conjunction with Falkon~\cite{1362680}. Falkon
+refers to pilots as so called provisioner, which are created using the Globus
+GRAM service. The provisioner then spawns a set of executors on the allocated
+resources. WUs are submitted via a so called dispatcher service. Similar to
+Coaster Falkon utilizes a M/W coordination model, i.\,e.\ the executors
+periodically query the dispatcher for new SUs. Web services are used for
+communication.
 
 
 
@@ -2070,7 +2077,7 @@ execution by decoupling workload and resource
 assignment/scheduling. The P* model provides a common framework for
 describing and characterizing Pilot-abstractions.  We validate the P*
 model by demonstrating that the most widely used PJ frameworks,
-viz., DIANE, Condor Glide-In and SWIFT can be compared, contrasted and
+viz., DIANE, Condor-G and SWIFT can be compared, contrasted and
 analyzed using this framework, i.\,e.\ the architecture and the
 communication and coordination schemes.  TROY is an implementation of
 the P* model that captures the commonalities between the different PJ
