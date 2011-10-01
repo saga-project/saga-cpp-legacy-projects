@@ -220,6 +220,11 @@
   consistency!}
 
 \jhanote{We need care in the use of ``agent''!}
+\alnote{We use the term agent to denote a component inside the pilot that has
+some decision making capability. In most cases we could replace agent just with
+pilot. However, when talking about decentral coordination with autonomic
+decision making this will be difficult. Should we explicitly define an agent in
+sec II under Pilot-Job (aka pilot)?}
  
 Distributed CI almost by definition is comprised of a set of resources
 that is fluctuating -- growing, shrinking, changing in load and
@@ -572,12 +577,15 @@ about a hierarchy of RMs is not useful at this point.}
 
 \begin{compactitem}
 
-\item \textbf{Pilot-Job (PJ) or Pilot:} The PJ (or `pilot') is the
-  part of the PJ framework that actually gets submitted and scheduled
-  onto a resource using the resources RM system.  The RM assigns a
-  slice of the Resource to the pilot -- that pilot then acts as RM for
-  that resource slice.
-  % Often, the pilot 
+\item \textbf{Pilot-Job (PJ) or Pilot:} The PJ (or `pilot') is the entity that
+actually gets submitted and scheduled on a resource using the resource's RM
+system. The PJ manages the set of allocated resources and is responsible for 
+the execution of \alwave{SUs/tasks} onto the resource.
+\alnote{\textbf{The RM assigns a slice of the Resource to the pilot -- that
+pilot then acts as RM for that resource slice.} I think simply equating a pilot
+with a RM is bit too simplistic. In a sense it is a application-level resource
+manger. Not sure what to do}
+% Often, the pilot 
   % has the role of an agent: it collects local information, manages the
   % resources allocated to it and exchanges data (such as resource
   % information, states) with the other elements of the PJ
@@ -596,13 +604,6 @@ about a hierarchy of RMs is not useful at this point.}
 % resources.  So, I think that we actually clarify the early/late
 % binding :-)}
 
-\alnote{moved PM up, because it is referenced in WU/SU description}
-\item \textbf{Pilot-Manager (PM):} The PM is responsible for
-  implementing the different characteristics of the P* model. It
-  facilitates the coordination between the different P* elements,
-  i.\,e.\ the pilots, WUs and SUs. All implementation share these
-  elements, but differ in specific attributes and characteristics. A
-  PM can e.\,g.\ manage solely one or multiple pilots.
 
 %  \jhanote{How about saying that it is responsible for
 %     implementing the different characteristics of the P*
@@ -618,9 +619,9 @@ about a hierarchy of RMs is not useful at this point.}
 
 \item \textbf{Work Unit (WU):} A WU is a resource request which
   encapsulates a self-contained piece of work that is submitted to the
-  Pilot-Manager. The PM has the flexibility to combine and schedule
-  WUs, e.\,g.\ it can determine when a WU is run and what as well as
-  how many resources it will receive.
+  \alwave{pilot-manager}. \alnote{not introduced yet} The PM has the flexibility 
+  to combine and schedule WUs, e.\,g.\ it can determine when a WU is run and 
+  what as well as how many resources it will receive.
 	
 
   % \jhanote{Andre: Can we not use just ``pilot'' here, i.e. WU gets
@@ -641,13 +642,21 @@ about a hierarchy of RMs is not useful at this point.}
 %     place. }
 
 \item \textbf{Scheduling Unit (SU):} 
-SUs are the units of scheduling used inside the PJ framework. As SU is created
+SUs are the units of scheduling used internally. As SU is created
 during the submission of a WU, i.\,e.\ once a WU has been passed into the
 control of the PM, it becomes an SU. SUs are scheduled and executed on a
 resource via the pilot. An SU can consists of one or more WUs. Further, they can 
 be combined and aggregated. Note that that this can either be a simple
 grouping or a smart aggregation of WUs (e.\,g.\ two sets of parameters merged
 into one).
+
+\item \textbf{Pilot-Manager (PM):} The PM is responsible for
+  implementing the different characteristics of the P* model. It
+  facilitates the coordination between the different P* elements,
+  i.\,e.\ the pilots, WUs and SUs. All implementation share these
+  elements, but differ in specific attributes and characteristics. A
+  PM can e.\,g.\ manage solely one or multiple pilots.
+
 
 
 % An SU consists of one or more WUs that are
@@ -677,10 +686,9 @@ an application kernel (an ensemble) or alternatively instances of
 multiple different application kernels (a workflow). An application
 kernel is the actual binary that gets run.  To execute an application
 kernel, an application must define a WU specifying the application
-kernel as well as other parameters. This WU can then be submitted to
-the PJ framework. Typically this is done by the PJ-Manager which is
-then responsible for binding one or more WUs to a SU and for
-scheduling the SU.	
+kernel as well as other parameters. This WU is then be submitted to
+the pilot-manager where it transitions to an SU. The PM is then responsible for 
+scheduling the SU onto a pilot and then onto a physical resource.
 As we will see in \S{IV}, the above elements can be mapped to specific
 entities in many pilot-jobs in existence and use.
 
@@ -732,14 +740,14 @@ information about available resources (aka pilots) are collected
 centrally, and decisions are centrally made by a manager
 process. % , which decides which SU is executed on what
 % resource.
-In the \textbf{hierarchical} model the decision making process is
-divided up into a hierarchy of distributed agents. Each of them
-coordinates a defined aspect (e.\,g.\ a certain set of resources). In
-the \textbf{decentral} model, control is distributed among the
-different components.  PJs with decentralized decision making often
-utilize autonomic agents that accepts respectively pull SUs according
-to a set of defined policies. \jhanote{I think the previous sentence
-  is what we would like it to be.. not sure it is the case right now?}
+In the \textbf{hierarchical} model the decision making process is divided up
+into a hierarchy of distributed \alwave{agents/entities}. Each of them
+coordinates a defined aspect (e.\,g.\ a certain set of resources). In the
+\textbf{decentral} model, control is distributed among the different components.
+PJ frameworks with decentralized decision often utilize autonomic agents that
+accepts respectively pull SUs according to a set of defined policies. \jhanote{I
+think the previous sentence is what we would like it to be.. not sure it is the
+case right now?}
 
 
 % \begin{compactitem}
@@ -919,32 +927,35 @@ pilots are queued and started via the local resource manager (step
   reader's attention on an understanding that was not covered in brief
   description} \alnote{refined}
 
-Commonly, the Pilot-Manager (PM) can be accessed via a set of command line tools
+Commonly, the pilot-manager (PM) can be accessed via a set of command line tools
 and/or an API via which an application can create and submit WUs to the
-Pilot-Manager (step 5/6). A WU that is submitted becomes a SU, i.\,e.\ the PM
+pilot-manager (step 5/6). A WU that is submitted becomes a SU, i.\,e.\ the PM
 is now in control of it and schedules and manages its execution. In the
 simplest case one WU corresponds to one SU; however, SUs can be combined
 and aggregated to optimize throughputs and response times.
 
-A PM usually manages a resource pool consisting of 1 or more
-pilot-jobs.  Most \alwave{PJs} utilize a M/W coordination model,
-i.\,e.\ the manager tightly controls the actions of a set of workers
-(agents) located on the resource. \jhanote{Need some clarification:
+Commonly, the M/W coordination model is used on multiple levels: On the first
+level, the PM uses M/W in order to coordinate the actions of the pilots that are
+part of its resource pool (usually 1 or more). Once a SU is forwarded to a
+pilot, the pilot is responsible for the coordination of the SU execution. Again 
+a pilot usually manages 1 or more SUs using M/W. \jhanote{Need some 
+  clarification:
   what is the worker/agent here? (i) Isn't it PJ Frameworks that use
   M-W coordination and not the PJ.  Also, in the framework, isn't the
   Manager the Master, and the Pilot-Job the Worker; What about WU/SU ?
-  ie if WU/SU are the workers, what is the master?}  However, the
-integration of more decision capabilities into the agent can yield to
-a more autonomic and adaptive behavior as well as a better
-scalability.
+  ie if WU/SU are the workers, what is the master?}  \alnote{refined}
+Scheduling decisions can be conducted on each level. The delegation of decision
+capabilities into lower levels, i.\,e.\ the pilot, can yield to a more autonomic
+and adaptive behavior as well as a better scalability.
 
-A P* implementation usually operates a hierarchy of schedulers. The following
-examples involves a two-level hierarchy: In the first hierarchy level the PM
-schedules an SU to a pilot of its resource pool (step 7). Another round of
-scheduling can occur within the pilot, i.\,e.\ the pilot decides when and on
-what physical resource a SU is executed (step 8). Further, the pilot manages
-the subsequent execution of the SU on the physical resource on which the pilot
-is operating.
+\alnote{TODO: remove redundancy with paragraph above}
+As explained, a P* implementation usually operates a hierarchy of schedulers.
+The following examples involves a two-level hierarchy: In the first hierarchy
+level the PM schedules an SU to a pilot of its resource pool (step 7). Another
+round of scheduling can occur within the pilot, i.\,e.\ the pilot decides when
+and on what physical resource a SU is executed (step 8). Further, the pilot
+manages the subsequent execution of the SU on the physical resource on which the
+pilot is operating.
 
 
 \alnote{This paragraph describes a generalization to multiple levels
