@@ -685,220 +685,6 @@ SUs according to a set of defined policies.
 \end{figure}
 
 
-\subsection{Pilot-Data: Extension of P* to Dynamic Data\upp\upp}
-\label{sec:pilot-data}
-
-% \jhanote{We should purely by analogy go with BigData, no? Need a
-%   diagram that talks about TROY = BigJob + BigData + ``??''. Need to
-%   define ``??''}
-
-% \jhanote{note: DARE == Dynamic Application Runtime Environment: TROY +
-%   MapReduce + Other capabilities}
-
-% \jhanote{Ideally the background/underlying theory of Pilot Data/Store
-%   should be presented outside of TROY -- not sure this will be
-%   possible, or where, possibly in the \S II? Maybe as an explicit \S
-%   II-D, where we say, ``having defined a P* model, we extend it to
-%   Dynamic Data..''}
-
-
-%\subsubsection{Overview}
-% The concept of correlated access originates in
-% Filecules~\cite{Doraimani:2008:FGS:1383422.1383429}.
-
-% \begin{figure}[t]
-%     \centering
-%         \includegraphics[width=0.4\textwidth]{figures/pilotstore.pdf}
-%     \caption{Pilot Data and Store Overview}
-%     \label{fig:figures_pilotstore}
-% \end{figure}
-
-% \jhanote{Motivation for PD: We have discussed the importance of DE for
-%   compute; there exist similar and important considerations for DE for
-%   data. Analogous challenges of DE for data as DE for Compute, e.g.,
-%   importance of issues of (late) binding and decision making} 
-
-Dynamic execution is at least equally important for data-intensive
-applications: applications must cope with various challenging issues
-e.\,g.\ varying data sources (such as sensors and/or other application
-components), fluctuating data rates, optimizations for different
-queries, data-/compute co-location etc. Thus, having defined the P*
-model, we propose to extend it with data so as to facilitate an
-understanding of DE. This will motivate an analogous abstraction that
-we call \emph{pilot-data (PD)}. PD provides late-binding
-capabilities for data by separating the allocation of
-physical storage and application-level data units. Further, it
-provides an abstraction for expressing and managing relationships
-between data units and/or work units. These relationships are
-referred to as \emph{affinities}.  % \jhanote{difficult to use affinity
-%   without defining it..}  \alnote{tried to describe affinities a
-%   little bit better}
-
-\subsubsection*{Application of P* Model Elements to Data}
-
-% The P* model can in many parts be applied to pilot-data.
-
-A Pilot-Data Framework facilitates the late-binding between data units and
-physical storage resources, the so called pilot-stores. The elements defined by
-P* (in section~\ref{sec:p_star_elements}) can be extended by the following
-elements. By symmetry each element can be mapped to an element in the PJ model.
-\begin{compactenum}[A.]
-\item \textbf{Data Unit (DU):} DU is the base unit of data used by the 
-framework,  e.\,g.\ a data file or chunk. 
-\item \textbf{Pilot-Data (PD):} PD allows the logical grouping of DUs
-  and the expression of data-data affinities. This collection of files
-  can be associated with an extensible set of properties. One of these
-  properties is affinity. 
-% A PD containing a set of DUs forms the PJ
-%   equivalent of a WU.
-\item \textbf{Pilot-Store (PS):} A PS functions as a
-	  placeholder object that reserves the space for pilot-data objects. 
-	  By assigning a PD to a PS, the PD is bound to a physical resource.
-	  A PS facilitates the late-binding of data and resource and is equivalent 
-	  to the pilot-job.
-\item \textbf{Pilot-Data Manager} is analogous to the PJ-Manager responsible for 
-  managing DU, PD and PS elements. It implements the different characteristics 
-  of the P* model.
-\end{compactenum}
-
-% \jhanote{Are these the elements of Pilot-Data? If so, please make
-% connection of above elements to earlier defined elements of P* Model
-% explicit, e.g. is Pilot-Data = WU, PS = SU etc. Either way, needs
-% integration with the following elements} 
-% \alnote{I would equate a PS with a pilot-job (the placeholder). SU is
-%   IMHO more an internal entity not really exposed to the end-user. The
-%   PD-Manager framework could e.g. use multiple PS to replicate the
-%   data}
-% \alnote{please check whether we all can agree on this mapping between PJ and PD or whether we should extend the PD model, e.g. by SU and the PJ model by a WU container?}
-
-A DU correspond to a WU in the PJ model. A particular critical requirement for
-data-intensive application, is the management of affinity between DUs and also
-between WUs and DUs. Thus, Pilot-Data introduces the PD container object for
-expressing relationships between DUs. A PD corresponds to an SU in the PJ model,
-i.\,e.\ it is used as scheduling unit for internal optimizations, e.\,g.\ the
-grouping of DUs. Having instantiated a PD, it can be assigned to a PS via the PD
-manager. A PS is a placeholder reserving a certain amount of storage, i.\,e.\ it
-corresponds to a pilot in the pilot-job model. By associating a PD to a PS the
-data is actually moved to the physical location associated with the PS. The PD
-manager facilitates the creation of PSs, schedules data movements (with respect
-to specified affinities) and manages data accesses.
-
-%\alnote{insert Millau figure}
-
-\subsubsection*{Application of P* Model Characteristics to Data}
-
-% \jhanote{Compress into a paragraph which extends the Characteristics
-%   of P*-Model? i.e., Can Data Characteristics, Access Patterns and
-%   affinity be demoted from elements, and be put under
-%   characteristics?}
-
-While the PD model introduces a new element, the characteristics remain
-to a great extent the same. The coordination characteristic describes
-how the elements of PD interact, e.\,g.\ utilizing the M/W model; the 
-communication characteristic can be applied similarly. The scheduling 
-characteristics must be extended to not only meet compute requirements, but also 
-to support common data access patterns. The scheduling 
-component particularly needs to consider affinities, i.\,e.\ user-defined 
-relationships between WUs and/or DUs, e.\,g.\ data-data affinities exist if
-different DUs must be present at the same compute element; data-compute
-affinities arise if data and compute must be co-located for a
-computation, but their current location is different. The decision of
-where to place the data and compute is made by the scheduler based on
-the defined policies, affinities, available dynamic resource
-information.
-
-%sowetatic \alnote{what does this word mean?} \jhanote{it means
-%  citatewos :)}
-
-PJ and PD encapsulate cross-cutting properties across data and
-computation. The P* implementation will optimize data- and computing
-according to the defined affinities and policies. Both the PJ and PD
-define similar elements that can be mapped to each
-other. Nevertheless, compute and data model sometimes require a
-different treatment. With the maturing of both models and
-implementations, we expect that both the PJ and PD model converge in
-the future. 
-% In the following, we discuss further implementation
-% considerations for P*.
-
-% \subsection*{Not sure what to with this yet}
-% 
-% In summary, Pilot-Data is a set of abstractions for expressing data localities 
-% and affinities. Pilot-Data can be used to create groups of file clustered
-% together using a quantifiable property, such as affinity ($\alpha$)
-% e.g., $\alpha = 1.0$ would imply that files are always stored
-% together.
-% 
-% 
-% Pilot-Data provides a set of basic operations on top of these file
-% groups, whilst Pilot Store is a container that represents a logical
-% group of physical files that share the same affinity. Pilot-Store
-% containers can be used to express data-data affinities. The
-% abstraction supports basic management tasks (create, delete, update,
-% move, list).
-% 
-% The Pilot-Data abstraction serves the following needs:
-% \begin{itemize}
-% \item Reservation of physical disk space: acquisition of data storage
-%   (advanced reservation, place holder)
-% \item Virtual destination: dynamically mapping of data to pilot
-%   stores.
-% \item Runtime environment for $\alpha$ based data
-% \item Automatic data partitioning and distribution
-% \end{itemize}
-% 
-% \jhanote{This could be eliminated?} While the application-level
-% abstraction enables application developers to model data affinities,
-% dependencies etc., the runtime framework will be responsible for
-% managing data-compute co-allocations, data-transfers, the dynamic
-% expansion of storage pools etc.
-% 
-% 
-% \subsubsection*{PD Impl. Cons.}
-% 
-% 
-% \textbf{Data Characteristics:}
-%     \begin{itemize}
-%     \item Static data refers to data that is infrequently changed and
-% does not need to be moved.
-%     \item Dynamic data refers to different spatial and temporal
-% properties of data:
-%     \begin{itemize}
-%     	\item Data that is generated or changing at runtime
-% (temporal).
-%     	\item Data that is in place or needs to be moved (spatial).
-% 	\end{itemize}
-% 	\item Streaming data
-% \end{itemize}
-% \textbf{Data Access Patterns: } While the P* is primarily
-% concerned with capturing aspects of distributed coordination, this
-% elements is extended to include patterns of data access, e.\,g. co-access or gather/scatter that is e.\,g.\ used by MapReduce.
-
-\upp
-% \subsection{Considerations\upp\upp}
-
-% To implement the P* model, there are additional considerations
-% necessary, e.\,g.\ the definition of the exposed end-user abstraction
-% and usage model etc.  The \jhanote{API usage model.. have we defined
-%   it or is it clear what it is in this context? Why note just API?}
-% \jwave{API usage model} defines how resources are allocated as well as
-% how WUs are described, submitted and monitored. Further,
-% non-functional properties such as fault tolerance and security must be
-% considered. PJ implementations differ in their support for
-% authorization, authentication and accounting. Common grid technologies
-% e.\,g.\ GSI, VOMS, MyProxy, etc. are used. \jhanote{for what? what are
-%   we trying to say?} Further, it \jhanote{What is ``it''?} can be
-% differentiated between single- and multi-user: The former
-% \jhanote{What is the former?} PJ runs under the identity of a single
-% user and is only able to accept jobs from this user, while the \jwave{latter}
-% PJ is able to accept jobs from different users.
-
-% \jhanote{We should discuss subsection D in the call today. It might be
-%   best to move it out of P* and into TROY, or change the focus of the
-%   subsection to lay-out why the API is just the first step towards a
-%   complete implementation.}
-
-
 \section{TROY: A Reference Implementation and API for the P*
   Model\upp\upp}
 \terminology{TROY (implementation), P* Model, TROY API, PJ implementation, BigJob, based on SAGA,
@@ -989,7 +775,29 @@ considered to be a prototype of a PJ-like API extension to SAGA (see
 future work, \S{VI}).
 
 
-\subsection{BigJob: A SAGA-based Pilot-Job Implementation for TROY\upp\upp}
+\section{Pilot-Jobs Frameworks\upp\upp}
+\alnote{add Falkon to SWIFT section}\alnote{done}
+\alnote{add cross-cutting analysis}
+
+As more applications take advantage of dynamic execution, the
+Pilot-Job concept has grown in popularity and has been extensively
+researched and implemented for different usage scenarios and
+infrastructure. There is a variety of PJ implementations:
+Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
+DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
+PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
+Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
+MyCluster~\cite{1652061} to name a few. The aim of this section is to
+show that our P* Model can be used to explain/understand some of these
+PJ frameworks, in particular DIANE as well as Condor-G and Swift.
+Table~\ref{table:bigjob-saga-diane} shows how the elements P* model
+can be mapped to these
+frameworks. Table~\ref{table:pilot-job-comparison} compares the
+characteristics of the four PJ frameworks.
+
+
+\subsection{BigJob: A SAGA-based Pilot-Job Implementation for
+  TROY\upp\upp}
 \terminology{BigJob (BJ) , BigJob-SAGA, BJ implementation,  BJ-SAGA, BJ flavors, Amazon EC2, Microsoft Azure,
  BJ with a Condor Glide-In based backend,  BigJob Manager, BigJob agent component, BigJob framework,
  BigJob pool, extensible scheduler, } 
@@ -1010,33 +818,7 @@ future work, \S{VI}).
 
 
 
-\begin{figure*}[t]
-  \up\up\up
-	\begin{minipage}[t]{0.475\linewidth}
-	\centering
-	\includegraphics[width=\textwidth]{figures/distributed_pilot_job.pdf}
-%	\includegraphics[width=\textwidth]{figures/P1140340.JPG}
-	\caption{\textbf{BigJob -- SAGA-based Pilot-Job Implementation:}
-          BigJob is the implementation of the actual PJ functionality
-          for TROY. Various BJ implementation for different grid and
-          cloud backends exist. \jhanote{this needs fixing. make
-            consistent with the blackboard.}}
-	\label{fig:figures_distributed_pilot_job}
-	\end{minipage}
-	\hspace{0.035\linewidth}
-	\begin{minipage}[t]{0.475\linewidth}
-	\centering
-   	\includegraphics[width=\textwidth]{figures/pilot-data-manager.pdf}
-    \caption{\textbf{BigData Architecture:} The BD Manager exposes
-      TROY's PD API. Application can create group of files and assign 
-      files to storage. The BD manager tracks file locations in
-      the data catalog. The scheduler optimizes data-compute co-location.
-      The transfer manager initiates and monitors data movements. \up\up}
-	\label{fig:pilot-data-architecture}
-	\end{minipage}
-\end{figure*}
-
-    % \includegraphics[width=0.3\textwidth]{figures/distributed_pilot_job.pdf}
+   % \includegraphics[width=0.3\textwidth]{figures/distributed_pilot_job.pdf}
     % 	\caption{SAGA-based TROY Implementation - BigJob}
     % 	\label{fig:figures_distributed_pilot_job}
     % 	\end{figure}
@@ -1098,389 +880,8 @@ work and data units managed by BigJob and BigData, see below) are
 provided. Other backends (such as DIANE and Condor) natively support elasticity,
 but can nevertheless be combined into a BJ pool.
 
-% For this purpose, the dynamic BigJob provides an introspection API
-% that applications can utilize to query the manager for a list of
-% current resources.
-
-%  Thus, BigJob-DIANE provides dynamic
-% capabilities out-of-the-box, the traditional BigJob
-% implementation~\cite{saga_bigjob_condor_cloud} utilizes two layers: the
-% \emph{Core BigJob} and the so called \emph{BigJob Pool} layer. Core BigJobs are
-% confined to a single resource and represented by a single master process
-% (i.\,e.\ a single BigJob Manager). Generally, Core BigJobs are used to
-% encapsulate resource specifics, e.\,g.\ for a certain type of infrastructure
-% (Condor, Cloud, etc.). A BigJob Pool manages multiple Core BigJobs.
-
-%\jhanote{Should Table I be zapped?} \alnote{gone}  
-
-% \begin{table}[t]
-% \centering
-% \begin{tabular}{|p{1.8cm}|p{1.7cm}|p{1.7cm}|p{1.7cm}|}
-% 	\hline
-% 	&\textbf{WU Binding} &\textbf{Coordina\-tion} & \textbf{Communica\-tion} \\
-% 	%\hline
-% 	%\textbf{BigJob} & &&&&\\
-% 	\hline
-% 	BigJob-SAGA &&&\\
-% 	\hline
-% 	\hspace{2mm} Globus/PBS   &at WU submission
-% 									  &Master/Worker &SAGA Advert \\  
-% 	\hline
-% 	\hspace{2mm} Cloud (EC2)  &at WU submission 
-% 									  &Master/Worker &SAGA Advert \\ 
-%     \hline
-%    BigJob-Condor &after WU submission &Master/Worker &Condor-internal \\
-% 	\hline
-%  	BigJob-Cloud &at WU submission   &Master/Worker 
-% 				 &local Python queue / SAGA Job (SSH adaptor) \\ 
-% 	\hline
-% 	BigJob-Azure &at WU submission
-% 	             &Master/Worker &Azure Storage \\ 
-% 	\hline
-%     BigJob-Diane &after WU submission  &Master/Worker &CORBA  \\ 
-% 	\hline	
-% 	% \textbf{Dynamic BigJob} & &&&&\\
-% 	% 	\hline
-% 	%     Dynamic BigJob &late binding (after job submission) &same as BJ &central decision making &same as BJ &(yes in future)\\
-% 	%     \hline
-%     %   ManyJob-Cloud &late binding (after job submission) &no &central decision making &SAGA Job (SSH) (push) &no\\
-%     % \hline 
-%     % ManyJob-Affinity &late binding (after job submission)
-%     % &yes &central decision making &SAGA Advert (push/pull) &no\\
-%     % \hline
-% \end{tabular}
-% \caption{SAGA-based Troy Implementations: Characteristics According to
-%   Defined Vectors} \label{tab:pilotjob_overview}
-% \end{table}		
-
-
-% Aspects that need to be addressed:
-% \begin{itemize}
-%     \item Big-Job Agent: capacity (physical size) is a property of an agent. 
-% 	cardinality: how many sub-jobs can be managed by an agent?
-% 	\item Sub-Job Agent: Agent assignment should be separated from resource 
-% 	assignment. Agent has the freedom to assign tasks to sub-job in any way 
-% 	it want. Agent can do local decisions.    
-%   \item Would it make sense to use the ``internal'' versus
-%     ``external'' coordination concept to distinguish sub-job
-%     versus big-job agent
-% \end{itemize}
-
-
-
-
-
-% Dynamic BigJob provides the ability to dynamically add and remove resources to a 
-% big-job. The API consists of two parts, the resource management and the resource 
-% introspection part:
-% \begin{itemize}
-%     \item \texttt{add\_resource()}: New resources are added by starting a new
-%     big-job.There are various flavors of this method:
-%     \begin{itemize}
-%         \item \texttt{add\_resource(re\-sour\-ce\_dic\-tionary)}: Start another big-job on the resource defined in the \texttt{resource\_dictionary}.
-%         \item \texttt{add\_resource(affinity, number\_cores)}: Add another big-job to the specified affinity group.
-%     \end{itemize}
-%     \item \texttt{remove\_resource(bigjob)}: Removes the big-job from the
-%     resources.
-% \end{itemize}
-% 
-% Higher-level wrappers that encapsulate e.\,g.\ the specific resource
-% descriptions can be implemented. Further, to implement this dynamic resource
-% capabilities it is necessary to provide different dynamic resource introspection
-% in the dynamic big-job layer:
-% \begin{itemize}
-%     \item \texttt{get\_resources()}: returns a list of managed big-job objects.
-%      Each big-job object can be queried for it's allocated resources (number 
-%      nodes, number cores).
-% \end{itemize}
-
-
-% It uses SAGA BigJob approach to start multiple BigJobs agents 
-% whether on a single resource or on multiple resources. And 
-% these agents are responsible for pulling the tasks from advert 
-% service and run the possible subjobs concurrently or in generations.
-
-% \jhanote{The rationale behind dynamic BJ is that for the same
-%   application scenario different BJ with different
-%   properties/characteristics may be required. Thus dynamic BJ maybe
-%   comprised of either homogeneous or heterogeneous atomic BJs}
-% \alnote{did one pass... still not perfect}
-
-% \jhanote{I propose the next 3 subsections -- bigjob-cloud, bigjob-aws
-%   and bigjob-azure, be removed}\alnote{gone, there was no news anyhow}
-
-% \subsubsection{BigJob for Cloud Computing}
-% 
-% \jhanote{Once again -- why do differences in execution details between
-%   grids and clouds result in the need for different atomic BJs needs
-%   to be explained. Must emphasis that the API remains the same.}
-% 
-% At the execution level, clouds differ from Clusters/Grids in at least a couple
-% of different ways. In cloud environments, user-level jobs are not typically
-% exposed to a scheduling system; a user-level job consists of requesting the
-% instantiation of a virtual machine (VM). Virtual machines are either assigned to
-% the user or not (this is an important attribute that provides the illusion of
-% infinite resources). The assignment of job to a VM must be done by the user (or
-% a middleware layer as BigJob). In contrast, user-level jobs on grids and 
-% clusters are exposed to a scheduling system and are
-% assigned to execute at a later stage. Also a description of a grid job typically
-% contains an explicit description of the workload; in contrast for Clouds a user
-% level job usually contains the container (description of the resource
-% requested), but does not necessarily include the workload. In other words, the
-% physical resources are not provisioned to the workload but are provisioned to
-% the container.  Interestingly, at this level of formulation, pilot-jobs attempt 
-% to provide a similar model of resource provisioning as clouds natively offer. 
-% 
-% \subsubsection{BigJob and SAGA AWS Adaptor}
-% 
-% BigJob provides support for various cloud computing environment. The SAGA BigJob
-% implementation can be used in conjunction with the AWS adaptor for SAGA to run
-% on EC2-based cloud infrastructures, such as FutureGrid. However, there are some 
-% limitations mainly caused by the restrictions of SAGA/AWS adaptor for the SAGA 
-% Job package. The SAGA job service object e.\,g.\ does not provide a mean to 
-% specify a set of resources. Using the AWS adaptor it is only possible to utilize 
-% a single VM instance, which must be configured prior to the run in a 
-% configuration file. If multiple VMs are required, the dynamic BigJob 
-% implementation must be used. In this case however, it is still not possible to 
-% run MPI jobs across multiple VMs. 
-% \smnote {why is it not possible to run MPI jobs across Multiple VM's?} \alnote{MPI jobs are (unless you do something outside of BJ) constraint to run
-% on resources managed by a single BJ agent. The agent must generate a nodefile
-% from this list of resource it is managing. The agent is not aware of resources
-% managed by another BJ)}
-% 
-% \subsubsection{BigJob Cloud \& BigJob Azure}
-% 
-% To address this limitation, BigJob-Cloud~\cite{saga_bigjob_condor_cloud} was
-% developed. BigJob-Cloud provides an implementation of the BigJob API, which is
-% completely independent from the SAGA (and thus, the SAGA AWS adaptor). It
-% directly utilizes the Amazon tools to access cloud resources. It can manage
-% cluster of VM; for this purpose BigJob provides a rich interface for describing
-% cloud resources. For this purpose a Python dictionary is used (see
-% section~\ref{sec:api}). The VMs can be managed centrally by the BigJob manager:
-% All VMs have a public IP and there is no need to interface with a local resource
-% manager (SAGA BigJob e.\,g.\ evaluates the \texttt{\$PBS\_NODEFILE} to obtain a
-% list of resources). Thus, it is not necessary to deploy an agent on the VM - all
-% necessary metadata can be obtained from the AWS backend. Job are spawned via
-% SSH.
-% 
-% % \begin{itemize}
-% %   \item ManyJob is required to manage the set of VMs. The BigJob-Cloud can manage a set of VMs without the need of ManyJob.
-% %   \item Bigjob uses advert server for communication between BigJob-agent and BigJob whereas BigJob-Cloud does not use an advert server.
-% %   \item Bigjob-cloud does not require SAGA-AWS adaptors as opposed to requirement in original Bigjob. 
-% % \end{itemize} 
-% 
-% 
-% BigJob-Azure~\cite{10.1109/CloudCom.2010.85} utilizes a similar approach as
-% BigJob-Cloud. It utilizes the Azure REST interface to startup VM Worker Roles.
-% However, since Azure does not support SSH access it is necessary to utilize an
-% agent-based approach. For communication between the agent and the manager the
-% Azure Storage is used.
-% 
-% \msnote{If BigJob is the atomic unit, it should not differ per
-%   backend}\alnote{That's mainly a restriction of the job package which
-%   does not really map to AWS. There is no common way in the job
-%   package to specify the \# of resources that suppose to be
-%   used. Thus, this limitation}
-
+% \input{sectionIV_comments}
 \upp
-\subsection{BigData: A SAGA-based Pilot-Data Prototype for TROY\upp\upp}
-\label{sec:bigdata}
-% \jhanote{theory goes upfront; implementation and architecture stays
-%   here} \alnote{ok}
-
-BigData-SAGA (BD-SAGA) is the SAGA-based implementation of the
-Pilot-Data abstraction -- in the scope of this paper it is referred to
-as simply BigData (BD).  Figure~\ref{fig:pilot-data-architecture}
-gives an overview of the architecture.  The system consists of two
-components: the BD manager, and the BD agents deployed on the physical
-resources. The coordination scheme used is again M/W with some
-intelligence that is located de-centrally at the BD agent. As
-communication mechanism the SAGA Advert Service is used, in a similar
-push/pull mode as for BJ.
-
-The BD manager is responsible for 1) meta-data management, i.\,e.\ it
-keeps track of the pilot stores that a pilot data object is associated
-with, 2) for scheduling data movements and data replications (taking
-into account the application requirements defined via affinities), and
-3) for managing data movements activities.  Similar to BigJob, an
-agent on each resource is used to manage the physical storage on a
-resource.  The BD scheduler particularly supports affinity-aware
-scheduling: both BigJob and BigData are tightly integrated to
-efficiently support compute- and data-related aspects of dynamic
-execution (see also \S{IIIA}).
-
-
-% For this purpose, the PD and PJ manager work closely together to manage compute-/data-affinities for applications. 
-% 
-% For this purpose the PJ scheduler was
-% extended to support affinities, i.\,e.\ when scheduling WU it considers
-% dependencies toward PDs.
-
-
-% \jhanote{Need to explain/describe architecture of BigData? using the
-%   terminology of Section II and P*-Model}
-
-% \begin{figure}[htbp]
-%     \centering
-%         \includegraphics[width=0.49\textwidth]{figures/pilot-data-manager.pdf}
-%     \caption{\textbf{BigData Architecture:} The PD-Manager is exposing the 
-% 	TROY Pilot-Data API. Application can create group of files and assign file
-% 	to storage. The PD manager tracks files and physical locations in the data 
-% 	catalog. The data scheduler optimizes the co-locations of files and compute 
-% 	(in conjunction with BJ). The transfer manager initiates and monitors the 
-% 	actual data movements. \upp\upp}
-%     \label{fig:pilot-data-architecture}
-% \end{figure}
-
-
-
-% A possible implementation option would be the 
-% integration of the PD and BigJob agent, which is particularly useful for 
-% managing data-/compute-affinities.
-
-% A core part of the data manager is the data scheduler. The scheduler aims for a
-% optimum of data and compute locality for an applications: it selects the storage
-% and compute elements for a WU submitted. For this purpose the PJ scheduler was
-% extended to support affinities, i.\,e.\ when scheduling WU it considers
-% dependencies toward PDs. The manager is then responsible for managing necessary
-% file transfer, the pre-fetching of files if applicable, as well as the executing
-% the actual WU. For file-transfer management BigData utilizes SAGA and thus, is
-% infrastructure independent. It supports all underlying SAGA adaptors (SSHFS,
-% GridFTP) and future adaptors such as Globus Online.
-
-
-
-% \subsubsection{BigJob and BigData Integration}
-% 
-% In particular for data-intensive applications data locality is an important
-% concern. Different types of affinity, e.\,g.\ data-data or data-compute, exists.
-% Dynamic BigJob provides support for data-compute affinities. Each resource
-% (i.\,e.\ each big-job) can be assigned to a certain affinity. The affinity-aware
-% scheduler then ensures that sub-jobs that demand a certain affinity are only
-% executed on resources that fulfill this constraint.
-
-
-% \subsubsection{Related Work}
-% 
-% Work on optimizing file transfers: Kosar[2011]
-% Work on reliable file transfer: RFT, Globus Online
-% 
-% \emph{iRods}
-% \emph{Stork}
-% 
-% 
-% \emph{BitDew}
-% 
-% Random Notes
-% \begin{itemize}
-% 	\item Focus on Desktop Grid
-% 	\item Java-based implementation (ie difficult to interface with Python-based PS/SAGA)
-% 	\item highly distributed: stable and volatile nodes
-% 	\item pull model, i.e. a node pulls for new data
-% \end{itemize}
-% 
-% 
-% Mapping to BitDew:
-% \begin{itemize}
-% 	\item Pilot Store in its current implementation covers Bitdew Data Catalog and Repository
-% 	\item For data management and placement the Active Data API and the Bitdew data scheduler could be used
-% 	\item Transfer Management is done via SAGA File API	
-% \end{itemize}
-
-% How to evolve pilot data/store?
-% \begin{itemize}
-% 	\item Active management of data (e.g. replication, automatic affinity management) requires an active component:
-% 	\begin{itemize}
-% 		\item Manager/Agent model as in BigJob?
-% 		\item Who runs active components? Started as part of batch job or separate install/start?
-% 	\end{itemize}
-% \end{itemize}
-% 
-% Questions:
-% \begin{itemize}
-%     \item How should
-%     we store data in order to effectively cope with non-uniform demand for
-%     data? 
-%     \item How many copies of popular data objects do we need? 
-%     \item Where should we store them for effective load balancing?
-% \end{itemize}
-
-% \textbf{TODO/Future Work}
-% 
-% 
-% Limitations:
-% \begin{itemize}
-%     \item No active agent that monitors state of files
-%     \item No placement policy support or autonomic behavior
-%     \item Infrastructures generally expose insufficient locality/topology information
-%     \item Compute – Data Affinity: Dynamic BigJob with affinity only provides a very coarse-grained affinity
-%     \item No policy for what’s happening if data is not available in right location:
-%     \begin{itemize}
-%         \item Run anyways – affinity is just an hint
-%     \end{itemize}
-%     \item When to move pilot stores? Move or copy?
-%     \item Move data to compute or visa versa?
-%     \item Data Replication: Identification of the same file: logical filename -> physical files. Manage replication process (consistency!)
-% \end{itemize}
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\section{Understanding Other Pilot-Jobs Frameworks\upp\upp}
-\alnote{add Falkon to SWIFT section}\alnote{done}
-\alnote{add cross-cutting analysis}
-
-% \jhanote{Depending upon where the TROY API is discussed we can have
-%   two ways forward. If TROY API is discussed in \S3, then we go for
-%   Mode I, where Mode I: The aim of this section is to show: (i) that
-%   our P* Model can be used to explain/understand DIANE, (ii) Show that
-%   the TROY API can be used to marshall Diane stand-alone, (iii) Using
-%   TROY API, both BigJob and Diane can be used standalone}
-
-% \jhanote{If TROY API is discussed in \S5, then we go for Mode-II,
-%   where Mode II: The aim of \S4 is to show: (i) that our P* Model can
-%   be used to explain/understand DIANE.  Then in \S5, after having
-%   discussed TROY API we, (ii) Show that the TROY API can be used to
-%   marshall Diane stand-alone, (iii) Using TROY API, both BigJob and
-%   Diane can be used stand alone}
-
-% \jhanote{I think there was agreement to go with Mode II}
-
-As more applications take advantage of dynamic execution, the Pilot-Job concept
-has grown in popularity and has been extensively researched and implemented for
-different usage scenarios and infrastructure. There is a variety of PJ
-implementations: Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
-DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
-PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
-Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
-MyCluster~\cite{1652061} to name a few. The aim of this section is to show that
-our P* Model can be used to explain/understand some of these PJ frameworks,
-in particular DIANE as well as Condor-G and Swift.
-Table~\ref{table:bigjob-saga-diane} shows how the elements P* model can be
-mapped to these frameworks. Table~\ref{table:pilot-job-comparison} compares the
-characteristics of the four PJ frameworks.
-
-
-% In addition to the three Pilot-Job framework discussed in this section, various
-% other frameworks exist.
-% \begin{itemize}
-%     \item MyCluster~\cite{1652061} enables the 
-% 	creation of a Condor, PBS or SGE clusters on-demand.
-%     \item Falkon~\cite{1362680} is a Pilot-Job framework that emphasizes the 
-% 	performance of its task dispatcher.
-%     \item Nimrod/G~\cite{10.1109/HPC.2000.846563}
-%     \item DIRAC~\cite{1742-6596-219-6-062049} is another pilot-job framework 
-% 	used by the LHCb community.
-%     \item ToPoS~\cite{topos} is a REST-based web service primarily designed with 
-% 	respect to parameter sweep applications. Internally, ToPoS utilizes PJ 
-% 	capabilities to efficiently manage resources.
-%     \item The Production and Distributed Analysis System 
-% 	(PanDA)~\cite{1742-6596-219-6-062041} is the workload management system of 
-% 	the ATLAS experiment. PanDA utilizes multi-user PJs for resource management. 
-% 	The PJ component is built on top of Condor-G and referred to as AutoPilot. 
-% 	It can also be used independently of the ATLAS environment. 	
-% \end{itemize}
-
-
 
 \begin{table*}[t]
 \centering
@@ -1938,6 +1339,99 @@ computations.
 % of the pilot jobs. 
 
 \upp
+
+\section{P* Redux: Extension of P* to a Model for Pilot-Data}
+
+%\subsection{Pilot-Data: Extension of P* to Dynamic Data\upp\upp}
+\label{sec:pilot-data}
+
+Dynamic execution is at least equally important for data-intensive
+applications: applications must cope with various challenging issues
+e.\,g.\ varying data sources (such as sensors and/or other application
+components), fluctuating data rates, optimizations for different
+queries, data-/compute co-location etc. Thus, having defined the P*
+model, we propose to extend it with data so as to facilitate an
+understanding of DE\jhanote{What is DE?}. This will motivate an
+analogous abstraction that we call \emph{pilot-data (PD)}. \jhanote{I
+  propose this goes later, after we have described PD} \jwave{PD
+  provides late-binding capabilities for data by separating the
+  allocation of physical storage and application-level data units.}
+Further, it provides an abstraction for expressing and managing
+relationships between data units and/or work units. These
+relationships are referred to as \emph{affinities}.  %
+%\jhanote{difficult to use affinity
+%   without defining it..}  \alnote{tried to describe affinities a
+%   little bit better}
+
+\subsubsection*{Application of P* Model Elements to Data}
+
+% The P* model can in many parts be applied to pilot-data.
+
+A Pilot-Data Framework facilitates the late-binding between data units and
+physical storage resources, the so called pilot-stores. The elements defined by
+P* (in section~\ref{sec:p_star_elements}) can be extended by the following
+elements. By symmetry each element can be mapped to an element in the PJ model.
+\begin{compactenum}[A.]
+\item \textbf{Data Unit (DU):} DU is the base unit of data used by the 
+framework,  e.\,g.\ a data file or chunk. 
+\item \textbf{Pilot-Data (PD):} PD allows the logical grouping of DUs
+  and the expression of data-data affinities. This collection of files
+  can be associated with an extensible set of properties. One of these
+  properties is affinity. 
+% A PD containing a set of DUs forms the PJ
+%   equivalent of a WU.
+\item \textbf{Pilot-Store (PS):} A PS functions as a
+	  placeholder object that reserves the space for pilot-data objects. 
+	  By assigning a PD to a PS, the PD is bound to a physical resource.
+	  A PS facilitates the late-binding of data and resource and is equivalent 
+	  to the pilot-job.
+\item \textbf{Pilot-Data Manager} is analogous to the PJ-Manager responsible for 
+  managing DU, PD and PS elements. It implements the different characteristics 
+  of the P* model.
+\end{compactenum}
+ 
+A DU correspond to a WU in the PJ model. \jhanote{PJ Model is
+  confusing. Either it is P Model or PJ Framework} A particular
+critical requirement for data-intensive application, is the management
+of affinity between DUs and also between WUs and DUs. Thus, Pilot-Data
+introduces the PD container object for expressing relationships
+between DUs. A PD corresponds to an SU in the \jwave{PJ model}, i.\,e.\ it is
+used as scheduling unit for internal optimizations, e.\,g.\ the
+grouping of DUs. Having instantiated a PD, it can be assigned to a PS
+via the PD manager. A PS is a placeholder reserving a certain amount
+of storage, i.\,e.\ it corresponds to a pilot in the pilot-job
+model. By associating a PD to a PS the data is actually moved to the
+physical location associated with the PS. The PD manager facilitates
+the creation of PSs, schedules data movements (with respect to
+specified affinities) and manages data accesses.
+
+\subsubsection*{Application of P* Model Characteristics to Data}
+
+While the PD model introduces a new element, the characteristics remain
+to a great extent the same. The coordination characteristic describes
+how the elements of PD interact, e.\,g.\ utilizing the M/W model; the 
+communication characteristic can be applied similarly. The scheduling 
+characteristics must be extended to not only meet compute requirements, but also 
+to support common data access patterns. The scheduling 
+component particularly needs to consider affinities, i.\,e.\ user-defined 
+relationships between WUs and/or DUs, e.\,g.\ data-data affinities exist if
+different DUs must be present at the same compute element; data-compute
+affinities arise if data and compute must be co-located for a
+computation, but their current location is different. The decision of
+where to place the data and compute is made by the scheduler based on
+the defined policies, affinities, available dynamic resource
+information.
+
+PJ and PD encapsulate cross-cutting properties across data and
+computation. The P* implementation will optimize data- and computing
+according to the defined affinities and policies. Both the PJ and PD
+define similar elements that can be mapped to each
+other. Nevertheless, compute and data model sometimes require a
+different treatment. With the maturing of both models and
+implementations, we expect that both the PJ and PD model converge in
+the future. 
+
+%\input{bigdata}
 
 
 \section{Conclusion and Future Work\upp\upp}
