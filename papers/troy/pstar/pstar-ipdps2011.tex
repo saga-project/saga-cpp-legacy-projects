@@ -570,61 +570,85 @@ the pilot has in turn been scheduled ({\it early} binding), whereas
 scheduled.  In general, there are multiple-levels at which scheduling
 decisions, i.e., resource selection and binding, have to made.
 
-{\it Putting it all together:} Figure~\ref{fig:figures_pstar}
-illustrates the interactions between the elements of the P*
-model. Although there can be variations, a typical usage scenario
-consists of the following steps: The application specifies the
-capabilities of the resources required (step 1).  \jhanote{Andre,
-  Mark: Is Step 1 true? Couldn't we just say: application specifies
-  the WU?} During the instantiation of a PJ and the assignment of
-resources to the PJ, pilots are queued and started via the local
-resource manager (step 1-4).
+{\it Putting it all together:} 
+Figure~\ref{fig:figures_pstar} illustrates the interactions between the elements
+of the P* model. In the first step the application specifies the capabilities of
+the resources required using a pilot-job description (step 1). The PM then
+submits the necessary number of pilots in order to fulfill the resource
+requirements of the application (step~2). Each pilot is queued at the resource
+manager, which is responsible for starting the pilot (step~3). There can be
+variations of this flow: while in the described model, the application defines
+the required resources, the PM could also decide based
+on the submitted WU workload whether and when it submits new pilots.
 
-\jhanote{We should talk about ``API'' --- WU crossing P* API, ie
-  controlled by Pilot-Manager, and then becoming an SU thereafter.
-  Also talk about multi-level scheduling. Anything that focusses the
-  reader's attention on an understanding that was not covered in brief
-  description} \alnote{refined}
-
-Commonly, the pilot-manager (PM) can be accessed via a set of command
-line tools and/or an API via which an application can create and
-submit WUs to the pilot-manager (step 5/6). A WU that is submitted
-becomes a SU, i.\,e.\ the PM is now in control of it and schedules and
-manages its execution. In the simplest case one WU corresponds to one
-SU; however, SUs can be combined and aggregated to optimize
-throughputs and response times.
-
-Commonly, a hierarchical M/W coordination model is used: On
-the first level, the PM uses M/W in order to coordinate the actions of
-the pilots that are part of its resource pool (usually 1 or
-more). Once a SU is forwarded to a pilot, the pilot is responsible for
-the coordination of the SU execution. Again a pilot usually manages 1
-or more SUs using M/W. \jhanote{Need some clarification: what is the
-  worker/agent here? (i) Isn't it PJ Frameworks that use M-W
-  coordination and not the PJ.  Also, in the framework, isn't the
-  Manager the Master, and the Pilot-Job the Worker; What about WU/SU ?
-  ie if WU/SU are the workers, what is the master?}  \alnote{refined}
-Scheduling decisions can be conducted on each level. The delegation of
-decision capabilities into lower levels, i.\,e.\ the pilot, can yield
-to a more autonomic and adaptive behavior as well as a better
-scalability.
-
-\alnote{TODO: remove redundancy with paragraph above} As explained, a
-P* implementation usually operates a hierarchy of schedulers.  The
-following examples involves a two-level hierarchy: In the first
-hierarchy level the PM schedules an SU to a pilot of its resource pool
-(step 7). Another round of scheduling can occur within the pilot,
-i.\,e.\ the pilot decides when and on what physical resource a SU is
-executed (step 8). Further, the pilot manages the subsequent execution
-of the SU on the physical resource on which the pilot is operating.
-
-\alnote{This paragraph describes a generalization to multiple levels
-  of scheduling. Do we want to keep it?:} \jhanote{I think not; needs
-  simplification} \alnote{refined ``Putting it all together''} 
-
-\jhanote{Integrate.. next sentence} PJ frameworks with decentralized
-decision often utilize autonomic agents that accepts respectively pull
+The application can submit WUs to the PM at any time (step~4). A submitted WU
+becomes an SU, i.\,e.\ the PM is now in control of it. In the simplest case one
+WU corresponds to one SU; however, SUs can be combined and aggregated to
+optimize throughputs and response times. Commonly, a hierarchical M/W model is
+used internally: the PM uses M/W to coordinate a set of pilots, the pilot itself
+functions as manager for the execution of the assigned SUs. In the first step
+the PM chooses the pilot on which an SU is executed (step 5). Once a SU has been
+scheduled to a pilot, the pilot decides when and on what physical resource the
+SU is executed. Further, it manages the subsequent execution of the SU (step~6).
+Again there can be variations of this flow. PJ frameworks with decentralized
+decision making often utilize autonomic agents that accepts respectively pull
 SUs according to a set of defined policies.
+
+
+
+% Figure~\ref{fig:figures_pstar}
+% illustrates the interactions between the elements of the P*
+% model. Although there can be variations, a typical usage scenario
+% consists of the following steps: The application specifies the
+% capabilities of the resources required (step 1).  \jhanote{Andre,
+%   Mark: Is Step 1 true? Couldn't we just say: application specifies
+%   the WU?} During the instantiation of a PJ and the assignment of
+% resources to the PJ, pilots are queued and started via the local
+% resource manager (step 1-4).
+% 
+% \jhanote{We should talk about ``API'' --- WU crossing P* API, ie
+%   controlled by Pilot-Manager, and then becoming an SU thereafter.
+%   Also talk about multi-level scheduling. Anything that focusses the
+%   reader's attention on an understanding that was not covered in brief
+%   description} \alnote{refined}
+% 
+% Commonly, the pilot-manager (PM) can be accessed via a set of command
+% line tools and/or an API via which an application can create and
+% submit WUs to the pilot-manager (step 5/6). A WU that is submitted
+% becomes a SU, i.\,e.\ the PM is now in control of it and schedules and
+% manages its execution. In the simplest case one WU corresponds to one
+% SU; however, SUs can be combined and aggregated to optimize
+% throughputs and response times.
+% 
+% Commonly, a hierarchical M/W coordination model is used: On
+% the first level, the PM uses M/W in order to coordinate the actions of
+% the pilots that are part of its resource pool (usually 1 or
+% more). Once a SU is forwarded to a pilot, the pilot is responsible for
+% the coordination of the SU execution. Again a pilot usually manages 1
+% or more SUs using M/W. \jhanote{Need some clarification: what is the
+%   worker/agent here? (i) Isn't it PJ Frameworks that use M-W
+%   coordination and not the PJ.  Also, in the framework, isn't the
+%   Manager the Master, and the Pilot-Job the Worker; What about WU/SU ?
+%   ie if WU/SU are the workers, what is the master?}  \alnote{refined}
+% Scheduling decisions can be conducted on each level. The delegation of
+% decision capabilities into lower levels, i.\,e.\ the pilot, can yield
+% to a more autonomic and adaptive behavior as well as a better
+% scalability.
+% 
+% \alnote{TODO: remove redundancy with paragraph above} As explained, a
+% P* implementation usually operates a hierarchy of schedulers.  The
+% following examples involves a two-level hierarchy: In the first
+% hierarchy level the PM schedules an SU to a pilot of its resource pool
+% (step 7). Another round of scheduling can occur within the pilot,
+% i.\,e.\ the pilot decides when and on what physical resource a SU is
+% executed (step 8). Further, the pilot manages the subsequent execution
+% of the SU on the physical resource on which the pilot is operating.
+
+
+
+% \jhanote{Integrate.. next sentence} PJ frameworks with decentralized
+% decision often utilize autonomic agents that accepts respectively pull
+% SUs according to a set of defined policies.
 
 \jhanote{Move to an appropriate location}\jwave{Commonly a set of
   (user-defined) policies (e.g.  resource capabilities, data/compute
