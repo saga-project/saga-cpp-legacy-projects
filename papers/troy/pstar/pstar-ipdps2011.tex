@@ -385,319 +385,120 @@ demonstration of interoperation of different pilot-job implementations.
   Dynamic Execution \upp\upp}
 \label{sec:pilot-model}
 
-
-% In general, there exist multiple reasons why distributed applications
-% have not been able to utilize distributed cyberinfrastructure
-% effectively and without immense effort~\cite{dpa_surveypaper}.  At the
-% root of the problem is the fact that developing large-scale
-% distributed applications is fundamentally a difficult process.
-
-% The range of proposed tools, programming systems and environments is
-% bewildering large, making integration, extensibility and
-% interoperability difficult. Additionally, 
-
-%\alnote{Framework, Implementation vs. Abstraction? When do we use what word?}
-
 In an attempt to provide a common analytical framework to understand
 most, if not all commonly used pilot-jobs, we present the P* model of
 pilot-abstractions. The P* model is derived from an analysis of many
 pilot-job implementations; based upon this analysis, we first present
 the common {\it elements} of the P* model, followed by a description
-of the properties that must be assigned and that determine the
-interaction of these elements and the overall functioning of any
-pilot-job that is described by the P* model. Further, we will show
-that these elements and interactions can be used to describe a
-pilot-data model.
+of the properties %that must be assigned and
+that determine the interaction of these elements and the overall
+functioning of any pilot-job framework that implements the P*
+model. All pilot-job frameworks (whether they adhere rigorously to the
+P* model or not), have these {\it elements}, but differ in specific
+attributes and characteristics.  Further, we will show that these
+elements and interactions can be used to describe a pilot-data model.
  
-But before we proceed to discuss the P* Model, it is important to
+Before we proceed to discuss the P* Model, it is important to
 emphasize that there exist a set of commonly used terms ---
 abstraction, model, framework, and implementation, that are overloaded
 and often used inconsistently; thus we establish their context and
 usage in this paper.
 
-\emph{Terms and Usage:} The pilot-job \emph{ abstractions} generalizes
-the reoccuring concept of utilizing a placeholder job as a container
-for a set of compute tasks; instances of that placeholder job are
-commonly referred to as \emph{pilot-jobs} or \emph{pilots}.  The P*
-\emph{model} provides a specific, comprehensive description of
-pilot-job abstractions based on a set of identified elements and
-characteristics.  The P* model can be used as a {\it conceptual
-  framework}, for analyzing different implementations of the pilot-job
-abstraction. \emph{TROY} is a specific implementation of the P*
-abstraction; it is also often referred to as a {\it software 
-framework} for pilot-jobs. A \emph{PJ framework} refers to a specific 
-instance of a PJ implementation that provides the complete pilot-job 
+\emph{Terms and Usage:} The \emph{ abstraction} of a pilot-job
+generalizes the reoccuring concept of utilizing a placeholder job as a
+container for a set of compute tasks; instances of that placeholder
+job are commonly referred to as \emph{pilot-jobs} or \emph{pilots}.
+The P* \emph{model} provides a % specific, comprehensive
+description of pilot-job abstractions based on a set of identified
+elements and their interactions. The P* model can be used as a {\it
+  conceptual framework}, for analyzing different implementations of
+the pilot-job abstraction.  It is important to distinguish that P*
+provides a conceptual framework from an implementation of the P*
+model; \emph{TROY} is a specific implementation of the P* model.
+Finally, a \emph{pilot-job framework} refers to a specific instance of
+a pilot-job implementation that provides the complete pilot-job
 functionality (e.\,g.\ Condor-G and DIANE).
 
-\emph{Other Terms:}
-%
-\emph{ \#~Resource:} An entity which provides a capability.  For
-example, a compute resource provides computing capabilities: it can
-execute compute jobs.  
-%
-\emph{ \#~Resource Slice:} A physical or logical part (i.e.  subset)
-of a resource.\alnote{do we need the resource slide def.?}
-%
-\emph{ \#~Resource-Manager (RM):} A system component which manages the
-access and utilization of a resource.  In particular, the RM maps
-resource requests to slices of the resource -- that process is called
-\emph{scheduling}. \alnote{In sec II we use a different kind of wording for scheduling} Note that scheduling can combine resource requests
-and map them onto the same resource slice, and can also break resource
-requests into smaller parts, and map those individually.  A hierarchy
-of RMs can be used to manage sub-slices of a resource.  \alnote{I think talking
-about a hierarchy of RMs is not useful at this point.}
+\jhanote{\emph{Other Terms:} Resource-Manager and agent..}
 
+%\input{sectionII_comments}
 
-\jhanote{Need to introduce pilot-job framework in contrast to
-  pilot-job} \alnote{introduced PJ framework}
-
-%
-% \emph{Scheduler:} A scheduler applies scheduling constraints to an
-% unconstraint resource request, thereby transforming the resource
-% request into a (complete or partially) constraint request.  For
-% example, a Grid meta scheduler may constring a job description (i.e.
-% a resource request) to a specific resource subset, e.g. to a
-% specific cluster.  Downstream schedulers can further constrain the
-% resource request, for example the cluster queue manager may add
-% spatial and temporal constrains, by assigning it to a specific
-% compute node and timeslot, so that it is completely fixed to a
-% resource slice, i.e. it is \emph{assigned}.  A \emph{Scheduler} is
-% part of the \emph{Resource-Manager}, i.e. it operates on a well
-% defined set of resources or resource slices. \textbf{Note} that a
-% scheduler can potentially break up an incoming resource request into
-% multiple smaller resource requests, or can combine multiple resource
-% requests into larger ones. 
-
- 
-
-% Depending on the context, pilot-job can refer to the PJ concept, the
-% PJ abstraction or the pilot.
-
-%\alnote{I did not go into the details of the SW framework TROY.}
-
-% distinguishing: model, framework and abstraction:
-% model with some components => conceptual framework
-% implementation of framework => TROY
-% TROY framework (SW framework): API and runtime
-
-% \jhanote{(i) definition of pilot-job and SU very similar. \alnote{ok}
-%   (ii) highlight relation between WU/SU, \alnote{ok} (iii) symmetry:
-%   WU for PJ, DU for PD, \alnote{see comments in C} (iv) make explicit
-%   that Pilot-Data is the analogue of SU, \alnote{see C} (v) shouldn't
-%   SU cover data.. \alnote{see C} (vi) address in the conclusion that
-%   they will merge, but we have shown/named them different for
-%   motivation.(vii) US--> SU, US --> WU.} \alnote{ok} \jhanote{AL: Are
-%   these all addressed?}\alnote{see above}
-
-% In this section we define the elements of a pilot-job framework. The
-% PJ framework provides the abstraction of a container for compute
-% tasks that may be dynamically added to it independently from the
-% underlying resource pool. It provides a mechanism to decouple compute
-% tasks from being hard-coded to a specific resource or at least
-% to delay that binding. 
-
-
-% that an implementation of a
-% pilot-job abstraction must provide. In general, a PJ framework
-% provides the abstraction of a container for compute tasks that may be
-% dynamically added to it independently from the underlying resource
-% pool. It provides a mechanism to decouple compute tasks from being
-% hard-coded to a specific resource or at least to delay that
-% binding. Commonly, PJ frameworks consist of the following elements:
-
-% \alnote{I think our elements currently do not sufficiently represent the ability 
-% to have a dynamic PJ spawned across multiple resources. Added on sentence to the PJ manager. Not sure whether this is enough}
-
-% \alnote{Is a WU is assigned to a PJ (colloquial for the whole thing
-%   and not a specific PJ) or PJ framework?}
-% \amnote{parse error: isn't the framework the 'whole thing'?}
-% 
-% \alnote{While I think it is useful to explain some of the external
-%   entities (such as an RM) they should be not listed under core
-%   elements. Actually we had a RM before, but removed it for this
-%   reason} \amnote{I see.  Well, if it adds clarity, I don't mind
-%   including external terms -- they are marked as such...}
-
-% \begin{compactitem}
-% 
-% \item \textbf{Resource:} The entity which provides a Computing
-% Capability, and can execute Compute jobs.  The Resource is not part of
-% the PJ framework.
-% 
-% \item \textbf{Resource Slice:} A physical or logical part (i.e.
-% subset) of a \emph{Resource}.
-% 
-% \item \textbf{Resource-Manager (RM):} A system component which manages
-% the access and utilization of a \emph{Resource}.  In particular, the
-% RM assigns slices of the Resource to individual Resource requests.
-% The RM is not part of the PJ framework.  A hierarchy of RMs can be
-% used to manage sub-slices of a resource.
-% 
-% \alnote{I think this description mixes to much the scheduling aspects
-% external to P* (RM) and internal to P* (possible multiple levels
-% of scheduling and decision making)}  
-% \amnote{That is on purpose really -- an external RM does not do anything
-% different than an internal RM, only that one operated (in our case) in system 
-% space, and the other one in user space, on a subset of system resources
-% (slice).}
-% 
-% 
-% \item\textbf{Scheduler:} A scheduler applies scheduling constraints to
-% an unconstraint resource request, thereby transforming the resource
-% request into a (complete or partially) constraint request.  For
-% example, a Grid meta scheduler may constraining a job description (i.e. a
-% resource request) to a specific resource subset, e.g. to a specific
-% cluster.   Downstream schedulers can further constrain the resource
-% request, for example the cluster queue manager may add spatial and
-% temporal constrains, by assigning it to a specific compute node and
-% timeslot, so that it is completely fixed to a resource slice, i.e. it
-% is \emph{assigned}.  A \emph{Scheduler} is part of the
-% \emph{Resource-Manager}, i.e. it operates on a well defined set of
-% resources or resource slices.\\
-% \textbf{Note} that a scheduler can potentially break up an incoming resource
-% request into multiple smaller resource requests, or can combine
-% multiple resource requests into larger ones.
-% 
-% \alnote{a job description has no state and is not scheduled only WUs
-% are.} \amnote{I don't think state plays a role here.  Further, a WU is
-% IMHO a job description -- only that the term 'job' is overloaded in
-% our environment (i.e.  an instance of an executable application), and
-% thus not used here.} \alnote{ Further, there can be spatial and
-% temporal constraints.}\amnote{Sure. The above is an example of a
-% partial constraint -- I adjusted it to make that more clear.  There
-% can also be constraints on internal metrics, like on memory usage
-% etc.} 
-% 
-% \end{compactitem}
-
+\noindent 
 \subsection{Elements of the P* Model \upp\upp}
 \noindent This sub-section defines the elements of the P* model:
 
 \begin{compactitem}
 
-\item \textbf{Pilot-Job (PJ) or Pilot:} The PJ (or `pilot') is the entity that
-actually gets submitted and scheduled on a resource using the resource's RM
-system. The PJ manages the set of allocated resources and is responsible for 
-the execution of \alwave{SUs/tasks} onto the resource.
-\alnote{\textbf{The RM assigns a slice of the Resource to the pilot -- that
-pilot then acts as RM for that resource slice.} I think simply equating a pilot
-with a RM is bit too simplistic. In a sense it is a application-level resource
-manger. Not sure what to do}
-% Often, the pilot 
-  % has the role of an agent: it collects local information, manages the
-  % resources allocated to it and exchanges data (such as resource
-  % information, states) with the other elements of the PJ
-  % framework. 
+\item \textbf{Pilot-Job (PJ) or Pilot:} The PJ (or `pilot') is the
+  entity that actually gets submitted and scheduled on a resource
+  using the resource's RM system. The PJ provides application (user)
+  level control and management of the set of allocated resources.
 
-% \alnote{I think we agreed in our call on 09/26 to leave this as a two step
-% process: binding and scheduling}
-% \amnote{I don't think there is a contradiction, not at all.  Binding
-% is not done to a resource, but to a PJ, i.e. to a (sub-)resource manager.  
-% For early binding, that PJ has no resources it manages, yet, so it is
-% a somewhat abstract RM, but that does not matter. Binding is thus
-% adding a constraint to a WU that it is handled by a specific but
-% abstract PJ.  Scheduling as done by the PJ is adding additional
-% constraints to the WU, by assigning it to specific resources.  Late
-% binding OTOH is working on specific RMs which manage specific
-% resources.  So, I think that we actually clarify the early/late
-% binding :-)}
+  % and is responsible for the execution of \alwave{SUs/tasks}
+  % onto the resource.
 
+  % \alnote{\textbf{The RM assigns a slice of the Resource to the
+  %     pilot -- that pilot then acts as RM for that resource slice.}
+  %   I think simply equating a pilot with a RM is bit too
+  %   simplistic. In a sense it is a application-level resource
+  %   manger. Not sure what to do}
 
-%  \jhanote{How about saying that it is responsible for
-%     implementing the different characteristics of the P*
-%     Model. Mention that all P* Model implementations will have these
-%     elements, but will differ in its attributes/characteristics} \alnote{like 
-% 	that!}
-  % In general, all P* Model implementations will have these
-  % elements, but will differ in its attributes/characteristics.
+\item \textbf{Work Unit (WU):} A WU encapsulates a self-contained
+  piece of work (a task) specified by the application that is
+  submitted to the pilot-job framework.  There is no intrinsic notion
+  of resource associated with a WU.
 
-% \alnote{Terms: assign -- binding of a wu to a SU (see binding
-% characteristic); submit -- add a WU to a PJ framework (does not need to get
-% assigned at this moment)}
+\item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling
+  used internal to the P* model, i.e., an SU is not known by or
+  visible to an application. An SU is created after the submission of
+  a WU, i.\,e.\ once a WU has been passed into the control of the
+  pilot-job framework.
 
-\item \textbf{Work Unit (WU):} A WU is a resource request which
-  encapsulates a self-contained piece of work that is submitted to the
-  \alwave{pilot-manager}. \alnote{not introduced yet} The PM has the flexibility 
-  to combine and schedule WUs, e.\,g.\ it can determine when a WU is run and 
-  what as well as how many resources it will receive.
-	
+\item \textbf{Pilot-Manager (PM):} The PM is responsible for (i)
+  orchestrating the interaction between the pilots as well as the
+  different components of the P* model (WUs, SUs)and (ii) decisions
+  related to internal resource assignment (once resources have been
+  acquired by the pilot-job).  For example, an SU can consists of one
+  or more WUs. Further, WUs and SUs can be combined and aggregated;
+  the PM determines how to group them, when SUs are scheduled and
+  executed on a resource via the pilot, as well as how many resources
+  to assign to an SU.
 
-  % \jhanote{Andre: Can we not use just ``pilot'' here, i.e. WU gets
-  %   submitted to the pilot/pilot-job?} \alnote{IMHO, the WU is
-  %   submitted to the framework. The PJ framework groups WUs, binds
-  %   and schedules them. A WU is not directly submitted to the pilot
-  %   (the agent) - the binding and scheduling process is in between.}
+% the different characteristics of the P* model. It
+%   facilitates the coordination between the different P* elements,
+%   i.\,e.\ the pilots, WUs and SUs. 
+% A PM can e.\,g.\ manage solely one
+%   or multiple pilots.
 
-
-%  \jhanote{the last sentence is unclear, i'm sorry}
-%   \jhanote{naively, i would say either say WU binds to PJ or PJ has
-%     flexibility to bind / schedule WU to another entity..}
-%   \alnote{This refers to the issue that we assume at this point that a
-%     PJ framework manages multiple pilots (we removed the comment
-%     yesterday). This is probably not clear enough for a first-time
-%     reader. We don't talk about simple WU submission, rather it is
-%     assumed that a meta-scheduling between multiple pilots takes
-%     place. }
-
-\item \textbf{Scheduling Unit (SU):} 
-SUs are the units of scheduling used internally. As SU is created
-during the submission of a WU, i.\,e.\ once a WU has been passed into the
-control of the PM, it becomes an SU. SUs are scheduled and executed on a
-resource via the pilot. An SU can consists of one or more WUs. Further, they can 
-be combined and aggregated. Note that that this can either be a simple
-grouping or a smart aggregation of WUs (e.\,g.\ two sets of parameters merged
-into one).
-
-\item \textbf{Pilot-Manager (PM):} The PM is responsible for
-  implementing the different characteristics of the P* model. It
-  facilitates the coordination between the different P* elements,
-  i.\,e.\ the pilots, WUs and SUs. All implementation share these
-  elements, but differ in specific attributes and characteristics. A
-  PM can e.\,g.\ manage solely one or multiple pilots.
-
-
-
-% An SU consists of one or more WUs that are
-% combined inside the PJ framework. Note that that this can either be
-% a simple grouping or a smart aggregation of WUs (e.g. two sets of
-% parameters merged into one).
-
-%   \alnote{What is the difference between simple and smart? grouping
-%     and aggregation? or a smarter aggregation of WUs}
-  
-% are the unit of works that are sent down to \ref{pilot-agent} to be
-%   executed.  Sub-jobs/jobs are used to reserve the resources required
-%   by a task.
-%\jhanote{I changed the US description significantly} 
-
-% \item \textbf{Resource:} A storage/compute resource that has a common
-%   entry point (like a queue). Commonly, a resource is accessed by a 
-%   LRM. \alnote{move to impl. section} \label{resource}
-
+%   For example, the PM has the flexibility to combine and schedule WUs,
+%   e.\,g.\ it can determine when a WU is run and what as well as how
+%   many resources it will receive.
 
 \end{compactitem}
 
-The application itself is not strictly part of the core P* Model. The
-term application generally refers to the upper layer of the stack. The
-application utilizes the PJ framework to execute multiple instances of
+The application itself is not strictly part of the core P* Model. %  The
+% term application generally refers to the upper layer of the stack.
+An application kernel is the actual binary that gets executed.  The
+application utilizes a PJ framework to execute multiple instances of
 an application kernel (an ensemble) or alternatively instances of
-multiple different application kernels (a workflow). An application
-kernel is the actual binary that gets run.  To execute an application
-kernel, an application must define a WU specifying the application
-kernel as well as other parameters. This WU is then be submitted to
-the pilot-manager where it transitions to an SU. The PM is then
+multiple different application kernels (a workflow).  To execute an
+application kernel, an application must define a WU specifying the
+application kernel as well as other parameters. This WU is then
+submitted to the pilot-manager (as an entry point to the
+pilot-framework), where it transitions to an SU. The PM is then
 responsible for scheduling the SU onto a pilot and then onto a
 physical resource.  As we will see in \S{IV}, the above elements can
 be mapped to specific entities in many pilot-jobs in existence and
-use.  \jhanote{we toggle between PM and pilot-manager}
- 
+use.
 
-% \textbf{Diane Definition of Terms: } The computation consists of many worker
-% processes which communicate with one master process (the worker processes do not
-% need to share the filesystem nor memory). The ensemble of computation is called
-% a run and it consists of many tasks which may be executed in parallel. A task is
-% defined as a set of parameters which are produced by the RunMaster (running on a
-% master node) and consumed by the WorkerAgent (running on a worker node).
+% \textbf{Diane Definition of Terms: } The computation consists of
+% many worker processes which communicate with one master process (the
+% worker processes do not need to share the filesystem nor
+% memory). The ensemble of computation is called a run and it consists
+% of many tasks which may be executed in parallel. A task is defined
+% as a set of parameters which are produced by the RunMaster (running
+% on a master node) and consumed by the WorkerAgent (running on a
+% worker node).
 % 
 % from 
 % 
@@ -984,6 +785,10 @@ SUs according to a set of defined policies.
   in the case of early binding, the decision could be made by the
   application, while in late binding mode the decision is made by the
   PJ framework.}
+
+\jhanote{Integrate: Note that that this can either be a simple
+  grouping or a smart aggregation of WUs (e.\,g.\ two sets of
+  parameters merged into one).}
 
 \begin{figure}[htbp]
     \centering\up
