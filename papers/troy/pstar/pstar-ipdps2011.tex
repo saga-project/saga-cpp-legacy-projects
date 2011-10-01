@@ -776,25 +776,24 @@ future work, \S{VI}).
 
 
 \section{Pilot-Jobs Frameworks\upp\upp}
-\alnote{add Falkon to SWIFT section}\alnote{done}
 \alnote{add cross-cutting analysis}
 
-As more applications take advantage of dynamic execution, the
-Pilot-Job concept has grown in popularity and has been extensively
-researched and implemented for different usage scenarios and
-infrastructure. There is a variety of PJ implementations:
-Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
+As more applications take advantage of dynamic execution, the Pilot-Job concept
+has grown in popularity and has been extensively researched and implemented for
+different usage scenarios and infrastructure. There is a variety of PJ
+frameworks: Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
 DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
 PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
 Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
-MyCluster~\cite{1652061} to name a few. The aim of this section is to
-show that our P* Model can be used to explain/understand some of these
-PJ frameworks, in particular DIANE as well as Condor-G and Swift.
-Table~\ref{table:bigjob-saga-diane} shows how the elements P* model
-can be mapped to these
-frameworks. Table~\ref{table:pilot-job-comparison} compares the
+MyCluster~\cite{1652061} to name a few. The aim of this section is to show that
+our P* Model can be used to explain/understand some of these PJ frameworks, in
+particular BigJob, DIANE as well as Condor-G and Swift.
+Table~\ref{table:bigjob-saga-diane} shows how the elements P* model can be
+mapped to these frameworks. Table~\ref{table:pilot-job-comparison} compares the
 characteristics of the four PJ frameworks.
 
+\alnote{Should we somewhere explain how these framework work together with TROY? 
+We do this at least in the BJ case.}
 
 \subsection{BigJob: A SAGA-based Pilot-Job Implementation for
   TROY\upp\upp}
@@ -834,6 +833,19 @@ adaptor mechanism (see Figure~\ref{fig:figures_distributed_pilot_job}). In
 addition there are specific BJ flavors for cloud resources such as Amazon EC2
 and Microsoft Azure that are capable of managing set of VMs, as well as a BJ
 with a Condor-G based backend. 
+
+\begin{figure}[t]
+    \centering
+    \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{\textbf{BigJob -- A SAGA-based Pilot-Job Implementation:}
+        BigJob is the implementation of the actual PJ functionality
+        for TROY. Further, TROY integrates with various other PJ 
+        frameworks providing pilot-job capabilities on different types of
+        distributed infrastructures.
+     }
+    \label{fig:figures_distributed_pilot_job}
+\end{figure}
+
 % In the scope of this paper, BJ generally refers
 % to the BJ-SAGA implementation though.
 
@@ -864,21 +876,18 @@ Table~\ref{table:pilot-job-comparison}).
 
 %paragraph on dynamic capabilities
 
-In many scenarios it is beneficial to utilize multiple resources,
-e.\,g.\ to accelerate the time-to-completion or to provide resilience
-to resource failures and/or unexpected delays. The TROY API allows for
-dynamic resource additions/removals as well as late binding. The
-support of this feature depends on the backend used. To support this
-feature on top of various BigJob implementations that are by default
-restricted to single resource use (e.\,g.\ BJ), the concept of a
-BigJob pool is introduced. A BigJob pool consists of multiple BJs
-(each BigJob managing one particular resource). An extensible
-scheduler is used for dispatching WUs to one of the BJs of the pool
-(late binding). By default a FIFO scheduler and an affinity-aware
-scheduler (i.\,e.\ a scheduler that considers relationships between
-work and data units managed by BigJob and BigData, see below) are
-provided. Other backends (such as DIANE and Condor) natively support elasticity,
-but can nevertheless be combined into a BJ pool.
+In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
+accelerate the time-to-completion or to provide resilience to resource failures
+and/or unexpected delays. The TROY API allows for dynamic resource
+additions/removals as well as late binding. The support of this feature depends
+on the backend used. To support this feature on top of various BigJob
+implementations that are by default restricted to single resource use (e.\,g.\
+BJ), the concept of a BigJob pool is introduced. A BigJob pool consists of
+multiple BJs (each BigJob managing one particular resource). An extensible
+scheduler is used for dispatching WUs to one of the BJs of the pool (late
+binding). By default a FIFO scheduler is provided. Other backends (such as DIANE
+and Condor) natively support elasticity, but can nevertheless be combined into a
+BJ pool.
 
 % \input{sectionIV_comments}
 \upp
@@ -1009,12 +1018,12 @@ TCP sockets. SWIFT and Coaster supports various scheduling mechanisms, e.\,g.\
 a FIFO and a load-aware scheduler. 
 
 Further, SWIFT can be used in conjunction with Falkon~\cite{1362680}. Falkon
-refers to pilots as so called provisioner, which are created using the Globus
-GRAM service. The provisioner then spawns a set of executors on the allocated
-resources. WUs are submitted via a so called dispatcher service. Similar to
-Coaster Falkon utilizes a M/W coordination model, i.\,e.\ the executors
-periodically query the dispatcher for new SUs. Web services are used for
-communication.
+refers to pilots as the so called provisioner, which are created using the
+Globus GRAM service. The provisioner then spawns a set of executors on the
+allocated resources. WUs are submitted via a so called dispatcher service.
+Similar to Coaster Falkon utilizes a M/W coordination model, i.\,e.\ the
+executors periodically query the dispatcher for new SUs. Web services are used
+for communication.
 
 
 
@@ -1351,7 +1360,8 @@ e.\,g.\ varying data sources (such as sensors and/or other application
 components), fluctuating data rates, optimizations for different
 queries, data-/compute co-location etc. Thus, having defined the P*
 model, we propose to extend it with data so as to facilitate an
-understanding of DE\jhanote{What is DE?}. This will motivate an
+understanding of dynamic execution\jhanote{What is DE?}.\alnote{dynamic 
+execution} This will motivate an
 analogous abstraction that we call \emph{pilot-data (PD)}. \jhanote{I
   propose this goes later, after we have described PD} \jwave{PD
   provides late-binding capabilities for data by separating the
@@ -1390,8 +1400,8 @@ framework,  e.\,g.\ a data file or chunk.
   of the P* model.
 \end{compactenum}
  
-A DU correspond to a WU in the PJ model. \jhanote{PJ Model is
-  confusing. Either it is P Model or PJ Framework} A particular
+A DU correspond to a WU in the PJ framework. \jhanote{PJ Model is
+  confusing. Either it is P Model or PJ Framework} \alnote{ok} A particular
 critical requirement for data-intensive application, is the management
 of affinity between DUs and also between WUs and DUs. Thus, Pilot-Data
 introduces the PD container object for expressing relationships
