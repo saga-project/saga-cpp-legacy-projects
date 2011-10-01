@@ -213,19 +213,12 @@
 
 \section{Introduction and Overview \upp\upp}
 
-% The ability to use resources dynamically
-% and how they are provisioned and federated, it is {\it ipso facto}
-% determined that
-
-\jhanote{pilot job, pilot-job and variations therein are used. need
-  consistency!}
-
-\jhanote{We need care in the use of ``agent''!}
-\alnote{We use the term agent to denote a component inside the pilot that has
-some decision making capability. In most cases we could replace agent just with
-pilot. However, when talking about decentral coordination with autonomic
-decision making this will be difficult. Should we explicitly define an agent in
-sec II under Pilot-Job (aka pilot)?}
+\alnote{We use the term agent to denote a component inside the pilot
+  that has some decision making capability. In most cases we could
+  replace agent just with pilot. However, when talking about decentral
+  coordination with autonomic decision making this will be
+  difficult. Should we explicitly define an agent in sec II under
+  Pilot-Job (aka pilot)?}
  
 Distributed CI almost by definition is comprised of a set of resources
 that is fluctuating -- growing, shrinking, changing in load and
@@ -337,41 +330,69 @@ we refer this model as the P* model ("P-star"). We present and discuss
 the P* model in \S{II}.
 
 In \S{III} we introduce TROY -- A Tiered Resource OverlaY -- as an
-implementation of the P* model. TROY provides a P* API, which exposes the
-semantics of PJs in a P* conform way, and a runtime environment. Implementations
-of the actual PJ functionalities -- PJ frameworks, such as BigJob and DIANE, --
-are integrated into TROY via an adaptor mechanism. TROY is also able to manage
-multiple, potentially different PJ instances concurrently. Further, we present
-the BigJob pilot-job and BigData pilot-data implementation. Both PJ/PD
-frameworks rely on SAGA for implementation of the actual PJ/PD functionality.
-Using the adaptor mechanism, TROY can further be extended to other PJ
-implementations. We posit that the TROY framework and API can be used for most,
-if not all PJ frameworks.\jhanote{Not sure what this means, ``can be used''}
-Before validating this claim, in \S{IV} of this paper, we analyze and discuss
-several well-known pilot-job frameworks (DIANE, Swift-Coaster and Condor-G)
-using the analytical framework provided by the P* model. \jhanote{Note the 
-  distinction between
-  pilot-jobs and pilot-job framework: DIANE, Swift are PJ
-  frameworks. Specific instances of these tools/usage give rise to
-  pilot-jobs.}\alnote{added PJ framework definition to terms and usage.}
+implementation of the P* model. TROY provides an API for the P* Model
+and exposes the semantics of pilot-job frameworks in a P* conformant
+way; TROY also has a runtime environment that enables it to work with
+different middleware on heterogeneous distributed platforms.  
+
+We posit that the TROY framework and API can be used for most, if not
+all PJ frameworks.  Before validating this claim, in \S{IV} we analyze
+and discuss several well-known pilot-job frameworks (DIANE,
+Swift-Coaster and Condor-G) using the analytical framework provided by
+the P* model.  and go on to show in \S{V}, implementations of the
+actual pilot-job frameworks, such as BigJob and DIANE, are integrated
+into TROY via an adaptor mechanism. TROY is also able to manage
+multiple, potentially different pilot-job instances concurrently. In
+\S{V}, we present performance measurements and and demonstration of
+interoperability -- across middleware, platform and different
+pilot-job frameworks.
+
+%in \S{V} of this paper,
+
+Having validated the P* Model -- as measured by extensibility and
+interoperbility, we propose generalizations to the base P* Model by
+extending it to include data in addition to computational tasks, i.e.,
+analagous to the BigJob pilot-job we introduce the BigData pilot-data
+(PD) concept.
+
+% Both PJ/PD frameworks rely on SAGA for implementation
+% of the actual PJ/PD functionality. 
+% Using the adaptor mechanism, TROY
+% can further be extended to other PJ implementations.
+
+% \jhanote{Note the distinction between pilot-jobs and pilot-job
+%   framework: DIANE, Swift are PJ frameworks. Specific instances of
+%   these tools/usage give rise to pilot-jobs.}\alnote{added PJ
+%   framework definition to terms and usage.}
+
+% which exposes
+% the semantics of PJs in a P* conform way, and a runtime
+% environment. 
 
 
-\alnote{OLD: As we will discuss, consistent with
-the goals and aims of SAGA, there can be multiple instances of BigJob
-for different backends.}\jhanote{Have we not gone to multiple instances
-  of the Pilot-Job for TROY and not multiple instances of BigJob?}\alnote{refined}
+% \alnote{OLD: As we will discuss, consistent with the goals and aims of
+%   SAGA, there can be multiple instances of BigJob for different
+%   backends.}\jhanote{Have we not gone to multiple instances of the
+%   Pilot-Job for TROY and not multiple instances of
+%   BigJob?}\alnote{refined}
 
 % and outline briefly how other well known pilot-jobs can be
 % understood using the {\it vectors}~\cite{dpa_surveypaper} of the P*
 % Model.
 
 % \alnote{do we validate just the TROY API or the TROY framework?}
-In \S{V} we validate the TROY framework by demonstrating how
-DIANE~\cite{Moscicki:908910} -- an existing and widely used pilot-job framework,
-can be given a well defined API via the TROY framework. To further substantiate
-the impact of TROY, we will demonstrate interoperability between different PJ
-frameworks -- BigJob and DIANE -- using TROY. We believe this is also the first
-demonstration of interoperation of different pilot-job implementations.
+
+
+Implicit validation of this paper lies in the practical implications
+of our work. For example, in \S{V} we validate the TROY framework by
+demonstrating how DIANE~\cite{Moscicki:908910} -- an existing and
+widely used pilot-job framework, can be given a simple and API via the
+TROY framework that is consistent with other commonly pilot-job
+frameworks. To further substantiate the impact of TROY, we will
+demonstrate interoperability between different PJ frameworks -- BigJob
+and DIANE -- using TROY. We believe this is also the first
+demonstration of interoperation of different pilot-job
+implementations.
 
 % \jhanote{Should we to introduce Dynamic Applications explicitly in the
 %   title? Just a question, not a suggestion...}
@@ -1348,27 +1369,26 @@ required.
 % delay between actual launch and startup time of UOW. Further, DIANE % was
 % installed separately for every agent/node requested.
 
-Finally scenario iii) demonstrates that two BJ implementations
-can be utilized concurrently using the TROY
-API. The performance in this scenario is slightly better than in the
-DIANE only case, mainly due to the fact that only four DIANE worker
-agents need to be started. Also, only half of the WUs are executed on
-a DIANE node and thus, show a longer runtime. While there are some
-limitations in the current TROY-DIANE implementation, the aim of this
-experiment is to emphasizes the possibilities that the TROY API
-provides to dynamic applications. TROY enables applications to utilize
-a dynamic resource pool consisting of resources of different
-infrastructures, e.\,g.\ EGI and TG/XD resources. Dynamic applications
-can utilize the elasticity of the TROY resource pool e.\,g.\ to
-improve the time-to-completion and/or to scale the accuracy of their
-computations.
+Finally scenario iii) demonstrates that two BJ implementations can be
+utilized concurrently using the TROY API. The performance in this
+scenario is slightly better than in the DIANE only case, mainly due to
+the fact that only four DIANE worker agents need to be started. Also,
+only half of the WUs are executed on a DIANE node and thus, show a
+longer runtime. While there are some limitations in the current
+TROY-DIANE implementation, the aim of this experiment is to emphasizes
+the possibilities that the TROY API provides to dynamic
+applications. TROY enables applications to utilize a dynamic resource
+pool consisting of resources of different infrastructures, e.\,g.\ EGI
+and TG/XD resources. Dynamic applications can utilize the elasticity
+of the TROY resource pool e.\,g.\ to improve the time-to-completion
+and/or to scale the accuracy of their computations.
 
 
-% Further, TROY hides many of the complications with
-% various pilot jobs like multiple node backend agents, how WU's distribution to
-% various backends. Thus, this enables users of this API to concentrate more on
-% designing their applications instead worrying about the various configurations
-% of the pilot jobs. 
+% Further, TROY hides many of the complications with various pilot
+% jobs like multiple node backend agents, how WU's distribution to
+% various backends. Thus, this enables users of this API to
+% concentrate more on designing their applications instead worrying
+% about the various configurations of the pilot jobs.
 
 \upp
 
@@ -1392,9 +1412,9 @@ analogous abstraction that we call \emph{pilot-data (PD)}. \jhanote{I
 Further, it provides an abstraction for expressing and managing
 relationships between data units and/or work units. These
 relationships are referred to as \emph{affinities}.  %
-%\jhanote{difficult to use affinity
-%   without defining it..}  \alnote{tried to describe affinities a
-%   little bit better}
+
+% \jhanote{difficult to use affinity without defining it..}
+% \alnote{tried to describe affinities a little bit better}
 
 \subsubsection*{Application of P* Model Elements to Data}
 
