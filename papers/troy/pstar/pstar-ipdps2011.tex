@@ -993,8 +993,8 @@ SUs according to a set of defined policies.
     \caption{ \textbf{P* Model: Elements and Interactions:} The core
       of the model is the manager that is responsible for managing
       pilot-jobs and WUs. After a WU is submitted to the manager, it
-      is bound to a pilot where it is scheduled to a SU. The SU is
-      then scheduled to an available resource. \alnote{Needs
+      transitions to an SU, which is scheduled to a pilot by the PM. The pilot 
+	  then schedules the SU to an available resource. \alnote{Needs
         simplification. Further we need to agree somehow on i) how
         many layers of binding/scheduling? ii) the usage of
         submit/assign/bind/schedule} \jhanote{Should we replace
@@ -1054,7 +1054,7 @@ referred to as \emph{affinities}.  % \jhanote{difficult to use affinity
 %   without defining it..}  \alnote{tried to describe affinities a
 %   little bit better}
 
-\subsubsection*{Extension of P* Model Elements}
+\subsubsection*{Application of P* Model Elements to Data}
 
 % The P* model can in many parts be applied to pilot-data.
 
@@ -1063,8 +1063,8 @@ physical storage resources, the so called pilot-stores. The elements defined by
 P* (in section~\ref{sec:p_star_elements}) can be extended by the following
 elements. By symmetry each element can be mapped to an element in the PJ model.
 \begin{compactenum}[A.]
-\item \textbf{Data Unit (DU):} DU is the base unit of data used by the framework,
-  e.\,g.\ a data file or chunk. 
+\item \textbf{Data Unit (DU):} DU is the base unit of data used by the 
+framework,  e.\,g.\ a data file or chunk. 
 \item \textbf{Pilot-Data (PD):} PD allows the logical grouping of DUs
   and the expression of data-data affinities. This collection of files
   can be associated with an extensible set of properties. One of these
@@ -1077,7 +1077,8 @@ elements. By symmetry each element can be mapped to an element in the PJ model.
 	  A PS facilitates the late-binding of data and resource and is equivalent 
 	  to the pilot-job.
 \item \textbf{Pilot-Data Manager} is analogous to the PJ-Manager responsible for 
-  managing DU, PD and PS elements. 
+  managing DU, PD and PS elements. It implements the different characteristics 
+  of the P* model.
 \end{compactenum}
 
 % \jhanote{Are these the elements of Pilot-Data? If so, please make
@@ -1088,38 +1089,41 @@ elements. By symmetry each element can be mapped to an element in the PJ model.
   IMHO more an internal entity not really exposed to the end-user. The
   PD-Manager framework could e.g. use multiple PS to replicate the
   data}
-
 \alnote{please check whether we all can agree on this mapping between PJ and PD or whether we should extend the PD model, e.g. by SU and the PJ model by a WU container?}
-In summary, a PD is a logical container that describes the properties of a group
-of DUs. A DU correspond to a WU in the PJ model. The PD object provides a higher
-level of semantics to the end-user for expressing relationships between DUs for
-which there is currently no equivalent in the PJ model. Users of a PJ must
-manage WU-level dependencies on application-level. Further, the PD model does
-not assume an internal scheduling unit. While there is some value in introducing
-a SU to PD, we assume that a PD is the unit of internal scheduling. Having
-instantiated a PD, it can be assigned to a PS. A PS is a placeholder reserving a
-certain amount of storage, i.\,e.\ it corresponds to a pilot in the pilot-job
-model. By associating a PD to a PS the data is actually moved to the physical
-location associated with the PS.
+
+A DU correspond to a WU in the PJ model. A particular critical
+requirement for data-intensive application, is the management of affinity
+between WUs and/or DUs. Thus, Pilot-Data introduces the PD container object,
+which provides a higher level abstraction for expressing relationships between
+DUs. A PD is a logical container that describes the properties of a group
+of DUs. Currently, there is no equivalent for PDs in the PJ model. Users of a PJ
+must manage WU-level dependencies on application-level. Further, the PD model
+does not assume an internal scheduling unit. While there is some value in
+introducing a SU to PD, we assume that a PD is the unit of internal scheduling.
+Having instantiated a PD, it can be assigned to a PS via the PD manager. A PS is
+a placeholder reserving a certain amount of storage, i.\,e.\ it corresponds to a
+pilot in the pilot-job model. By associating a PD to a PS the data is actually
+moved to the physical location associated with the PS. The PD manager
+facilitates the creation of a PS, schedules data movement (with respect to
+specified affinities) and manages data accesses.
 
 %\alnote{insert Millau figure}
 
-\subsubsection*{Extension of P* Model Characteristics}
+\subsubsection*{Application of P* Model Characteristics to Data}
 
 % \jhanote{Compress into a paragraph which extends the Characteristics
 %   of P*-Model? i.e., Can Data Characteristics, Access Patterns and
 %   affinity be demoted from elements, and be put under
 %   characteristics?}
 
-While the PD model introduces new elements, the characteristics remain
+While the PD model introduces a new element, the characteristics remain
 to a great extent the same. The coordination characteristic describes
-how the elements of PD interact; the communication characteristic maps
-the identified communication patterns to the PD framework. The
-remaining two characteristics can be extended with respect to data:
-Binding describes the intelligent grouping and assignment of PDs and
-WUs to facilitate an optimal performance. The scheduling component particularly
-needs to consider affinities, i.\,e.\ user-defined relationships
-between PJs and/or PDs, e.\,g.\ data-data affinities exist if
+how the elements of PD interact, e.\,g.\ utilizing the M/W model; the 
+communication characteristic can be applied similarly. The scheduling 
+characteristics must be extended to not only meet compute requirements, but also 
+to support common data access patterns. The scheduling 
+component particularly needs to consider affinities, i.\,e.\ user-defined 
+relationships between WUs and/or DUs, e.\,g.\ data-data affinities exist if
 different DUs must be present at the same compute element; data-compute
 affinities arise if data and compute must be co-located for a
 computation, but their current location is different. The decision of
@@ -1137,8 +1141,9 @@ define similar elements that can be mapped to each
 other. Nevertheless, compute and data model sometimes require a
 different treatment. With the maturing of both models and
 implementations, we expect that both the PJ and PD model converge in
-the future. In the following, we discuss further implementation
-considerations for P*.
+the future. 
+% In the following, we discuss further implementation
+% considerations for P*.
 
 % \subsection*{Not sure what to with this yet}
 % 
