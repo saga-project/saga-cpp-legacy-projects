@@ -333,23 +333,29 @@ we refer this model as the P* model ("P-star"). We present and discuss
 the P* model in \S{II}.
 
 In \S{III} we introduce TROY -- A Tiered Resource OverlaY -- as an
-implementation of the P* model using the SAGA API. \alnote{Should we
-  briefly mention the TROY API?} The specific pilot-job and pilot-data
-implementations in TROY are referred to as BigJob and
-BigData. \jhanote{Previous section needs fixing to make it consistent
-  with new structure of Section 3} As we will discuss, consistent with
-the goals and aims of SAGA, there can be multiple instances of BigJob
-for different backends.\jhanote{Have we not gone to multiple instances
-  of the Pilot-Job for TROY and not multiple instances of BigJob?}
-Thus, we posit that the TROY API can be used for most, if not all
-pilot-job frameworks. \jhanote{Not sure what this means, ``can be
-  used''} Before validating this claim, in \S{IV} of this paper, we
-analyze and discuss several well-known pilot-job frameworks (DIANE,
-Swift-Coaster and Condor Glide-in) using the analytical framework
-provided by the P* model. \jhanote{Note the distinction between
+implementation of the P* model. TROY provides a P* API, which exposes the
+semantics of PJs in a P* conform way, and a runtime environment. Implementations
+of the actual PJ functionalities -- PJ frameworks, such as BigJob and DIANE, --
+are integrated into TROY via an adaptor mechanism. TROY is also able to manage
+multiple, potentially different PJ instances concurrently. Further, we present
+the BigJob pilot-job and BigData pilot-data implementation. Both PJ/PD
+frameworks rely on SAGA for implementation of the actual PJ/PD functionality.
+Using the adaptor mechanism, TROY can further be extended to other PJ
+implementations. We posit that the TROY framework and API can be used for most,
+if not all PJ frameworks.\jhanote{Not sure what this means, ``can be used''}
+Before validating this claim, in \S{IV} of this paper, we analyze and discuss
+several well-known pilot-job frameworks (DIANE, Swift-Coaster and Condor-G)
+using the analytical framework provided by the P* model. \jhanote{Note the 
+  distinction between
   pilot-jobs and pilot-job framework: DIANE, Swift are PJ
   frameworks. Specific instances of these tools/usage give rise to
-  pilot-jobs.}
+  pilot-jobs.}\alnote{added PJ framework definition to terms and usage.}
+
+
+\alnote{OLD: As we will discuss, consistent with
+the goals and aims of SAGA, there can be multiple instances of BigJob
+for different backends.}\jhanote{Have we not gone to multiple instances
+  of the Pilot-Job for TROY and not multiple instances of BigJob?}\alnote{refined}
 
 % and outline briefly how other well known pilot-jobs can be
 % understood using the {\it vectors}~\cite{dpa_surveypaper} of the P*
@@ -357,13 +363,11 @@ provided by the P* model. \jhanote{Note the distinction between
 
 % \alnote{do we validate just the TROY API or the TROY framework?}
 In \S{V} we validate the TROY framework by demonstrating how
-DIANE~\cite{Moscicki:908910} -- an existing and widely used pilot-job
-framework, can be given a well defined API via the TROY API. To
-further substantiate the impact of TROY, we will demonstrate
-interoperability between different PJs by using the same API -- a
-native SAGA based PJ, referred to as BigJob-SAGA, and DIANE. We
-believe this is also the first demonstration of interoperation of
-different pilot-job implementations.
+DIANE~\cite{Moscicki:908910} -- an existing and widely used pilot-job framework,
+can be given a well defined API via the TROY framework. To further substantiate
+the impact of TROY, we will demonstrate interoperability between different PJ
+frameworks -- BigJob and DIANE -- using TROY. We believe this is also the first
+demonstration of interoperation of different pilot-job implementations.
 
 % \jhanote{Should we to introduce Dynamic Applications explicitly in the
 %   title? Just a question, not a suggestion...}
@@ -417,8 +421,10 @@ pilot-job abstractions based on a set of identified elements and
 characteristics.  The P* model can be used as a {\it conceptual
   framework}, for analyzing different implementations of the pilot-job
 abstraction. \emph{TROY} is a specific implementation of the P*
-abstraction; it is also often referred to as a {\it software
-  framework} for pilot-jobs.
+abstraction; it is also often referred to as a {\it software 
+framework} for pilot-jobs. A \emph{PJ framework} refers to a specific 
+instance of a PJ implementation that provides the complete pilot-job 
+functionality (e.\,g.\ Condor-G and DIANE).
 
 \emph{Other Terms:}
 %
@@ -427,19 +433,20 @@ example, a compute resource provides computing capabilities: it can
 execute compute jobs.  
 %
 \emph{ \#~Resource Slice:} A physical or logical part (i.e.  subset)
-of a resource.
+of a resource.\alnote{do we need the resource slide def.?}
 %
 \emph{ \#~Resource-Manager (RM):} A system component which manages the
 access and utilization of a resource.  In particular, the RM maps
 resource requests to slices of the resource -- that process is called
-\emph{scheduling}.  Note that scheduling can combine resource requests
+\emph{scheduling}. \alnote{In sec II we use a different kind of wording for scheduling} Note that scheduling can combine resource requests
 and map them onto the same resource slice, and can also break resource
 requests into smaller parts, and map those individually.  A hierarchy
-of RMs can be used to manage sub-slices of a resource.  
+of RMs can be used to manage sub-slices of a resource.  \alnote{I think talking
+about a hierarchy of RMs is not useful at this point.}
 
 
 \jhanote{Need to introduce pilot-job framework in contrast to
-  pilot-job}
+  pilot-job} \alnote{introduced PJ framework}
 
 %
 % \emph{Scheduler:} A scheduler applies scheduling constraints to an
@@ -609,8 +616,7 @@ binding :-)}
 % characteristic); submit -- add a WU to a PJ framework (does not need to get
 % assigned at this moment)}
 
-\item \textbf{Work Unit (WU):} \alnote{Are we submitting to the PJ
-    framework or Pilot-Manager?} A WU is a resource request which
+\item \textbf{Work Unit (WU):} A WU is a resource request which
   encapsulates a self-contained piece of work that is submitted to the
   Pilot-Manager. The PM has the flexibility to combine and schedule
   WUs, e.\,g.\ it can determine when a WU is run and what as well as
@@ -1205,11 +1211,11 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 	\caption{\textbf{TROY -- An API and Runtime System for the P* Model:}  TROY 
 	provides an API for managing PJs and PDs. BigJob and BigData are 
 	realizations of the actual PJ and PD functionality. BJ and BD
-	rely on SAGA for implementation of the PJ/PD.\alnote{figure 2 needs to 
-	make the relationship between P*, SAGA and BigJob clearer; Remove DARE
-	} \jhanote{Once we have defined BigJob and BigData, there is no need to use
-          BJ-SAGA and BD-SAGA!!}}
-	
+	rely on SAGA for implementation of the PJ/PD.\alnote{We are using the term 
+	Capability Provider and Adaptor interchangeably. Should we make fig 2 \& 3 
+	consistent? Also, we need to be consistent with this respect in our writing 
+	in sec III.}
+	}
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
@@ -1218,7 +1224,7 @@ consists of the TROY API~\cite{troy}, a runtime environment  and a set of
 adaptors for various PJ implementations (see 
 Figure~\ref{fig:figures_pstar_troy}). \amnote{I disagree with the term
 runtime environment, but that is probably not very important in the context of
-this paper.}. TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
+this paper.} TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
 POSIX-style API to the most common grid functions at a sufficiently high-level
 of abstraction so as to be independent of the diverse and dynamic grid
 environments. The TROY API itself was designed to be similar to SAGA in
@@ -1757,7 +1763,7 @@ characteristics of the four PJ implementations.
 \centering
 \begin{tabular}{|p{2.5cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
 \hline
-\textbf{P* Element} &\textbf{BigJob-SAGA} &\textbf{DIANE} &\textbf{Condor 
+\textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor 
 Glide-In} &\textbf{Swift-Coaster}  \\
 \hline
 Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
