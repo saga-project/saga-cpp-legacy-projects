@@ -873,10 +873,10 @@ Job Description: the PJ description and the WU description. A TROY manager class
 represents a pool of resources -- resources can be added by submitting a PJ
 description to the TROY manager, using the \texttt{add\_resource()} method.
 Subsequently, WUs can be submitted to the TROY manager. Resources can be added
-and removed at any time (i.e. at runtime). TROY supports different usage modes
-i) it provides a unified API to various PJ frameworks (e.\,g.\ BigJob,
-DIANE and Condor-G), and ii) it enables the concurrent usage of multiple PJ
-implementations. 
+and removed at any time (i.e. at runtime). TROY supports different usage modes 
+\alnote{remove usage modes} i) it provides a unified API to various PJ 
+frameworks (e.\,g.\ BigJob, DIANE and Condor-G), and ii) it enables the 
+concurrent usage of multiple PJ implementations. 
 % Further, we show in section~\ref{sec:bigdata} how TROY is
 % extended to support dynamic data and affinity-based scheduling.
 
@@ -933,6 +933,7 @@ We do this at least in the BJ case.}
 
 \subsection{BigJob: A SAGA-based Pilot-Job Implementation for
   TROY\upp\upp}
+\label{sec:bigjob_description}
 \terminology{BigJob (BJ) , BigJob-SAGA, BJ implementation,  BJ-SAGA, BJ flavors, Amazon EC2, Microsoft Azure,
  BJ with a Condor Glide-In based backend,  BigJob Manager, BigJob agent component, BigJob framework,
  BigJob pool, extensible scheduler, } 
@@ -973,12 +974,11 @@ with a Condor-G based backend.
 \begin{figure}[t]
     \centering
     \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
-    \caption{\textbf{BigJob -- A SAGA-based Pilot-Job Implementation:}
+    \caption{\textbf{TROY and PJ frameworks:}
       BigJob is the implementation of the actual PJ functionality for
       TROY. Further, TROY integrates with various other PJ frameworks
       providing pilot-job capabilities on different types of
-      distributed infrastructures. SAGA BigJob permits usage with
-      multiple middleware backends~\cite{saga_bigjob_condor_cloud} }
+      distributed infrastructures.}
     \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
@@ -1289,7 +1289,8 @@ following, we evaluate different BJ configurations and compare and contrast them
 with DIANE. For this purpose, we conducted several experiments on
 FutureGrid~\cite{fg}. To evaluate the overall performance and throughput, we
 execute a different number of WUs on Alamo and Sierra
-utilizing up to 128 cores concurrently. 
+utilizing up to 128 cores concurrently. Each experiment is repeated at least 10 
+times.
 
 
 
@@ -1409,11 +1410,12 @@ To validate the abstractions developed, we conducted a series of experiments. We
 execute BFAST~\cite{bfast2009} -- a genome sequencing application -- using TROY
 in conjunction with different PJ frameworks and infrastructures. For this
 purpose we deploy TROY with various BigJob configurations and DIANE. TROY-BigJob
-is used with the SAGA-Globus adaptor to access LONI resources and with
-SAGA-Condor adaptor to access OSG resources. Further, we utilize TROY-DIANE on
-LONI. On LONI~\cite{loni} the Oliver machine and a total of 8 cores distributed
-across 2 nodes is used, on OSG a single machine was requested using the
-GRAM/Condor endpoint of the Renci gateway machine. \alnote{Sharath please check}
+is used with the SAGA-Globus adaptor to access LONI~\cite{loni} resources and 
+with SAGA-Condor adaptor to access OSG resources~\cite{1742-6596-78-1-012057}. 
+Further, we utilize TROY-DIANE on LONI. On LONI the Oliver machine and a total 
+of 8 cores distributed across 2 nodes is used, on OSG a single machine was 
+requested using the GRAM/Condor endpoint of the Renci gateway machine. 
+\alnote{Sharath please check}
 % To manage the genome sequencing workflow we use
 % theDARE~\cite{dare-tg11-gateways} framework that has been built on top of 
 %TROY.
@@ -1435,11 +1437,12 @@ the PJs and WUs using the Work Unit Service of the TROY API.
 	\centering
 		\includegraphics[width=0.45\textwidth]{figures/NewTROYData.pdf}
 	\caption{\textbf{TROY Performance with BigJob/Globus, BigJob/Condor and 
-	DIANE:} Running BFAST on a 4 node cluster with a total of 16 cores. The 
-	time-to-completion for 
-	TROY-DIANE is higher than for BJ mainly due to the higher startup 
-	time required and some light runtime overhead caused by the additional 
-	agents required on the resource.\up\up}
+	DIANE:} Running BFAST on a 4 node cluster with a total of 16 cores. Each 
+	experiment is repeated at least 3 times. The runtime for TROY-DIANE is 
+	higher than for BJ mainly due to the higher startup time required and some 
+	light runtime overhead caused by the additional worker agents required on 
+	the resource.\up\up}
+
 	\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
@@ -1464,11 +1467,17 @@ each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
 50\,sec less than TROY-DIANE. Additionally, we also observed a runtime overhead
 of about 25\,sec for the TROY-DIANE scenario. This overhead is likely caused by
 the additional agents required. While BigJob utilizes one BJ agent on the 
-resource, DIANE currently requires the
-spawning of one worker agent per WU that must be executed in parallel. The TROY
-API marshals these differences, i.\,e.\ while the API remains the same for both
-PJ frameworks, the different semantics in the PJ frameworks are handled by the 
-TROY backend. Nevertheless, a light overhead in the performance is observable.
+resource, DIANE currently requires the spawning of one worker agent per WU that 
+must be executed in parallel. While the TROY API marshals these differences, 
+i.\,e.\ while the API remains the same for both PJ frameworks, a light 
+performance overhead remains observable.
+
+The TROY with BigJob Condor shows the best performance of all scenarios. This
+can mainly be attributed to the better performance of the OSG resource, which is
+particularly visible in the BFAST runtimes, which runs in average 40\,\% faster
+than on LONI. Further, due to the lack of SAGA on OSG, BJ is deployed with the
+Redis c\&c sub-system, which shows a significantly better performance than the
+Advert Service (see section~\ref{sec:pj_performance}).
 
 % \jhanote{What are we trying to say here?  Is it that although the API
 %   is similar, semantics of implementation and execution remain
@@ -1583,7 +1592,9 @@ be extended by the following elements:
 \end{compactenum}
  
 Note, each element has can be mapped to an element in the P* Model by
-symmetry, e.g., a DU correspond to a WU in the original P* Model.
+symmetry, e.g., a DU correspond to a WU in the original P* Model. \alnote{say 
+that interactions, relationships and interactions are similar; give an 
+example}
 
 % \jhanote{PJ Model is confusing. Either it is P Model or PJ
 %   Framework} \alnote{ok}
@@ -1604,7 +1615,7 @@ symmetry, e.g., a DU correspond to a WU in the original P* Model.
 
 \subsubsection*{Application of P* Model Characteristics to Data}
 
-While the extensed P* Model introduces new elements, the
+While the extended P* Model introduces new elements, the
 characteristics however, remain the same to a great extent. The
 coordination characteristic describes how the elements of PD interact,
 e.\,g.\ utilizing the M/W model; the communication characteristic can
@@ -1690,11 +1701,11 @@ multiple independent tasks
   (Jha). This document was developed with support from the National
   Science Foundation (NSF) under Grant No.  0910812 to Indiana
   University for ``FutureGrid: An Experimental, High-Performance Grid
-  Test-bed.''.}
+  Test-bed''.}
 
 \up
 \bibliographystyle{plain}
-\bibliography{pilotjob,saga.bib,saga-related}
+\bibliography{pilotjob,saga,saga-related}
 \end{document}
 
 
