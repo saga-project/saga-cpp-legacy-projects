@@ -403,13 +403,13 @@ most, if not all commonly used pilot-jobs, we present the P* model of
 pilot-abstractions. The P* model is derived from an analysis of many
 pilot-job implementations; based upon this analysis, we first present
 the common {\it elements} of the P* model, followed by a description
-of the properties %that must be assigned and
-that determine the interaction of these elements and the overall
-functioning of any pilot-job framework that implements the P*
-model. All pilot-job frameworks (whether they adhere rigorously to the
-P* model or not), have these {\it elements}, but differ in specific
-attributes and characteristics.  Further, we will show that these
-elements and interactions can be used to describe a pilot-data model.
+of the properties that determine the interaction of these elements and
+the overall functioning of any pilot-job framework that implements the
+P* model. All pilot-job frameworks (whether they adhere rigorously to
+the P* model or not), have these {\it elements}, but differ in
+specific attributes and characteristics.  Further, we will show that
+these elements and interactions can be used to describe a pilot-data
+model.
  
 Before we proceed to discuss the P* Model, it is important to
 emphasize that there exist a set of commonly used terms ---
@@ -699,11 +699,13 @@ SUs according to a set of defined policies.
 
 \section{TROY: A Reference Implementation and API for the P*
   Model\upp\upp}
-\terminology{TROY (implementation), P* Model, TROY API, PJ implementation, BigJob, based on SAGA,
-PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-like API extension)
-}
-\alnote{Lead: MS}
-\alnote{Renaming section and subsections: TROY: A reference implementation of the P*}
+
+% \terminology{TROY (implementation), P* Model, TROY API, PJ
+%   implementation, BigJob, based on SAGA, PJ description, WU
+%   description, TROY manager class, Condor Glide-In, DIANE, PJ-like
+%   API extension) } \alnote{Lead: MS} \alnote{Renaming section and
+%   subsections: TROY: A reference implementation of the P*}
+
 %Pilot-Abstraction for Dynamic Execution 
 
 % \jhanote{Mark to put in a para about how the API implements different
@@ -713,42 +715,55 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 % \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
 %   BigData etc.}
 
+% \amnote{I disagree with the term runtime environment, but that is
+%   probably not very important in the context of this paper.}
 
+TROY is an implementation of the P* Model
+(\S\ref{sec:pilot-model}). It consists of the TROY API~\cite{troy}, a
+runtime engine and a set of adaptors for various PJ frameworks (see
+Figure~\ref{fig:figures_pstar_troy}). TROY is consistent with the SAGA
+API. SAGA~\cite{saga_url,saga_gfd90} provides a simple, POSIX-style
+API to the most common grid functions at a sufficiently high-level of
+abstraction so as to be independent of the diverse and dynamic grid
+environments. The TROY API itself was designed to be similar to SAGA
+in appearance and philosophy: it re-uses many of the well defined and
+standardized semantics and syntax of the File, Job and Advert API.
+\msnote{Is this true about Advert?} A further design consideration of
+TROY was a minimal but complete API.
 
-TROY is an implementation of the P* Model (\S\ref{sec:pilot-model}). It
-consists of the TROY API~\cite{troy}, a runtime engine  and a set of 
-adaptors for various PJ frameworks (see 
-Figure~\ref{fig:figures_pstar_troy}). \amnote{I disagree with the term
-runtime environment, but that is probably not very important in the context of
-this paper.} TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
-POSIX-style API to the most common grid functions at a sufficiently high-level
-of abstraction so as to be independent of the diverse and dynamic grid
-environments. The TROY API itself was designed to be similar to SAGA in
-appearance and philosophy: it re-uses many of the well defined and
-standardized semantics and syntax of the File, Job and Advert API \msnote{Is this true about Advert?}. Further, we
-aimed for a minimal but complete API.% exposing the least
+%of we aimed for
+% exposing the least
 % details necessary.  
 
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.45\textwidth]{figures/TROY_arch.pdf}
-	\caption{\textbf{TROY -- An API and Runtime System for the P* Model:}  TROY 
-	provides an API for managing PJs and PDs. BigJob and BigData are 
-	realizations of the actual PJ and PD functionality. BJ and BD
-	rely on SAGA for implementation of the PJ/PD.\alnote{We are using the term 
-	Capability Provider and Adaptor interchangeably. Should we make fig 2 \& 3 
-	consistent? Also, we need to be consistent with this respect in our writing 
-	in sec III.}
-	}
+                \caption{\textbf{TROY -- An API and Runtime System for
+                    the P* Model:} TROY provides an API for managing
+                  PJs and PDs. BigJob and BigData are realizations of
+                  the actual PJ and PD functionality. BJ and BD rely
+                  on SAGA for implementation of the PJ/PD.\alnote{We
+                    are using the term Capability Provider and Adaptor
+                    interchangeably. Should we make fig 2 \& 3
+                    consistent? Also, we need to be consistent with
+                    this respect in our writing in sec III.}  }
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
-Figure~\ref{fig:figures_troy_classes} displays the main classes that make up the Python implementation of TROY.
-Although there is no one-to-one mapping of elements of the P* model to classes, the implementation does offer the expressiveness that the P* model aims at.
-Like the P* model, the TROY API breaks the coupling between workload management and resource assignment/scheduling by exposing two separate services to the application.
-The Pilot Job Service is used for creating, managing, quering and canceling of pilot-jobs while the Work Unit Service is responsible for managing the execution of Work Units for the application.
-In the spirit of SAGA, the instantiation of pilot-jobs and work units is done by creating a description and passing that to a service responsible for the creation of the instance.
-The description can be reused and has no state, while the instance has state and is a reference for further usage.
+Figure~\ref{fig:figures_troy_classes} displays the main classes that
+make up the Python implementation of TROY.  Although there is no
+one-to-one mapping of elements of the P* model to classes, the
+implementation does offer the expressiveness that the P* model aims
+at.  Like the P* model, the TROY API breaks the coupling between
+workload management and resource scheduling by exposing two
+separate services to the application.  The Pilot Job Service is used
+for creating, managing, quering and canceling of pilot-jobs while the
+Work Unit Service is responsible for managing the execution of Work
+Units for the application.  In the spirit of SAGA, the instantiation
+of pilot-jobs and work units is done by creating a description and
+passing that to a service responsible for the creation of the
+instance.  The description can be reused and has no state, while the
+instance has state and is a reference for further usage.
 
 The TROY adaptors that implement the Capability Provider Interface (CPI) provide access to the underlying pilot-job frameworks.
 The heart of the engine is formed by the scheduler that maps the work units to the internal scheduling units. These scheduling units are not exposed to the application.
