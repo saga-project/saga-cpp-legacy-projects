@@ -1407,16 +1407,54 @@ in conjunction with different PJ frameworks and infrastructures. For this
 purpose we deploy TROY with various BigJob configurations and DIANE. TROY-BigJob
 is used with the SAGA-Globus adaptor to access LONI resources and with
 SAGA-Condor adaptor to access OSG resources. Further, we utilize TROY-DIANE on
-LONI. On LONI~\cite{loni} the Oliver machine and a total of 16 cores distributed
-across four nodes is used, on OSG the RENCI Condor cluster is utilized.
-\alnote{Sharath please fill in details} To manage the workflow we use the
-DARE~\cite{dare-tg11-gateways} framework that has been built on top of TROY.
+LONI. On LONI~\cite{loni} the Oliver machine and a total of 8 cores distributed
+across 2 nodes is used, on OSG a single machine was requested using the
+GRAM/Condor endpoint of the Renci gateway machine. \alnote{Sharath please check}
+% To manage the genome sequencing workflow we use
+% theDARE~\cite{dare-tg11-gateways} framework that has been built on top of 
+%TROY.
 
-The following experimental setup is used:  Dare is used to define eight WUs for 
-executing a BFAST sequence alignment configuration. We run the experiments in 
-three different setups: (i) TROY-BigJob/Globus only, (ii) TROY-BigJob/Condor 
-only, (iii) TROY-DIANE only and (iv)  TROY-BigJob and TROY-DIANE concurrently. 
-In case (iv) on each backend four WUs are executed.
+The investigated workload comprises of four WUs. Each WU executes a BFAST
+matching process, which is used to find potential sequence alignments. We run
+the experiment on three different setups: (i) TROY-BigJob/Globus only, (ii)
+TROY-BigJob/Condor only, (iii) TROY-DIANE only and (iv) TROY-BigJob and
+TROY-DIANE concurrently. The TROY Pilot Job Service is used to create pilots on
+the respective infrastructure(s). Each BFAST WU requires two cores; a total of
+four WUs requesting two cores each is specified and submitted to the Work Unit
+Service. \alnote{Do we use 1 or 2 WUS in case iv?} In case (iv) on each backend
+two WUs are executed. Each WU is associated with a set of input files. After
+submission of the WU to the PJ manager, the TROY runtime takes care of binding
+and scheduling the WUs to the pilots. The application can monitor the state of
+the PJs and WUs using the TROY API.
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.4\textwidth]{figures/NewTROYData.pdf}
+	\caption{\textbf{TROY Performance with BigJob/Globus, BigJob/Condor and 
+	DIANE:} Running BFAST on a 4 node cluster with a total of 16 cores. The 
+	time-to-completion for 
+	TROY-DIANE is higher than for BJ mainly due to the higher startup 
+	time required and some light runtime overhead caused by the additional 
+	agents required on the resource.\up\up}
+	\label{fig:perf_perf-bfast-bj}
+\end{figure}
+
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. The
+runtime for TROY-DIANE is about 70\,sec longer than for TROY-BigJob. The main
+contributor for this increased runtime is the deployment time required for
+DIANE. In a multi-node setup multiple work agents must be used (4 in this case).
+For each worker agent DIANE must be downloaded, installed and started
+separately. Further, in the used DIANE setup, the executable is staged. This is
+particularly different from the scenario investigated in
+section~\ref{sec:pj_performance}, in which no file staging is used. In total the
+setup of DIANE requires about 110\,sec of the overall 240\,sec runtime, i.\,e.\
+about 45\,\%. Further, each DIANE worker agent is queued as a separate job at
+the local resource manager -- this contributes the the higher deviation in the
+measured runtimes. Despite the fact that BigJob has been also installed with
+each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
+50\,sec less than TROY-DIANE. Additionally, we also observed a runtime overhead
+of about 25\,sec for the TROY-DIANE scenario. This overhead is likely caused by
+the additional agents required.
 
 
 While BigJob utilizes one BJ agent on the resource, DIANE currently requires the
@@ -1428,9 +1466,8 @@ backend.
   is similar, semantics of implementation and execution remain
   different, and that TROY backend handles them?}\alnote{well said}
 
-Each BFAST application-kernel requires two cores; a total of eight WUs
-allocating two cores each is specified and assigned to TROY. Each WU
-is associated with a set of input files. After submission of the WU to
+
+After submission of the WU to
 the PJ manager, the TROY runtime takes care of binding and scheduling
 the WUs to the pilots. The application can monitor the state of the
 PJs and WUs using the TROY API.
@@ -1447,16 +1484,7 @@ PJs and WUs using the TROY API.
 % concurrently. This is particularly useful if the time-to-completion can be
 % reduced in cases where resources on another infrastructure are available.
 
-\begin{figure}[t]
-	\centering
-		\includegraphics[width=0.4\textwidth]{perf/perf-bfast-bj.pdf}
-	\caption{\textbf{Performance TROY with BigJob and DIANE:} Running BFAST 
-	on a 4 node cluster with a total of 16 cores. The time-to-completion for 
-	TROY-DIANE is higher than for BJ mainly due to the higher startup 
-	time required and some light runtime overhead caused by the additional 
-	agents required on the resource.\up\up}
-	\label{fig:perf_perf-bfast-bj}
-\end{figure}
+
 
 
 
