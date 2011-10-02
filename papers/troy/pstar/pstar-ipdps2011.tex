@@ -796,42 +796,8 @@ enables the concurrent usage of multiple PJ frameworks.
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
-\begin{table}[t]
-	\centering
-\begin{tabular}{|l|l|}
-\hline
-\textbf{Pilot} &PJ framework\\
-\hline
-\textbf{WU} &WU\\
-\hline
-\textbf{SU} &SU\\
-\hline
-\textbf{Pilot-Manager} & Pilot Job Service/Work Unit Service\\
-\hline
-\end{tabular}
-\caption{Mapping of P* and TROY}\label{table:pstar_elements}
-\end{table}
-
-The API classes and interactions are designed to reflect the P* elements and
-characteristics. Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and TROY components. The elements that do map one-to-one are the Work Unit and the Scheduling
 
 
-
-The process of resource assignment (step 1-3 in
-figure~\ref{fig:figures_pstar}) is covered by Pilot Job Service (PJS), and the 
-workload management (step 4-6) is covered by the Work Unit Service (WUS). The 
-Pilot-Manager is represented by the PJS, WUS and Scheduler classes. 
-TROY itself does not contain an actual PJ realization. PJ frameworks providing 
-the respective pilot-job capabilities are integrated via the TROY Adaptor 
-interface
-
-
-TROY utilizes a hierarchical M/W pattern. The TROY runtime 
-system controls a set of PJ frameworks via their TROY adaptors. Inside the PJ 
-framework another coordination model can be used; most commonly this is also 
-M/W. The TROY runtime system only utilizes local communication channels between 
-the application, the runtime system and the adaptors. Again PJ frameworks can 
-rely on a communication subsystem of their choice.
 
 
 Figure~\ref{fig:figures_troy_classes} displays the main classes
@@ -943,6 +909,11 @@ wu = wus.submit(wud)
 % Additionally, the underlying PJ framework can conduct its own scheduling.
 
 
+Each \texttt{WorkUnit} and the \texttt{PilotJob} object is associated with a
+state. The state model is based on the SAGA job state model. Applications can
+query the state using the \texttt{get\_state()} method or they can subscribe to
+state update notifications.
+
 \alnote{should we say something about PJ and WU states?}
 
 \begin{figure}[t]
@@ -1014,6 +985,41 @@ wu = wus.submit(wud)
 % 	\label{fig:figures_troy}
 % \end{figure}
 
+\begin{table}[t]
+	\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Pilot} &PJ framework\\
+\hline
+\textbf{WU} &WU\\
+\hline
+\textbf{SU} &SU\\
+\hline
+\textbf{Pilot-Manager} & Pilot Job Service/Work Unit Service\\
+\hline
+\end{tabular}
+\caption{Mapping of P* and TROY}\label{table:pstar_elements}
+\end{table}
+
+The TROY API classes and interactions are designed to reflect the P* elements
+and characteristics. Table~\ref{table:pstar_elements} summarizes the mapping of
+P* elements and TROY. As defined by P*, a WU represents a primary
+self-containing piece of work that is submitted to TROY. At the API boundary a 
+WU transitions to an SU, which functions as internal unit of scheduling.
+The API follows object-oriented design principles and exposes the primary 
+functionality of the Pilot-Manager using two classes: the 
+\texttt{PilotJobService} for the management of pilots and the 
+\texttt{WorkUnitService} for the management of WUs. Further, the framework
+utilizes a set of internal classes for implementing different P* 
+characteristics, e.\,g.\
+the \texttt{Scheduler} for scheduling and the adaptors implementations for 
+providing the actual PJ capabilities. TROY is based on the M/W coordination 
+model: The TROY runtime system functions as master for a set of PJ frameworks 
+that are encapsulated within a TROY adaptor. Inside the PJ framework itself 
+another coordination model can be used; most commonly this is also M/W. The TROY 
+runtime system only utilizes local communication between the application, the 
+runtime system and the adaptors. Again PJ frameworks can rely on their own 
+communication model.
 
 
 
