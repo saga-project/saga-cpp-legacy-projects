@@ -1037,21 +1037,21 @@ BJ pool.
 \begin{table*}[t]
 \centering
 \begin{tabular}{|p{2.5cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
-\hline
-\textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G} &\textbf{Swift-Coaster}  \\
-\hline
-Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
-\hline
-Pilot-Job &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
-\hline
-Unit of Work &Task &Task &Job &Application Interface Function (Swift Script)\\
-\hline
-Unit of Scheduling &Sub-Job &Task &Job &Job\\
+  \hline
+  \textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G} &\textbf{Swift-Coaster}  \\
+  \hline
+  Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
+  \hline
+  Pilot-Job &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
+  \hline
+  Work Unit (WU) &Task &Task &Job &Application Interface Function (Swift Script)\\
+  \hline
+  Scheduling Unit (SU) &Sub-Job &Task &Job &Job\\
 % \hline
 % Dynamic Resources &no/yes &yes (AgentFactories)\\
 \hline
 \end{tabular}
-\caption{P* Elements and Pilot-Job Frameworks\up} \label{table:bigjob-saga-diane}
+\caption{Table showing the mapping between the elements of the P* Model and different Pilot-Job Frameworks\up} \label{table:bigjob-saga-diane}
 \end{table*}
 
 \upp
@@ -1251,65 +1251,70 @@ infrastructures (FutureGrid).
 
 \subsection{Understanding Pilot-Job Implementations}
 \label{sec:pj_performance}
-Each PJ implementation is associated with various degrees of freedom, in
-particular in the design of the communication \& coordination (c\&c) sub-system.
-The primary barrier for performance and scalability is not the WU submission,
-but the internal coordination of the elements of a P* implementation. There are
-many factors that influence the overall performance, e.\,g.\ the degree of
-distribution (local (LAN) vs. remote (WAN)), the communication pattern (1:n
-versus n:n) and the communication frequency. In the following we investigate the
-impact of different c\&c related factors on the overall performance and
-scalability of the system.
+Each PJ implementation is associated with various degrees of freedom,
+in particular in the design of the communication \& coordination
+(c\&c) sub-system.  The primary barrier for performance and
+scalability is not the WU submission, but the internal coordination of
+the elements of a P* implementation. There are many factors that
+influence the overall performance, e.\,g.\ the degree of distribution
+(local (LAN) vs. remote (WAN)), the communication pattern (1:n versus
+n:n) and the communication frequency. In the following we investigate
+the impact of different c\&c related factors on the overall
+performance and scalability of the system.
 
-The original design of BigJob is based on a shared, centralized data space, the
-SAGA Advert Service~\cite{saga_advert}, which is essentially a PostgreSQL
-database. The communication between all components is done via this data space;
-this concept is also known as tuple space~\cite{Gelernter:1985:GCL:2363.2433}.
-The data space decouples BJ manager and BJ agent very well and allows both
-entities to operate at their own pace optimizing the overall throughput.
-Depending on the setup this data space can be deployed locally, i.\,e.\ on the
-same resource, or remotely, e.\,g.\ during a distributed run. A particular issue
-during distributed runs is the latency between the application and the Advert
-Service. Another challenge is that this design introduces a potential
-single-point-of-failure and scalability bottleneck if the centralized data space
-is not carefully designed and operated. 
+The original design of BigJob is based on a shared, centralized data
+space, the SAGA Advert Service~\cite{saga_advert}, which is
+essentially a PostgreSQL database. The communication between all
+components is done via this data space; this concept is also known as
+tuple space~\cite{Gelernter:1985:GCL:2363.2433}.  The data space
+decouples BJ manager and BJ agent very well and allows both entities
+to operate at their own pace optimizing the overall throughput.
+Depending on the setup this data space can be deployed locally,
+i.\,e.\ on the same resource, or remotely, e.\,g.\ during a
+distributed run. A particular issue during distributed runs is the
+latency between the application and the Advert Service. Another
+challenge is that this design introduces a potential
+single-point-of-failure and scalability bottleneck if the centralized
+data space is not carefully designed and operated.
 
 
-BigJob also provides two alternative c\&c sub-systems: Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight key/value store, which can
-be deployed in a distributed, fault tolerant way. Redis is used in a similar way
-as the Advert database, i.\,e.\ all communication between BJ agent and manager
-is channeled through it. Redis can be deployed locally and remotely. 
-The ZeroMQ c\&c sub-system in contrast utilizes a client-server
-architecture, which is similar to the CORBA-based~\cite{OMG-CORBA303:2004} 
-communication system of DIANE. In this architecture, the PM maintains the 
-overall state. Clients connect to the
-PM to request new SUs or to report state updates. An advantage of this
-architecture is that it does not require a separate infrastructure for
-deployment of the Advert Service or the Redis database. While the BJ manager can
-be deployed remotely from the BJ agent, in most cases this will not be the case,
-i.\,e.\ the communication between BJ manager and BJ agent is mostly local
-communication. Both the data space and client-server c\&c sub-system can be
-combined with a publish/subscribe mechanisms, i.\,e.\ instead of polling an
-agent or client can receive notifications when a new SU arrives. In the
-following, we evaluate different BJ configurations and compare and contrast them
+BigJob also provides two alternative c\&c sub-systems:
+Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
+key/value store, which can be deployed in a distributed, fault
+tolerant way. Redis is used in a similar way as the Advert database,
+i.\,e.\ all communication between BJ agent and manager is channeled
+through it. Redis can be deployed locally and remotely.  The ZeroMQ
+c\&c sub-system in contrast utilizes a client-server architecture,
+which is similar to the CORBA-based~\cite{OMG-CORBA303:2004}
+communication system of DIANE. In this architecture, the PM maintains
+the overall state. Clients connect to the PM to request new SUs or to
+report state updates. An advantage of this architecture is that it
+does not require a separate infrastructure for deployment of the
+Advert Service or the Redis database. While the BJ manager can be
+deployed remotely from the BJ agent, in most cases this will not be
+the case, i.\,e.\ the communication between BJ manager and BJ agent is
+mostly local communication. Both the data space and client-server c\&c
+sub-system can be combined with a publish/subscribe mechanisms,
+i.\,e.\ instead of polling an agent or client can receive
+notifications when a new SU arrives. 
+
+We evaluate different BJ configurations and compare and contrast them
 with DIANE. For this purpose, we conducted several experiments on
-FutureGrid~\cite{fg}. To evaluate the overall performance and throughput, we
-execute a different number of WUs on Alamo and Sierra
-utilizing up to 128 cores concurrently. Each experiment is repeated at least 10 
-times.
+FutureGrid~\cite{fg}. To evaluate the overall performance and
+throughput, we execute a different number of WUs on Alamo and Sierra
+utilizing up to 128 cores concurrently. Each experiment is repeated at
+least 10 times.
 
-
-
-\jhanote{Need to motivate testing of c\&c sub-system better: There are
-  many barriers to interoperability and performance. primary barrier to
-  performance is not WU submission or SU scheduling to PM, but the
-  fundamental limitation of scalability of coordination -- with
-  increasing number of WU/SU.  Establish tradeoff between distributed
-  vs local coordination. e.g., It is easy to get consistency but has
-  overhead.  Easy to get performance but difficult to get
-  consistency. Thus we opt for centralized / persistent point. But how
-  does this single point-of-coordination behave with increasing number
-  of connections? } \alnote{hopefully addressed most points in paragraph above}
+% \jhanote{Need to motivate testing of c\&c sub-system better: There are
+%   many barriers to interoperability and performance. primary barrier to
+%   performance is not WU submission or SU scheduling to PM, but the
+%   fundamental limitation of scalability of coordination -- with
+%   increasing number of WU/SU.  Establish tradeoff between distributed
+%   vs local coordination. e.g., It is easy to get consistency but has
+%   overhead.  Easy to get performance but difficult to get
+%   consistency. Thus we opt for centralized / persistent point. But how
+%   does this single point-of-coordination behave with increasing number
+%   of connections? } \alnote{hopefully addressed most points in paragraph above}
 
 % \begin{figure*}[htbp]
 % 	\centering		
@@ -1329,10 +1334,11 @@ times.
 % pattern commonly implemented on basis of a simple request/response
 % architecture, i.\,e.\ the \jwave{agent} sends a request for work
 % packages to the master, which replies with a WU. 
-\jhanote{Are we talking specific implementation, i.e., TROY? If so we
-  should not say ``A'' manager but ``The Pilot-Manager''? Also the previous
-sentence should not talk about most pilot-jobs, if we've already started
-talking about TROY!!} \alnote{hopefully fixed.} 
+
+% \jhanote{Are we talking specific implementation, i.e., TROY? If so we
+%   should not say ``A'' manager but ``The Pilot-Manager''? Also the previous
+% sentence should not talk about most pilot-jobs, if we've already started
+% talking about TROY!!} \alnote{hopefully fixed.} 
 
 % A manager
 % can manage a single agent (e.\,g.\ BigJob) or multiple agents
@@ -1388,26 +1394,30 @@ increases only slightly up to 128 cores. In particular, the Redis backend shows
 an almost linear scalability achieving a throughput of up to 4 WUs/sec. }
 \label{fig:perf_bigjob-varying-cores} \end{figure}
 
-The BigJob Advert implementation currently shows some performance limitations
-mainly caused by the prototypical nature of the Advert Service implementation.
-Further, it must be noted that the Advert Service was deployed remotely (mainly
-due to deployment constraints). However, even considering this aspect the
-discrepancy between Advert Service and Redis (Remote), which has been deployed
-on the same remote network, is significant. A reason for the worse performance 
-is the used remote access protocol. The Advert Service is based on
-PostgreSQL; in the current architecture the client, i.\,e.\ the BJ
-manager and agent access the PostgreSQL database via the SOCI backend
-library. While this architecture provides a very flexible remote
-access to the database, running database access protocol over a WAN
-connection is not optimal. \jhanote{It is not clear why REDIS and
-  ZeroMQ are not susceptible to access over WAN delays/latency?}\alnote{included a comparison note to Redis Remote. We can't compare it to ZMQ since we use only
-local communication in this case}
-Transactions e.\,g.\ are very latency sensitive and require several
-roundtrips.  Further, the API is based on a hierarchical namespace,
-which does not naturally map well to relational databases. In
-particular deeply nested namespaces exhibit an insufficient query and
-update performance. In contrast, both in the Redis and ZeroMQ scenario, data is 
-stored in memory, which also explains to significant performance gains.
+The BigJob Advert implementation currently shows some performance
+limitations mainly caused by the prototypical nature of the Advert
+Service implementation.  Further, it must be noted that the Advert
+Service was deployed remotely (mainly due to deployment
+constraints). However, even considering this aspect the discrepancy
+between Advert Service and Redis (Remote), which has been deployed on
+the same remote network, is significant. A reason for the worse
+performance is the used remote access protocol. The Advert Service is
+based on PostgreSQL; in the current architecture the client, i.\,e.\
+the BJ manager and agent access the PostgreSQL database via the SOCI
+backend library. While this architecture provides a very flexible
+remote access to the database, running database access protocol over a
+WAN connection is not optimal. % \jhanote{It is not clear why REDIS and
+%   ZeroMQ are not susceptible to access over WAN
+%   delays/latency?}\alnote{included a comparison note to Redis
+%   Remote. We can't compare it to ZMQ since we use only local
+%   communication in this case}
+Transactions e.\,g.\ are very latency
+sensitive and require several roundtrips.  Further, the API is based
+on a hierarchical namespace, which does not naturally map well to
+relational databases. In particular deeply nested namespaces exhibit
+an insufficient query and update performance. In contrast, both in the
+Redis and ZeroMQ scenario, data is stored in memory, which also
+explains to significant performance gains.
 
 
 \subsection{Understanding TROY Interoperability}
