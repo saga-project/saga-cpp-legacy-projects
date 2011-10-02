@@ -1240,7 +1240,7 @@ experiments are conducted on different production (LONI, OSG) and research
 infrastructures (FutureGrid).
 
 \subsection{Understanding Pilot-Job Implementations}
-
+\label{sec:pj_performance}
 Each PJ implementation is associated with various degrees of freedom, in
 particular in the design of the communication \& coordination (c\&c) sub-system.
 The primary barrier for performance and scalability is not the WU submission,
@@ -1425,7 +1425,7 @@ Service. \alnote{Do we use 1 or 2 WUS in case iv?} In case (iv) on each backend
 two WUs are executed. Each WU is associated with a set of input files. After
 submission of the WU to the PJ manager, the TROY runtime takes care of binding
 and scheduling the WUs to the pilots. The application can monitor the state of
-the PJs and WUs using the TROY API.
+the PJs and WUs using the Work Unit Service of the TROY API.
 
 \begin{figure}[t]
 	\centering
@@ -1454,23 +1454,31 @@ measured runtimes. Despite the fact that BigJob has been also installed with
 each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
 50\,sec less than TROY-DIANE. Additionally, we also observed a runtime overhead
 of about 25\,sec for the TROY-DIANE scenario. This overhead is likely caused by
-the additional agents required.
-
-
-While BigJob utilizes one BJ agent on the resource, DIANE currently requires the
+the additional agents required. While BigJob utilizes one BJ agent on the 
+resource, DIANE currently requires the
 spawning of one worker agent per WU that must be executed in parallel. The TROY
 API marshals these differences, i.\,e.\ while the API remains the same for both
-backends, the different semantics in the PJ frameworks are handled by the TROY
-backend.
-\jhanote{What are we trying to say here?  Is it that although the API
-  is similar, semantics of implementation and execution remain
-  different, and that TROY backend handles them?}\alnote{well said}
+PJ frameworks, the different semantics in the PJ frameworks are handled by the 
+TROY backend. Nevertheless, a light overhead in the performance is observable.
 
+% \jhanote{What are we trying to say here?  Is it that although the API
+%   is similar, semantics of implementation and execution remain
+%   different, and that TROY backend handles them?}\alnote{well said}
 
-After submission of the WU to
-the PJ manager, the TROY runtime takes care of binding and scheduling
-the WUs to the pilots. The application can monitor the state of the
-PJs and WUs using the TROY API.
+Finally scenario iv) demonstrates that two PJ frameworks can be
+utilized concurrently using the TROY API and adaptor mechanism. The performance 
+in this scenario is slightly better than in the DIANE only case, mainly due to
+the fact that only four DIANE worker agents need to be started. Also,
+only half of the WUs are executed on a DIANE node and thus, show a
+longer runtime. While there are some limitations in the current
+TROY-DIANE implementation, the aim of this experiment is to emphasizes
+the possibilities that the TROY API provides to dynamic
+applications. TROY enables applications to utilize a dynamic resource
+pool consisting of resources of different infrastructures, e.\,g.\ EGI
+and TG/XD resources. Dynamic applications can utilize the elasticity
+of the TROY resource pool e.\,g.\ to improve the time-to-completion
+and/or to scale the accuracy of their computations.
+
 
 
 % To perform the above experiments we built an application \smnote{this
@@ -1488,39 +1496,27 @@ PJs and WUs using the TROY API.
 
 
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
-experiments. The time-to-completion for TROY-DIANE is about 207\,sec
-longer than for TROY-SAGA. The main contributor for this increased
-runtime is the deployment time required for DIANE. In a multi-node
-setup multiple work agents must be used (8 in this case).  For each
-worker agent DIANE must be downloaded, installed and started
-separately. In total this requires about 178\,sec. Further, each DIANE
-worker agent is queued as a separate job at the local resource manager
--- this contributes the the higher deviation in the measured
-runtimes. Because BigJob requires a pre-run installation on each site,
-it only shows a startup time of 28\,sec. Additionally, we also
-observed a runtime overhead of about 17\,sec for the TROY-DIANE
-scenario. This overhead is likely caused by the additional agents
-required.
+% Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
+% experiments. The time-to-completion for TROY-DIANE is about 207\,sec
+% longer than for TROY-SAGA. The main contributor for this increased
+% runtime is the deployment time required for DIANE. In a multi-node
+% setup multiple work agents must be used (8 in this case).  For each
+% worker agent DIANE must be downloaded, installed and started
+% separately. In total this requires about 178\,sec. Further, each DIANE
+% worker agent is queued as a separate job at the local resource manager
+% -- this contributes the the higher deviation in the measured
+% runtimes. Because BigJob requires a pre-run installation on each site,
+% it only shows a startup time of 28\,sec. Additionally, we also
+% observed a runtime overhead of about 17\,sec for the TROY-DIANE
+% scenario. This overhead is likely caused by the additional agents
+% required.
 
 % % In the case of BJ-DIANE backend Multinode submitter was not used/not % yet. As
 % a result it submits job request's for each node separately and there % also some
 % delay between actual launch and startup time of UOW. Further, DIANE % was
 % installed separately for every agent/node requested.
 
-Finally scenario iii) demonstrates that two BJ implementations can be
-utilized concurrently using the TROY API. The performance in this
-scenario is slightly better than in the DIANE only case, mainly due to
-the fact that only four DIANE worker agents need to be started. Also,
-only half of the WUs are executed on a DIANE node and thus, show a
-longer runtime. While there are some limitations in the current
-TROY-DIANE implementation, the aim of this experiment is to emphasizes
-the possibilities that the TROY API provides to dynamic
-applications. TROY enables applications to utilize a dynamic resource
-pool consisting of resources of different infrastructures, e.\,g.\ EGI
-and TG/XD resources. Dynamic applications can utilize the elasticity
-of the TROY resource pool e.\,g.\ to improve the time-to-completion
-and/or to scale the accuracy of their computations.
+
 
 
 % Further, TROY hides many of the complications with various pilot
