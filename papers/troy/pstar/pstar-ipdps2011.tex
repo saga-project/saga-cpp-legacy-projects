@@ -39,7 +39,7 @@
 \makeatother
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 \ifdraft
 \newcommand{\onote}[1]{ {\textcolor{cyan} { (***Ole: #1) }}}
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -811,25 +811,29 @@ resource using a pilot-job framework (step 3). At this stage there might be a
 pilot-job already available, or the request can still reside in a queue
 somewhere. Regardless of the state of the pilot-job, the application can submit
 a work unit to the Work Unit Service (step 4). The Work Unit Service remains
-responsible for keeping track of the Work Unit during its lifetime. 
-Based on the heuristics or policies the Work Unit Service will decide on the mapping
-from Work Unit to Scheduling Unit  and schedule the Scheduling Unit(s) to the 
-Scheduler (step 5).
-The Scheduler will schedule Scheduling Units to an appropriate Adaptor that
-represents a capable resource (step 6). 
-Finally the adaptor will submit the Scheduling Unit to the pilot-job framework
-which will take care of the actual execution on a resource.
+responsible for keeping track of the Work Unit during its lifetime. Based on the
+heuristics or policies the Work Unit Service will decide on the mapping from
+Work Unit to Scheduling Unit and schedule the Scheduling Unit(s) to the
+Scheduler (step 5). The Scheduler will schedule Scheduling Units to an
+appropriate Adaptor that represents a capable resource (step 6). Finally the
+adaptor will submit the Scheduling Unit to the pilot-job framework which will
+take care of the actual execution on a resource.
 
-Note that multiple levels of (hierarchical) scheduling can be present.
-Inside TROY there is already scheduling taking place on the Work Unit Service and the Pilot Job level.
-Additionally it is very likely that the underlying pilot-job frameworks all do their own scheduling too.
+Note that multiple levels of (hierarchical) scheduling can be present. Inside
+TROY there is already scheduling taking place on the Work Unit Service and the
+Pilot Job level. Additionally it is very likely that the underlying pilot-job
+frameworks all do their own scheduling too.
 
-In the current implementation the P* characteristics are as follows.
-The coordination model is hierarchical as the TROY framework delegates parts of the coordination to the adaptors but maintains the global overview itself.
-Regarding the communication characteristic, TROY does not provide its own communication channels but fully depends on the adaptors for the communication with the pilot-jobs.
+In the current implementation the P* characteristics are as follows. The
+coordination model is hierarchical as the TROY framework delegates parts of the
+coordination to the adaptors but maintains the global overview itself. Regarding
+the communication characteristic, TROY does not provide its own communication
+channels but fully depends on the adaptors for the communication with the
+pilot-jobs.
 
 To further illustrate the TROY API we include three short code snippets that 
-together form a complete Python application (modulo imports).
+together form a complete Python application 
+(listings~\ref{lst:pjs_creation}-\ref{lst:wu_submission}).
 
 \lstset{
 language=Python,
@@ -873,8 +877,9 @@ wu = wus.submit(wu_desc)
 \end{lstlisting}
 \end{minipage}
 
-The TROY API offers to the application that resources can be added and removed at any time (i.e. at runtime)
-so the that available resources can be grown and shrunk dynamically to the active application workload.
+The TROY API offers to the application that resources can be added and removed
+at any time (i.e. at runtime) so the that available resources can be grown and
+shrunk dynamically to the active application workload.
 
 
 
@@ -884,7 +889,6 @@ so the that available resources can be grown and shrunk dynamically to the activ
 %concurrent usage of multiple PJ implementations. 
 % Further, we show in section~\ref{sec:bigdata} how TROY is
 % extended to support dynamic data and affinity-based scheduling.
-
 
 
 \begin{figure}[t]
@@ -920,6 +924,7 @@ of a PJ-like API extension to SAGA (see future work, \S{VI}).
 
 \begin{figure}[t]
     \centering
+\upp
     \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
     \caption{\textbf{TROY and PJ frameworks:}
       TROY provides the ability to utilize the native Pilot-Job capabilities of 
@@ -934,21 +939,22 @@ of a PJ-like API extension to SAGA (see future work, \S{VI}).
 \section{Pilot-Jobs Frameworks\upp\upp}
 \alnote{add cross-cutting analysis}
 
-As more applications take advantage of dynamic execution, the
-Pilot-Job concept has grown in popularity and has been extensively
-researched and implemented for different usage scenarios and
-infrastructure. There is a variety of PJ frameworks:
-Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
+As more applications take advantage of dynamic execution, the Pilot-Job concept
+has grown in popularity and has been extensively researched and implemented for
+different usage scenarios and infrastructure. There is a variety of PJ
+frameworks: Condor-G~\cite{condor-g}, SWIFT~\cite{Wilde2011},
 DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
 PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
 Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
-MyCluster~\cite{1652061} to name a few. The aim of this section is to
-show that our P* Model can be used to explain/understand some of these
-PJ frameworks, in particular BigJob, DIANE as well as Condor-G and
-Swift.  Table~\ref{table:bigjob-saga-diane} shows how the elements P*
-model can be mapped to these
-frameworks. Table~\ref{table:pilot-job-comparison} compares the
-characteristics of the four PJ frameworks.
+MyCluster~\cite{1652061} to name a few. The aim of this section is to show that
+our P* Model can be used to explain/understand some of these PJ frameworks. In
+particular we focus on BigJob, DIANE, Condor-G and SWIFT. As summarized in
+table~\ref{table:bigjob-saga-diane}, we show that the elements P* model can be
+mapped to these frameworks. Further, we compare the characteristics of the four
+PJ frameworks in table~\ref{table:pilot-job-comparison}. In addition to applying
+the P* model, we integrated BigJob, DIANE and Condor into TROY 
+in order to validate i) the suitability of the TROY abstractions and ii) the
+extensibility of the TROY framework.
 
 \alnote{Should we somewhere explain how these framework work together with TROY? 
 We do this at least in the BJ case.}
@@ -993,31 +999,41 @@ addition there are specific BJ flavors for cloud resources such as Amazon EC2
 and Microsoft Azure that are capable of managing set of VMs, as well as a BJ
 with a Condor-G based backend. 
 
+\begin{figure}[t]
+	\upp
+	\centering
+	\includegraphics[width=0.45\textwidth]{figures/re_bigjob_interactions.pdf}
+	\caption{\textbf{BigJob Architecture:} The core of the framework, the 
+	BigJob-Manager orchestrates a set of pilots. Pilots are started using the 
+	SAGA Job API. The application submits WUs, the so-called sub-jobs via the 
+	BigJob-Manager. Communication between The BJ-Manager and BJ-Agent is done 
+	via a shared data space, the Advert Service. The BJ-Agent is responsible for 
+	managing and monitoring sub-jobs.}
+	\label{fig:figures_re_bigjob_interactions}
+\end{figure}
 
 
-% In the scope of this paper, BJ generally refers
-% to the BJ-SAGA implementation though.
+Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the architecture of
+BJ. BJ utilizes a M/W coordination model: The BigJob-Manager is responsible for
+the orchestration of pilots, for the binding of WUs and for the scheduling of
+SUs. For submission of the pilots, SAGA relies on the SAGA Job API, and thus can
+be used in conjunction with different SAGA adaptors, e.\,g.\ the Globus, the
+PBS, the Condor and the Amazon Web Service adaptor. Each pilot initializes a so
+called BJ-agent. The agent is responsible for gathering local information
+and for executing tasks (SUs) on its local resource. The SAGA Advert Service API
+is used for communication between manager and agent. The Advert Service (AS)
+exposes a shared data space that can be accessed by manager and agent, which use
+the AS to realize a push/pull communication pattern, i.\,e.\ the manager pushes
+a SU to the AS while the agents periodically pull for new SUs. Results and state
+updates are similarly pushed back from the agent to the manager. Further, BJ
+provides a pluggable communication \& coordination layer and also supports
+alternative c\&c systems, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
 
-BJ utilizes a M/W coordination model: The BigJob Manager is responsible for the
-orchestration of pilots, for the binding of WUs and for the scheduling of SUs.
-For submission of the pilots, SAGA relies on the SAGA Job API, and thus can be
-used in conjunction with different SAGA adaptors, e.\,g.\ the Globus, PBS,
-Condor Amazon Web Service and other adaptors. Each pilot initializes a so called
-BigJob agent. The agent is responsible for gathering local information and for
-executing tasks (SUs) on its local resource. The SAGA Advert Service API is used
-for communication between manager and agent. The Advert Service (AS) exposes a
-shared data space that can be accessed by manager and agent, which use the AS to
-realize a push/pull communication pattern, i.\,e.\ the manager pushes a SU to
-the AS while the agents periodically pull for new SUs. Results and state updates
-are similarly pushed back from the agent to the manager. Further, BJ provides a
-pluggable communication \& coordination layer and also supports alternative c\&c
-systems, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
-
-BJ currently uses a simple binding mechanism: each WU (a task)
-submitted to the BigJob framework is mapped to one SU (a so called
-sub-job).  Binding takes places at submission time (early binding).
+BJ currently uses a simple binding mechanism: each WU submitted to the BigJob
+framework is mapped to one SU. Binding can take places at submission
+time (early binding) or delayed in case of multiple pilots (late binding). 
 For scheduling, a simple FIFO scheduler is used (see also
-Table~\ref{table:pilot-job-comparison}).
+table~\ref{table:pilot-job-comparison}).
 
 
 % All core BJ are confined to a single resource and don't allow
@@ -1080,7 +1096,7 @@ framework~\cite{DBLP:journals/corr/abs-0902-2685} can be used.
 Once the worker agents are started they register themselves at the RunMaster.
 In contrast to TROY-BigJob, a worker agent generally manages only a single
 core and thus, by default is not able to run parallel applications (e.\,g.\
-based on MPI). BJ utilizes the BJ agent that is able manage a set of local
+based on MPI). BJ utilizes the BJ-Agent that is able manage a set of local
 resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
 of running parallel applications. For communication between the RunMaster and
 worker agents point-to-point messaging based on CORBA~\cite{OMG-CORBA303:2004}
@@ -1274,7 +1290,7 @@ space, the SAGA Advert Service~\cite{saga_advert}, which is
 essentially a PostgreSQL database. The communication between all
 components is done via this data space; this concept is also known as
 tuple space~\cite{Gelernter:1985:GCL:2363.2433}.  The data space
-decouples BJ manager and BJ agent very well and allows both entities
+decouples BJ-Manager and BJ-Agent very well and allows both entities
 to operate at their own pace optimizing the overall throughput.
 Depending on the setup this data space can be deployed locally,
 i.\,e.\ on the same resource, or remotely, e.\,g.\ during a
@@ -1289,7 +1305,7 @@ BigJob also provides two alternative c\&c sub-systems:
 Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
 key/value store, which can be deployed in a distributed, fault
 tolerant way. Redis is used in a similar way as the Advert database,
-i.\,e.\ all communication between BJ agent and manager is channeled
+i.\,e.\ all communication between BJ-Agent and manager is channeled
 through it. Redis can be deployed locally and remotely.  The ZeroMQ
 c\&c sub-system in contrast utilizes a client-server architecture,
 which is similar to the CORBA-based~\cite{OMG-CORBA303:2004}
@@ -1297,9 +1313,9 @@ communication system of DIANE. In this architecture, the PM maintains
 the overall state. Clients connect to the PM to request new SUs or to
 report state updates. An advantage of this architecture is that it
 does not require a separate infrastructure for deployment of the
-Advert Service or the Redis database. While the BJ manager can be
-deployed remotely from the BJ agent, in most cases this will not be
-the case, i.\,e.\ the communication between BJ manager and BJ agent is
+Advert Service or the Redis database. While the BJ-Manager can be
+deployed remotely from the BJ-Agent, in most cases this will not be
+the case, i.\,e.\ the communication between BJ-Manager and BJ-Agent is
 mostly local communication. Both the data space and client-server c\&c
 sub-system can be combined with a publish/subscribe mechanisms,
 i.\,e.\ instead of polling an agent or client can receive
@@ -1410,7 +1426,7 @@ between Advert Service and Redis (Remote), which has been deployed on
 the same remote network, is significant. A reason for the worse
 performance is the used remote access protocol. The Advert Service is
 based on PostgreSQL; in the current architecture the client, i.\,e.\
-the BJ manager and agent access the PostgreSQL database via the SOCI
+the BJ-Manager and agent access the PostgreSQL database via the SOCI
 backend library. While this architecture provides a very flexible
 remote access to the database, running database access protocol over a
 WAN connection is not optimal. % \jhanote{It is not clear why REDIS and
@@ -1494,7 +1510,7 @@ measured runtimes. Despite the fact that BigJob has been also installed with
 each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
 50\,sec less than TROY-DIANE. Additionally, we also observed a runtime overhead
 of about 25\,sec for the TROY-DIANE scenario. This overhead is likely caused by
-the additional agents required. While BigJob utilizes one BJ agent on the 
+the additional agents required. While BigJob utilizes one BJ-Agent on the 
 resource, DIANE currently requires the spawning of one worker agent per WU that 
 must be executed in parallel. While the TROY API marshals these differences, 
 i.\,e.\ while the API remains the same for both PJ frameworks, a light 
@@ -1562,13 +1578,13 @@ and/or to scale the accuracy of their computations.
 % delay between actual launch and startup time of UOW. Further, DIANE % was
 % installed separately for every agent/node requested.
 
-
-\subsection{A reflection on the Reality of Distributed Infrastructures}
-
-In this work we propose a model for an abstraction of pilot-job frameworks.
-While much of that has taken place on a conceptual level, in this work,
-but also in our other activities we have learned to appreciate the details that
-come into play while deploying software on distributed infrastructures.
+\alnote{commented out for submission: A reflection on the Reality of Distributed Infrastructures}
+% \subsection{A reflection on the Reality of Distributed Infrastructures}
+% 
+% In this work we propose a model for an abstraction of pilot-job frameworks.
+% While much of that has taken place on a conceptual level, in this work,
+% but also in our other activities we have learned to appreciate the details that
+% come into play while deploying software on distributed infrastructures.
 
 
 % Further, TROY hides many of the complications with various pilot
