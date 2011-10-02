@@ -39,7 +39,7 @@
 \makeatother
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 \newcommand{\onote}[1]{ {\textcolor{cyan} { (***Ole: #1) }}}
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -722,6 +722,22 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 % \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
 %   BigData etc.}
 
+
+
+TROY is an implementation of the P* Model (\S\ref{sec:pilot-model}). It
+consists of the TROY API~\cite{troy}, a runtime engine  and a set of 
+adaptors for various PJ frameworks (see 
+Figure~\ref{fig:figures_pstar_troy}). \amnote{I disagree with the term
+runtime environment, but that is probably not very important in the context of
+this paper.} TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
+POSIX-style API to the most common grid functions at a sufficiently high-level
+of abstraction so as to be independent of the diverse and dynamic grid
+environments. The TROY API itself was designed to be similar to SAGA in
+appearance and philosophy: it re-uses many of the well defined and
+standardized semantics and syntax of the File, Job and Advert API \msnote{Is this true about Advert?}. Further, we
+aimed for a minimal but complete API.% exposing the least
+% details necessary.  
+
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.45\textwidth]{figures/TROY_arch.pdf}
@@ -736,19 +752,79 @@ PJ description, WU description, TROY manager class, Condor Glide-In, DIANE, PJ-l
 	\label{fig:figures_pstar_troy}
 \end{figure}
 
-TROY is an implementation of the P* Model (\S\ref{sec:pilot-model}). It
-consists of the TROY API~\cite{troy}, a runtime environment  and a set of 
-adaptors for various PJ frameworks (see 
-Figure~\ref{fig:figures_pstar_troy}). \amnote{I disagree with the term
-runtime environment, but that is probably not very important in the context of
-this paper.} TROY is consistent with the SAGA API. SAGA~\cite{saga_url,saga_gfd90} provides a simple,
-POSIX-style API to the most common grid functions at a sufficiently high-level
-of abstraction so as to be independent of the diverse and dynamic grid
-environments. The TROY API itself was designed to be similar to SAGA in
-appearance and philosophy: it re-uses many of the well defined and
-standardized semantics and syntax of the File, Job and Advert API. Further, we
-aimed for a minimal but complete API.% exposing the least
-% details necessary.  
+Figure~\ref{fig:figures_troy_classes} displays the main classes that make up the Python implementation of TROY.
+Although there is no one-to-one mapping of elements of the P* model to classes, the implementation does offer the expressiveness that the P* model aims at.
+Like the P* model, the TROY API breaks the coupling between workload management and resource assignment/scheduling by exposing two separate services to the application.
+The Pilot Job Service is used for creating, managing, quering and canceling of pilot-jobs while the Work Unit Service is responsible for managing the execution of Work Units for the application.
+In the spirit of SAGA, the instantiation of pilot-jobs and work units is done by creating a description and passing that to a service responsible for the creation of the instance.
+The description can be reused and has no state, while the instance has state and is a reference for further usage.
+
+The TROY adaptors that implement the Capability Provider Interface (CPI) provide access to the underlying pilot-job frameworks.
+The heart of the engine is formed by the scheduler that maps the work units to the internal scheduling units. These scheduling units are not exposed to the application.
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/troy_classes.pdf}
+	\caption{\textbf{TROY Class Diagram:} The classes used in the TROY implementation. Classes that are not exposed to the application are greyed out and cardinality is shown between classes. 
+	}
+	\label{fig:figures_troy_classes}
+\end{figure}
+
+Also shown in figure~\ref{fig:figures_troy_classes} is the cardinality between the classes.
+This describes that an application can have any number of Pilot Job Services or Work Unit Services.
+Multiple Pilot Job Services can be associated to a Work Unit Service, and a Pilot Job Service can be associated to multiple Work Unit Services.
+A Work Unit Service can manage multiple Work Units, but a Work Unit can only be managed by one Work Unit Service.
+So can a Work Unit Service manage multiple pilot-jobs, but can a pilot-job only be managed by one Pilot Job Service.
+
+In figure~\ref{fig:figures_troy_flow} the flow of a simple execution scenario is displayed. The Pilot Job Service and the Work Unit Service are already instantiated.
+The application requests the Pilot Job Service to create a new pilot-job (step 1), the Pilot Job Service will pass the request on to the relevant adaptor (step 2) which will eventually launch the pilot-job on a resource using a pilot-job framework(step 3).
+At this stage there might be a pilot-job already available, or the request can still reside in a queue somewhere.
+Regardless of the state of the pilot-job, the application can submit a work unit to the Work Unit Service (step 4).
+The Work Unit Service remains responsible for keeping track of the Work Unit during its lifetime. It will schedule the Work Unit to the Scheduler (step 5).
+Based on the scheduling policies the scheduler will decide on the mapping from Work Unit to Scheduling Unit and will eventually schedule a Scheduling Unit to an Adaptor (step 6).
+Finally the adaptor will submit the Scheduling Unit to the pilot-job framework which will take care of the actual execution on a resource.
+
+To further illustrate the TROY API we include three short code snippets that together form a complete Python application (modulo imports).
+
+\lstset{
+language=Python,
+caption={Instantiate a Pilot Job Service and Pilot Job Description, populate it with requirements and create a Pilot Job of type BigJob from it.},
+frame=single,
+stringstyle=\ttfamily,
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}
+pjs = PilotJobService()
+pj_desc = PilotJobDescription()
+pj_desc.total_core_count = 8
+pj = pjs.create('gram://queenbee',
+    pj_desc, 'bigjob')
+\end{lstlisting}
+\end{minipage}
+
+\lstset{
+caption={Instantiate a Work Unit Service and associate a Pilot Job Service with it.},
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}
+wus = WorkUnitService()
+wus.add(pjs)
+\end{lstlisting}
+\end{minipage}
+
+\lstset{
+caption={Instantiate a Work Unit Description, populate it with application parameters submit it through the Work Unit Service.},
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}
+wu_desc = WorkUnitDescription()
+wu_desc.executable = '/bin/bfast'
+wu_desc.arguments = ['match', '-t4', 
+    '/data/file1']
+wu_desc.total_core_count = 4
+wu = wus.submit(wu_desc)
+\end{lstlisting}
+\end{minipage}
 
 The TROY API renders the artifacts defined by the P* model, as defined in
 \S\ref{sec:pilot-model}. It defines two description classes that extend SAGA's
@@ -763,17 +839,11 @@ implementations.
 % Further, we show in section~\ref{sec:bigdata} how TROY is
 % extended to support dynamic data and affinity-based scheduling.
 
-\begin{figure}[t]
-	\centering
-		\includegraphics[width=0.51\textwidth]{figures/troy_classes.pdf}
-	\caption{\textbf{TROY Class Diagram:} The classes used in the TROY implementation. Classes that are not exposed to the application are greyed out and cardinality is shown between classes. 
-	}
-	\label{fig:figures_troy_classes}
-\end{figure}
+
 
 \begin{figure}[t]
 	\centering
-		\includegraphics[width=0.51\textwidth]{figures/troy_flow.pdf}
+		\includegraphics[width=0.47\textwidth]{figures/troy_flow.pdf}
 	\caption{\textbf{TROY Flow Diagram:} The flow for the starting of a pilot job and the execution of a work unit.
 	}
 	\label{fig:figures_troy_flow}
