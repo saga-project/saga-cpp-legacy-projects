@@ -120,14 +120,14 @@ class PilotDataService(object):
         'id',                # id to this PilotDataService
         'state',             # Status of the PilotDataService
         'pilot_stores',      # PilotStores connected to this PD
-        'pilot_data'         # List of WUs that have been submitted to this WUS
+        'pilot_data'         # List of PDs
     )
 
     def __init__(self, pds_id=None):
         """ Create a PilotDataService.
 
             Keyword arguments:
-            wus_id -- Reconnect to an existing PilotDataService 
+            pds_id -- Reconnect to an existing PilotDataService 
         """
         pass
 
@@ -210,7 +210,7 @@ class PilotData(object):
     )
 
     def cancel(self):
-        """ Cancel the WU. """
+        """ Cancel the PD. """
         pass
     
     def get_state(self):
