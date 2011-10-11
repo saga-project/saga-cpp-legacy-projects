@@ -2,12 +2,10 @@
     (implementation currently based on local SAGA adaptors)
 """
 import sys
-sys.path.append("../../../BigJob/")
-sys.path.append("../../../bigjob//")
-sys.path.append("../store/")
 
+sys.path.append(os.path.dirname(__file__)  + "../bigdata/")
 from pilotstore import *
-import many_job_affinity
+from bigjob_dynamic.many_job_affinity import * 
 
 import os
 import pdb

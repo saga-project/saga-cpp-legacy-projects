@@ -12,12 +12,10 @@
 import sys
 import saga
 import uuid
-import os
-print os.path.dirname(__file__) 
-sys.path.append(os.path.dirname(__file__) + "/../../../BigJob/")
-sys.path.append(os.path.dirname(__file__) + "/../store/")
 
+sys.path.append(os.path.dirname(__file__) + "../bigdata/")
 from pilotstore import *
+from bigjob_dynamic.many_job_affinity import * 
 
 # for logging
 import logging

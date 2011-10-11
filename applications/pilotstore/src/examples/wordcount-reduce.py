@@ -3,11 +3,11 @@
 # Aggregate subtotals of mapping phase
 import saga
 import sys
-import os
-sys.path.append(os.path.dirname(__file__) + "/../../../BigJob/")
-sys.path.append(os.path.dirname(__file__) + "/../store/")
 
+
+sys.path.append(os.path.dirname(__file__) + "../bigdata/")
 from pilotstore import *
+from bigjob_dynamic.many_job_affinity import * 
 
 # for logging
 import logging
