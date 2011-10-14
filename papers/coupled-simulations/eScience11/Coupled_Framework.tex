@@ -235,27 +235,32 @@ A runtime environment is designed to co-schedule and load-balance between couple
 \subsection{Data Management and Archiving}
 
 \subsection{Coupling System}
-- Library form (lighter), none-resource usage
+Coupling system services (1) the information exchange interface between coupled distinct codes, and (2) the Makefile-wrapper for specific system architectures. The former helps in writing the application code in a generic form and the latter enables compiling the program independent of the system architecture.
+
+The coupling interface is provided in the form of a library. It acts to exchange registered variables between two codes. A ''separate'' library is linked to individual executable and the information exchange takes place between the library interfaces through the file-based communicator. Initially, parameters from users' codes, i.e., the communicator ID (any strings which define a set of coupled application) and the element ID (either 1 or 2), are registered to the library. Upon the calling of a \textit{send} function, the library stores passed data to the file communicator whose unique name is provided by the communicator ID and the element ID. In time of loading the \textit{recv} function, the library scans (and waits for) the data file from the counterpart and returns this dataset to the scientific code. Compared with the MPI-based communicator, the file I/O has the low latency/bandwidth and can have the stability issue in cases the resource experiences the unstability in file system. On the other hand, the file communicator library form does not require the dedicated resources compared with the separate MPI-based coupler and it is basically free to cooperate on distributed resources.
+
+The Makefile-wrapper overwrites the user's Makefile so as to link the coupling interface and to apply optimal compiling options. It consists of a wrapper script and a number of templates which specify optimal compiling options for well-known system architectures. The script replaces user's compiling flag with the recommended ones for that system architecture and adds the linking flag of the coupling interface. The wrapper gets the location and the name of user's Makefile, as well as the location of a coupling library. By default, they are set to be \textit{./}, \textit{Makefile}, and \textit{../Lib}. The wrapper also accepts user's flags from the input file, which prioritize over the recommended configuration for that system architecture.
+
 
 \subsection{Runtime Environment}
-A BigJob is a pilot-job implementation under the simple API for grid applications 
-(SAGA)~\cite{saga_url}. SAGA provides a simple, POSIX-style API to the most common 
-grid functions at a sufficiently high-level of abstraction in order to 
-be independent of diverse and dynamic grid environments. The SAGA speciﬁcation 
-defines interfaces for the most common grid-programming functions grouped as 
-a set of functional packages. Thanks to various adaptors in SAGA, the BigJob
-application is infrastructure-neutral, which is the strength over other
+A BigJob is a pilot-job implementation under the simple API for grid applications (SAGA)~\cite{saga_url}. SAGA provides a simple, POSIX-style API to the most common grid functions at a sufficiently high-level of abstraction in order to be independent of diverse and dynamic grid environments. The SAGA specification defines interfaces for the most common grid-programming functions grouped as a set of functional packages. Thanks to various adaptors in SAGA, the BigJob application is infrastructure-neutral, which is the strength over other
 Pilot-job implementations.
 
-We apply the previously-established BigJob runtime environment for coupled
-multi-physics applications~\cite{CCGrid_Hybrid}. The load balancing function
-is turned off since it requires relevant changes (time checking function and
-checkpointing capability) in the application code.
-We directly submit a job to the remote batch queue system in case the
-sequential feedback process between a computation and an experiment is
-of interest.
+We apply the previously-established BigJob runtime environment for coupled multi-physics applications~\cite{CCGrid_Hybrid}. The load balancing function is turned off since it requires relevant changes (time checking function and checkpointing capability) in the application code. We directly submit a job to the remote batch queue system in case the sequential feedback process between a computation and an experiment is of interest.
+
 
 \subsection{Workflow Engine}
+The workflow engine consists of a number of hierarchical scripts. The main script \textit{hybrid} loads each relevant module according to the procedure of coupled simulations. 
+(introduce each service, along with how it operates. Especially, about the first procedure which copies local files to petashare location)
+shall provide the hierarchical structure where modules will run.
+
+
+The first characteristic is the simplicity. (minimize variables to edit, while yours can still handle many parameters if not set default.)
+
+
+The second and more important feature is the controllability. (you can start from the middle, skip some procedures, restart from where it ended.)
+
+
 
 % -------------------------------------------------------------------------
 \section{Numerical Experiments}
