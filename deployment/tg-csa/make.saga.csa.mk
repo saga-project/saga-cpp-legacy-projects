@@ -115,7 +115,7 @@ saga-bindings::            saga-core
 saga-bindings::            saga-binding-python
 
 .PHONY: saga-binding-python
-saga-binding-python::     python
+saga-binding-python::      python
 
 .PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
 saga-clients::             saga-client-mandelbrot saga-client-bigjob
@@ -493,7 +493,7 @@ $(SC_MANDELBROT_CHECK): $(FORCE_REBUILD)
 #
 # bigjob client
 #
-SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/bigjob
+SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/saga/bigjob
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
@@ -504,7 +504,7 @@ $(SC_BIGJOB_CHECK): $(FORCE_REBUILD)
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
-	@cp -R $(SRCDIR)/$(CSA_SAGA_TGT)/ $(SC_BIGJOB_CHECK)
+	@cd $(SRCDIR) ; $(ENV) $(SAGA_ENV) make install
 
 
 ########################################################################
