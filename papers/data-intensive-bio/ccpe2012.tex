@@ -76,7 +76,7 @@ Shantenu Jha\corrauth\ensuremath{^1,^3}\comma\footnotemark[3],
 \noaccepted{}
 
 \begin{abstract} 
-Owing to its High-throughput technology, Next Generation DNA Sequencing produce significantly larger amounts of data compared to early sequencing methods based on Sanger technology.  Along with the challenges arising from unprecedented volumes of data, NGS data analytics challenges a research with the requirement of effectively analyzing the data, in particular with increasingly popular NGS-based genome-wide protocols such as ChIP-Seq and RNA-Seq.  In this paper, we use BFAST, a mapping program, as a representative standalone tool used for NGS data analysis, and a ChIP-Seq pipeline that is composed of two main steps, i.e. a mapping and a peak calling task with small other tasks, as a representative pipeline-based approach.  With BFAST, we analyzed computational requirements using two model genomes -- human genome and a microbe ({\it Burkerholderia Glumae}), that represent an eukaryotic and a prokaryotic system.  For the ChIP-Seq pipeline, experimental data probing genome-wide chromatin structure of mouse was used.  The computational complexity of genome-wide mapping using BFAST, amongst other factors depends upon the size of a reference genome, the data size of short reads. We analyze the performance characteristics of BFAST and understand its dependency on different input parameters. Characterizing the performance suggests that genome-wide mapping benefits from both scaling-up (increased fine-grained parallelism) and scaling-out (task-level parallelism -- local and distributed).  For certain problem instances, scaling-out can be a more efficient approach than scaling-up.  Importantly, with our investigation on the pipeline for ChiP-Seq, we discuss that the importance of dynamical execution of tasks comprising a pipeline for NGS data, and that the support of scalability, flexibility, and extensibility should be considered as an important , in addition to much focused algorithmic or implementation strategies, for leveraging existing or new-generation of pipeline developments for NGS data.  We then describe the design and development of a runtime-environment, Dynamic Application Runtime Environment (DARE), that supports both the scale-up and scale-out of BFAST on production grid and cloud environments, and the effective ChIP-Seq pipeline.
+Next Generation DNA Sequencing produce significantly larger amounts of data compared to early sequencing methods based on Sanger technology.  Along with challenges arising from unprecedented volumes of data, a research is increasingly dealing with the requirement of effectively analyzing the data, in particular with the emergence of popular NGS-based genome-wide protocols such as ChIP-Seq and RNA-Seq.  In this work, we use BFAST, a mapping program, as a representative standalone tool used for NGS data analysis, and a ChIP-Seq pipeline that is composed of two main steps, i.e. a mapping and a peak calling task with small other tasks, as a representative pipeline-based approach.  With BFAST, we analyzed computational requirements using two model genomes -- human genome and a microbe ({\it Burkerholderia Glumae}), that represent an eukaryotic and a prokaryotic system.  For the ChIP-Seq pipeline, experimental data probing genome-wide chromatin structure of mouse was used.  The computational complexity of genome-wide mapping using BFAST, amongst other factors depends upon the size of a reference genome, the data size of short reads. We analyze the performance characteristics of BFAST and understand its dependency on different input parameters. Characterizing the performance suggests that genome-wide mapping benefits from both scaling-up (increased fine-grained parallelism) and scaling-out (task-level parallelism -- local and distributed).  For certain problem instances, scaling-out can be a more efficient approach than scaling-up.  Importantly, with our investigation on the pipeline for ChiP-Seq, we discuss that the importance of dynamical execution of tasks comprising a pipeline for NGS data, and that the support of scalability, flexibility, and extensibility should be considered as an important aspect, besides much focused algorithmic or implementation strategies, for leveraging existing or new-generation of pipeline developments for NGS data.  We then describe the design and development of a runtime-environment, Dynamic Application Runtime Environment (DARE), that supports both the scale-up and scale-out of BFAST on production grid and cloud environments, and the effective ChIP-seq Pipeline on scalable distributed infrastructures.
 
 
 \end{abstract}
@@ -320,11 +320,13 @@ details on execution of BFAST, as a demonstrative mapping tool representing a si
 \section{Understanding the Challenges of NGS Data Analytics and Downstream Analyses: Characterizing BFAST and ChIP-Seq Pipeline}
 
 \subsection{Dynamic Application : Three Types of Applications}
-\begin{itemize}
-\item  introduction of different types of dynamic applications
-\item  characterizing three types
-\item  intorducing BFAST as a type I and a ChIP-seq pipeline as a type II
-\end{itemize}
+%\begin{itemize}
+%\item  introduction of different types of dynamic applications
+%\item  characterizing three types
+%\item  intorducing BFAST as a type I and a ChIP-seq pipeline as a type II
+%\end{itemize}
+
+Before presenting our investigation on challenges of NGS data analysis with BFAST, a mapping program and the pipeline for ChIP-Seq data analysis, we introduce our main strategy, the development of runtime environment that allows dynamic execution of applications representing a standalone tool, a pipeline, and a workflow.  Perhaps, resulting dynamic applications that are enhanced by such a runtime environment would be categorized as three types as summarize in Table~\ref{table:three-type-service}.  Two applications, BFAST and the ChIP-Seq pipeline are, therefore, representative examples for existing computational tools that are transformed to Type I and Type II dynamic applications.  In fact, Type III applications are the extended version of Type II with dynamic workflow support, and thus in this work, they are not considered.  Type I and Type II applications covers the most of existing computation for NGS data analytics and downstream analyses but differ that the latter group carries target computation by integrating multiple steps while Type I applications are mostly standalone tools for carrying out such steps, implying that specific challenges and understanding the requirements for an application of each type are to some extent separated. 
 
 
 \begin{table}[!h]
@@ -557,9 +559,9 @@ distributed architectures?
 %\includegraphics[bb=0 0 300 300,scale=0.55]{figures/readsvstime_hg18_chr21.pdf}
 %\includegraphics[bb=0 0 300 300,scale=0.55]{figures/readsvstime_bglumae.pdf}
 
-\includegraphics[bb=0 0 300 300, scale=0.39]{figures/readsvstime_hg18.pdf}
-\includegraphics[bb=0 0 300 300,scale=0.39]{figures/readsvstime_hg18_chr21.pdf}
-\includegraphics[bb=0 0 300 300,scale=0.39]{figures/readsvstime_bglumae.pdf}
+\includegraphics[bb=0 0 300 300, scale=0.42]{figures/readsvstime_hg18.pdf}
+\includegraphics[bb=0 0 300 300,scale=0.42]{figures/readsvstime_hg18_chr21.pdf}
+\includegraphics[bb=0 0 300 300,scale=0.42]{figures/readsvstime_bglumae.pdf}
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small The time-to-completion of the 'bfast match' step is
@@ -596,8 +598,8 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
   
   \hline  \hline
   \underline{BFAST} & &  & \\
-  Minimum Disk Space &  approx. 200 GB   &    approx. 30 GB  &  \\
-   Index Files Volume  & approx. 128 GB  & approx. 0.447 GB  & approx. 3.1 GB\\ 
+  Minimum Disk Space &  approx. 200 GB   &    approx. 30 GB  &  approx. 84 GB (chr 19)\\
+   Index Files Volume  & approx. 128 GB  & approx. 0.447 GB  & approx. 3.1 GB (chr 19)\\ 
 \hline  \hline
 \end{tabular} \caption{The summary of genomes, NGS data, and required disk space for running BFAST.  Mouse genome used for ChIP-Seq data analysis is converted in nucleotide space in spite of the fact that sequencing data were obtained with ABI platform.  For ChIP-Seq, two short reads data sets (control data and treat) are needed.  All read data are single-end.}
  \label{table:two-genomes} 
@@ -625,7 +627,7 @@ target application and more importantly the utilization of such
 aspects with available computing architectures with respect to
 parallel execution capabilities and data management.
 
-\subsubsection{Computational Requirements}
+\subsubsection{Computational Requirements for BFAST}
 
 % It is important An understanding of computational requirements for
 % carrying out BFAST steps is critically important for an infrastructure
@@ -720,7 +722,7 @@ parallel executions.
 %\label{table:two-systems} 
 %\end{table}
  
-\subsubsection{Characterizing Data Requirements}
+\subsubsection{Characterizing Data Requirements for BFAST}
 
 % \jhanote{Table reference numbers still need fixing!!}\jkimnote{I fixed it what I saw. If I miss to fix some, this can be easily fixed since the location of 'label\{...\}' should be just before 'end\{table\}' in tables}
 
@@ -851,7 +853,7 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 %\item Description of the ChIP-Seq
 %\item Emphasis of Flexibility, reduced development cycle for extended features, and so on..
 %\end{itemize}
-Genome-wide mapping of DNA-protein interactions provides a powerful means for scrutinizing fundamental processes associated with virtually all aspects of biological processes in a living cell revealing cell development, differentiation, host-pathogen interactions, epigenetics, tumorigenesis. Obtained information are crucial for developing new drugs or bio-marker discovery for many devastating diseases including neurodegenerative disorders\cite{pepke2009,laajala}.  Replacing ChIP-ChIP methods using micro-arrays, ChIP-Seq experiment became quickly a main player for genome-wide DNA-protein interaction studies and is typically carried out by using Chromatin Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq).  Due to less expensive sequencing costs and no need of a priori knowledge for genome sequence that is one of complexity accompanied with micro-array approaches, ChIP-Seq is increasingly becoming popular.  Nonetheless, computation for ChIP-Seq is challenging but has advanced recent years\cite{pepke2009,laajala}.  The conventional computational task for ChIP-Seq is composed of two independent steps.  In the first step, the mapping of two data sets, one is control and the other is treat are carried out separately, and in the second step, a peak caller, which carries out statistical analysis to infer true peaks indicating DNA-protein interaction regions, is executed.  Prediction of true peaks is also accompanied with quantitative measurements that require careful consideration for algorithms and software tool.  In this work, we use the well-proven peak caller, MACS\cite{macs}, is used, while three different mappers, BFAST, Bowtie, and BWA, are employed for the first step.  Our main focus is to present a compelling example how the use of scalable distributed infrastructure as well as the runtime environment supporting dynamic execution of the pipeline for ChIP-Seq data analytics leverage this powerful protocol utilizing NGS technologies by lessen issues such as the difficulty of validation of software tools and implemented algorithms and the efficient development of a pipeline without worrying the computational requirement and deployment of programs integrated.   
+Genome-wide mapping of DNA-protein interactions provides a powerful means for scrutinizing fundamental processes associated with virtually all aspects of biological processes in a living cell revealing cell development, differentiation, host-pathogen interactions, epigenetics, tumorigenesis. Obtained information are crucial for developing new drugs or bio-marker discovery for many devastating diseases including neurodegenerative disorders\cite{pepke2009,laajala}.  Replacing ChIP-ChIP methods using micro-arrays, ChIP-Seq experiment became quickly a main player for genome-wide DNA-protein interaction studies and is typically carried out by using Chromatin Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq).  Due to less expensive sequencing costs and no need of a priori knowledge for genome sequence that is one of complexity accompanied with micro-array approaches, ChIP-Seq is increasingly becoming popular.  Nonetheless, computation for ChIP-Seq is challenging but has advanced recent years\cite{pepke2009,laajala}.  The conventional computational task for ChIP-Seq is composed of two independent steps (see Fig.~\ref{fig:chip-seq}).  In the first step, the mapping of two data sets, one is control and the other is treat are carried out separately, and in the second step, a peak caller, which carries out statistical analysis to infer true peaks indicating DNA-protein interaction regions, is executed.  Prediction of true peaks is also accompanied with quantitative measurements that require careful consideration for algorithms and software tool.  In this work, we use the well-proven peak caller, MACS\cite{macs}, is used, while three different mappers, BFAST, Bowtie, and BWA, are employed for the first step.  Two additional mappers, BWA and Bowtie are popular due to their memory efficient algorithm, BWT.  Our main focus is to present a compelling example how the use of scalable distributed infrastructure as well as the runtime environment supporting dynamic execution of the pipeline for ChIP-Seq data analytics leverage this powerful protocol utilizing NGS technologies by lessen issues such as the difficulty of validation of software tools and implemented algorithms and the efficient development of a pipeline without worrying the computational requirement and deployment of programs integrated.   
 
 
 \section{NGS Data Analytics using Distributed, Scalable Architectures}
