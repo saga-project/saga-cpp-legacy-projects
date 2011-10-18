@@ -21,5 +21,5 @@ include $(SAGA_LOCATION)/share/saga/make/saga.mk
 
 install::
 	@$(ECHO) "      installing   fonts"
-	@$(INSTALL) $(FONTS) share/pngwriter/fonts/
+	@$(INSTALL) $(FONTS) $(SAGA_LOCATION)/share/pngwriter/fonts/
 
