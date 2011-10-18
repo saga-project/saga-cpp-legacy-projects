@@ -25,6 +25,8 @@ endpoint::endpoint (std::string           name,
   pwd_    =         ini_.get_entry ("pwd"  , "" );
   njobs_  = ::atoi (ini_.get_entry ("njobs", "1").c_str ());
 
+  ini_.dump ();
+
   try
   {
     saga::session s;

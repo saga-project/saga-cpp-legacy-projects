@@ -88,6 +88,14 @@ job_starter::job_starter (std::string       a_dir,
             jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
           }
 
+          ep->cnt_j1_++;
+          std::cout << "starting  job "
+                    << ident
+                    << " on "
+                    << ep->name_ 
+                    << " \t ... " << std::flush;
+
+//  #define DEBUG 1
 #ifdef DEBUG
           std::cout << " command       : " << ep->exe_;
           for ( unsigned int i = 0; i < args.size (); i++ )
@@ -96,7 +104,6 @@ job_starter::job_starter (std::string       a_dir,
           }
           std::cout << std::endl;
 #endif
-
 
 #ifdef DEBUG
           // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
@@ -113,13 +120,6 @@ job_starter::job_starter (std::string       a_dir,
             jd.set_attribute (saga::job::attributes::description_error,  err);
           }
 #endif
-
-          ep->cnt_j1_++;
-          std::cout << "starting  job "
-                    << ident
-                    << " on "
-                    << ep->name_ 
-                    << " \t ... " << std::flush;
 
           saga::job::job j = ep->service_.create_job (jd);
 
