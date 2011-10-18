@@ -317,7 +317,7 @@ void mandelbrot::job_startup (void)
           if ( saga::job::Running != s )
           {
             std::cout << " failed ("  << s << ")" << std::endl;
-            ep->log_  << "client "               << clients_[n]->name_ 
+            ep->log_  << "client "                << clients_[n]->name_ 
                       << " failed ("  << s << ")" << std::endl;
             clients_[n]->cancel ();
             check  = false;
