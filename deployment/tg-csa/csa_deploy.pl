@@ -410,9 +410,9 @@ if ( $do_remove )
 
       foreach my $version ( @versions )
       {
-        print " remove installation\n";
+        print " remove installation $version on $name\n";
 
-        my $cmd = "$access $host 'rm -rf $path/saga/$version/'";
+        my $cmd = "$access $host 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$name'";
 
         if ( $fake )
         {
