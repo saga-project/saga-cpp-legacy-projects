@@ -5,7 +5,7 @@ endpoint::endpoint (std::string           name,
                       mb_util::ini::section ini)
   : name_     (name)
   , ini_      (ini)
-  , valid_    (true)
+  , valid_    (false)
   , cnt_jreq_ (0)
   , cnt_jrun_ (0)
   , cnt_jreg_ (0)
@@ -67,10 +67,11 @@ endpoint::endpoint (std::string           name,
   }
   catch ( const saga::exception & e )
   {
+    std::cout << "endpoint startup failed:\n";
+    std::cout << e.what () << std::endl;
+
     log_ << "endpoint startup failed:\n";
     log_ << e.what ();
-
-    valid_ = false;
   }
 }
 
