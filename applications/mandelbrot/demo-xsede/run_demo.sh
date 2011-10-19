@@ -104,7 +104,7 @@ function main
   fi
 }
 
-export SAGA_DEMO_ROOT=$HOME/www/mandelbrot/demo-gin/
+export SAGA_DEMO_ROOT=$HOME/www/mandelbrot/demo-xsede/
 export SAGA_DEMO_LOG=$SAGA_DEMO_ROOT/demo.log
 export SAGA_DEMO_LOCK=$SAGA_DEMO_ROOT/demo.lock
 export SAGA_DEMO_STOP=$SAGA_DEMO_ROOT/demo.stop
