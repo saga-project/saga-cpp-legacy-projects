@@ -7,8 +7,8 @@ client::client (std::string                  name,
   : name_   (name)
   , job_    (job)
   , ep_     (ep)
-  , cnt_i1_ (0)
-  , cnt_i2_ (0)
+  , cnt_iass_ (0)
+  , cnt_iok_ (0)
   , valid_  (true)
 {
   id_ = job_.get_job_id ();
@@ -35,8 +35,8 @@ client::~client (void)
   log_ << "id        : " << id_               << "\n";
   log_ << "short id  : " << id_short_         << "\n";
   log_ << "endpoint  : " << ep_->name_        << "\n";
-  log_ << "#assigned : " << cnt_i1_           << "\n";
-  log_ << "#done     : " << cnt_i2_           << "\n";
+  log_ << "#assigned : " << cnt_iass_           << "\n";
+  log_ << "#done     : " << cnt_iok_           << "\n";
   log_ << "last state: " << job_.get_state () << "\n";
 
   // write log of events

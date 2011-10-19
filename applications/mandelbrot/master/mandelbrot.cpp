@@ -118,6 +118,8 @@ mandelbrot::mandelbrot (void)
   std::string use_out_dev_x11 = cfg.get_entry ("output_device_x11" , "no");
   std::string use_out_dev_png = cfg.get_entry ("output_device_png" , "no");
 
+  // flags
+  debug_              = ::atoi (cfg.get_entry ("output_device_png" , "0").c_str ());
 
   ////////////////////////////////////////////////////////////////////
   //
@@ -379,7 +381,7 @@ void mandelbrot::job_startup (void)
               if ( SAGA_MANDELBROT_VERSION == c_version )
               {
                 clients_ok++;
-                ep->cnt_j3_++;
+                ep->cnt_jreg_++;
                 std::cout << " ok (version " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
                 ep->log_  << "client "      << clients_[n]->name_      << " registered"
                           << " (version "    << SAGA_MANDELBROT_VERSION << ")\n"; 
@@ -480,8 +482,8 @@ int mandelbrot::compute (void)
       ads.push_back (ad);
       boxes_scheduled++;
 
-      clients_[jobnum]->cnt_i1_++;
-      clients_[jobnum]->ep_->cnt_i1_++;
+      clients_[jobnum]->cnt_iass_++;
+      clients_[jobnum]->ep_->cnt_iass_++;
     }
   }
 
@@ -522,8 +524,8 @@ int mandelbrot::compute (void)
           std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
           // log work item on client
-          js_.get_client (jobid_s)->cnt_i2_++;
-          js_.get_client (jobid_s)->ep_->cnt_i2_++;
+          js_.get_client (jobid_s)->cnt_iok_++;
+          js_.get_client (jobid_s)->ep_->cnt_iok_++;
 
           // data to paint
           std::vector <std::vector <int> > data;

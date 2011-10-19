@@ -3,14 +3,14 @@
 
 endpoint::endpoint (std::string           name,
                       mb_util::ini::section ini)
-  : name_   (name)
-  , ini_    (ini)
-  , valid_  (true)
-  , cnt_j1_ (0)
-  , cnt_j2_ (0)
-  , cnt_j3_ (0)
-  , cnt_i1_ (0)
-  , cnt_i2_ (0)
+  : name_     (name)
+  , ini_      (ini)
+  , valid_    (true)
+  , cnt_jreq_ (0)
+  , cnt_jrun_ (0)
+  , cnt_jreg_ (0)
+  , cnt_iass_ (0)
+  , cnt_iok_  (0)
 {
   ctype_  =         ini_.get_entry ("ctype", "" );
   url_    =         ini_.get_entry ("url"  , "" );
@@ -24,8 +24,9 @@ endpoint::endpoint (std::string           name,
   args_   =         ini_.get_entry ("args" , "" );
   pwd_    =         ini_.get_entry ("pwd"  , "" );
   njobs_  = ::atoi (ini_.get_entry ("njobs", "1").c_str ());
+  debug_  = ::atoi (ini_.get_entry ("debug", "0").c_str ());
 
-  ini_.dump ();
+  // ini_.dump ();
 
   try
   {
@@ -93,11 +94,11 @@ endpoint::~endpoint (void)
   } else {
     fout << "  status    : failed"             << std::endl;
   }
-  fout << "  #jobreq   : " << cnt_j1_          << std::endl;
-  fout << "  #jobok    : " << cnt_j2_          << std::endl;
-  fout << "  #jobreg   : " << cnt_j3_          << std::endl;
-  fout << "  #itemreq  : " << cnt_i1_          << std::endl;
-  fout << "  #itemok   : " << cnt_i2_          << std::endl;
+  fout << "  #jobreq   : " << cnt_jreq_      << std::endl;
+  fout << "  #jobok    : " << cnt_jrun_      << std::endl;
+  fout << "  #jobreg   : " << cnt_jreg_      << std::endl;
+  fout << "  #itemreq  : " << cnt_iass_      << std::endl;
+  fout << "  #itemok   : " << cnt_iok_       << std::endl;
   fout << "================================" << std::endl;
   fout.close ();
 }

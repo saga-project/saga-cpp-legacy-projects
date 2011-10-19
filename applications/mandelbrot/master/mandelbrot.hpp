@@ -56,6 +56,8 @@ class mandelbrot
     int box_num_x_;
     int box_num_y_;
 
+    // flags
+    bool debug_;
 
   public:
     mandelbrot   (void);

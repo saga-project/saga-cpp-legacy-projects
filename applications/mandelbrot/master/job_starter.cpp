@@ -19,6 +19,8 @@ job_starter::job_starter (std::string       a_dir,
   mb_util::ini::entry_map backends = ep_cfg.get_entries ();
   mb_util::ini::entry_map :: iterator it;
 
+  debug_ = ::atoi (cfg.get_entry ("debug", "0").c_str ());
+
   for ( it = backends.begin (); it != backends.end (); it++ )
   {
     std::string key = (*it).first;
@@ -27,6 +29,8 @@ job_starter::job_starter (std::string       a_dir,
     if ( val == "yes" )
     {
       mb_util::ini::section backend_config = ep_cfg.get_section (key);
+
+      backend_config.add_entry ("debug", cfg.get_entry ("debug" , "0"));
 
       std::string url = backend_config.get_entry ("url"  , "");
       std::cout << "creating  endpoint " << key << " \t ... " << std::flush;
@@ -88,24 +92,7 @@ job_starter::job_starter (std::string       a_dir,
             jd.set_attribute (saga::job::attributes::description_working_directory, ep->pwd_);
           }
 
-          ep->cnt_j1_++;
-          std::cout << "starting  job "
-                    << ident
-                    << " on "
-                    << ep->name_ 
-                    << " \t ... " << std::flush;
-
-//  #define DEBUG 1
-#ifdef DEBUG
-          std::cout << " command       : " << ep->exe_;
-          for ( unsigned int i = 0; i < args.size (); i++ )
-          {
-            std::cout << " " << args[i];
-          }
-          std::cout << std::endl;
-#endif
-
-#ifdef DEBUG
+#if 0
           // let the clients store stdout/stderr to /tmp/mandelbrot_client.[id].out/err
           // FIXME: this should get enabled once the bes adaptor supports it, and
           // is able to stage the output files back into the pwd
@@ -120,6 +107,14 @@ job_starter::job_starter (std::string       a_dir,
             jd.set_attribute (saga::job::attributes::description_error,  err);
           }
 #endif
+
+          ep->cnt_jreq_++;
+          std::cout << "starting  job "
+                    << ident
+                    << " on "
+                    << ep->name_ 
+                    << " \t ... " << std::flush;
+
 
           saga::job::job j = ep->service_.create_job (jd);
 
@@ -144,19 +139,29 @@ job_starter::job_starter (std::string       a_dir,
             client_map_[c->id_] = c;
 
             // store full jobid in ep log
-            ep->cnt_j2_++;
+            ep->cnt_jrun_++;
             std::cout << "ok "              << c->id_short_ << std::endl;
             ep->log_  << "spawned client "  << jobnum 
                       << " on "             << ep->name_ 
                       << ": "               << c->id_short_
                       << "\n";
           }
+
+          if ( debug_ )
+          {
+            std::cout << " command       : " << ep->exe_;
+            for ( unsigned int i = 0; i < args.size (); i++ )
+            {
+              std::cout << " " << args[i];
+            }
+            std::cout <<  std::endl;
+          }
         }
         catch ( const saga::exception & e )
         {
           std::cout << "failure - could not start exe " << ep->exe_ << " " << ep->args_ 
                     << std::endl;
-          ep->log_ << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
+          ep->log_  << "job spawning failed [2]: " << ep->exe_ << " " << ep->args_ << "\n" << e.what () << "\n\n";
         }
         catch ( const std::exception & e )
         {

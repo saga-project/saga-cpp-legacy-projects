@@ -23,6 +23,8 @@ class job_starter
     // instance
     std::map    <std::string, boost::shared_ptr <client> > client_map_;
 
+    bool debug_;
+
 
   public:
     job_starter  (void) { }                 // default c'tor
