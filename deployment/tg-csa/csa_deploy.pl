@@ -282,13 +282,9 @@ if ( $do_check )
                     "          -f make.saga.csa.mk       " .
                     "          all'                      " ;
 
-          if ( 0 == system ($cmd) )
+          if ( 0 != system ($cmd) )
           {
-            print " ok\n" 
-          }
-          else
-          {
-            print " error\n";
+            print "error running csa checks\n";
             if ( $be_strict )
             {
               exit -1;
