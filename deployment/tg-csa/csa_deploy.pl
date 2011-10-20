@@ -205,7 +205,7 @@ if ( $use_all )
 
 if ( ! scalar (@names) )
 {
-  if ( $do_check || $do_deploy )
+  if ( $do_check || $do_deploy || $do_exe || $do_remove )
   {
     die "no host targets given\n";
   }
@@ -270,7 +270,15 @@ if ( $do_check )
       else
       {
         my $cmd = "$access $host 'mkdir -p $path ; " .
-                  "cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'";
+                  "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa ; ". 
+                  "$ENV CSA_HOST=$name                 " .
+                  "     CSA_LOCATION=$path             " .
+                  "     CSA_SAGA_VERSION=$version      " .
+                  "     CSA_SAGA_CHECK=yes             " .
+                  "     make -C $path/tg-csa/          " .
+                  "          -f make.saga.csa.mk       " .
+                  "          all'                      ";
+                  ;
 
         if ( 0 == system ($cmd) )
         {
