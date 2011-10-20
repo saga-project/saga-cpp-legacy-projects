@@ -65,10 +65,10 @@ MAKE_VERSION = $(shell make --version | head -1)
 # report setup
 #
 ifdef CSA_SAGA_CHECK
-$(shell echo "make info: csa      location: $(CSA_LOCATION)"     1>&2 )
-$(shell echo "make info: saga     version : $(CSA_SAGA_VERSION)" 1>&2 )
-$(shell echo "make info: compiler version : $(CC_NAME)"          1>&2 )
-$(shell echo "make info: make     version : $(MAKE_VERSION)"     1>&2 )
+$(shell echo "csa      location         $(CSA_LOCATION)"     1>&2 )
+$(shell echo "saga     version          $(CSA_SAGA_VERSION)" 1>&2 )
+$(shell echo "make     version          $(MAKE_VERSION)"     1>&2 )
+$(shell echo "compiler version          $(CC_NAME)"          1>&2 )
 endif
 
 
