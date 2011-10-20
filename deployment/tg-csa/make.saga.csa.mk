@@ -1,11 +1,12 @@
 
-# this makefile supportes the CSA deployment procedure on the TeraGrid.  It
-# requires the environment variable CSA_LOCATION to be set (will complain
+# this makefile supportes the CSA deployment procedure on different DCIs.  
+# It requires the environment variable CSA_LOCATION to be set (will complain
 # otherwise), and needs 'wget', 'svn co', and the usual basic SAGA compilation
 # requirements (compiler, linker etc).  Boost, sqlite3 and postgresql are
 # installed in external/.  We also expect the SAGA version to be set as
 # CSA_SAGA_VERSION, which should be available as release tag in svn.  Otherwise,
-# we are going to install trunk
+# we are going to install trunk.   Finally, CSA_SAGA_CHECK will not install
+# anything, but print status information for an existing deployment.
 
 ifndef CSA_LOCATION
  $(error CSA_LOCATION not set - should point to the CSA space allocated on this TG machine)
@@ -63,10 +64,12 @@ MAKE_VERSION = $(shell make --version | head -1)
 # 
 # report setup
 #
+ifdef CSA_SAGA_CHECK
 $(shell echo "make info: csa      location: $(CSA_LOCATION)"     1>&2 )
 $(shell echo "make info: saga     version : $(CSA_SAGA_VERSION)" 1>&2 )
 $(shell echo "make info: compiler version : $(CC_NAME)"          1>&2 )
 $(shell echo "make info: make     version : $(MAKE_VERSION)"     1>&2 )
+endif
 
 
 ########################################################################
@@ -79,10 +82,13 @@ WGET       = $(shell which wget) --no-check-certificate
 CHMOD      = $(shell which chmod)
 
 
-SVN        = $(shell which svn 2>/dev/null || echo '$(CSA_LOCATION)/external/subversion/1.6.16/$(CC_NAME)/bin/svn')
+SVN        = $(shell which svn 2>/dev/null)
 SVNCO      = $(SVN) co
 SVNUP      = $(SVN) up
 
+ifeq "$(SVN)" ""
+ $(error Could not find svn binary)
+endif
 
 ########################################################################
 #
@@ -135,14 +141,30 @@ endif
 # create the basic directory infrastructure, documentation, etc
 #
 .PHONY: base
-base:: svn $(CSA_LOCATION)/src/ $(CSA_LOCATION)/external/
-	@echo "basic setup               ok" 
+base:: $(CSA_LOCATION)/src/ $(CSA_LOCATION)/external/ $(CSA_LOCATION)/csa/
+	@    test -d $(CSA_LOCATION)/src/        \
+		&& test -d $(CSA_LOCATION)/external/   \
+		&& test -d $(CSA_LOCATION)/csa/        \
+		&& echo "csa setup                 ok" \
+		|| echo "csa setup                 nok"
 
 $(CSA_LOCATION)/src/:
+ifndef CSA_SAGA_CHECK
 	@mkdir $@
+endif
 
 $(CSA_LOCATION)/external/:
+ifndef CSA_SAGA_CHECK
 	@mkdir $@
+endif
+
+# always do an svn up
+.PHONY: $(CSA_LOCATION)/csa/ 
+$(CSA_LOCATION)/csa/:
+ifndef CSA_SAGA_CHECK
+	@test -d $@ || $(SVNCO) https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa $@
+	@test -d $@ && cd $@ && $(SVNUP)
+endif
 
 
 ########################################################################
@@ -162,14 +184,18 @@ SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)
-	@echo "python                    ok"
+	@    test -e $(PYTHON_CHECK) \
+		&& echo "python                    ok" \
+		|| echo "python                    nok"
 
 $(PYTHON_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "python                    installing ($(PYTHON_CHECK))"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
 	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; \
                 ./configure --prefix=$(PYTHON_LOCATION) --enable-shared --enable-unicode=ucs4 && make $J && make install
+endif
 
 
 ########################################################################
@@ -185,9 +211,12 @@ SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
-	@echo "boost                     ok"
+	@    test -e $(BOOST_CHECK) \
+		&& echo "boost                     ok" \
+		|| echo "boost                     nok"
 
 $(BOOST_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
@@ -197,35 +226,7 @@ $(BOOST_CHECK): $(FORCE_REBUILD)
                                --with-python-root=$(PYTHON_LOCATION) \
                                --with-python-version=2.7 \
                                --prefix=$(BOOST_LOCATION) && ./bjam $J && ./bjam install
-
-
-########################################################################
-#
-# svn
-#
-# alas, some systems come without svn client, so we install it locally.  
-# The way to fetch svn sources is, unbeleavably, to use svn checkout.  
-# Brrr...  So, we rather fetch a prepacked version from cyder.
-#
-.PHONY: svn
-svn: $(SVN)
-
-SVN_SRC  = http://cyder.cct.lsu.edu/saga-interop/mandelbrot/csa/repos/subversion-1.6.16.tgz
-SVNLOC   = $(CSA_LOCATION)/external/subversion/1.6.16/$(CC_NAME)/
-
-$(SVN):
-	@echo "svn                       installing"
-	cd $(CSA_LOCATION)/src/                   && $(WGET) $(SVN_SRC)
-	cd $(CSA_LOCATION)/src/                   && tar zxvf subversion-1.6.16.tgz
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && ./configure --prefix=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr/         && make clean && make $J && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && ./configure --prefix=$(SVNLOC) --with-apr=../apr
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd apr-util/    && make clean && make $J && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd expat-2.0.1/ && make clean && make $J && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && ./configure --prefix=$(SVNLOC) --with-apr=$(SVNLOC) --with-apr-util=$(SVNLOC)
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && cd serf-0.7.2/  && make clean && make $J && make install
-	cd $(CSA_LOCATION)/src/subversion-1.6.16/ && ./configure --with-serf=$(SVNLOC) --with-ssl --prefix=$(SVNLOC) && make $J && make install
+endif
 
 
 ########################################################################
@@ -238,13 +239,17 @@ SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)
-	@echo "postgresql                ok"
+	@    test -e $(POSTGRESQL_CHECK) \
+		&& echo "postgresql                ok" \
+		|| echo "postgresql                nok"
 
 $(POSTGRESQL_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
 	@cd $(SRCDIR) ; tar jxvf postgresql-9.0.2.tar.bz2
 	@cd $(SRCDIR)/postgresql-9.0.2/ ; ./configure --prefix=$(POSTGRESQL_LOCATION) --without-readline && make $J && make install
+endif
 
 
 ########################################################################
@@ -257,13 +262,17 @@ SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)
-	@echo "sqlite3                   ok"
+	@    test -e $(SQLITE3_CHECK) \
+		&& echo "sqlite3                   ok" \
+		|| echo "sqlite3                   nok"
 
 $(SQLITE3_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
 	@cd $(SRCDIR) ; tar zxvf sqlite-amalgamation-3.6.13.tar.gz
 	@cd $(SRCDIR)/sqlite-3.6.13/ ; ./configure --prefix=$(SQLITE3_LOCATION) && make $J && make install
+endif
 
 
 ########################################################################
@@ -284,14 +293,18 @@ endif
 
 .PHONY: saga-core
 saga-core:: base $(SAGA_CORE_CHECK)
-	@echo "saga-core                 ok"
+	@    test -e $(SAGA_CORE_CHECK) \
+		&& echo "saga-core                 ok" \
+		|| echo "saga-core                 nok"
 
 $(SAGA_CORE_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
                  ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -305,14 +318,18 @@ SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LI
 
 .PHONY: saga-binding-python
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)
-	@echo "saga-binding-python       ok"
+	@    test -e $(SAGA_PYTHON_CHECK) \
+		&& echo "saga-binding-python       ok" \
+		|| echo "saga-binding-python       nok"
 
 $(SAGA_PYTHON_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-binding-python       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
                    ./configure && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -328,13 +345,17 @@ SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
 
 .PHONY: saga-adaptor-x509
 saga-adaptor-x509:: base $(SA_X509_CHECK)
-	@echo "saga-adaptor-x509         ok"
+	@    test -e $(SA_X509_CHECK) \
+		&& echo "saga-adaptor-x509         ok" \
+		|| echo "saga-adaptor-x509         nok"
 
 $(SA_X509_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -343,13 +364,17 @@ SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.in
 
 .PHONY: saga-adaptor-globus
 saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
-	@echo "saga-adaptor-globus       ok"
+	@    test -e $(SA_GLOBUS_CHECK) \
+		&& echo "saga-adaptor-globus       ok" \
+		|| echo "saga-adaptor-globus       nok"
 
 $(SA_GLOBUS_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -358,13 +383,17 @@ SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
 
 .PHONY: saga-adaptor-ssh
 saga-adaptor-ssh:: base $(SA_SSH_CHECK)
-	@echo "saga-adaptor-ssh          ok"
+	@    test -e $(SA_SSH_CHECK) \
+		&& echo "saga-adaptor-ssh          ok" \
+		|| echo "saga-adaptor-ssh          nok"
 
 $(SA_SSH_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -373,13 +402,17 @@ SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
 
 .PHONY: saga-adaptor-aws
 saga-adaptor-aws:: base $(SA_AWS_CHECK)
-	@echo "saga-adaptor-aws          ok"
+	@    test -e $(SA_AWS_CHECK) \
+		&& echo "saga-adaptor-aws          ok" \
+		|| echo "saga-adaptor-aws          nok"
 
 $(SA_AWS_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -388,13 +421,17 @@ SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
 
 .PHONY: saga-adaptor-drmaa
 saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
-	@echo "saga-adaptor-drmaa        ok"
+	@    test -e $(SA_DRMAA_CHECK) \
+		&& echo "saga-adaptor-drmaa        ok" \
+		|| echo "saga-adaptor-drmaa        nok"
 
 $(SA_DRMAA_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-drmaa        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -403,13 +440,17 @@ SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 
 .PHONY: saga-adaptor-condor
 saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
-	@echo "saga-adaptor-condor       ok"
+	@    test -e $(SA_CONDOR_CHECK) \
+		&& echo "saga-adaptor-condor       ok" \
+		|| echo "saga-adaptor-condor       nok"
 
 $(SA_CONDOR_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-condor       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -418,13 +459,17 @@ SA_GLITE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_glite_sd.ini
 
 .PHONY: saga-adaptor-glite
 saga-adaptor-glite:: base $(SA_GLITE_CHECK)
-	@echo "saga-adaptor-glite        ok"
+	@    test -e $(SA_GLITE_CHECK) \
+		&& echo "saga-adaptor-glite        ok" \
+		|| echo "saga-adaptor-glite        nok"
 
 $(SA_GLITE_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-glite        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -433,13 +478,17 @@ SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 
 .PHONY: saga-adaptor-pbspro
 saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
-	@echo "saga-adaptor-pbspro       ok"
+	@    test -e $(SA_PBSPRO_CHECK) \
+		&& echo "saga-adaptor-pbspro       ok" \
+		|| echo "saga-adaptor-pbspro       nok"
 
 $(SA_PBSPRO_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-pbspro       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -448,13 +497,17 @@ SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 
 .PHONY: saga-adaptor-torque
 saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
-	@echo "saga-adaptor-torque       ok"
+	@    test -e $(SA_TORQUE_CHECK) \
+		&& echo "saga-adaptor-torque       ok" \
+		|| echo "saga-adaptor-torque       nok"
 
 $(SA_TORQUE_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-torque       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -463,13 +516,17 @@ SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_bes_hpcbp_job.ini
 
 .PHONY: saga-adaptor-bes
 saga-adaptor-bes:: base $(SA_BES_CHECK)
-	@echo "saga-adaptor-bes          ok"
+	@    test -e $(SA_BES_CHECK) \
+		&& echo "saga-adaptor-bes          ok" \
+		|| echo "saga-adaptor-bes          nok"
 
 $(SA_BES_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -480,13 +537,17 @@ SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
 
 .PHONY: saga-client-mandelbrot
 saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
-	@echo "saga-client-mandelbrot    ok"
+	@    test -e $(SC_MANDELBROT_CHECK) \
+		&& echo "saga-client-mandelbrot    ok" \
+		|| echo "saga-client-mandelbrot    nok"
 
 $(SC_MANDELBROT_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) ./configure  --disable-master && make clean && make $J && make install
+endif
 
 
 ########################################################################
@@ -497,14 +558,18 @@ SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/saga/bigjob
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
-	@echo "saga-client-bigjob        ok"
+	@    test -e $(SC_BIGJOB_CHECK) \
+		&& echo "saga-client-bigjob        ok" \
+		|| echo "saga-client-bigjob        nok"
 
 $(SC_BIGJOB_CHECK): $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) make install
+endif
 
 
 ########################################################################
@@ -517,10 +582,13 @@ CSA_README_SRC   = $(CSA_LOCATION)/tg-csa/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: readme
-readme:: $(CSA_README_CHECK)
-	@echo "README                    ok"
+readme:: base $(CSA_README_CHECK)
+	@    test -e $(CSA_README_CHECK) \
+		&& echo "README                    ok" \
+		|| echo "README                    nok"
 
 $(CSA_README_CHECK): $(CSA_README_SRC) $(FORCE_REBUILD)
+ifndef CSA_SAGA_CHECK
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_README_CHECK)
@@ -536,5 +604,6 @@ $(CSA_README_CHECK): $(CSA_README_SRC) $(FORCE_REBUILD)
 	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	@$(CHMOD) -R a+rX $(EXTDIR)
 	@$(CHMOD)    a+rX $(CSA_LOCATION) || true
+endif
 	
 

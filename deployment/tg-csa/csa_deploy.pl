@@ -15,6 +15,7 @@ my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
 my %csa_hosts = ();
 my %csa_packs = ();
 my @names     = ();
+my $do_exe    = 0;
 my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
@@ -81,6 +82,10 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-r|--remove)$/io )
   {
     $do_remove = 1;
+  }
+  elsif ( $arg =~ /^(-x|--execute)$/io )
+  {
+    $do_exe = 1;
   }
   elsif ( $arg =~ /^(-h|--help)$/io )
   {
@@ -439,6 +444,60 @@ if ( $do_remove )
 }
 
 
+# for each csa host, execute some maintainance op
+if ( $do_exe )
+{
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+
+  foreach my $name ( @names )
+  {
+    if ( ! exists $csa_hosts{$name} )
+    {
+      print " WARNING: Do not know how to handle host $name\n";
+    }
+    else
+    {
+      my $host   = $csa_hosts{$name}{'host'};
+      my $path   = $csa_hosts{$name}{'path'};
+      my $access = $csa_hosts{$name}{'access'};
+
+      my $exe    = "rm -rf $path/tg-csa";
+
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+      if ( $fake )
+      {
+        print " $access $host '$exe'\n";
+      }
+      else
+      {
+        my $cmd = "$access $host '$exe'";
+
+        if ( 0 == system ($cmd) )
+        {
+          print " ok\n" 
+        }
+        else
+        {
+          print " error\n";
+          if ( $be_strict )
+          {
+            exit -1;
+          }
+        }
+      }
+    }
+  }
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  print "\n";
+
+}
+
+
 sub help (;$)
 {
   my $ret = shift || 0;
@@ -454,6 +513,7 @@ sub help (;$)
        [-e|--exit|--error]
        [-f|--force]
        [-r|--remove]
+       [-x|--execute] 
        [-u|--user id] 
        [-p|--pass pw] 
        [-a|--all|host1 host2 ...] 
@@ -470,6 +530,7 @@ sub help (;$)
     -e : exit on errors                             (default: off)
     -f : force re-deploy                            (default: off)
     -r : remove deployment on target host           (default: off)
+    -x : for maintainance, use with care!           (default: off)
 
 EOT
   exit ($ret);
