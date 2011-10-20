@@ -255,41 +255,44 @@ if ( $do_check )
     }
     else
     {
-      my $host   = $csa_hosts{$name}{'host'};
-      my $path   = $csa_hosts{$name}{'path'};
-      my $access = $csa_hosts{$name}{'access'};
-
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-
-      if ( $fake )
+      foreach my $version ( @versions )
       {
-        print " $access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
-      }
-      else
-      {
-        my $cmd = "$access $host 'mkdir -p $path ; " .
-                  "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa ; ". 
-                  "$ENV CSA_HOST=$name                 " .
-                  "     CSA_LOCATION=$path             " .
-                  "     CSA_SAGA_VERSION=$version      " .
-                  "     CSA_SAGA_CHECK=yes             " .
-                  "     make -C $path/tg-csa/          " .
-                  "          -f make.saga.csa.mk       " .
-                  "          all'                      ";
-                  ;
+        my $host   = $csa_hosts{$name}{'host'};
+        my $path   = $csa_hosts{$name}{'path'};
+        my $access = $csa_hosts{$name}{'access'};
 
-        if ( 0 == system ($cmd) )
+        print "+-----------------+------------------------------------------+-------------------------------------+\n";
+        printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+        print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+        if ( $fake )
         {
-          print " ok\n" 
+          print " $access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
         }
         else
         {
-          print " error\n";
-          if ( $be_strict )
+          my $cmd = "$access $host 'mkdir -p $path ; " .
+                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa ; ". 
+                    "$ENV CSA_HOST=$name                 " .
+                    "     CSA_LOCATION=$path             " .
+                    "     CSA_SAGA_VERSION=$version      " .
+                    "     CSA_SAGA_CHECK=yes             " .
+                    "     make -C $path/tg-csa/          " .
+                    "          -f make.saga.csa.mk       " .
+                    "          all'                      ";
+                    ;
+
+          if ( 0 == system ($cmd) )
           {
-            exit -1;
+            print " ok\n" 
+          }
+          else
+          {
+            print " error\n";
+            if ( $be_strict )
+            {
+              exit -1;
+            }
           }
         }
       }
