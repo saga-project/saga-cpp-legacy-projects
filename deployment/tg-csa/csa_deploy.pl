@@ -239,7 +239,7 @@ if ( $do_list )
 }
 
 
-# for each csa host, check the tg-csa installation itself (also check on deploy!)
+# for each csa host, check the csa installation itself (also check on deploy!)
 if ( $do_check )
 {
   # just check if we are able to deploy
@@ -267,7 +267,7 @@ if ( $do_check )
 
         if ( $fake )
         {
-          print " $access $host 'mkdir -p $path ; cd $path && test -d tg-csa && (cd tg-csa && svn up) || svn co $svn'\n";
+          print " $access $host 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
         }
         else
         {
@@ -277,7 +277,7 @@ if ( $do_check )
                     "     CSA_LOCATION=$path             " .
                     "     CSA_SAGA_VERSION=$version      " .
                     "     CSA_SAGA_CHECK=yes             " .
-                    "     make -C $path/tg-csa/          " .
+                    "     make -C $path/csa/             " .
                     "          -f make.saga.csa.mk       " .
                     "          all'                      ";
                     ;
@@ -342,7 +342,7 @@ if ( $do_deploy )
                                    "     CSA_SAGA_SRC=\"$src\"          " .
                                    "     CSA_SAGA_TGT=$module-$version  " .
                                    "     CSA_FORCE=$force               " .
-                                   "     make -C $path/tg-csa/          " .
+                                   "     make -C $path/csa/             " .
                                    "          -f make.saga.csa.mk       " .
                                    "          $module    '                  ";
           if ( $fake )
@@ -367,8 +367,8 @@ if ( $do_deploy )
 
           if ( $module eq "readme" )
           {
-            my $cmd = "$access $host ' cd $path/tg-csa/                           && " .
-                                     " cp -v $path/README*$version* $path/tg-csa  && " . 
+            my $cmd = "$access $host ' cd $path/csa/                              && " .
+                                     " cp -v $path/README*$version* $path/csa/    && " . 
                                      " svn add  README*$version*$name*            && " .
                                      " $SVNCI -m \"automated update\"              ' ";
             if ( $fake )
@@ -474,7 +474,7 @@ if ( $do_exe )
       my $path   = $csa_hosts{$name}{'path'};
       my $access = $csa_hosts{$name}{'access'};
 
-      my $exe    = "rm -rf $path/tg-csa";
+      my $exe    = "rm -rf $path/csa";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
