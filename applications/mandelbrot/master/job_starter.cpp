@@ -13,10 +13,23 @@ job_starter::job_starter (std::string       a_dir,
                           mb_util::ini::ini ini)
   : ini_ (ini)
 {
-  // first, initialize all endpoints according to the ini file
-  mb_util::ini::section   cfg      = ini_.get_section ("mandelbrot");
-  mb_util::ini::section   ep_cfg   = cfg.get_section  ("backends");
+  // first, initialize all endpoints according to the ini file.
+  // the main ini section MAY contain a key 'backend_ini' which
+  // then points to an external ini file which contains the detailed 
+  // backend ini sections.  If that key is not present, these sections
+  // are (backwards compatibly) assumed to be in the main ini file.
+  mb_util::ini::section cfg    = ini_.get_section ("mandelbrot");
+  mb_util::ini::section ep_ini = cfg;
+
+  if ( ! cfg.get_entry ("backend_ini", "").empty () )
+  {
+    ep_ini = mb_util::ini::ini (cfg.get_entry ("backend_ini"));
+  }
+
+  mb_util::ini::section   ep_cfg   = ep_ini.get_section  ("backends");
   mb_util::ini::entry_map backends = ep_cfg.get_entries ();
+
+
   mb_util::ini::entry_map :: iterator it;
 
   debug_ = ::atoi (cfg.get_entry ("debug", "0").c_str ());
