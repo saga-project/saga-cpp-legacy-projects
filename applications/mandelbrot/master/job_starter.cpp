@@ -23,12 +23,11 @@ job_starter::job_starter (std::string       a_dir,
 
   if ( ! cfg.get_entry ("backend_ini", "").empty () )
   {
-    ep_ini = mb_util::ini::ini (cfg.get_entry ("backend_ini"));
+    ini_.merge (cfg.get_entry ("backend_ini"));
   }
-
+  
   mb_util::ini::section   ep_cfg   = ep_ini.get_section  ("backends");
   mb_util::ini::entry_map backends = ep_cfg.get_entries ();
-
 
   mb_util::ini::entry_map :: iterator it;
 
