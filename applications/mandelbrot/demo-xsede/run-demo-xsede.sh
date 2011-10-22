@@ -90,7 +90,7 @@ function main
     fi
 
     # relaunch ourself
-    $SAGA_DEMO_ROOT/run_demo.sh
+    $SAGA_DEMO_ROOT/run-demo-xsede.sh
 
   else # SAGA_DEMO_STOP exists
 
