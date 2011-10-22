@@ -882,7 +882,41 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 %\item Description of the ChIP-Seq
 %\item Emphasis of Flexibility, reduced development cycle for extended features, and so on..
 %\end{itemize}
-Genome-wide mapping of DNA-protein interactions provides a powerful means for scrutinizing fundamental processes associated with virtually all aspects of biological processes in a living cell revealing cell development, differentiation, host-pathogen interactions, epigenetics, tumorigenesis. Obtained information are crucial for developing new drugs or bio-marker discovery for many devastating diseases including neurodegenerative disorders\cite{pepke2009,laajala}.  Replacing ChIP-ChIP methods using micro-arrays, ChIP-Seq experiment became quickly a main player for genome-wide DNA-protein interaction studies and is typically carried out by using Chromatin Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq).  Due to less expensive sequencing costs and no need of a priori knowledge for genome sequence that is one of complexity accompanied with micro-array approaches, ChIP-Seq is increasingly becoming popular.  Nonetheless, computation for ChIP-Seq is challenging but has advanced recent years\cite{pepke2009,laajala}.  The conventional computational task for ChIP-Seq is composed of two independent steps (see Fig.~\ref{fig:chip-seq}).  In the first step, the mapping of two data sets, one is control and the other is treat are carried out separately, and in the second step, a peak caller, which carries out statistical analysis to infer true peaks indicating DNA-protein interaction regions, is executed.  Prediction of true peaks is also accompanied with quantitative measurements that require careful consideration for algorithms and software tool.  In this work, we use the well-proven peak caller, MACS\cite{macs}, is used, while three different mappers, BFAST, Bowtie, and BWA, are employed for the first step.  Two additional mappers, BWA and Bowtie are popular due to their memory efficient algorithm, BWT.  Our main focus is to present a compelling example how the use of scalable distributed infrastructure as well as the runtime environment supporting dynamic execution of the pipeline for ChIP-Seq data analytics leverage this powerful protocol utilizing NGS technologies by lessen issues such as the difficulty of validation of software tools and implemented algorithms and the efficient development of a pipeline without worrying the computational requirement and deployment of programs integrated.   
+Genome-wide mapping of DNA-protein interactions provides a powerful
+means for scrutinizing fundamental processes associated with virtually
+all aspects of biological processes in a living cell revealing cell
+development, differentiation, host-pathogen interactions, epigenetics,
+tumorigenesis. Obtained information are crucial for developing new
+drugs or bio-marker discovery for many devastating diseases including
+neurodegenerative disorders\cite{pepke2009,laajala}.  Replacing
+ChIP-ChIP methods using micro-arrays, ChIP-Seq experiment became
+quickly a main player for genome-wide DNA-protein interaction studies
+and is typically carried out by using Chromatin Immunoprecipitation
+(ChIP) followed by sequencing (ChIP-Seq).  Due to less expensive
+sequencing costs and no need of a priori knowledge for genome sequence
+that is one of complexity accompanied with micro-array approaches,
+ChIP-Seq is increasingly becoming popular.  Nonetheless, computation
+for ChIP-Seq is challenging but has advanced recent
+years\cite{pepke2009,laajala}.  The conventional computational task
+for ChIP-Seq is composed of two independent steps (see
+Fig.~\ref{fig:chip-seq}).  In the first step, the mapping of two data
+sets, one is control and the other is treat are carried out
+separately, and in the second step, a peak caller, which carries out
+statistical analysis to infer true peaks indicating DNA-protein
+interaction regions, is executed.  Prediction of true peaks is also
+accompanied with quantitative measurements that require careful
+consideration for algorithms and software tool.  In this work, we use
+the well-proven peak caller, MACS\cite{macs}, is used, while three
+different mappers, BFAST, Bowtie, and BWA, are employed for the first
+step.  Two additional mappers, BWA and Bowtie are popular due to their
+memory efficient algorithm, BWT.  Our main focus is to present a
+compelling example how the use of scalable distributed infrastructure
+as well as the runtime environment supporting dynamic execution of the
+pipeline for ChIP-Seq data analytics leverage this powerful protocol
+utilizing NGS technologies by lessen issues such as the difficulty of
+validation of software tools and implemented algorithms and the
+efficient development of a pipeline without worrying the computational
+requirement and deployment of programs integrated.
 
 
 \section{NGS Data Analytics using Distributed, Scalable Architectures}
@@ -959,6 +993,55 @@ uniform interface or framework software\cite{galaxy}.
 %%\end{enumerate}
 %\end{itemize*}
 
+
+\subsection{Dynamic Application Runtime Environment}
+
+We have established that efficient analytics on NGS data is not just a
+matter of data-management, but also of providing large amounts of
+computing for analysis. Any solution that facilitates analytics across
+different problem instances, will require a general purpose framework
+that is able to exploit different types of architecture and platforms.
+
+
+%Given the large size of data involved, such as the as human genome as
+%summarized in Table~\ref{table:two-genomes} and corresponding long
+%computing times when carried out with a single or moderate size of
+%clusters, parallel/concurrent execution of the target analysis with
+%BFAST are desirable.
+ 
+This could involve supporting fine-grained parallelism, of the type
+that is supported by invoking the multi-threading option of BFAST, or
+it could involve invoking multiple instances of BFAST executing
+independently but on different read-files associated with the same
+problem instance. Which approach will be more effective depends upon
+the specific configuration of the problem instance, i.e., a problem
+instance maybe I/O bound or compute/memory bound.
+
+To achieve the goal of supporting both types of parallelism, on
+heterogeneous distributed computing resources, we have developed the
+Dynamic Application Runtime Environment (DARE)
+framework\cite{dareurl,dare-tg11,dare-ecmls11}.
+
+At the core of the DARE framework, is a SAGA BigJob (which is a
+flexible general purpose pilot-job
+implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+% Additionally, the framework is composed of a web application using an
+% open source web development framework, Pylons\cite{pylonsurl}. 
+% This
+% combination of the open source technology and the application
+% management system 
+With a suitable Web development framework, it supports the development
+of a lightweight but extensible, science gateway capable of using a
+range of distributed resources.  In subsequent sections, we will
+demonstrate via performance numbers the effectiveness of how the DARE
+framework supports a range of infrastructure, problem instance
+configurations and size.
+
+Such task-level concurrency supports different ways of splitting the
+data, whilst using the same runtime environment using SAGA-BigJob; all
+the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
+It is possible to exploit multi-level configuration in that different
+thread/cores configurations are possible for each of the sub-jobs.
 
 \subsection{Understanding BFAST on a Local (Single) Resource}
 
@@ -1096,55 +1179,6 @@ s4& 0.6 GB & 4 & 4 & 5804 s \\
 %running the two bfast jobs per node at the same time. Thus shows advantage of running multiple bfast matches simultaneously. 
 
 %\jhanote{Lines 44-47 of the Excel Sheet here}
-
-\subsection{Dynamic Application Runtime Environment}
-
-We have established that efficient analytics on NGS data is not just a
-matter of data-management, but also of providing large amounts of
-computing for analysis. Any solution that facilitates analytics across
-different problem instances, will require a general purpose framework
-that is able to exploit different types of architecture and platforms.
-
-
-%Given the large size of data involved, such as the as human genome as
-%summarized in Table~\ref{table:two-genomes} and corresponding long
-%computing times when carried out with a single or moderate size of
-%clusters, parallel/concurrent execution of the target analysis with
-%BFAST are desirable.
- 
-This could involve supporting fine-grained parallelism, of the type
-that is supported by invoking the multi-threading option of BFAST, or
-it could involve invoking multiple instances of BFAST executing
-independently but on different read-files associated with the same
-problem instance. Which approach will be more effective depends upon
-the specific configuration of the problem instance, i.e., a problem
-instance maybe I/O bound or compute/memory bound.
-
-To achieve the goal of supporting both types of parallelism, on
-heterogeneous distributed computing resources, we have developed the
-Dynamic Application Runtime Environment (DARE)
-framework\cite{dareurl,dare-tg11,dare-ecmls11}.  
-
-At the core of the DARE framework, is a SAGA BigJob (which is a
-flexible general purpose pilot-job
-implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
-% Additionally, the framework is composed of a web application using an
-% open source web development framework, Pylons\cite{pylonsurl}. 
-% This
-% combination of the open source technology and the application
-% management system 
-With a suitable Web development framework, it supports the development
-of a lightweight but extensible, science gateway capable of using a
-range of distributed resources.  In subsequent sections, we will
-demonstrate via performance numbers the effectiveness of how the DARE
-framework supports a range of infrastructure, problem instance
-configurations and size.
-
-Such task-level concurrency supports different ways of splitting the
-data, whilst using the same runtime environment using SAGA-BigJob; all
-the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
-It is possible to exploit multi-level configuration in that different
-thread/cores configurations are possible for each of the sub-jobs.
 
 
 
@@ -1332,25 +1366,25 @@ than c1 or c2.
 % this storage can be accessed by all VMs utilized together.
 
 
-Although not very insightful, for completeness and and for pedagogical
-reasons it is instructive to compare grid versus cloud performance for
-identical work load configuration and resource capabilities.  We
-compare the result with g6 of Table~\ref{table:bigjob-loni} and the
-result with c4 of Table~\ref{table:cloud-VM}; they have a similar
-configuration with the same number of total tasks and cores, but c4
-has a lower $T_C$ than g6. In spite of the virtualization layer this
-is true probably because c1.xlarge uses newer and more powerful
-hardware than the 4 year old hardware of g6, as well as the fact that
-virtualization costs are a small percentage of overall costs for long
-running jobs (even if ``hot'' start-up times are significant).  A
-rigorous comparison would entail a comparison of data access
-mechanisms to the different types of storage on grids and clouds,
-which is beyond the scope of this current work.
+% Although not very insightful, for completeness and and for pedagogical
+% reasons it is instructive to compare grid versus cloud performance for
+% identical work load configuration and resource capabilities.  We
+% compare the result with g6 of Table~\ref{table:bigjob-loni} and the
+% result with c4 of Table~\ref{table:cloud-VM}; they have a similar
+% configuration with the same number of total tasks and cores, but c4
+% has a lower $T_C$ than g6. In spite of the virtualization layer this
+% is true probably because c1.xlarge uses newer and more powerful
+% hardware than the 4 year old hardware of g6, as well as the fact that
+% virtualization costs are a small percentage of overall costs for long
+% running jobs (even if ``hot'' start-up times are significant).  A
+% rigorous comparison would entail a comparison of data access
+% mechanisms to the different types of storage on grids and clouds,
+% which is beyond the scope of this current work.
 
-Nonetheless, the results presented in Table~\ref{table:bigjob-loni}
-and Table~\ref{table:cloud-VM} demonstrate the capability of the DARE
-framework to effectively utilize heterogeneous distributed computing
-resources.
+% Nonetheless, the results presented in Table~\ref{table:bigjob-loni}
+% and Table~\ref{table:cloud-VM} demonstrate the capability of the DARE
+% framework to effectively utilize heterogeneous distributed computing
+% resources.
 
 % Generally, a HPC system has a large size of disk-space that can be
 % accessed from all computing nodes but sometimes there exists a
