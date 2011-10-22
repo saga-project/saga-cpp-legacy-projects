@@ -1,4 +1,3 @@
-
 \documentclass{cpeauth}
 
 \usepackage[numbers, sort, compress]{natbib}
@@ -34,7 +33,7 @@
 
 
 \newif\ifdraft
-\drafttrue                                                                                                   
+% \drafttrue
 
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
@@ -76,7 +75,41 @@ Shantenu Jha\corrauth\ensuremath{^1,^3}\comma\footnotemark[3],
 \noaccepted{}
 
 \begin{abstract} 
-Next Generation DNA Sequencing produce significantly larger amounts of data compared to early sequencing methods based on Sanger technology.  Along with challenges arising from unprecedented volumes of data, a research is increasingly dealing with the requirement of effectively analyzing the data, in particular with the emergence of popular NGS-based genome-wide protocols such as ChIP-Seq and RNA-Seq.  In this work, we use BFAST, a mapping program, as a representative standalone tool used for NGS data analysis, and a ChIP-Seq pipeline that is composed of two main steps, i.e. a mapping and a peak calling task with small other tasks, as a representative pipeline-based approach.  With BFAST, we analyzed computational requirements using two model genomes -- human genome and a microbe ({\it Burkerholderia Glumae}), that represent an eukaryotic and a prokaryotic system.  For the ChIP-Seq pipeline, experimental data probing genome-wide chromatin structure of mouse was used.  The computational complexity of genome-wide mapping using BFAST, amongst other factors depends upon the size of a reference genome, the data size of short reads. We analyze the performance characteristics of BFAST and understand its dependency on different input parameters. Characterizing the performance suggests that genome-wide mapping benefits from both scaling-up (increased fine-grained parallelism) and scaling-out (task-level parallelism -- local and distributed).  For certain problem instances, scaling-out can be a more efficient approach than scaling-up.  Importantly, with our investigation on the pipeline for ChiP-Seq, we discuss that the importance of dynamical execution of tasks comprising a pipeline for NGS data, and that the support of scalability, flexibility, and extensibility should be considered as an important aspect, besides much focused algorithmic or implementation strategies, for leveraging existing or new-generation of pipeline developments for NGS data.  We then describe the design and development of a runtime-environment, Dynamic Application Runtime Environment (DARE), that supports both the scale-up and scale-out of BFAST on production grid and cloud environments, and the effective ChIP-seq Pipeline on scalable distributed infrastructures.
+  Next Generation DNA Sequencing produce significantly larger amounts
+  of data compared to early sequencing methods based on Sanger
+  technology.  Along with challenges arising from unprecedented
+  volumes of data, a research is increasingly dealing with the
+  requirement of effectively analyzing the data, in particular with
+  the emergence of popular NGS-based genome-wide protocols such as
+  ChIP-Seq and RNA-Seq.  In this work, we use BFAST, a mapping
+  program, as a representative standalone tool used for NGS data
+  analysis, and a ChIP-Seq pipeline that is composed of two main
+  steps, i.e. a mapping and a peak calling task with small other
+  tasks, as a representative pipeline-based approach.  With BFAST, we
+  analyzed computational requirements using two model genomes -- human
+  genome and a microbe ({\it Burkerholderia Glumae}), that represent
+  an eukaryotic and a prokaryotic system.  For the ChIP-Seq pipeline,
+  experimental data probing genome-wide chromatin structure of mouse
+  was used.  The computational complexity of genome-wide mapping using
+  BFAST, amongst other factors depends upon the size of a reference
+  genome, the data size of short reads. We analyze the performance
+  characteristics of BFAST and understand its dependency on different
+  input parameters. Characterizing the performance suggests that
+  genome-wide mapping benefits from both scaling-up (increased
+  fine-grained parallelism) and scaling-out (task-level parallelism --
+  local and distributed).  For certain problem instances, scaling-out
+  can be a more efficient approach than scaling-up.  Importantly, with
+  our investigation on the pipeline for ChiP-Seq, we discuss that the
+  importance of dynamical execution of tasks comprising a pipeline for
+  NGS data, and that the support of scalability, flexibility, and
+  extensibility should be considered as an important aspect, besides
+  much focused algorithmic or implementation strategies, for
+  leveraging existing or new-generation of pipeline developments for
+  NGS data.  We then describe the design and development of a
+  runtime-environment, Dynamic Application Runtime Environment (DARE),
+  that supports both the scale-up and scale-out of BFAST on production
+  grid and cloud environments, and the effective ChIP-seq Pipeline on
+  scalable distributed infrastructures.
 
 
 \end{abstract}
@@ -432,63 +465,59 @@ support varying degrees and types of parallelism or multi-threading,
 and thus suitable for modern processor architectures.
 
 
+%  \rule{3cm}{3cm}%
+%\includegraphics[bb=0 0 300 400, scale=0.5]{figures/workflow.png} 
 
 
 \begin{figure}
-\begin{floatrow}
-
-\ffigbox{%
-%  \rule{3cm}{3cm}%
-
-%\includegraphics[bb=0 0 300 400, scale=0.5]{figures/workflow.png} 
-
 \includegraphics[scale=0.41]{figures/workflow.png} 
-}{%
-  \caption{\small Overall workflow for a mapping procedure using BFAST (left). Description of BFAST subcommands and parallel and multi-threading execution capability (right).  In this work, we focus on the Candidate Alignment Locations (CALs) finding step due to its compute and memory intensive nature.}
-%  \label{fig:workflow-bfast}
-}
-
-\capbtabbox{%
-
-
-\small
-\begin{tabular}{|c|c|c|c|} 
-  \hline BFAST & Description & Capable \\ command & & Parallelism
-  \\ \hline \hline \texttt{bfast fasta2brg} & creation of & multiple \\ &a ref. genome &
-  independent \\ & & contigs \\ \hline
-  \texttt{bfast solid2fastq} & preparation of & multiple sequence \\ & short
-  read files & read files\\ \hline
-
-\texttt{bfast index} & creation  & multi-threading \& \\
-& of reference  & low memory  \\ 
-&genome indexes&option \\
- 
-  \hline
-\texttt{bfast match} & finding Candidate   &  multi-threading \& \\
-
-& Alignment &  parallel execution \\
-& Locations (CALs) & \\\hline
-\texttt{bfast localalign} & alignment of&   parallel execution \\
-&  each CAL   & \\
-
-  \hline
-\texttt{bfast postprocess} & prioritization   &  parallel execution \\ 
-& of alignments & \\
-\hline
-
-
-\hline
-\end{tabular}
-
-}{
-%  \caption{Description of BFAST commands and features for parallel and multi-threading execution. 
-%Note that the low memory option available for 'bfast index' does not target the parallel implementation directly, 
-%but this option could be utilized for task parallelization using low memory computing resources.}
-% \label{table:bfast-summary}
-}
-\end{floatrow}
+\caption{\small Overall workflow for a mapping procedure using BFAST
+    (left). Description of BFAST subcommands and parallel and
+    multi-threading execution capability (right).  In this work, we
+    focus on the Candidate Alignment Locations (CALs) finding step due
+    to its compute and memory intensive nature.}
 \label{fig:bfast-summary}
 \end{figure}
+
+
+%  \label{fig:workflow-bfast}
+% \capbtabbox{%
+% \small
+% \begin{tabular}{|c|c|c|c|} 
+%   \hline BFAST & Description & Capable \\ command & & Parallelism
+%   \\ \hline \hline \texttt{bfast fasta2brg} & creation of & multiple \\ &a ref. genome &
+%   independent \\ & & contigs \\ \hline
+%   \texttt{bfast solid2fastq} & preparation of & multiple sequence \\ & short
+%   read files & read files\\ \hline
+
+% \texttt{bfast index} & creation  & multi-threading \& \\
+% & of reference  & low memory  \\ 
+% &genome indexes&option \\
+ 
+%   \hline
+% \texttt{bfast match} & finding Candidate   &  multi-threading \& \\
+
+% & Alignment &  parallel execution \\
+% & Locations (CALs) & \\\hline
+% \texttt{bfast localalign} & alignment of&   parallel execution \\
+% &  each CAL   & \\
+
+%   \hline
+% \texttt{bfast postprocess} & prioritization   &  parallel execution \\ 
+% & of alignments & \\
+% \hline
+
+
+% \hline
+% \end{tabular}
+
+% }{
+% %  \caption{Description of BFAST commands and features for parallel and multi-threading execution. 
+% %Note that the low memory option available for 'bfast index' does not target the parallel implementation directly, 
+% %but this option could be utilized for task parallelization using low memory computing resources.}
+% % \label{table:bfast-summary}
+% }
+% \end{floatrow}
 
 
 
@@ -538,15 +567,15 @@ to overcome these limitations, and to enable BFAST's effective use of
 distributed architectures?
 
 
-\begin{figure}
- \centering
+% \begin{figure}
+%  \centering
 
 
-\includegraphics[bb=0 0 300 300, scale=0.39]{figures/chip-seq.pdf}
+% \includegraphics[bb=0 0 300 300, scale=0.39]{figures/chip-seq.pdf}
 
-\caption{\small Overall workflow of the ChiP-Seq pipeline.}
-  \label{fig:chip-seq} 
- \end{figure}
+% \caption{\small Overall workflow of the ChiP-Seq pipeline.}
+%   \label{fig:chip-seq} 
+%  \end{figure}
 
 
 
