@@ -898,50 +898,32 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 \begin{figure}
  \centering
 \includegraphics[scale=0.46]{figures/chip-seq-mapper-dependency-ttc.pdf}
-\caption{\small Comparison of results using different mappers for the
-  ChIP-Seq.  Time-to-completion for the mapping step is compared among
-  three different mappers, BFAST, Bowtie, BWA (left). \jhanote{Move
+\caption{\small Comparison of time-to-completion for the mapping step with three different mappers.  BFAST, Bowtie, and BWA were used. The file size of 100 MB short reads is used. \jhanote{Move
   left figure to section 2.4} 
 }
   \label{fig:chip-seq-comp} 
  \end{figure}
  
-Genome-wide mapping of DNA-protein interactions provides a powerful
-means for scrutinizing fundamental processes associated with virtually
-all aspects of biological processes in a living cell revealing cell
+The ChIP-Seq experiment provides genome-wide mapping of DNA-protein interactions, and obtained information is directly associated with transcription regulation\cite{pepke2009, laajala, wilbanks}.  An understanding of transcription regulation is a fundamental goal of biological sciences due to its implications on virtually all aspects of biological processes in a living cell related to cell
 development, differentiation, host-pathogen interactions, epigenetics,
-tumorigenesis. Obtained information are crucial for developing new
-drugs or bio-marker discovery for many devastating diseases including
-neurodegenerative disorders\cite{pepke2009,laajala}.  Replacing
-ChIP-ChIP methods using micro-arrays, ChIP-Seq experiment became
-quickly a main player for genome-wide DNA-protein interaction studies
-and is typically carried out by using Chromatin Immunoprecipitation
-(ChIP) followed by sequencing (ChIP-Seq).  Due to less expensive
-sequencing costs and no need of a priori knowledge for genome sequence
-that is one of complexity accompanied with micro-array approaches,
-ChIP-Seq is increasingly becoming popular.  Nonetheless, computation
-for ChIP-Seq is challenging but has advanced recent
-years\cite{pepke2009,laajala}.  The conventional computational task
+tumorigenesis.  Some examples of following applications include new
+drug or bio-marker discovery for many devastating diseases including
+neurodegenerative disorders\cite{pepke2009}.  Replacing
+ChIP-ChIP methods based on micro-array approaches quickly, the ChIP-Seq experiment became a main player with its genome-wide scale and resolution.  ChIP-Seq means Chromatin Immunoprecipitation
+(ChIP) followed by sequencing (ChIP-Seq), and thus the sequenced reads reflect the location of the peak where regulatory proteins bind. Computation for ChIP-Seq is somewhat complicated mostly due to the difficulty of validation of peak calling algorithms and unknown sensitivity of mapping process.\cite{pepke2009,laajala,wilbanks}.  Generally, the conventional computational task
 for ChIP-Seq is composed of two independent steps (see
 Fig.~\ref{fig:chip-seq}).  In the first step, the mapping of two data
-sets, one is control and the other is treat are carried out
+sets, corresponding to the control and the treat data, are carried out
 separately, and in the second step, a peak caller, which carries out
 statistical analysis to infer true peaks indicating DNA-protein
-interaction regions, is executed.  Prediction of true peaks is also
-accompanied with quantitative measurements that require careful
-consideration for algorithms and software tool.  In this work, we use
-the well-proven peak caller, MACS\cite{macs}, is used, while three
+interaction regions, is executed.  The unknown statistical nature of mapped reads, associated with errors and biology arising from the details of ChiP-Seq experiment, along with the difficulty of increasing sensitivity in the mapping step due to the short length or reads (mostly up to 100 something at the time of this work) makes the prediction of true peaks a hard problem.  In this work, we use
+the well-proven peak caller, MACS\cite{macs} for the second step, while three
 different mappers, BFAST, Bowtie, and BWA, are employed for the first
-step.  Two additional mappers, BWA and Bowtie are popular due to their
-memory efficient algorithm, BWT.  Our main focus is to present a
+step.  In Fig.~\ref{fig:chip-seq-comp}, we compare the computing times for these three mappers.  Two additional mappers, BWA and Bowtie are widely used due to their adoption of the memory efficient algorithm, Burrow-Wheeler Transformation, and the results confirm the efficiency of those two mappers.  On the contrary, BFAST took considerably more computing time.  It is noted that the increased sensitivity of BFAST was manifested by recent works\cite{bfast2009,mapping-survey}.  Our main focus with the ChIP-Seq pipeline is to present a
 compelling example how the use of scalable distributed infrastructure
 as well as the runtime environment supporting dynamic execution of the
 pipeline for ChIP-Seq data analytics leverage this powerful protocol
-utilizing NGS technologies by lessen issues such as the difficulty of
-validation of software tools and implemented algorithms and the
-efficient development of a pipeline without worrying the computational
-requirement and deployment of programs integrated.
-
+utilizing NGS technologies. 
 
 \section{NGS Data Analytics using Distributed, Scalable Architectures}
 
@@ -1497,9 +1479,9 @@ c4 & 0.435 GB&2 & 20 & 40 & 1 &1137 s \\
 
 \subsection{The need of flexibility, extensibility, and scalability in a ChIP-Seq pipeline}
 
-Many pipeline approaches developed for NGS data analytics and downstream analyses are typically composed of multiple steps. Individual steps for such a pipeline are generally carried out by independent standalone programs and are integrated into a pipeline by main scripts in many cases.  For ChIP-Seq analysis, a widely popular approach is to combine the mapping process by employing an external mapping program and the peak calling step carried out by a developed peak caller that implements preferred algorithms or statistical approaches\cite{laajala, macs}.  The main issues with this kind of approach contain, in a not-exhaustive list, i) it is hard to validate the suggested peak calling algorithms ii) scalable execution of a pipeline using multiple distributed resources is not easily feasible iii) extending a pipeline to utilize other multiple programs for each step requires non-trivial development efforts.  In our approach, DARE-based runtime-environment for the ChIP-Seq is efficiently built and resolves those issues.  In other words, multiple options for utilizing distributed heterogeneous HPC resources, different mappers or peak callers, and the support of dynamic execution of required computational tasks by exploiting possible concurrent runs as well as parallelism are effectively supported via DARE.  
+In Fig.~\ref{fig:chip-seq-comp-2}, we compare the results of peak calling using three different mappers.  The comparison was made using FDR values.  Using the fact that the peak caller used for this comparison, MACS estimates empirical False Discovery Rate for a predicted peak, FDR values for predicted peaks reveal how three mappers perform the mapping step differently . In general, a lower FDR value suggests a predicted peak is more probable.  We observe that three mappers result in different results and more importantly the results using BFAST indicate relatively large difference from the cases using BWA and Bowtie.   
 
-Some demonstrating results are given in Fig.~\ref{fig:chip-seq-comp}.   The results from Fig.~\ref{fig:chip-seq-comp} show that multiple calculations using three different mappers produce different results in peak prediction.  Like many other peak callers, MACS estimate empirical False Discovery Rate for a predicted peak. In general, a lower FDR value suggests a predicted peak is more probable.  We used FDRs for comparison of peak calling results using thee different mappers.  As shown in Fig.\ref{fig:chip-seq-comp}, we observe that that overall distribution of FDR values indicate a better performance with BFAST than others with more peaks with lower FDRs and also the lowest mean value of FDRs.  Interestingly and not surprisingly, BFAST requires more computing requirements compared to other popular mappers.  
+Many pipeline approaches developed for NGS data analytics and downstream analyses are typically composed of multiple steps. Individual steps for such a pipeline are generally carried out by independent standalone programs and integrating such a tool into a pipeline is implemented by scripts in many cases.  For ChIP-Seq analysis, a widely popular approach is to combine the mapping process by employing an external mapping program and the peak calling step carried out by a developed peak caller that implements preferred algorithms or statistical approaches\cite{laajala, wilbanks, macs}.  Some main issues with this kind of approach contain i) that it is hard to validate the suggested peak calling algorithms ii) that scalable execution of a pipeline using multiple distributed resources is not easily feasible iii) that extending a pipeline to utilize other multiple programs for each step requires non-trivial development efforts.  In our approach that uses DARE-based runtime-environment for the ChIP-Seq is efficiently built and resolves those issues.  In other words, multiple options for utilizing distributed heterogeneous HPC resources, different mappers or peak callers, and the support of dynamic execution of required computational tasks by exploiting possible concurrent runs as well as parallelism are effectively supported via DARE.  
 
 With these results, along with the fact that validation of peak calling is non-trival and thus a right decision of choosing a tool is extremely difficult for a researcher\cite{laajala}, carrying out multiple calculations using alternative tools for mapping or peak calling processes is an welcomed option but practically not popular primarily due to computational as well as deployment challenges.  Therefore, the support of scalable calculations as well as dynamic execution using distributed infrastructure is a highly desirable feature for any pipeline approaches for NGS data analyses.  Our DARE-based Type II service provide a practical solution for such pipeline approaches. 
 
@@ -1523,7 +1505,7 @@ With these results, along with the fact that validation of peak calling is non-t
   (Botwie) with 97, 226, and 104 peaks predicted, respectively.  For
   these calculations, the same reads data (100 MB in size) are mapped
   onto the chromosome 19 of mouse reference genome (mm9)}
-  \label{fig:chip-seq-comp} 
+  \label{fig:chip-seq-comp-2} 
  \end{figure}
 
 
