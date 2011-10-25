@@ -131,8 +131,8 @@ EOT
 
       my $fail = 0;
 
-      if ( $status  eq "ok"     ) { $col_status = $col_green; $fail = 0; }
-      if ( $status  eq "failed" ) { $col_status = $col_red;   $fail = 1; }
+      if    ( $status  eq "ok"     ) { $col_status = $col_green; $fail = 0; $status = "up";   }
+      elsif ( $status  eq "failed" ) { $col_status = $col_red;   $fail = 1; $status = "down"; }
 
       if ( $jobreq  == $jobok   ) { $col_job    = $col_green; } else { $col_job    = $col_red; $fail = 1; }
       if ( $jobok   == $jobreg  ) { $col_jobreg = $col_green; } else { $col_jobreg = $col_red; $fail = 1; }
