@@ -203,6 +203,8 @@ if ( $use_all )
   @names = sort keys ( %csa_hosts );
 }
 
+print @names;
+
 if ( ! scalar (@names) )
 {
   if ( $do_check || $do_deploy || $do_exe || $do_remove )
@@ -471,7 +473,9 @@ if ( $do_exe )
       my $path   = $csa_hosts{$name}{'path'};
       my $access = $csa_hosts{$name}{'access'};
 
-      my $exe    = "rm -rf $path/csa";
+    # my $exe    = "rm -rf $path/csa";
+    # my $exe    = "chmod -R a+rX $path/";
+      my $exe    = "rm -f $path/saga/$versions[0]/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;

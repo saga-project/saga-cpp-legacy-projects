@@ -579,7 +579,7 @@ endif
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_README_CHECK = $(CSA_LOCATION)/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: readme
 readme:: base $(CSA_README_CHECK)
