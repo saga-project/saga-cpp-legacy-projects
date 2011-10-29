@@ -1,22 +1,25 @@
 """ 
 This file contains the API for the (proposed) TROY PilotData Framework.
 """
-
+class State(object):
+    Unknown = 0
+    New = 1
+    Running = 2
+    Done = 3
+    Canceled = 4
+    Failed = 5
+    Pending = 6
 #
 # TROY PilotStore Description
 #
-class PilotStoreDescription(object):
+class PilotStoreDescription(dict):
     """ TROY PilotStoreDescription.
-            """
-
-    # Class members
-    __slots__ = (
-        'resource_url',  # url to job manager (for spawning agent)
-        'base_url',      # url to directory
-        'size'           # size of PD (in byte)
-          
-    )
-
+        {
+            'service_url': "ssh://localhost/tmp/pilotstore/",
+            'size':100                                
+        }    
+    """
+    
     def __init__(self):
         pass
     
@@ -25,8 +28,7 @@ class PilotStoreDescription(object):
 # TROY PilotStore
 #
 class PilotStore(object):
-    """ TROY PilotStore.    
-            """
+    """ TROY PilotStore.  """
 
     # Class members
     __slots__ = (
@@ -169,15 +171,12 @@ class PilotDataService(object):
 #
 # TROY PilotDataDescription
 # 
-class PilotDataDescription(object):
+class PilotDataDescription(dict):
     """ TROY PilotDataDescription.
+        {
+            'file_urls': [file1, file2, file3]        
+        } 
     """
-
-    # Class members
-    __slots__ = (
-        'id',
-        'url'            
-    )
 
     def __init__(self):
         pass

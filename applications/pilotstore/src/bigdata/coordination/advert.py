@@ -1,7 +1,7 @@
 import logging
 import saga
 
-class pilotstore_coordination:
+class BigDataCoordination:
     
     @staticmethod
     def put_pilot_data(pilot_data):

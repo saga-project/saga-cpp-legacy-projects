@@ -4,13 +4,18 @@ SSH-based coordination scheme between manager and agent
 import paramiko
 import urlparse
 import pdb
-import state
+import sys
+import os
+import logging
+
+sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+from bigdata.troy.data.api import State
 
 class BigDataCoordination(object):
     
     def __init__(self, service_url):        
+        self.service_url = service_url
         result = urlparse.urlparse(service_url)
-        #pdb.set_trace()
         self.host = result.netloc
         self.path = result.path        
         
@@ -19,7 +24,7 @@ class BigDataCoordination(object):
         self.__client.load_system_host_keys()
         self.__client.connect(self.host)
         self.__sftp = self.__client.open_sftp()
-        self.__state=state.New
+        self.__state=State.New
                         
         
     def initialize_pilotstore(self):
@@ -29,7 +34,7 @@ class BigDataCoordination(object):
         except IOError:
             # directory does not exist
             self.__sftp.mkdir(self.path)        
-        self.__state=state.Running
+        self.__state=State.Running
         
         
     def get_pilotstore_size(self):
@@ -40,17 +45,25 @@ class BigDataCoordination(object):
     
     def delete_pilotstore(self):
         self.__sftp.rmdir(self.path)
-        self.__state=state.Done
+        self.__state=State.Done
         
         
     def get_state(self):
         if self.__client.get_transport().is_active()==True:
             return self.__state
         else:
-            self.__state=state.Failed
-            return self.__state
+            self.__state=State.Failed
+            return self.__state            
             
-            
+    def create_pd(self, pd_id):
+        self.__sftp.mkdir(os.path.join(self.path, str(pd_id)))
+        
+        
+    def put_pd(self, pd):
+        for i in pd.list_data_units():      
+            remote_path = os.path.join(self.path, str(pd.id), os.path.basename(i.url))
+            logging.debug("Put file: %s to %s"%(i.url, remote_path))
+            self.__sftp.put(i.url, remote_path)
         
     
     
