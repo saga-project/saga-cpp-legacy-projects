@@ -1,8 +1,6 @@
 """ 
 This file contains the API for the (proposed) TROY PilotData Framework.
-
 """
-
 
 #
 # TROY PilotStore Description
@@ -104,9 +102,6 @@ class PilotStoreService(object):
         pass
 
 
-
-
-
 #
 # TROY PilotDataService
 # 
@@ -176,29 +171,23 @@ class PilotDataService(object):
 # 
 class PilotDataDescription(object):
     """ TROY PilotDataDescription.
-            
     """
 
     # Class members
     __slots__ = (
         'id',
-        'url'
-        'd'        
+        'url'            
     )
 
     def __init__(self):
         pass
 
 
-
-
 #
 # TROY PilotData 
 # 
 class PilotData(object):
-    """ TROY PilotData.
-    
-        
+    """ TROY PilotData. Holds a set of data units.        
     """
 
     # Class members
@@ -206,18 +195,24 @@ class PilotData(object):
         'id',               # Reference 
         'description',      # Description
         'state',            # State
-        'state_detail',     # Detailed (application specific) state         
+        'data_units'        # DU managed by PilotData object
     )
 
     def cancel(self):
         """ Cancel the PD. """
         pass
     
-    def get_state(self):
+    def add_data_unit(self, data_unit):
         pass
     
-    def get_state_detail(self):
+    def remove_data_unit(self, data_unit):
         pass
+    
+    def list_data_units(self):
+        pass
+        
+    def get_state(self):
+        pass    
     
 
 class DataUnit(object):
@@ -230,3 +225,7 @@ class DataUnit(object):
     
     def __init__(self):
         pass
+    
+    
+    
+    
