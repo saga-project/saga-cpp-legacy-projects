@@ -11,27 +11,38 @@ import logging
 from bigdata.coordination.ssh import BigDataCoordination
 from bigdata.troy.data.api import PilotStore, PilotStoreService
 
-import pilotdata_manager
 
 class PilotStore(PilotStore):
-    """ TROY PilotStore.    
-            """
+    """ TROY PilotStore. """   
+            
 
     # Class members
     __slots__ = (
-        'id',           # Unique identifiy        
-        'context',      # SAGA context for security attributes
+        'id',           # Unique identity
         'service_url',  # Resource  URL              
         'state',        # State of the PilotStore
+        'pilot_data',   # pilot_data
         '__coordination'
     )
     
-    def __init__(self, service_url, size):        
+    def __init__(self, service_url, size):    
+        """ 
+            Initialize PilotStore at given service url:
+            
+            ssh://<hostname>
+            gsissh://<hostname>
+            
+            Currently only ssh schemes are supported. In the future all 
+            SAGA URL schemes/adaptors should be supported.        
+        """
+            
         self.id = uuid.uuid1()
         self.service_url=service_url
+        self.pilot_data={}
         self.__coordination = BigDataCoordination(service_url)
         self.__coordination.initialize_pilotstore()
-        self.__coordination.get_pilotstore_size()        
+        self.__coordination.get_pilotstore_size()
+                
 
     def cancel(self):        
         """ Cancel PilotStore 
@@ -41,23 +52,38 @@ class PilotStore(PilotStore):
         """
         self.__coordination.delete_pilotstore()
         
-    def url_for_resource(self, filename):
-        pass
+        
+    def url_for_pd(self, pd):
+        if self.pilot_data.has_key(pd.id):
+            return self.service_url + "/" + str(pd.id)
+        return None
+    
     
     def put_pd(self, pd):
         logging.debug("Put PD: %s to PS: %s"%(pd.id,self.service_url))
         self.__coordination.create_pd(pd.id)
         self.__coordination.put_pd(pd)
+        self.pilot_data[pd.id] = pd
+        
+        
+    def remove_pd(self, pd):
+        """ Remove pilot data from pilot store """
+        if self.pilot_data.has_key(pd.id):
+            self.__coordination.remove_pd(pd)
+            del self.pilot_data[pd.id]
+                
         
     def get_state(self):
         return self.__coordination.get_state()
     
     
+    def __repr__(self):
+        return self.service_url
     
 
 class PilotStoreService(PilotStoreService):
-    """ TROY PilotStoreService (PSS).
-    """
+    """ TROY PilotStoreService (PSS)."""
+    
 
     # Class members
     __slots__ = (
@@ -111,9 +137,12 @@ class PilotStoreService(PilotStoreService):
             Return value:
             Result of operation
         """
-        for i in self.pilot_stores:
+        for i in self.pilot_stores.values():
             i.cancel()
-            
+    
+    
+    def __del__(self):
+        self.cancel()         
             
 
 

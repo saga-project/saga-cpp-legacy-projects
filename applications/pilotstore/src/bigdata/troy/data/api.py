@@ -2,13 +2,14 @@
 This file contains the API for the (proposed) TROY PilotData Framework.
 """
 class State(object):
-    Unknown = 0
-    New = 1
-    Running = 2
-    Done = 3
-    Canceled = 4
-    Failed = 5
-    Pending = 6
+    Unknown = "Unknown"
+    New = "New"
+    Running = "Running"
+    Done = "Done"
+    Canceled = "Canceled"
+    Failed = "Failed"
+    Pending = "Pending"
+    
 #
 # TROY PilotStore Description
 #
@@ -154,6 +155,10 @@ class PilotDataService(object):
         """ List all PDs of PDS """
         pass
 
+    def create_pilotdata(self, pilot_data_description):
+        """ Create Pilot Data object and schedule it to a Pilot Store """
+        pass
+    
     
     def cancel(self):
         """ Cancel the PDS.            

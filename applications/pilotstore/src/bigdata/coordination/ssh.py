@@ -4,14 +4,17 @@ SSH-based coordination scheme between manager and agent
 import paramiko
 import urlparse
 import pdb
+import errno
 import sys
 import os
+import stat
 import logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from bigdata.troy.data.api import State
 
 class BigDataCoordination(object):
+    """ BigData Coordination File Management for Pilot Store """
     
     def __init__(self, service_url):        
         self.service_url = service_url
@@ -44,9 +47,9 @@ class BigDataCoordination(object):
     
     
     def delete_pilotstore(self):
-        self.__sftp.rmdir(self.path)
+        self.__remove_directory(self.path)
         self.__state=State.Done
-        
+    
         
     def get_state(self):
         if self.__client.get_transport().is_active()==True:
@@ -61,10 +64,46 @@ class BigDataCoordination(object):
         
     def put_pd(self, pd):
         for i in pd.list_data_units():      
-            remote_path = os.path.join(self.path, str(pd.id), os.path.basename(i.url))
-            logging.debug("Put file: %s to %s"%(i.url, remote_path))
-            self.__sftp.put(i.url, remote_path)
+            remote_path = os.path.join(self.path, str(pd.id), os.path.basename(i.local_url))
+            logging.debug("Put file: %s to %s"%(i.local_url, remote_path))
+            if not stat.S_ISDIR(os.stat(i.local_url).st_mode):
+                self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
+            else:
+                logging.warning("Path %s is a directory. Ignored."%i.local_url)
+    
+    def remove_pd(self, pd):
+        self.__remove_directory(os.path.join(self.path, pd.id))
         
+    def put_progress(self, transfered_bytes, total_bytes):
+        logging.debug("Bytes transfered %d/%d"%(transfered_bytes, total_bytes))
     
     
+    ###########################################################################
+    # Private support methods
+    
+    def __remove_directory(self, path):
+        """Remove remote directory that may contain files.        
+        """
+        if self.__exists(path):
+            for filename in self.__sftp.listdir(path):
+                filepath = os.path.join(path, filename)
+                logging.debug("Delete %s"%filepath)
+                if stat.S_ISDIR(self.__sftp.stat(filepath).st_mode):
+                    [self.__remove_directory(filepath)]
+                else:
+                    self.__sftp.remove(filepath)
+            self.__sftp.rmdir(path)
+    
+    def __exists(self, path):
+        """Return True if the remote path exists
+        """
+        try:
+            self.__sftp.stat(path)
+        except IOError, e:
+            if e.errno == errno.ENOENT:
+                return False
+            raise
+        else:
+            return True
+   
     
