@@ -147,21 +147,6 @@ Shantenu Jha\corrauth\ensuremath{{^2{^,}^1}} %\comma, %\footnotemark[3],
 - Type III  -- workflows + dyn Execution for NGS}
 
 
-%\reviewer{R-7 : Kim and colleagues explore fine and coarse-grained parallelism of one next-gen sequencer in their DARE framework.  Rather than take a bioinformatics/cloud tack like the Salzberg group at Maryland (and others), they propose their custom framework as a gateway for next-gen sequencing analysis.  
-%Philosophically, this problem is no different from the BLAST problem that was published in a few papers last year in this workshop.  It is also unclear to me the distinction between DARE, SAGA-BigJob, and ADAMS previously reported by these authors in this workshop, mostly because they are flavors of SAGA-BigJobs and the limitations of a "distributed programming environment" discussed in the ADAMS paper is also applicable here.  Mapreduce and other abstractions are used in this community -- and I am not saying always used well -- because they are in some sense easier to program.  My opinion is that the advances in workflows must accompany improvements in infrastructure, but I recognize where they are coming from.  I agree that the nature and amount of parallelism is different between DARE and ADAMS and this is an emerging problem of interest to the life sciences community.  My suggestions for the authors prior to publication are to adequately address the scaling contribution more than the application engineering aspect herein.  Detailed comments follow that outline this logic.  A consequence of knowing this area well is often a longer (and in a sense harsher review) but I find this work interesting just needs more information on the HPC side to fully support their claims in a self contained manuscript.}
-%
-%\reviewer{R-7 : I guess BFAST was chosen because it is multithreaded and fits into the DARE framework; however,it is one of the least used short read aligners mostly because it is based on a suffix array that is voracious either in memory or disk.  These issues are mentioned in the manuscript indirectly but no thought is given how to scale out a job that would require 200GB of local space.  BWA and the Bowtie, both based on the Burrow-Wheeler transform, are more practical tools to look at for run time needs mostly because they are the more popular (216 and 382 Google scholar citations, respectively, vs. 26). Bowtie, cited here,also has been ported to a cloud environment as mentioned by these authors. The authors should strongly consider comparison to other frameworks (esp. bowtie) for a fair comparison of the practical benefit of their approach.}\jkimnote{we will put some sentences why Bfast is chosen other than other popular ones such as BWA or Bowtie that use BWT and requiring less memory-basically BFAST aims the higher sensitivity in spite of larger memory requirement and more computing time, which might be the case whose effectiveness is further enhanced by scale-out approach}
-%
-%\reviewer{R-7 : Relatedly, the paper is very hard to evaluate with respect to its impact on life sciences. To be fair, the authors care more from the HPC/infrastructure side but ultimately the users of this software/gateway will come from outside of the HPC community.  The number one concern for scalability is the size of the index files and the state of the parallel I/O system, but these are not given in Tables 5-7.  It would have been very helpful to connect the examples in Table 3 to the results of the paper.  I will agree with the authors that the size of the query is important and is a key variable in Figures 5-7 but it discounts the practical concerns of parallelizing a tool like BFAST, which constructs a suffix array.  Please clarify what data is which for these tables so biologists can better evaluate the usefulness of the system.
-%}
-%
-%\reviewer{R-7 : I would have liked to see ideally a complete workflow on the grid or cloud or scaling (and ideally both) not a statement related to overhead that, although true, does not support scaling as well as empirical results.
-%}
-%
-%\reviewer{R-2 :First, the summary of existing efforts on cloud computing of NGS read mapping is not comprehensive. For example, the work by Salzberg and colleagues "Searching for SNPs with cloud computing" Genome Biology 2009 was not mentioned. }\jkimnote{this reference is already referred as ref. 20}
-%
-%\reviewer{R-3 : Aside from small textual errors (the authors should define the term CAL before using it, and some explanation of machine names such as Eric and Painter would be useful outside of tables and captions before we encounter them in text) I see no faults with the paper, but it amounts to little more than benchmarking with some explanations of the results.}\jkimnote{The definition of CAL is already in the figure 1 and the caption, but we should mention it again in the text. Sharath, can you find the description for Eric and Painter from the previous ECMLS10 or CCPE paper and put it in the figure caption?} 
-
 
 High-throughput genome sequencing techniques provided by Next
 Generation Sequencing (NGS) platforms are changing biological sciences
@@ -186,17 +171,6 @@ dysfunctional diseases caused genetically or by
 aging\cite{amaral2008,encode2007,baek2008,costa2009}.
 
 
-High-throughput techniques enjoy extremely high coverage of target
-genome regions; current "deep sequencing"
-technologies adopted by NGS platforms such as Illumina GA II
-and Applied Biosystems SOLiD are limited to generating only short
-sequence reads, generally less than 100 hundred
-nucleotides\cite{metzker2010}.
-
-Consequently, it has become a computational challenge to map these
-high volume short reads onto a reference genome or de novo assembly
-that are needed as the first step for any genome-wide
-studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 It is expected that data-sets of interest will increase by several
 orders of magnitude as the number of genomes that need to be sequenced
 together increases exponentially.  This is a result of comparative
@@ -204,6 +178,15 @@ genomics as well as genome-wide variation studies that require a
 statistical number of genomes for one single species as shown in the
 recent 1000 genome project and human genome
 studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}.
+Although, high-throughput techniques enjoy extremely high coverage of
+target genome regions, current "deep sequencing" technologies adopted
+by NGS platforms such as Illumina GA II and Applied Biosystems SOLiD
+are limited to generating only short sequence reads, generally less
+than 100 hundred nucleotides\cite{metzker2010}. Consequently, it has
+become a computational challenge to map these high volume short reads
+onto a reference genome or de novo assembly that are needed as the
+first step for any genome-wide
+studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
 %challenge immediately mapping process on to a reference genome or 
 % Consequently, these high volume short reads challenge immediately
@@ -212,81 +195,80 @@ studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}.
 % studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
 To address these challenges, there have been algorithmic advances and
-several tools implementing these advances are becoming available
-\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
+several tools implementing these algorithms have become
+available\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
 Whereas such algorithmic advances and introduction of new tools have
 been consistently led by the computational biology community, the
 development of a well-architected integrated infrastructure -- the
 software \& services, data management capabilities and user interfaces
-has received less attention.  As we will demonstrate, NGS analysis is
-not a simple compute or data-intensive application, but an interesting
-mix of high-end and high-throughput computing with data-intensive
-requirements.  We ask the fundamental question: what is the
-appropriate architecture of the infrastructure to address the existing
-computational requirements of NGS analysis, data-set volumes -- now
-and extrapolating into the future?  The need for an appropriate
-scalable and flexible architecture for the infrastructure, becomes
-prevalent because the computational complexity of the specific problem
-instance is often influenced by the biological characteristics of 
-target genome(s) and the volume of relevant genomics data.
+has received less attention.
 
-%\jhanote{not sure what to do with the following paragraph} One
-%important caveat is that as advances of genome sequencing technologies
-%evolve further in the future with innovations, for example, such as a
-%single molecule sequencing technology and ever-growing genome data,
-%any computational algorithms or implementations with a bioinformatic
-%tool are subject to change to respond such progresses or will become
-%less useful if the tool do not meet new conditions.
+As we will demonstrate, NGS analysis is not a simple or singular
+compute or data-intensive application, but an interesting mix of
+high-end and high-throughput computing with data-intensive
+requirements; thus a scalable and integrated infrastructure is
+required.  The need for an appropriate scalable and flexible
+architecture for the infrastructure, becomes critical both given the
+trends as well as the computational complexity of a specific problem
+instance is often influenced by the biological characteristics of
+target genome(s) and the volume of relevant genomics data.  Thus we
+hope to help address the fundamental question: what is the appropriate
+integrated compute and data infrastructure to address the existing
+requirements of NGS analytics now and extrapolating into the future?
 
-Our approach is to primarily focus on the mapping process of short
-reads from NGS platforms against a reference genome.  The mapping is
-carried out with the tool, BFAST\cite{bfast2009, bfast2009b} which was
-chosen specifically considering its capability to support parallel and
-multi-threading execution.
-It is noted that BFAST was developed to achieve high sensitivity and accuracy, where as BWA and Bowtie employed efficient memory usage and require lower data volume\cite{bfast2009}.
- The choice of this tool is appropriate for our purposes, as this % Indeed, our investigation
-% with this bioinformatic program would
-is a representative situation for a bioinformatics tool enhanced
-considerably for genome-wide analysis with scalable infrastructure.
+% Our approach is to primarily focus on the mapping process of short
+% reads from NGS platforms against a reference genome.  The mapping is
+% carried out with the tool, BFAST\cite{bfast2009, bfast2009b} which was
+% chosen specifically considering its capability to support parallel and
+% multi-threading execution.  It is noted that BFAST was developed to
+% achieve high sensitivity and accuracy, where as BWA and Bowtie
+% employed efficient memory usage and require lower data
+% volume\cite{bfast2009}.  The choice of this tool is appropriate for
+% our purposes, as this is a representative situation for a
+% bioinformatics tool enhanced considerably for genome-wide analysis
+% with scalable infrastructure.
 
-% \reviewer{R-7 : "an existing framework -- which enables the seamless
-%   utilization of heterogenous resources" and When I think of seamless
-%   utilization of heterogeneous resources I think of swift, work
-%   queue/makeflow, and other lightweight "ad hoc" cloud systems.  The
-%   contribution here is that compiling BFAST in the DARE framework
-%   allows using different resources, but not at the same time?  It is
-%   unclear without reading the previous work why this is an improvement
-%   on something like swift or other workflow-enabling lightweight
-%   frameworks.  } 
-
-As a use case, we analyze the computational complexity of
+Specifically, we analyze the computational complexity of
 BFAST\cite{bfast2009, bfast2009b} and the determinants of its
 performance for two exemplary genomes, human genome and a microbial
 genome {\it Burkerholderia Glumae}\cite{kim2011}.  Having understood
 the computational requirements, and the importance of both scaling-up
 and scaling-out, we present the initial design objectives and a
-prototype of an infrastructure that seamlessly uses High-Performance
-Computing (HPC) grids and Cloud environment for genome-wide analysis.
-Our infrastructure builds upon existing capabilities of the Dynamic
-Application Runtime Environment (DARE) framework\cite{tg11} -- which
-enables the seamless utilization of heterogeneous distributed
-computing resources\cite{saga-iccs09,saga-royalsoc,saga-ccgrid10}.
-DARE provides an existing efficient framework upon which to build a
+prototype of DARE-NGS to support a range of genome-wide analytics.
+ 
+DARE-NGS builds upon existing capabilities of the Dynamic Application
+Runtime Environment (DARE) framework\cite{tg11} -- is a runtime
+infrastructure that has been shown to enable the seamless utilization
+of heterogeneous distributed computing
+resources\cite{saga-iccs09,saga-royalsoc,saga-ccgrid10} such as
+high-performance computing (HPC) grids and cloud environments.  DARE
+provides an existing efficient framework upon which to build a
 scalable infrastructure to support a wide range of abstractions and
-execution requirements for the analytics required for NGS
-data. \reviewer{R-7 : ""an existing efficient framework upon which to
-  build a scalable infrastructure to support a wide range of
-  abstractions and execution environments.""  When I think efficient,
-  I usually think of the HPC concept of speedup / number of processors
-  or a more loosely defined programability argument.  None of the
-  traditional measures are present in this paper.  For example, in
-  Table 6 the framework appears to scale to at least 80 cores but I
-  have at least three concerns with these data: 1.)  how long did the
-  job take on a serial system, and therefore what is the speedup on
-  the grid/cloud?  2.)  Were the authors able to process a complete
-  run of either the human or Burkerholderia? This is unclear from the
-  abstract examples. 4.) Does the grid/cloud version provide speedup
-  over a plain threaded version of BFAST on similar hardware?  5.)  No
+execution requirements for the analytics required for NGS data.
+
+DARE-NGS is designed on the organizing principel that the bulk of
+NGS-analytics can be categorized into three types of services --Type
+I, II and III. Type I represents stand-alone tools, but provided
+within a scalable and flexible runtime environment. Types II and III
+represent integrated pipelines and workflow composition of tools
+respectively.  The main design strategy of the DARE framework is to
+separate the application logic from a target tool(s), consequently
+resulting in easy-to-develop cycles for improvement, changes, and
+deployment of new tools.
+
+\reviewer{R-7 : ""an existing efficient framework upon which to build
+  a scalable infrastructure to support a wide range of abstractions
+  and execution environments.""  When I think efficient, I usually
+  think of the HPC concept of speedup / number of processors or a more
+  loosely defined programability argument.  None of the traditional
+  measures are present in this paper.  For example, in Table 6 the
+  framework appears to scale to at least 80 cores but I have at least
+  three concerns with these data: 1.)  how long did the job take on a
+  serial system, and therefore what is the speedup on the grid/cloud?
+  2.)  Were the authors able to process a complete run of either the
+  human or Burkerholderia? This is unclear from the abstract
+  examples. 4.) Does the grid/cloud version provide speedup over a
+  plain threaded version of BFAST on similar hardware?  5.)  No
   ability to measure how scalable the software is as there are only
   two data points on an HPC grid (LONI) that I assume had a shared
   file system?  The same number of cores were used in Table 7. }
@@ -309,29 +291,20 @@ data. \reviewer{R-7 : ""an existing efficient framework upon which to
   across machines.} \jhanew{Sharath, JK: Please remove comments that
   have been fixed. Has this been addressed?}
 
-Our infrastructure has distinctive characteristics, compared to other
-related approaches\cite{taylor2010,cloudburst, cloudblast,
-  langmead2009,langmead2010,gatk,halligan2009,luyf-2010}, many of
-which have been developed in the Cloud environment.  First of all,
-most other approaches lack interoperability between different
-distributed computing environments.  This is partly because the
-application layer is tightly coupled to the runtime environment layer.
-Secondly, other approaches support a single or closely related few
-applications.  The main design strategy of the DARE framework is to
-separate the application logic from a target tool(s), consequently
-resulting in easy-to-develop cycles for improvement, changes, and
-deployment of new tools.  % On the other hand, it is also true that
-Some tools such as CloudBurst\cite{cloudburst},
-CloudBlast\cite{cloudblast}, Crossbow\cite{langmead2009}, and
-GATK\cite{gatk} have advantages that are specifically confined to
-Cloud environments, as well as permit ease of utilization of effective
-programming models such as MapReduce or other software frameworks,
-whereas others\cite{luyf-2010} focus on the HPC grid environment.  Indeed, the DARE framework propose an interesting mean to support dynamic applications.
 
-This paper is organized as follows.  We introduce BFAST and a ChIP-Seq pipeline with
-their characteristic features with respect to computational and data
-requirements.  In the following section, we examine
-details on execution of BFAST, as a demonstrative mapping tool representing a simple category of dynamic application, using a local resource and then two distributed environments, a HPC grid and a cloud and on execution of the ChIP-Seq pipeline, as a more complex example for dynamic applications. Finally, we conclude with the summary of this work and future works.
+This paper is organized as follows.  In \S2, we introduce BFAST and a
+ChIP-Seq pipeline, and characterise their computational and data
+requirements.  In \S3, we examine BFAST as one of several possible
+mapping tools available.  BFAST performance is measured and analyzed
+using local and multiple distributed resources (HPC grid and a
+cloud). The execution of the ChIP-Seq pipeline -- a more complex
+application is presented as an example of a Type II service and its
+characterization as a dynamic applications is presented.  We conclude
+with a summary and discussion of future directions which we will
+pursue.
+
+% representing a
+% simple category of dynamic application, 
 
 % are keenly utilized for a scalable computation of a target genome-wide
 % analysis tool.
@@ -818,24 +791,53 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
   \label{fig:chip-seq-comp} 
  \end{figure}
  
-The ChIP-Seq experiment provides genome-wide mapping of DNA-protein interactions, and obtained information is directly associated with transcription regulation\cite{pepke2009, laajala, wilbanks}.  An understanding of transcription regulation is one of fundamental goals in biological sciences because of its significance for virtually all aspects of biological processes in a living cell responsible for cell
-development, differentiation, host-pathogen interactions, epigenetics,
-tumorigenesis.  New drug or bio-marker discovery for many devastating diseases including
-neurodegenerative disorders are examples of significant outcomes from such studies\cite{pepke2009}.  Replacing
-ChIP-ChIP methods based on micro-array approaches quickly, the ChIP-Seq experiment became a main player with its genome-wide scale information and higher resolution.  ChIP-Seq means Chromatin Immunoprecipitation
-(ChIP) followed by sequencing (ChIP-Seq), and thus the sequenced reads indicate the location of the peak where regulatory proteins bind with enrichment of reads. Generally, the conventional computational task
-for ChIP-Seq is composed of two independent steps (see
-Fig.~\ref{fig:chip-seq}).  In the first step, the mapping of two data
-sets, corresponding to the control and the treat data, are carried out
-separately, and in the second step, a peak caller, which carries out
-statistical analysis to infer true peaks indicating DNA-protein
-interaction regions, is executed.  The control data facilitate the construction of a peak model and background calibration, but it is optional. The unknown statistical nature of mapped reads, accompanied with errors arising from ChiP-Seq experiment process, along with the difficulty of increasing sensitivity in the mapping step due to the short length of reads (mostly up to 100 something at the time of this work) make the prediction of true peaks challenging\cite{pepke2009,laajala,wilbanks}  In this work, we use
-the well-proven peak caller, MACS\cite{macs} for the second step, while three
-different software tools, BFAST, Bowtie, and BWA, are employed for the first
-mapping step.  These mappers differ in many ways, in particular with different computational requirements.  Two additional mappers, BWA and Bowtie are widely used due to their adoption of the memory efficient algorithm, Burrow-Wheeler Transformation, whereas BFAST was found to provide increased sensitivity\cite{bfast2009,mapping-survey}.  As shown in Fig.~\ref{fig:chip-seq-comp}, two mappers, BWA and Bowtie takes considerably shorter times compared to BFAST.  Note that the results presented in Fig.~\ref{fig:chip-seq-comp} were obtained by conducting the pipeline in which concurrent execution of the mapping step using 256 cores of a HPC cluster was managed.  Our main focus with the ChIP-Seq pipeline is to present a
-compelling example how the use of scalable distributed infrastructure
-as well as the runtime environment supporting dynamic execution of the
-pipeline for ChIP-Seq data analytics leverage this powerful protocol utilizing NGS technologies. 
+ The ChIP-Seq experiment provides genome-wide mapping of DNA-protein
+ interactions, and obtained information is directly associated with
+ transcription regulation\cite{pepke2009, laajala, wilbanks}.  An
+ understanding of transcription regulation is one of fundamental goals
+ in biological sciences because of its significance for virtually all
+ aspects of biological processes in a living cell responsible for cell
+ development, differentiation, host-pathogen interactions,
+ epigenetics, tumorigenesis.  New drug or bio-marker discovery for
+ many devastating diseases including neurodegenerative disorders are
+ examples of significant outcomes from such studies\cite{pepke2009}.
+ Replacing ChIP-ChIP methods based on micro-array approaches quickly,
+ the ChIP-Seq experiment became a main player with its genome-wide
+ scale information and higher resolution.  ChIP-Seq means Chromatin
+ Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq), and
+ thus the sequenced reads indicate the location of the peak where
+ regulatory proteins bind with enrichment of reads. Generally, the
+ conventional computational task for ChIP-Seq is composed of two
+ independent steps (see Fig.~\ref{fig:chip-seq}).  In the first step,
+ the mapping of two data sets, corresponding to the control and the
+ treat data, are carried out separately, and in the second step, a
+ peak caller, which carries out statistical analysis to infer true
+ peaks indicating DNA-protein interaction regions, is executed.  The
+ control data facilitate the construction of a peak model and
+ background calibration, but it is optional. The unknown statistical
+ nature of mapped reads, accompanied with errors arising from ChiP-Seq
+ experiment process, along with the difficulty of increasing
+ sensitivity in the mapping step due to the short length of reads
+ (mostly up to 100 something at the time of this work) make the
+ prediction of true peaks challenging\cite{pepke2009,laajala,wilbanks}
+ In this work, we use the well-proven peak caller, MACS\cite{macs} for
+ the second step, while three different software tools, BFAST, Bowtie,
+ and BWA, are employed for the first mapping step.  These mappers
+ differ in many ways, in particular with different computational
+ requirements.  Two additional mappers, BWA and Bowtie are widely used
+ due to their adoption of the memory efficient algorithm,
+ Burrow-Wheeler Transformation, whereas BFAST was found to provide
+ increased sensitivity\cite{bfast2009,mapping-survey}.  As shown in
+ Fig.~\ref{fig:chip-seq-comp}, two mappers, BWA and Bowtie takes
+ considerably shorter times compared to BFAST.  Note that the results
+ presented in Fig.~\ref{fig:chip-seq-comp} were obtained by conducting
+ the pipeline in which concurrent execution of the mapping step using
+ 256 cores of a HPC cluster was managed.  Our main focus with the
+ ChIP-Seq pipeline is to present a compelling example how the use of
+ scalable distributed infrastructure as well as the runtime
+ environment supporting dynamic execution of the pipeline for ChIP-Seq
+ data analytics leverage this powerful protocol utilizing NGS
+ technologies.
 
 \section{NGS Data Analytics using Distributed, Scalable Architectures}
 
@@ -960,6 +962,23 @@ data, whilst using the same runtime environment using SAGA-BigJob; all
 the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
 It is possible to exploit multi-level configuration in that different
 thread/cores configurations are possible for each of the sub-jobs.
+
+DARE has distinctive characteristics, compared to other related
+approaches\cite{taylor2010,cloudburst, cloudblast,
+  langmead2009,langmead2010,gatk,halligan2009,luyf-2010}, many of
+which have been developed in the Cloud environment.  First of all,
+most other approaches lack interoperability between different
+distributed computing environments.  This is partly because the
+application layer is tightly coupled to the runtime environment layer.
+Secondly, other approaches support a single or closely related few
+applications.  Some tools such as CloudBurst\cite{cloudburst},
+CloudBlast\cite{cloudblast}, Crossbow\cite{langmead2009}, and
+GATK\cite{gatk} have advantages that are specifically confined to
+Cloud environments, as well as permit ease of utilization of effective
+programming models such as MapReduce or other software frameworks,
+whereas others\cite{luyf-2010} focus on the HPC grid environment.
+Indeed, as we will show in the context of ChiP-Seq, the DARE framework
+propose an interesting mean to support dynamic applications.
 
 \subsection{Understanding BFAST on a Local (Single) Resource}
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
