@@ -33,12 +33,14 @@
 
 
 \newif\ifdraft
-% \drafttrue
+\drafttrue
 
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
  \newcommand{\jkimnote}[1]{{\textcolor{green}   { ***Joohyun:   #1 }}}
- \newcommand{\jhanote}[1]{  {\textcolor{red}     { ***SJ: #1 }}}
+% \newcommand{\jhanote}[1]{  {\textcolor{red}     { ***SJ: #1 }}}
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\jhanew}[1]{{\textcolor{red}     { ***SJ: #1 }}}
   \newcommand{\smnote}[1]{  {\textcolor{red}     { ***Sharath: #1 }}}
   \newcommand{\msnote}[1]{  {\textcolor{blue}     { ***Mark: #1 }}}
 
@@ -50,7 +52,8 @@
  \newcommand{\jkimnote}[1]{}
  \newcommand{\smnote}[1]{}
  \newcommand{\jhanote}[1]{}
- \newcommand{\todo}[1]{  {\textcolor{red}     { ***TODO: #1 }}}
+ \newcommand{\jhanew}[1]{}
+\newcommand{\todo}[1]{  {\textcolor{red}     { ***TODO: #1 }}}
  \newcommand{\fix}[1]{}                                                                                     
 \fi
 
@@ -169,9 +172,9 @@ compared to previous sequencing techniques (such as those based on
 Sanger sequencing)
 \cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.
 Thanks to advances in deep sequencing protocols such as ChIP-seq
-(chromatin immunoprecipitation-seq) \jhanote{Please use the full name}
-and RNA-seq, high-throughput sequencing techniques have become
-essential methodologies in studies of cell development and
+(chromatin immunoprecipitation-seq) and RNA-seq, high-throughput
+sequencing techniques have become essential methodologies in studies
+of cell development and
 differentiation\cite{wang2009-natrevgen,pepke2009,gilad2009,mortazavi2008,sorek2010}.
 Indeed, the resulting influx of biological information about the
 genome-wide organization and the interaction map of target genes and
@@ -258,18 +261,20 @@ considerably for genome-wide analysis with scalable infrastructure.
 As a use case, we analyze the computational complexity of
 BFAST\cite{bfast2009, bfast2009b} and the determinants of its
 performance for two exemplary genomes, human genome and a microbial
-genome {\it Burkerholderia Glumae}\cite{kim2011}.  Having understood the
-computational requirements, and the importance of both scaling-up and
-scaling-out, we present the initial design objectives and a prototype
-of an infrastructure that seamlessly uses High-Performance Computing
-(HPC) grids and Cloud environment for genome-wide analysis.  Our
-infrastructure builds upon existing capabilities of the Dynamic Application Runtime Environment (DARE) framework\cite{tg11} -- which
+genome {\it Burkerholderia Glumae}\cite{kim2011}.  Having understood
+the computational requirements, and the importance of both scaling-up
+and scaling-out, we present the initial design objectives and a
+prototype of an infrastructure that seamlessly uses High-Performance
+Computing (HPC) grids and Cloud environment for genome-wide analysis.
+Our infrastructure builds upon existing capabilities of the Dynamic
+Application Runtime Environment (DARE) framework\cite{tg11} -- which
 enables the seamless utilization of heterogeneous distributed
-computing resources\cite{saga-iccs09,saga-royalsoc,saga-ccgrid10}.  DARE provides an existing efficient framework
-upon which to build a scalable infrastructure to support a wide range
-of abstractions and execution requirements for the analytics required
-for NGS data. \reviewer{R-7 : ""an existing efficient framework upon
-  which to build a scalable infrastructure to support a wide range of
+computing resources\cite{saga-iccs09,saga-royalsoc,saga-ccgrid10}.
+DARE provides an existing efficient framework upon which to build a
+scalable infrastructure to support a wide range of abstractions and
+execution requirements for the analytics required for NGS
+data. \reviewer{R-7 : ""an existing efficient framework upon which to
+  build a scalable infrastructure to support a wide range of
   abstractions and execution environments.""  When I think efficient,
   I usually think of the HPC concept of speedup / number of processors
   or a more loosely defined programability argument.  None of the
@@ -283,24 +288,25 @@ for NGS data. \reviewer{R-7 : ""an existing efficient framework upon
   over a plain threaded version of BFAST on similar hardware?  5.)  No
   ability to measure how scalable the software is as there are only
   two data points on an HPC grid (LONI) that I assume had a shared
-  file system?  The same number of cores were used in Table
-  7. }\smnote{ 1) Lets say we have "n" read files and with DARE it
-  takes around time "t" time for matching step if we run it serially
-  it would take n*t time. It probably exceeds wall time
-  limit. Therefore speed up in match step depends how many number of
-  read files we generate and process concurrently.  2) Yes we were
-  able to process the complete run with entire Human Genome on QB and
-  Ranger separately. (**I am currently working this to utilizing QB
-  and Ranger together.)  4) it should clearly provide the advantage
-  with multiple resources. If we want to use the cloud resources from
-  India to complete Human Genome run it is not practically possible
-  because of the current limited disk size access provided by the FG
+  file system?  The same number of cores were used in Table 7. }
+\smnote{ 1) Lets say we have "n" read files and with DARE it takes
+  around time "t" time for matching step if we run it serially it
+  would take n*t time. It probably exceeds wall time limit. Therefore
+  speed up in match step depends how many number of read files we
+  generate and process concurrently.  2) Yes we were able to process
+  the complete run with entire Human Genome on QB and Ranger
+  separately. (**I am currently working this to utilizing QB and
+  Ranger together.)  4) it should clearly provide the advantage with
+  multiple resources. If we want to use the cloud resources from India
+  to complete Human Genome run it is not practically possible because
+  of the current limited disk size access provided by the FG
   Eucalyptus resources. Because whole human genome index files are of
   size 129 GB for Bfast matching step as opposed to HG 18 Chromosome
   21 with size of 2 GB index files. On the other hand it also requires
   the temporary files disk space.  Thus it is important to utilize
   large capacity resources like QB and Ranger divide the work load
-  across machines.}
+  across machines.} \jhanew{Sharath, JK: Please remove comments that
+  have been fixed. Has this been addressed?}
 
 Our infrastructure has distinctive characteristics, compared to other
 related approaches\cite{taylor2010,cloudburst, cloudblast,
@@ -384,16 +390,21 @@ grows correspondingly.
 %      the capitilization consistent with other tables and also
 %      consistent within different entries in this table!}
  }
-\begin{tabular}{| l | l | l | l |} \hline \rowcolor[rgb]{0.8,0.8,0.8} &
-Type I & Type II & Type III \\ Description & Standalone  & Pipeline & Pipeline \\ 
-& Single Tool  & or Multiple Tools &  or Workflow-based \\\hline 
-Target Tool Modification & Not Needed &
-Not Needed & Minimally Needed \\ \hline Scientific Workflow & Not Needed & Useful but Not Necessarily &
-Needed \\ \hline 
-Example of & BFast, BWA,  & MACS, TopHat-Fusion,  &   
- \\
-Existing Tools &  Bowtie, ABySS  & TRANS-ABySS, Hydra & \\
-\hline
+ \begin{tabular}{| l | l | l | l |} \hline \rowcolor[rgb]{0.8,0.8,0.8}
+   &
+   Type I & Type II & Type III \\ 
+
+   Description & Standalone  & Pipeline & Pipeline \\
+               & Single Tool & or Multiple Tools & or Workflow-based \\\hline
+%    Target Tool Modification & Not Needed & Not Needed & Minimally
+%    Needed \\ 
+%    \hline 
+%    Scientific Workflow & Not Needed & Useful but Not
+%    Necessarily & Needed \\ \hline 
+   Example of & BFast, BWA, & MACS, TopHat-Fusion, & \jhanote2{Put something here!}
+   \\
+   Existing Tools &  Bowtie, ABySS  & TRANS-ABySS, Hydra & \\
+   \hline
 \end{tabular}
 \label{table:three-type-service}
 \end{center}
@@ -615,7 +626,13 @@ distributed architectures?
 \caption{\small The time-to-completion of the 'bfast match' step is
   measured by varying the size of short read files.  Two lines
   represent two cases differing in the low memory option, which
-  results in the different number of index files (40 vs 10).  Results against the entire human genome (hg18) (upper) and chromosome 21 only (middle) as reference sequences for exome analysis, are presented along with results with B. Glumae (lower).  The number of threads with the multi-threading option is set to 12.}
+  results in the different number of index files (40 vs 10).  Results
+  against the entire human genome (hg18) (upper) and chromosome 21
+  only (middle) as reference sequences for exome analysis, are
+  presented along with results with B. Glumae (lower).  The number of
+  threads with the multi-threading option is set to 12. \jhanew{we
+    discussed modifying these figures? E.g., the y-axis label of 2nd
+    and 3rd sub-figures are over-running} }
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -693,8 +710,8 @@ display widely different data sizes in terms of the reference genome
 sequence, short reads data, and required disk-space for carrying out
 the mapping with BFAST.
 
-\jkimnote{The following four sentences were changed for describing new
-  results with Fig. 2}
+% \jkimnote{The following four sentences were changed for describing new
+%   results with Fig. 2}
 
 To investigate the computational requirements, we first measure the
 time-to-completion for 'bfast match' step while varying the size of a
@@ -1212,7 +1229,8 @@ s4& 0.6 GB & 4 & 4 & 5804 s \\
 %significance of agile runtime environment that drives a dynamical
 %configuration and utilization of distributed resources.
 
-\subsubsection{Execution of BFAST mapping on Grids and Clouds}
+\subsection{Execution of BFAST mapping on Distributed Resources}
+% Grids and Clouds}
 
 In order to demonstrate the flexibility of the DARE framework and its
 ability to support both fine-grained parallelism and task-level
@@ -1221,7 +1239,7 @@ HPC-grid (LONI) and a Cloud resource (FutureGrid) (see
 Table~\ref{table:two-systems} for details of the infrastructure).
 
 
-{\it Using BFAST on HPC Grid}
+\subsubsection{Using BFAST on HPC Grids}
 
 The first two configurations -- case g1 and g2 in
 Table.\ref{table:bigjob-loni} demonstrate how the DARE framework can
@@ -1313,7 +1331,7 @@ g6&0.435 GB&2& 20 & 40(10)&2096 s\\
 % generations required, results.  
 
 
-{\it Using BFAST on Cloud}
+\subsubsection{Using BFAST on Clouds}
 
 \reviewer{R-7 : I don't buy the cloud argument in section 3.3.2
   because it avoids the fundamental issue in any data intensive task:
@@ -1562,16 +1580,17 @@ The mapping with BFAST and the pipeline discussed in this work are freely availa
 
 \section*{Acknowledgement}
 
-This document was developed with support from the National Science
-Foundation (NSF) under Grant No.  0910812 to Indiana University for
-``FutureGrid: An Experimental, High-Performance Grid Test-bed.''  We
+The project described was partially supported by Grant Number
+P20RR016456 from the NIH National Center For Research Resources.  We
 also acknowledge Ole Weidner and Le Yan for useful performance related
 discussions, Diana Holmes for sharing her experience with mapping
 using BFAST, and Jong-Hyun Ham for allowing us to use B. Glumae genome
-sequences.  Computing resources were made possible via NSF TRAC award
-TG-MCB090174 and LONI resources.  The project described was partially
-supported by Grant Number P20RR016456 from the NIH National Center For
-Research Resources.
+sequences.  \jhanew{JK -- please acknowledge Chris Giss} Computing
+resources were made possible via NSF TRAC award TG-MCB090174 and LONI
+resources.  This document was developed with support from the National
+Science Foundation (NSF) under Grant No.  0910812 to Indiana
+University for ``FutureGrid: An Experimental, High-Performance Grid
+Test-bed.''
 
 \bibliographystyle{abbrv} 
 \bibliography{ecmls11}
