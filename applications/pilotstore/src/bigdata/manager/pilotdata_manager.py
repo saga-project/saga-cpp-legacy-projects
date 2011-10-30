@@ -204,7 +204,10 @@ class PilotData(PilotData):
         return self.data_units
         
     def get_state(self):
-        return self.state    
+        return self.state  
+    
+    def get_pilot_stores(self):
+        pass  
     
     def __repr__(self):
         repr_dict = {
