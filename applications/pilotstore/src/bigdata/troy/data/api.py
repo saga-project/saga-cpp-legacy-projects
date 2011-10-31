@@ -73,11 +73,11 @@ class PilotStoreService(object):
         """
         pass
 
-    def create_pilotstore(self, pilotstore_desc):
+    def create_pilotstore(self, pilot_store_description):
         """ Create a PilotStore 
 
             Keyword arguments:
-            pilotstore_desc -- PilotStore Description            
+            pilot_store_description -- PilotStore Description            
             
             Return value:
             A PilotStore handle
@@ -105,17 +105,8 @@ class PilotStoreService(object):
 # 
 class PilotDataService(object):
     """ TROY PilotDataService (PDS).   
-        
     """
-
-    # Class members
-    __slots__ = (
-        'id',                # id to this PilotDataService
-        'state',             # Status of the PilotDataService
-        'pilot_stores',      # PilotStores connected to this PD
-        'pilot_data'         # List of PDs
-    )
-
+   
     def __init__(self, pds_id=None):
         """ Create a PilotDataService.
 
@@ -168,6 +159,13 @@ class PilotDataService(object):
         """
         pass
 
+    
+    def get_state(self):
+        pass
+    
+    
+    def get_id(self):
+        pass
 
 #
 # TROY PilotDataDescription

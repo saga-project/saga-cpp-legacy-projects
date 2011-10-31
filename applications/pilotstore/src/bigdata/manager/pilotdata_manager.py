@@ -16,32 +16,19 @@ import Queue
 import saga
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
-from bigdata.coordination.ssh import BigDataCoordination
-from bigdata.troy.data.api import PilotData, DataUnit, PilotDataService, State
+from bigdata.troy.data.api import PilotData, DataUnit, PilotDataService
+from bigdata.troy.compute.api import State
 from bigdata.manager.pilotstore_manager import *
 from bigdata.scheduler.random_scheduler import Scheduler
 
 PILOTDATA_URL_SCHEME="pilotdata://"
 DATA_UNIT_URL_SCHEME="dataunit://"
 
-#
-# TROY PilotDataService
-# 
+
 class PilotDataService(PilotDataService):
     """ TROY PilotDataService (PDS).   
     """
 
-    # Class members
-    __slots__ = (
-        'id',                # id to this PilotDataService
-        'state',             # Status of the PilotDataService
-        'pilot_store_services',      # PilotStores connected to this PD
-        'pilot_data',         # List of PDs
-        'scheduler',           # Scheduler
-        'queue',
-        'stop',
-        'scheduler_thread'
-    )
 
     def __init__(self, pds_id=None):
         """ Create a PilotDataService.
@@ -53,12 +40,13 @@ class PilotDataService(PilotDataService):
         self.pilot_data={}
         self.pilot_store_services=[]
         self.scheduler = Scheduler()
-        self.queue = Queue.Queue()
+        self.pd_queue = Queue.Queue()
         self.stop=threading.Event()
-        self.scheduler_thread=threading.Thread(target=self.__schedule_pd_thread)
+        self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
         self.scheduler_thread.start()
-
-    def add(self, pss):
+        
+        
+    def add_pilot_store_service(self, pss):
         """ Add a PilotStoreService 
 
             Keyword arguments:
@@ -70,7 +58,8 @@ class PilotDataService(PilotDataService):
         self.pilot_store_services.append(pss)
 
     
-    def remove(self, pss):
+    def remove_pilot_store_service(self, pss):
+
         """ Remove a PilotStoreService 
             
             Keyword arguments:
@@ -102,7 +91,7 @@ class PilotDataService(PilotDataService):
         """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
         pd = PilotData(self, pilot_data_description)
         self.pilot_data[pd.id]=pd
-        self.queue.put(pd)
+        self.pd_queue.put(pd)
         return pd
     
     def cancel(self):
@@ -119,7 +108,7 @@ class PilotDataService(PilotDataService):
         self.stop.set()
     
         
-    def __schedule_pd(self, pd):
+    def _schedule_pd(self, pd):
         """ Schedule PD to a suitable pilot store
         
             Currently one level of scheduling is used:
@@ -133,10 +122,11 @@ class PilotDataService(PilotDataService):
         selected_pilot_store = self.scheduler.schedule()
         return selected_pilot_store
     
-    def __schedule_pd_thread(self):
+    
+    def _scheduler_thread(self):
         while True and self.stop.isSet()==False:
-            #pdb.set_trace()
-            pd = self.queue.get()  
+            logging.debug("Scheduler Thread " + str(self.__class__))
+            pd = self.pd_queue.get()  
             # check whether this is a real pd object  
             if isinstance(pd, PilotData):
                 ps=self.__schedule_pd(pd)                
@@ -146,7 +136,7 @@ class PilotDataService(PilotDataService):
                     pd.update_state(State.Running)
                     pd.add_pilot_store(ps)                    
                 else:
-                    self.queue.put(pd)
+                    self.pd_queue.put(pd)
             time.sleep(5)        
 
         logging.debug("Re-Scheduler terminated")

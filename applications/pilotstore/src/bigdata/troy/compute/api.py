@@ -13,10 +13,8 @@ class State(object):
     Pending = "Pending"
     
 
-#
-# TROY PilotJob Description
-#
-class PilotJobDescription(object):
+
+class PilotJobDescription(dict):
     """ TROY PilotJobDescription.
         
         A PilotJobDescription is a based on the SAGA Job Description.
@@ -66,10 +64,16 @@ class PilotJobDescription(object):
     def __init__(self):
         pass
     
+    
+    def __setattr__(self, attr, value):
+        self[attr]=value
+        
+    
+    def __getattr__(self, attr):
+        return self[attr]
+    
+    
 
-#
-# TROY PilotJob
-#
 class PilotJob(object):
     """ TROY PilotJob. 
     
@@ -160,7 +164,7 @@ class PilotJobService(object):
         """
         pass
 
-    def create_pilotjob(self, rm, pilotjob_desc, pj_type=None, context=None):
+    def create_pilotjob(self, rm, pilotjob_description, pj_type=None, context=None):
         """ Add a PilotJob to the PilotJobService
 
             Keyword arguments:
@@ -207,21 +211,14 @@ class WorkUnitService(object):
         execution of the WorkUnits.
     """
 
-    # Class members
-    __slots__ = (
-        'id',                # Reference to this WUS
-        'state',             # Status of the WUS
-        'pilotjob_services', # PilotJobService(s) that are connected
-        'work_units'         # List of WUs that have been submitted to this WUS
-    )
-
     def __init__(self, wus_id=None):
         """ Create a Work Service object.
-
+    
             Keyword arguments:
             wus_id -- Reconnect to an existing WUS (optional).
         """
         pass
+
 
     def add_pilot_job_service(self, pjs):
         """ Add a PilotJobService to this WUS.
@@ -234,6 +231,7 @@ class WorkUnitService(object):
             Result
         """
         pass
+
 
     def remove_pilot_job_service(self, pjs):
         """ Remove a PilotJobService from this WUS.
@@ -250,6 +248,7 @@ class WorkUnitService(object):
         """
         pass
 
+
     def submit_work_unit(self, wud):
         """ Submit a WU to this Work Unit Service.
 
@@ -261,17 +260,24 @@ class WorkUnitService(object):
         """
         pass
 
+
     def cancel(self):
         """ Cancel the WUS.
             
             Cancelling the WUS also cancels all the WUs submitted to it.
-
+    
             Keyword arguments:
             None
-
+    
             Return:
             Result
         """
+        pass
+    
+    def get_state(self):
+        pass
+    
+    def get_id(self):
         pass
 
 

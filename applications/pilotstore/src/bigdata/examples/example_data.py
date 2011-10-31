@@ -29,11 +29,11 @@ if __name__ == "__main__":
     pilot_store_service = PilotStoreService()
     ps = pilot_store_service.create_pilotstore({
                                 'service_url': "ssh://localhost/tmp/pilotstore/",
-                                'size':100                                
+                                'size':100                  
                                 })
     
     # add resources to pilot data service    
-    pilot_data_service.add(pilot_store_service) 
+    pilot_data_service.add_pilot_store_service(pilot_store_service) 
     
     logging.debug("Finished setup of PSS and PDS. Waiting for scheduling of PD")
     

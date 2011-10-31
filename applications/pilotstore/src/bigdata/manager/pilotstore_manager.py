@@ -8,7 +8,7 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import logging
 
-from bigdata.coordination.ssh import BigDataCoordination
+from bigdata.pilotstore_coordination.ssh import BigDataCoordination
 from bigdata.troy.data.api import PilotStore, PilotStoreService
 
 
@@ -102,11 +102,11 @@ class PilotStoreService(PilotStoreService):
         self.pilot_stores={}
        
 
-    def create_pilotstore(self, pilotstore_desc):
+    def create_pilotstore(self, pilot_store_description):
         """ Create a PilotStore 
 
             Keyword arguments:
-            pilotstore_desc -- PilotStore Description    
+            pilot_store_description -- PilotStore Description    
             {
                 'service_url': "ssh://<hostname>/base-url/"                
                 'size': "1000"
@@ -114,7 +114,8 @@ class PilotStoreService(PilotStoreService):
             Return value:
             A PilotStore handle
         """
-        ps = PilotStore(pilotstore_desc["service_url"], pilotstore_desc["size"])
+        ps = PilotStore(pilot_store_description["service_url"], 
+                        pilot_store_description["size"])
         self.pilot_stores[ps.id]=ps
         return ps
     
