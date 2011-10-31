@@ -7,7 +7,7 @@ logging.basicConfig(level=logging.DEBUG)
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from bigdata.manager.pilotstore_manager import PilotStoreService
 from bigdata.manager.pilotdata_manager import PilotDataService
-from bigdata.troy.data.api import State
+from bigdata.troy.compute.api import State
 
 if __name__ == "__main__":        
     

@@ -129,7 +129,7 @@ class PilotDataService(PilotDataService):
             pd = self.pd_queue.get()  
             # check whether this is a real pd object  
             if isinstance(pd, PilotData):
-                ps=self.__schedule_pd(pd)                
+                ps=self._schedule_pd(pd)                
                 if(ps!=None):
                     ps.put_pd(pd)
                     logging.debug("Transfer to PS finished.")
