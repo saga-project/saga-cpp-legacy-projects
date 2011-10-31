@@ -23,7 +23,7 @@ if __name__ == "__main__":
     
     # create pilot data service
     pilot_data_service = PilotDataService()
-    pd = pilot_data_service.create_pilotdata(pilot_data_description)
+    pd = pilot_data_service.submit_pilot_data(pilot_data_description)
     
     # create pilot store service (factory for pilot stores (physical, distributed storage))
     pilot_store_service = PilotStoreService()

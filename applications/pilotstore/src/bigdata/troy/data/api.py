@@ -1,18 +1,7 @@
 """ 
 This file contains the API for the (proposed) TROY PilotData Framework.
 """
-class State(object):
-    Unknown = "Unknown"
-    New = "New"
-    Running = "Running"
-    Done = "Done"
-    Canceled = "Canceled"
-    Failed = "Failed"
-    Pending = "Pending"
     
-#
-# TROY PilotStore Description
-#
 class PilotStoreDescription(dict):
     """ TROY PilotStoreDescription.
         {
@@ -25,9 +14,15 @@ class PilotStoreDescription(dict):
         pass
     
 
-#
-# TROY PilotStore
-#
+    def __setattr__(self, attr, value):
+        self[attr]=value
+        
+    
+    def __getattr__(self, attr):
+        return self[attr]
+
+
+
 class PilotStore(object):
     """ TROY PilotStore.  """
 
@@ -53,15 +48,11 @@ class PilotStore(object):
     def get_state(self):
         pass
     
-    def get_state_detail(self):
-        pass
+       
 
-#
-# TROY PilotStore Service
-#
+
 class PilotStoreService(object):
-    """ TROY PilotStoreService (PSS).
-    """
+    """ TROY PilotStoreService (PSS).   """
 
     # Class members
     __slots__ = (
@@ -129,7 +120,7 @@ class PilotDataService(object):
         """
         pass
 
-    def add(self, pss):
+    def add_pilot_store_service(self, pss):
         """ Add a PilotStoreService 
 
             Keyword arguments:
@@ -140,7 +131,7 @@ class PilotDataService(object):
         """
         pass
 
-    def remove(self, pss):
+    def remove_pilot_store_service(self, pss):
         """ Remove a PilotStoreService 
 
             
@@ -151,11 +142,13 @@ class PilotDataService(object):
         """
         pass
     
-    def list_pilotdata(self):
+    
+    def list_pilot_data(self):
         """ List all PDs of PDS """
         pass
+    
 
-    def create_pilotdata(self, pilot_data_description):
+    def submit_pilot_data(self, pilot_data_description):
         """ Create Pilot Data object and schedule it to a Pilot Store """
         pass
     
@@ -172,7 +165,6 @@ class PilotDataService(object):
         pass
 
 
-
 #
 # TROY PilotDataDescription
 # 
@@ -181,12 +173,20 @@ class PilotDataDescription(dict):
         {
             'file_urls': [file1, file2, file3]        
         } 
+        
+        Currently, no directories supported
     """
 
     def __init__(self):
         pass
 
-
+    def __setattr__(self, attr, value):
+        self[attr]=value
+    
+    def __getattr__(self, attr):
+        return self[attr]
+    
+    
 #
 # TROY PilotData 
 # 

@@ -98,7 +98,7 @@ class PilotDataService(PilotDataService):
         return None
     
     
-    def create_pilotdata(self, pilot_data_description):
+    def submit_pilot_data(self, pilot_data_description):
         """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
         pd = PilotData(self, pilot_data_description)
         self.pilot_data[pd.id]=pd
@@ -290,7 +290,8 @@ if __name__ == "__main__":
     
     # create pilot data service
     pilot_data_service = PilotDataService()
-    pd = pilot_data_service.create_pilotdata(pilot_data_description)
+    #note: will be scheduled as soon as a suitable pilot store is available
+    pd = pilot_data_service.submit_pilot_data(pilot_data_description) 
     
     # create pilot store service (factory for pilot stores (physical, distributed storage))
     pilot_store_service = PilotStoreService()
