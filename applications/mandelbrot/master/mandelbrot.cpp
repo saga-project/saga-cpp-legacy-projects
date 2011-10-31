@@ -295,7 +295,7 @@ void mandelbrot::job_startup (void)
   //
   // FIXME: make timeoutini parameter
   //
-  int timeout    = 10;
+  int timeout    = 20;
   int clients_ok = 0;
 
   for ( unsigned int n = 0; n < clients_.size (); n++ )
@@ -491,9 +491,9 @@ int mandelbrot::compute (void)
   // all work items are assigned now.
   // wait for incoming boxes, and paint them as they get available.
   // completed work item adverts are deleted.
-  unsigned int waited     =  0;  // FIXME: make ini para
-  unsigned int max_wait   = 20;  // FIXME: make ini para
-  unsigned int timeout    =  5;  // FIXME: make ini para
+  unsigned int waited     =  0;
+  unsigned int max_wait   = 30;  // FIXME: make ini para
+  unsigned int timeout    =  2;  // FIXME: make ini para
   unsigned int boxes_done =  0;
   bool         todo       = true;
 
