@@ -6,7 +6,11 @@ class PilotStoreDescription(dict):
     """ TROY PilotStoreDescription.
         {
             'service_url': "ssh://localhost/tmp/pilotstore/",
-            'size':100                                
+            'size':100,
+            
+            # Affinity
+            'affinity_datacenter_label',    # pilot stores sharing the same label are located in the same data center          
+            'affinity_machine_label',       # pilot stores sharing the same label are located on the same machine                           
         }    
     """
     

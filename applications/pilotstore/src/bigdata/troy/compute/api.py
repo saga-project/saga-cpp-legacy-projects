@@ -48,14 +48,19 @@ class PilotJobDescription(object):
         'threads_per_process',      # Nr of threads to start per process
         'total_core_count',         # total number of cores requested
         'spmd_variation',           # Type and startup mechanism
+        
         # Requirements
-          'candidate_hosts',
+        'candidate_hosts',
         'cpu_architecture',
         'total_physical_memory', 
         'operating_system_type',
         'total_cpu_time',
         'wall_time_limit',
-        'queue'
+        'queue',
+        
+        # Affinity
+        'affinity_datacenter_label',    # pilot jobs sharing the same label are located in the same data center          
+        'affinity_machine_label',       # pilot jobs sharing the same label are located on the same machine
     )
 
     def __init__(self):
