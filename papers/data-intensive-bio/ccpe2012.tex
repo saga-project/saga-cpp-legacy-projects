@@ -309,26 +309,25 @@ pursue.
 \subsection{NGS Data Analytics: Three Types of Services}
 
 Before presenting our investigation on challenges of NGS data analysis
-for two applications, mapping and ChIP-seq, we introduce our main
+for two applications, mapping and ChIP-Seq, we introduce our main
 strategy, the development of runtime environment that allows dynamic
 execution of applications provided as standalone tools, pipelines, and
 workflows.  We categorize resulting dynamic applications as three
 types of services as summarized
-Table~\ref{table:three-type-service}. We will examine two specific
-tool, BFAST for the mapping application and a pipeline for ChIP-Seq
-data analysis, as representative examples for existing computational
-tools that are potentially transformed to Type I and Type II services.
+Table~\ref{table:three-type-service}.  
+
+We will examine two specific
+software tool, BFAST for the mapping application and a pipeline for ChIP-Seq
+data analysis that we developed, as representative examples how existing computational
+tools are transformed to Type I and Type II services.
 In fact, Type III services are the extended version of Type II with an
 advanced dynamic workflow support, and thus in this work, they are not
-considered.  Type I services, thus, provide mostly enhanced
-capabilities of existing standalone tools with scalable
-infrastructure, whereas Type II services are presented as a pipeline
-that might contain multiple steps conducted by separated or
-loosely-coupled existing tools.  Due to emerging protocols for RNA-Seq
-and genome wide mapping of DNA-protein interactions or methylation
-patterns, pipeline approaches for such applications are becoming
-increasingly playing important roles and the need for Type II services
-grows correspondingly.
+considered.  
+
+With Type I services, we focus on how the enhancement of existing standalone tools is achieved with scalable
+infrastructure and supporting dynamic execution patterns, whereas with Type II services, mostly targeting pipeline
+approaches, we will emphasize additional capabilities to integrate multiple steps for a pipeline.  Due to the emergence of revolutionary protocols with high-throughput sequencing techniques such as RNA-Seq and genome wide mapping of DNA-protein interactions (ChIP-Seq) or methylation patterns, pipeline approaches have been becoming
+increasingly playing important roles, implying the need for Type II services grows fast.
 
 \jhanew{JK: Please go through and make consistent the use of service
   and application/tool}
@@ -340,7 +339,7 @@ grows correspondingly.
 %      consistent within different entries in this table!}
  }
  \begin{tabular}{| l | l | l | l |} \hline \rowcolor[rgb]{0.8,0.8,0.8}
-   Service &
+   Service Type &
    Type I & Type II & Type III \\ 
 
    Service Description & Standalone  & Dynamic Pipeline & Dynamic \\
@@ -350,12 +349,12 @@ grows correspondingly.
 %    \hline 
 %    Scientific Workflow & Not Needed & Useful but Not
 %    Necessarily & Needed \\ \hline 
- Example Application & Mapping & ChIP-Seq, RNA-Seq & RNA-Seq \\ 
- Protocol & & & \\ \hline 
+ Example Application & Mapping & ChIP-Seq, RNA-Seq & ChIP-Seq, RNA-Seq \\ 
+ l & & & \\ \hline 
 
   Example of & BFast, BWA, & MACS, TopHat-Fusion, & 
    \\
-   Existing Tools &  Bowtie, ABySS  & TRANS-ABySS, Hydra & \jhanew{??} \\
+   Existing Tools &  Bowtie, ABySS  & TRANS-ABySS, Hydra, GATK & \\
    \hline
 \end{tabular}
 \label{table:three-type-service}
@@ -773,31 +772,33 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
  interactions, and obtained information is directly associated with
  transcription regulation\cite{pepke2009, laajala, wilbanks}.  An
  understanding of transcription regulation is one of fundamental goals
- in biological sciences because of its significance for virtually all
+ in biological sciences, which is relevant to virtually all
  aspects of biological processes in a living cell responsible for cell
  development, differentiation, host-pathogen interactions,
  epigenetics, tumorigenesis.  New drug or bio-marker discovery for
  many devastating diseases including neurodegenerative disorders are
  examples of significant outcomes from such studies\cite{pepke2009}.
+ 
  Replacing ChIP-ChIP methods based on micro-array approaches quickly,
  the ChIP-Seq experiment became a main player with its genome-wide
- scale information and higher resolution.  ChIP-Seq means Chromatin
+ scale information and higher resolution\cite{pepke2009,mardis2008-tig}.  ChIP-Seq means Chromatin
  Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq), and
- thus the sequenced reads indicate the location of the peak where
- regulatory proteins bind with enrichment of reads. Generally, the
- conventional computational task for ChIP-Seq is composed of two
+ consequently the sequenced reads indicate the location of a binding site or peak in other word where
+ regulatory proteins bind and thus the enrichment of reads is evidenced by NGS.  
+ 
+ Generally, the conventional computational task for ChIP-Seq data is composed of two
  independent steps (see Fig.~\ref{fig:chip-seq}).  In the first step,
- the mapping of two data sets, corresponding to the control and the
- treat data, are carried out separately, and in the second step, a
+ the mapping of two data sets, corresponding to the control (if exist) and the
+ treat data (the main data from ChIP experiment), are carried out separately, and in the second step, a
  peak caller, which carries out statistical analysis to infer true
  peaks indicating DNA-protein interaction regions, is executed.  The
  control data facilitate the construction of a peak model and
  background calibration, but it is optional. The unknown statistical
- nature of mapped reads, accompanied with errors arising from ChiP-Seq
- experiment process, along with the difficulty of increasing
- sensitivity in the mapping step due to the short length of reads
- (mostly up to 100 something at the time of this work) make the
- prediction of true peaks challenging\cite{pepke2009,laajala,wilbanks}
+ nature of mapped reads, accompanied with various sources of errors arising from ChiP-Seq
+ experiment process is an main obstacle for understanding peak calling results.  The difficulty is added with the limitation of current sequencing technologies producing the relatively short length of reads
+ (mostly up to 100 something at the time of this work) and thus challenging for increasing
+ sensitivity in the mapping step\cite{pepke2009,laajala,wilbanks}.
+ 
  In this work, we use the well-proven peak caller, MACS\cite{macs} for
  the second step, while three different software tools, BFAST, Bowtie,
  and BWA, are employed for the first mapping step.  These mappers
@@ -805,17 +806,17 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
  requirements.  Two additional mappers, BWA and Bowtie are widely used
  due to their adoption of the memory efficient algorithm,
  Burrow-Wheeler Transformation, whereas BFAST was found to provide
- increased sensitivity\cite{bfast2009,mapping-survey}.  As shown in
+ increased sensitivity\cite{bfast2009,mapping-survey}.  Note that the second step with MACS takes relatively shorter time than the mapping step and thus we focus on the computational characteristics with the first step.  As shown in
  Fig.~\ref{fig:chip-seq-comp}, two mappers, BWA and Bowtie takes
  considerably shorter times compared to BFAST.  Note that the results
  presented in Fig.~\ref{fig:chip-seq-comp} were obtained by conducting
- the pipeline in which concurrent execution of the mapping step using
+ the pipeline we developed as a Type II service, in which concurrent execution of the mapping step using
  256 cores of a HPC cluster was managed.  Our main focus with the
  ChIP-Seq pipeline is to present a compelling example how the use of
  scalable distributed infrastructure as well as the runtime
  environment supporting dynamic execution of the pipeline for ChIP-Seq
  data analytics leverage this powerful protocol utilizing NGS
- technologies.
+ technologies.  The comparison with analyzed results will be presented later with the discussions for the need of the development of Type II services. 
 
 \section{NGS Data Analytics using Distributed, Scalable Architectures}
 
@@ -908,8 +909,8 @@ that is able to exploit different types of architecture and platforms.
 %BFAST are desirable.
  
 This could involve supporting fine-grained parallelism, of the type
-that is supported by invoking the multi-threading option of BFAST, or
-it could involve invoking multiple instances of BFAST executing
+that is supported by invoking the multi-threading option of a software tool such as BFAST, or
+it could involve invoking multiple instances of the tool executing
 independently but on different read-files associated with the same
 problem instance. Which approach will be more effective depends upon
 the specific configuration of the problem instance, i.e., a problem
