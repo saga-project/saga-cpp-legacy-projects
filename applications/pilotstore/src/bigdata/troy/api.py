@@ -2,7 +2,7 @@ import compute.api
 import data.api
 
 
-class WorkDataDescription(dict):
+class WorkDataDescription(compute.api.WorkUnitDescription):
     """ TROY WorkUnitDescription.
         {
             'executable': <path to executable>,  

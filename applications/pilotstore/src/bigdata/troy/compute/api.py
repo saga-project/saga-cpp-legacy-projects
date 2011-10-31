@@ -285,7 +285,7 @@ class WorkUnitService(object):
 #
 # TROY WorkUnitDescription
 # 
-class WorkUnitDescription(object):
+class WorkUnitDescription(dict):
     """ TROY WorkUnitDescription.
     
         The WorkUnitDescription is a job/task/call description based on 
@@ -331,7 +331,12 @@ class WorkUnitDescription(object):
     def __init__(self):
         pass
 
-
+    def __setattr__(self, attr, value):
+        self[attr]=value
+        
+    
+    def __getattr__(self, attr):
+        return self[attr]
 
 
 #
