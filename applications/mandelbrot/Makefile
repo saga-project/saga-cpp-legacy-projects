@@ -27,3 +27,8 @@ client:   config
 master:   external
 endif
 
+restart:
+	@make restart -C demo-fg
+	@make restart -C demo-gin
+	@make restart -C demo-xsede
+

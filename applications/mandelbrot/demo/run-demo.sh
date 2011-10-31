@@ -90,7 +90,7 @@ function main
     fi
 
     # relaunch ourself
-    $SAGA_DEMO_ROOT/run-demo-gin.sh
+    $SAGA_MB_ROOT/demo/run-demo-gin.sh
 
   else # SAGA_DEMO_STOP exists
 
@@ -104,7 +104,10 @@ function main
   fi
 }
 
-export SAGA_DEMO_ROOT=$SAGA_MB_ROOT/$SAGA_MB_TAG
+echo "SAGA_MB_ROOT: $SAGA_MB_ROOT"
+echo "SAGA_MB_TAG: $SAGA_MB_TAG"
+
+export SAGA_DEMO_ROOT=$SAGA_MB_ROOT/demo-$SAGA_MB_TAG
 export SAGA_DEMO_LOG=$SAGA_DEMO_ROOT/demo.log
 export SAGA_DEMO_LOCK=$SAGA_DEMO_ROOT/demo.lock
 export SAGA_DEMO_STOP=$SAGA_DEMO_ROOT/demo.stop

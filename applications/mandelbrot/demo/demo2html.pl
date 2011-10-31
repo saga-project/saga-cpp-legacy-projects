@@ -38,7 +38,7 @@ open OUT, (">$home/index.html") || die "Cannot open output file: $!\n";
 
   print OUT <<EOT;
 <head>
- <link rel="stylesheet" type="text/css" href="../../demo.css" />
+ <link rel="stylesheet" type="text/css" href="../../../demo/demo.css" />
 </head>
 
 <html>
