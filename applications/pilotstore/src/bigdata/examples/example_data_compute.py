@@ -18,8 +18,7 @@ if __name__ == "__main__":
     # create pilot job service and initiate a pilot job
     pilot_job_description = {
                              "service_url": 'fork://localhost',
-                             "total_core_count": 1,
-                             "processes_per_host": 1,
+                             "number_of_processes": 1,                             
                              "working_directory": "/tmp/pilotjob/",
                              'affinity_datacenter_label': "eu-de-south",              
                              'affinity_machine_label': "mymachine" 

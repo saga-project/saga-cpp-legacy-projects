@@ -58,23 +58,33 @@ class PilotJobService(PilotJobService):
         if self.__mjs == None:
             logging.debug("Create Dynamic BigJob Service")            
             self.__mjs = many_job_service([], COORDINATION_URL)
-                
-        resource_dictionary = {
-                               "resource_url" : "fork://localhost/", 
-                               "number_of_processes" : "32", 
-                               "processes_per_node":"1", 
-                               "allocation" : None, 
-                               "queue" : None, 
-                               "working_directory": (os.getcwd() + "/agent"), 
-                               "walltime":3600 
-                               }
-        
-        bigjob = self.__mjs.add_resource(resource_dictionary)
+            
+        resource_description = self.__translate_pj_bj_description(pilot_job_description)
+        bigjob = self.__mjs.add_resource(resource_description)
         pj = PilotJob(bigjob)
         self.pilot_jobs.append(pj)
         return pj
         
+    def __translate_pj_bj_description(self, pilot_job_description):
+        resource_description={}
+        if pilot_job_description.has_key("service_url"):
+            resource_description["resource_url"] = pilot_job_description["service_url"] 
+            
+        if pilot_job_description.has_key("queue"):
+            resource_description["queue"] = pilot_job_description["queue"] 
+        else:
+            resource_description["queue"] = None
+            
+        if pilot_job_description.has_key("allocation"):
+            resource_description["allocation"] = pilot_job_description["allocation"] 
+        else:
+            resource_description["allocation"] = None
         
+        for i in pilot_job_description.keys():
+            resource_description[i] = pilot_job_description[i] 
+        
+        return resource_description
+    
     def list_pilotjobs(self):
         return self.__mjs.get_resources()
         
