@@ -2,7 +2,7 @@ set terminal postscript eps enhanced "Helvetica" 28
 set output 'readsvstime_hg18_chr21.eps'
 
 set xlabel "Read File Size(in GB)" font "Helvetica,26"
-set ylabel "Time to Completion(in 1000 seconds)" font "Helvetica,26"
+#set ylabel "Time to Completion(in 1000 seconds)" font "Helvetica,26"
 
 set autoscale
 #set xrange [0.001:0.005]
