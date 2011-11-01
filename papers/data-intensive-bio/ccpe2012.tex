@@ -109,7 +109,7 @@ Shantenu Jha\corrauth\ensuremath{{^2{^,}^1}} %\comma, %\footnotemark[3],
   a reference genome, the data size of short reads. We analyze the
   performance characteristics of BFAST and understand its dependency
   on different input parameters. Characterizing the performance
-  suggests that genome-wide mapping benefits from both scaling-up
+  suggests that the mapping benefits from both scaling-up
   (increased fine-grained parallelism) and scaling-out (task-level
   parallelism -- local and distributed).  For certain problem
   instances, scaling-out can be a more efficient approach than
@@ -139,7 +139,7 @@ Shantenu Jha\corrauth\ensuremath{{^2{^,}^1}} %\comma, %\footnotemark[3],
 %%\keywords{RNA conformation energy landscape, Runtime Environment, SAM-I riboswitch,
 %% S gene of Bovine Corona Viral Genome} % NOT required for Proceedings
 
- \keywords{Next-Generation Sequencing Data Analytics, Science Gateway, BFAST, ChIP-Seq, Human Genome, Burkerholderia Glumae, Runtime Environment, Distributed Computing, Simple API for Grid Applications (SAGA), Pilot-Job abstraction}
+ \keywords{Next-Generation Sequencing Data Analytics, Science Gateway, BFAST, Mapping, ChIP-Seq, Human Genome, Burkerholderia Glumae, Mouse Genome, Runtime Environment, Distributed Computing, Simple API for Grid Applications (SAGA), Pilot-Job Abstraction}
 
 
 \section{INTRODUCTION} 
@@ -151,22 +151,18 @@ Shantenu Jha\corrauth\ensuremath{{^2{^,}^1}} %\comma, %\footnotemark[3],
 
 High-throughput genome sequencing techniques provided by Next
 Generation Sequencing (NGS) platforms are changing biological sciences
-and biomedical research
-dramatically\cite{mardis2008-tig,mardis2008-arghg}. These techniques
+and biomedical research dramatically\cite{mardis2008-tig,mardis2008-arghg}. These techniques
 have led to a broadening of sequencing capabilities and access to
 comprehensive genome-wide information at increasingly lower costs
 compared to previous sequencing techniques (such as those based on
 Sanger sequencing)
 \cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.
-Thanks to advances in deep sequencing protocols such as ChIP-seq
-(chromatin immunoprecipitation-seq) and RNA-seq, high-throughput
-sequencing techniques have become essential methodologies in studies
-of cell development and
+Thanks to advances in evolutionary protocols utilizing the sequencing technologies such as ChIP-Seq
+(chromatin immunoprecipitation followed by sequencing) and RNA-Seq, high-throughput
+sequencing techniques have become essential methodologies in studies of cell development and
 differentiation\cite{wang2009-natrevgen,pepke2009,gilad2009,mortazavi2008,sorek2010}.
 Indeed, the resulting influx of biological information about the
-genome-wide organization and the interaction map of target genes and
-pathways reveal underlying mechanisms of gene expression and
-regulation in living cells. This has the potential to lead to remedies
+genome-wide organization for regulatory protein-DNA interactions and transcription dynamics reveal underlying mechanisms of gene expression and regulation in living cells. This has the potential to lead to remedies
 for various diseases such as cancer, infectious diseases, and
 dysfunctional diseases caused genetically or by
 aging\cite{amaral2008,encode2007,baek2008,costa2009}.
@@ -174,12 +170,11 @@ aging\cite{amaral2008,encode2007,baek2008,costa2009}.
 
 It is expected that data-sets of interest will increase by several
 orders of magnitude as the number of genomes that need to be sequenced
-together increases exponentially.  This is a result of comparative
-genomics as well as genome-wide variation studies that require a
+together increases exponentially.  For example, genome-wide variation studies require a
 statistical number of genomes for one single species as shown in the
 recent 1000 genome project and human genome
 studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}.
-Although, high-throughput techniques enjoy extremely high coverage of
+Although high-throughput techniques enjoy extremely high coverage of
 target genome regions, current "deep sequencing" technologies adopted
 by NGS platforms such as Illumina GA II and Applied Biosystems SOLiD
 are limited to generating only short sequence reads, generally less
@@ -195,11 +190,9 @@ studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,far
 % needed as the first step for any genome-wide
 % studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
-To address these challenges, there have been algorithmic advances and
-several tools implementing these algorithms have become
-available\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
-Whereas such algorithmic advances and introduction of new tools have
-been consistently led by the computational biology community, the
+To address such challenges, there have been algorithmic advances and
+a lot of software tools have become available\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
+However, compared to the research community interests on such algorithmic advances and new software tools, the
 development of a well-architected integrated infrastructure -- the
 software \& services, data management capabilities and user interfaces
 has received less attention.
@@ -209,13 +202,12 @@ compute or data-intensive application, but an interesting mix of
 high-end and high-throughput computing with data-intensive
 requirements; thus a scalable and integrated infrastructure is
 required.  The need for an appropriate scalable and flexible
-architecture for the infrastructure, becomes critical both given the
-trends as well as the computational complexity of a specific problem
+architecture for the infrastructure becomes critical, in particular because the computational complexity of a specific problem
 instance is often influenced by the biological characteristics of
 target genome(s) and the volume of relevant genomics data.  Thus we
-hope to help address the fundamental question: what is the appropriate
+hope to find a solution for the fundamental question: what is the appropriate
 integrated compute and data infrastructure to address the existing
-requirements of NGS analytics now and extrapolating into the future?
+requirements of NGS analytics now and appearing in the future?
 
 % Our approach is to primarily focus on the mapping process of short
 % reads from NGS platforms against a reference genome.  The mapping is
@@ -243,15 +235,14 @@ infrastructure that has been shown to enable the seamless utilization
 of heterogeneous distributed computing
 resources\cite{saga-iccs09,saga-royalsoc,saga-ccgrid10} such as
 high-performance computing (HPC) grids and cloud environments.  DARE
-provides an existing efficient framework upon which to build a
-scalable infrastructure to support a wide range of abstractions and
+provides an efficient framework to build a scalable infrastructure supporting a wide range of abstractions and
 execution requirements for the analytics required for NGS data.
 
 DARE-NGS is designed on the organizing principel that the bulk of
 NGS-analytics can be categorized into three types of services --Type
-I, II and III. Type I represents stand-alone tools, but provided
-within a scalable and flexible runtime environment. Types II and III
-represent integrated pipelines and workflow composition of tools
+I, II and III. Type I represents a service adequate for stand-alone tools, but transforms those tools
+as dynamic applications with a scalable and flexible runtime environment. Types II and III
+targets services providing integrated pipelines and workflow composition of tools
 respectively.  The main design strategy of the DARE framework is to
 separate the application logic from a target tool(s), consequently
 resulting in easy-to-develop cycles for improvement, changes, and
@@ -297,7 +288,7 @@ deployment of new tools.
 This paper is organized as follows.  In \S2, we introduce BFAST and a
 ChIP-Seq pipeline, and characterise their computational and data
 requirements.  In \S3, we examine BFAST as one of several possible
-mapping tools available.  BFAST performance is measured and analyzed
+mapping tools promising higher sensitivity but requiring high-end computational resources.  BFAST performance is measured and analyzed
 using local and multiple distributed resources (HPC grid and a
 cloud). The execution of the ChIP-Seq pipeline -- a more complex
 application is presented as an example of a Type II service and its
