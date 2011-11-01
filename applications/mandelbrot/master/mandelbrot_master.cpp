@@ -29,28 +29,28 @@ int main (int argc, char** argv)
   catch ( saga::exception const & e )
   {
     std::cerr << "SAGA Exception: " << e.what () << std::endl;
-    return -1;
+    ret = -1;
   }
 
   // catch exceptions from the mandelbrot class and the output device
   catch ( char const * s )
   {
     std::cerr << "Mandelbrot Exception: " << s << std::endl;
-    return -2;
+    ret = -2;
   }
 
   // catch standard exceptions
   catch ( const std::exception & e )
   {
     std::cerr << "std::exception: " << e.what () << std::endl;
-    return -3;
+    ret = -3;
   }
 
   // catch anythin exceptions
   catch ( ... )
   {
     std::cerr << "some exception" << std::endl;
-    return -3;
+    ret = -3;
   }
 
   ////////////////////////////////////////////////////////////////////

@@ -123,29 +123,82 @@ EOT
       if ( $itemreq_line =~ /^  #itemreq  :\s*(\S+)\s*$/io ) { $itemreq = $1; }
       if ( $itemok_line  =~ /^  #itemok   :\s*(\S+)\s*$/io ) { $itemok  = $1; }
 
-      my $col_url     = $col_yellow;
+      my $col_name    = $col_yellow;
       my $col_status  = $col_yellow;
-      my $col_job     = $col_yellow;
+      my $col_jobreq  = $col_yellow;
+      my $col_jobok   = $col_yellow;
       my $col_jobreg  = $col_yellow;
-      my $col_item    = $col_yellow;
+      my $col_itemreq = $col_yellow;
+      my $col_itemok  = $col_yellow;
+      my $col_url     = $col_yellow;
 
       my $fail = 0;
 
-      if    ( $status  eq "ok"     ) { $col_status = $col_green; $fail = 0; $status = "up";   }
-      elsif ( $status  eq "failed" ) { $col_status = $col_red;   $fail = 1; $status = "down"; }
+      $col_name = $col_green; # assume ep is enabled
 
-      if ( $jobreq  == $jobok   ) { $col_job    = $col_green; } else { $col_job    = $col_red; $fail = 1; }
-      if ( $jobok   == $jobreg  ) { $col_jobreg = $col_green; } else { $col_jobreg = $col_red; $fail = 1; }
-      if ( $itemreq == $itemok  ) { $col_item   = $col_green; } else { $col_item   = $col_red; $fail = 1; }
+      if ( $status  eq "ok" ) 
+      { 
+       $col_status = $col_green; 
+       $status     = "up";   
 
-      if ( ($jobreq  + $jobok ) == 0 ) { $col_job    = $col_yellow; }
-      if ( ($jobreg           ) == 0 ) { $col_jobreg = $col_yellow; }
-      if ( ($itemreq + $itemok) == 0 ) { $col_item   = $col_yellow; }
+       if ($jobreq > 0 ) 
+       { 
+         $col_jobreq = $col_green;
+       
+         if ( $jobreq  == $jobok ) 
+         { 
+           $col_jobok = $col_green; 
 
-      if ( $jobok > $jobreg ) { $col_jobreg = $col_red; }
+           if ( $jobok == $jobreg )
+           { 
+             $col_jobreg = $col_green; 
+       
+             if ( $itemreq > 0 ) 
+             { 
+               $col_itemreq = $col_green; 
+             
+               if ( $itemreq == $itemok )
+               {
+                 $col_itemok = $col_green;
+               } 
+               else 
+               { 
+                 $col_itemok = $col_red;    
+                 $fail = 1; 
+               }
+             }
+             else
+             {
+               $col_itemreq = $col_red;
+               $fail = 1;
+             }
+           } 
+           else 
+           { 
+             $col_jobreg = $col_red;
+             $fail = 1; 
+           }
+         } 
+         else 
+         { 
+           $col_jobok = $col_red; 
+           $fail = 1; 
+         }
+       } 
+       else
+       {
+         $col_jobreq = $col_red;
+         $fail = 1; 
+       }
+      }
+      else
+      { 
+        $col_status = $col_red;   
+        $fail       = 1; 
+        $status     = "down"; 
 
-      if ( $itemreq == 0 ) { $fail = 1; }
-
+      }
+      
       if ( $fail ) { $col_url = $col_red; } else { $col_url = $col_green; } 
 
       $tot_jobreq  += $jobreq ;
@@ -156,13 +209,13 @@ EOT
 
       print OUT <<EOT;
       <tr>
-       <td align="left"  bgcolor="$col_url"> <a href='$fname'>$epname</a> </td>
+       <td align="left"  bgcolor="$col_name"> <a href='$fname'>$epname</a> </td>
        <td align="right" bgcolor="$col_status"> $status </td>
-       <td align="right" bgcolor="$col_job"> $jobreq </td>
-       <td align="right" bgcolor="$col_job"> $jobok </td>
+       <td align="right" bgcolor="$col_jobreq"> $jobreq </td>
+       <td align="right" bgcolor="$col_jobok"> $jobok </td>
        <td align="right" bgcolor="$col_jobreg"> $jobreg </td>
-       <td align="right" bgcolor="$col_item"> $itemreq </td>
-       <td align="right" bgcolor="$col_item"> $itemok </td>
+       <td align="right" bgcolor="$col_itemreq"> $itemreq </td>
+       <td align="right" bgcolor="$col_itemok"> $itemok </td>
        <td align="left"  bgcolor="$col_url"> $url </td>
       </tr>
 EOT
