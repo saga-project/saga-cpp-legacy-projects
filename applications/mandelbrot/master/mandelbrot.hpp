@@ -26,7 +26,7 @@ class mandelbrot
     std::string                      job_bucket_name_;  // name of job directory
     saga::advert::directory          job_bucket_;       // advert container for new jobs 
     saga::advert::directory          done_bucket_;      // advert container for finished jobs 
-    job_starter                      js_;               // client manager
+    boost::shared_ptr <job_starter>  js_;               // client manager
 
     std::vector <boost::shared_ptr <client> > clients_; // saga jobs
 

@@ -14,13 +14,13 @@ include $(SAGA_MB_ROOT)/config/make.cfg.base
 all: restart
 
 clean: stop
-	@rm -vf $(SAGA_DEMO_HOME)/demo.lock
-	@rm -vf $(SAGA_DEMO_HOME)/demo.log
-	@rm -vf $(SAGA_DEMO_HOME)/demo.stop
+	@rm -f $(SAGA_DEMO_HOME)/demo.lock
+	@rm -f $(SAGA_DEMO_HOME)/demo.log
+	@rm -f $(SAGA_DEMO_HOME)/demo.stop
 
 distclean: stop clean
-	@rm -vrf $(SAGA_DEMO_HOME)/demo-*/
-	@rm -vf  $(SAGA_DEMO_HOME)/today
+	@rm -rf $(SAGA_DEMO_HOME)/demo-*/
+	@rm -f  $(SAGA_DEMO_HOME)/today
 
 restart: clean start
 
@@ -29,5 +29,5 @@ start:
 	@env  "SAGA_MB_TAG=$(SAGA_MB_TAG)" SAGA_MB_ROOT=$(SAGA_MB_ROOT) $(SAGA_MB_ROOT)/demo/run-demo.sh
 
 stop:
-	@-ps ef -C run-demo.sh | grep -e "SAGA_MB_TAG=$(SAGA_MB_TAG)" | cut -c 8-14 | xargs -rt kill
+	@-ps ef -C run-demo.sh | grep -e "SAGA_MB_TAG=$(SAGA_MB_TAG)" | cut -f 1 -d ' ' | xargs -rt kill
 

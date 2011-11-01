@@ -2,15 +2,16 @@
 #include "endpoint.hpp"
 
 endpoint::endpoint (std::string           name,
-                      mb_util::ini::section ini)
-  : name_     (name)
-  , ini_      (ini)
-  , valid_    (false)
-  , cnt_jreq_ (0)
-  , cnt_jrun_ (0)
-  , cnt_jreg_ (0)
-  , cnt_iass_ (0)
-  , cnt_iok_  (0)
+                    mb_util::ini::section ini)
+  : name_      (name)
+  , ini_       (ini)
+  , valid_     (false)
+  , cnt_jreq_  (0)
+  , cnt_jrun_  (0)
+  , cnt_jreg_  (0)
+  , cnt_iass_  (0)
+  , cnt_iok_   (0)
+  , cancelled_ (false)
 {
   ctype_  =         ini_.get_entry ("ctype", "" );
   url_    =         ini_.get_entry ("url"  , "" );
@@ -78,6 +79,14 @@ endpoint::endpoint (std::string           name,
 
 endpoint::~endpoint (void)
 {
+  cancel ();
+}
+
+void endpoint::cancel (void)
+{
+  if ( cancelled_ )
+    return;
+
   // write log of events
   std::ofstream fout ((std::string ("endpoint.") + name_ + ".txt").c_str ());
 
@@ -102,5 +111,33 @@ endpoint::~endpoint (void)
   fout << "  #itemok   : " << cnt_iok_       << std::endl;
   fout << "================================" << std::endl;
   fout.close ();
+
+  cancelled_ = true;
+}
+
+void endpoint::dump (void)
+{
+  std::cout << "dumping   endpoint " << name_ << " (" << this << ")" << std::endl;
+
+  std::cout << "================================" << std::endl;
+  std::cout << "endpoint ini section"             << std::endl;
+  std::cout << "================================" << std::endl;
+  
+  ini_.dump ();
+  
+  std::cout << "================================" << std::endl;
+  std::cout << log_.str ();
+  std::cout << "================================" << std::endl;
+  if ( valid_ ) {
+    std::cout << "  status    : ok"                 << std::endl;
+  } else {
+    std::cout << "  status    : failed"             << std::endl;
+  }
+  std::cout << "  #jobreq   : " << cnt_jreq_      << std::endl;
+  std::cout << "  #jobok    : " << cnt_jrun_      << std::endl;
+  std::cout << "  #jobreg   : " << cnt_jreg_      << std::endl;
+  std::cout << "  #itemreq  : " << cnt_iass_      << std::endl;
+  std::cout << "  #itemok   : " << cnt_iok_       << std::endl;
+  std::cout << "================================" << std::endl;
 }
 

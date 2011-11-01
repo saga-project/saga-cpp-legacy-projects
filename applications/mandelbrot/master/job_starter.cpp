@@ -206,5 +206,10 @@ job_starter::job_starter (std::string       a_dir,
 
 job_starter::~job_starter (void)
 {
+  for ( unsigned int e = 0; e < endpoints_.size (); e++ )
+  {
+    std::cout << "closing   endpoint " << e << std::endl;
+    endpoints_[e]->cancel ();
+  }
 }
 

@@ -18,6 +18,8 @@ class endpoint
                mb_util::ini::section ini);
     ~endpoint (void);
 
+    void cancel (void);
+    void dump   (void);
 
     std::string             name_;
     saga::job::service      service_;
@@ -45,6 +47,7 @@ class endpoint
     unsigned int            cnt_iok_ ; // #items done
 
     bool                    debug_;
+    bool                    cancelled_;
 };
 
 #endif // SAGA_MANDELBROT_ENDPOINT_HPP

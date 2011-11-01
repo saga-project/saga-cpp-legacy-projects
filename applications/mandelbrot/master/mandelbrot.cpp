@@ -265,6 +265,7 @@ mandelbrot::~mandelbrot (void)
   // prematurely, we take care of termination
   for ( unsigned int i = 0; i < clients_.size (); i++)
   {
+    std::cout << "cancel    job " << i << std::endl;
     clients_[i]->cancel ();
   }
 
@@ -285,13 +286,13 @@ mandelbrot::~mandelbrot (void)
 //
 void mandelbrot::job_startup (void)
 {
-  js_ = job_starter (job_bucket_name_, ini_);
+  js_ = boost::shared_ptr <job_starter> (new job_starter (job_bucket_name_, ini_));
 
-  clients_ = js_.get_clients ();
+  clients_ = js_->get_clients ();
 
 
   // make sure clients get up and running: 
-  // wait 10 seconds for each job to registerS
+  // wait 10 seconds for each job to register
   //
   // FIXME: make timeoutini parameter
   //
@@ -383,7 +384,7 @@ void mandelbrot::job_startup (void)
                 clients_ok++;
                 ep->cnt_jreg_++;
                 std::cout << " ok (version " << SAGA_MANDELBROT_VERSION << ")" << std::endl;
-                ep->log_  << "client "      << clients_[n]->name_      << " registered"
+                ep->log_  << "client "       << clients_[n]->name_      << " registered"
                           << " (version "    << SAGA_MANDELBROT_VERSION << ")\n"; 
               }
               else
@@ -524,8 +525,8 @@ int mandelbrot::compute (void)
           std::stringstream data_ss  (ads[j].get_attribute ("data"));
 
           // log work item on client
-          js_.get_client (jobid_s)->cnt_iok_++;
-          js_.get_client (jobid_s)->ep_->cnt_iok_++;
+          js_->get_client (jobid_s)->cnt_iok_++;
+          js_->get_client (jobid_s)->ep_->cnt_iok_++;
 
           // data to paint
           std::vector <std::vector <int> > data;
@@ -557,7 +558,7 @@ int mandelbrot::compute (void)
           int box_off_x = box_y * box_size_x_;
           int box_off_y = box_x * box_size_y_;
 
-          std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
+          std::string id = boxnum_s + " (" + js_->get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
 
           for ( unsigned int d = 0; d < odevs_.size (); d++ )
           {
@@ -677,7 +678,7 @@ void mandelbrot::paint_it_black (saga::advert::entry ad,
     int box_off_x = box_y * box_size_x_;
     int box_off_y = box_x * box_size_y_;
 
-    std::string id = boxnum_s + " (" + js_.get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
+    std::string id = boxnum_s + " (" + js_->get_client (jobid_s)->ep_->name_ + ") " + jobid_s;
 
     for ( unsigned int d = 0; d < odevs_.size (); d++ )
     {

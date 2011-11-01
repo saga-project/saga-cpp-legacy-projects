@@ -27,8 +27,18 @@ client:   config
 master:   external
 endif
 
-restart:
+restart::
 	@make restart -C demo-fg
 	@make restart -C demo-gin
 	@make restart -C demo-xsede
+
+clean::
+	@make clean -C demo-fg
+	@make clean -C demo-gin
+	@make clean -C demo-xsede
+
+distclean::
+	@make distclean -C demo-fg
+	@make distclean -C demo-gin
+	@make distclean -C demo-xsede
 

@@ -4,12 +4,12 @@
 client::client (std::string                  name, 
                 saga::job::job               job, 
                 boost::shared_ptr <endpoint> ep)
-  : name_   (name)
-  , job_    (job)
-  , ep_     (ep)
+  : name_     (name)
+  , job_      (job)
+  , ep_       (ep)
   , cnt_iass_ (0)
-  , cnt_iok_ (0)
-  , valid_  (true)
+  , cnt_iok_  (0)
+  , valid_    (true)
 {
   id_ = job_.get_job_id ();
 

@@ -50,8 +50,7 @@ function main
     if [ -d $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV ]; then
       echo "re-creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV" \
                                          " $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS"
-      test -f $SAGA_DEMO_FAKE \
-        || $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV \
+      $SAGA_MB_ROOT/demo/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_PREV \
                                         $SAGA_DEMO_PREPREV $SAGA_DEMO_THIS
     fi
 
@@ -66,8 +65,7 @@ function main
     # this line expects mandelbrot_master to be installed in $SAGA_LOCATION/bin,
     # or elsewhere in $PATH
     cp $SAGA_MANDELBROT_INI $SAGA_DEMO_HOME
-    test -f $SAGA_DEMO_FAKE \
-      || $SAGA_LOCATION/bin/saga-run.sh mandelbrot_master 2> $SAGA_DEMO_STDERR > $SAGA_DEMO_STDOUT \
+    $SAGA_LOCATION/bin/saga-run.sh mandelbrot_master 2> $SAGA_DEMO_STDERR > $SAGA_DEMO_STDOUT \
       || echo "demo failed"
 
     echo "demo done "
@@ -79,8 +77,7 @@ function main
 
     # create html for the current demo - no 'next' nown yet
     echo "creating html: demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -"
-    test -f $SAGA_DEMO_FAKE \
-      || $SAGA_DEMO_ROOT/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -
+    $SAGA_MB_ROOT/demo/demo2html.pl $SAGA_DEMO_ROOT/demo-$SAGA_DEMO_DATE/$SAGA_DEMO_THIS $SAGA_DEMO_PREV -
 
     # new demo starts shortly after the last one finished (1 min sleep)
     if [ -f $SAGA_DEMO_DELAY ]; then
@@ -90,7 +87,7 @@ function main
     fi
 
     # relaunch ourself
-    $SAGA_MB_ROOT/demo/run-demo-gin.sh
+    $SAGA_MB_ROOT/demo/run-demo.sh
 
   else # SAGA_DEMO_STOP exists
 
@@ -112,7 +109,6 @@ export SAGA_DEMO_LOG=$SAGA_DEMO_ROOT/demo.log
 export SAGA_DEMO_LOCK=$SAGA_DEMO_ROOT/demo.lock
 export SAGA_DEMO_STOP=$SAGA_DEMO_ROOT/demo.stop
 export SAGA_DEMO_DELAY=$SAGA_DEMO_ROOT/demo.delay
-export SAGA_DEMO_FAKE=$SAGA_DEMO_ROOT/demo.fake
 
 export SAGA_MANDELBROT_INI=$SAGA_DEMO_ROOT/demo.ini
 
