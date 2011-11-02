@@ -360,17 +360,13 @@ increasingly playing important roles, implying the need for Type II services gro
 
 Before we can propose a scalable, extensible infrastructure to support
 data-analytics on a range of problem-instances, it is critical to
-characterize the computational and data dependencies of the BFAST
-application.  The overall execution of BFAST, or any other short
-mapping application that aligns short reads onto a reference genome is
+characterize the computational and data dependencies of the application and corresponding software tools.
+Here, BFAST is a focused tool for the mapping application which is needed as the first step for any NGS-data analysis.  The overall execution of BFAST, or any other mappers that align short reads onto a reference genome is
 affected by the specific biological problem at hand -- such as types
 of target reference genomes and high-throughput sequencing techniques
 and protocols, as well as computational attributes such as data
 structure and formats and the ability to exploit the underlying
-architecture.  Here, we present the various runtime options that BFAST
-provides that enable performance tuning; we also present measurements
-of the compute and data requirements for the problem instance of
-interest.
+architecture.  Here, we present various runtime options for BFAST that permits performance tuning ultimately; we also present measurements of the compute and data requirements for the problem instance of interest.
 
 % our investigation to characterize the
 % target application and more importantly the utilization of such
@@ -421,7 +417,7 @@ The number of threads is determined by the parameter (\texttt{-n});
 the \texttt{-d} option is used to split the index into multiple parts
 in order to support low-memory computation
 
-Note that unlike short read data that can be break into many files,
+Note that while short reads data that can be break into many files for concurrent executions,
 the whole reference genome is required for each read mapping; thus the
 \texttt{-d} option is useful for specific architectures (with low
 memory); but as we present later, it requires more computing time.
@@ -433,10 +429,13 @@ $d=0$ creates 10 index files, whereas $d=1$ creates 40 index files,
 i.e. four index files are generated for each mask and processed
 sequentially.
 
-Additionally, BFAST supports multi-threading as an input option for
-the three computationally demanding steps.  Taken together, BFAST can
-support varying degrees and types of parallelism or multi-threading,
-and thus suitable for modern processor architectures.
+Taken together, BFAST can support varying degrees and types of parallelism or multi-threading, and thus suitable for modern processor architectures.  Nonetheless and more importantly, it is valid to ask if there remains other bottlenecks
+(eg data flow/access) in the utilization of such architectures?
+Additionally, if the answer is found to be positive, it is natural to
+ask whether appropriate runtime environments can be developed in order
+to overcome these limitations, and to enable BFAST's effective use of
+distributed architectures?
+
 
 
 % \begin{figure}
@@ -450,14 +449,6 @@ and thus suitable for modern processor architectures.
 % \end{figure}
 
 
-In spite of the fact that BFAST has by design been made suitable to
-exploit the computing capabilities of a range of modern processor
-architectures, it is valid to ask if there remains other bottlenecks
-(eg data flow/access) in the utilization of such architectures?
-Additionally, if the answer is found to be positive, it is natural to
-ask whether appropriate runtime environments can be developed in order
-to overcome these limitations, and to enable BFAST's effective use of
-distributed architectures?
 
 
 %\subsection{Characterizing BFAST: Computational and Data Requirements}
@@ -478,9 +469,9 @@ distributed architectures?
   measured by varying the size of short read files.  Two lines
   represent two cases differing in the low memory option, which
   results in the different number of index files (40 vs 10).  Results
-  against the entire human genome (hg18) (upper) and chromosome 21
+  against the entire human genome (hg18) (left) and chromosome 21
   only (middle) as reference sequences for exome analysis, are
-  presented along with results with B. Glumae (lower).  The number of
+  presented along with results with B. Glumae (right).  The number of
   threads with the multi-threading option is set to 12. }
   \label{fig:parallel-execution} 
  \end{figure}
@@ -537,9 +528,9 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
 
 In Table~\ref{table:two-genomes}, we summarize the typical values of
 the parameters upon which the time-to-completion ($T_C$) typically
-depends; values for two genome datasets that are representative of
-biological diversity, an eucaryote system, human, and a microbe,
-Burkerholderia Glumae\cite{kim2011} are listed. The two genomes differ
+depends; values for two genome datasets are representative of
+biological diversity, i.e. human (eucaryote), and a microbe (procaryote),
+Burkerholderia Glumae\cite{kim2011}.  The two genomes differ
 in the size and the genome structure of reference genomes, and types
 of sequencing protocols.  Importantly, the two different genomes
 display widely different data sizes in terms of the reference genome
@@ -649,7 +640,7 @@ III&40 & 10 & 105MB & 13 &52 Gb \\
    for varying number of read files and index files, when all the read
    files are processed concurrently.  Number of concurrent tasks are
    equal to number of read files. The reference genome used is Human
-   Genome 18 Chromosome 21 with total index file size 1.9 GB of and
+   Genome (hg18) chromosome 21 with total index file size 1.9 GB of and
    total size of read files was 8.9 GB.}
     \label{table:dynamic-diskspace} 
 \end{table}
@@ -670,7 +661,7 @@ III&40 & 10 & 105MB & 13 &52 Gb \\
 %   depend on the size/number of read files but does depend on the
 %   size/number of index files. Needs to be explained.}
 
-Generally speaking, mapping with BFAST should deal with the data for a
+Generally speaking, mapping should deal with the data for a
 reference genome, short reads, and processed data generated in each
 step.  Particularly, the temporary data generated during 'bfast match'
 step needs careful attention due to their significant size and more
@@ -699,18 +690,18 @@ issue for a large genome system.
 % multiple files is a good option with distributed computing
 % resources.
 
-Information on the overall data requirement is found in
-Table~\ref{table:two-genomes} and
-Table~\ref{table:dynamic-diskspace}. As mentioned, separating short
-read data into multiple files (fragmentation) supports concurrent task
-execution.  While a reference genome index should be treated as a
-whole, there exists the possibly to break a reference genome.  For
-example, breaking a reference genome into many independent sets is
-possible, considering the fact that many organisms are composed of
-independent parts, for example, chromosomes and plasmids or that
-possible multiple contigs that represents discontinued genome
-sequences would exist as a reference genome; the Human genome is a
-fine example of this.
+%Information on the overall data requirement is found in
+%Table~\ref{table:two-genomes} and
+%Table~\ref{table:dynamic-diskspace}. As mentioned, separating short
+%read data into multiple files (fragmentation) supports concurrent task
+%execution.  While a reference genome index should be treated as a
+%whole, there exists the possibly to break a reference genome.  For
+%example, breaking a reference genome into many independent sets is
+%possible, considering the fact that many organisms are composed of
+%independent parts, for example, chromosomes and plasmids or that
+%possible multiple contigs that represents discontinued genome
+%sequences would exist as a reference genome; the Human genome is a
+%fine example of this.
  %  Indeed, the human genome in
 % Table~\ref{table:two-systems} with huge data volume as a whole is the
 % case that combining ideas to split the target genome with all possible
@@ -766,27 +757,26 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
  in biological sciences, which is relevant to virtually all
  aspects of biological processes in a living cell responsible for cell
  development, differentiation, host-pathogen interactions,
- epigenetics, tumorigenesis.  New drug or bio-marker discovery for
+ epigenetics, tumorigenesis, and so on.  New drug or bio-marker discovery for
  many devastating diseases including neurodegenerative disorders are
- examples of significant outcomes from such studies\cite{pepke2009}.
+ examples of anticipated outcomes from such studies\cite{pepke2009}.
  
- Replacing ChIP-ChIP methods based on micro-array approaches quickly,
- the ChIP-Seq experiment became a main player with its genome-wide
+ Replacing ChIP-ChIP methods based on micro-array approaches,
+ the ChIP-Seq experiment became quickly a main player with its genome-wide
  scale information and higher resolution\cite{pepke2009,mardis2008-tig}.  ChIP-Seq means Chromatin
- Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq), and
- consequently the sequenced reads indicate the location of a binding site or peak in other word where
- regulatory proteins bind and thus the enrichment of reads is evidenced by NGS.  
+ Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq). Following this protocol, the sequenced reads indicate the location of a binding site or a peak where
+ regulatory proteins bind as manifested by the enrichment of reads in such a region.  
  
  Generally, the conventional computational task for ChIP-Seq data is composed of two
- independent steps (see Fig.~\ref{fig:chip-seq}).  In the first step,
+ independent main steps\cite{pepke2009}.  In the first step,
  the mapping of two data sets, corresponding to the control (if exist) and the
  treat data (the main data from ChIP experiment), are carried out separately, and in the second step, a
  peak caller, which carries out statistical analysis to infer true
  peaks indicating DNA-protein interaction regions, is executed.  The
  control data facilitate the construction of a peak model and
- background calibration, but it is optional. The unknown statistical
- nature of mapped reads, accompanied with various sources of errors arising from ChiP-Seq
- experiment process is an main obstacle for understanding peak calling results.  The difficulty is added with the limitation of current sequencing technologies producing the relatively short length of reads
+ background calibration, but the requirement is optional.  The unknown statistical
+ nature of mapped reads, accompanied with various sources of errors and uncertainties arising from ChiP-Seq
+ experiment process is a main obstacle for the assessment of peak calling results.  The difficulty is added with the limitation of current sequencing technologies producing the relatively short length of reads
  (mostly up to 100 something at the time of this work) and thus challenging for increasing
  sensitivity in the mapping step\cite{pepke2009,laajala,wilbanks}.
  
@@ -797,12 +787,13 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
  requirements.  Two additional mappers, BWA and Bowtie are widely used
  due to their adoption of the memory efficient algorithm,
  Burrow-Wheeler Transformation, whereas BFAST was found to provide
- increased sensitivity\cite{bfast2009,mapping-survey}.  Note that the second step with MACS takes relatively shorter time than the mapping step and thus we focus on the computational characteristics with the first step.  As shown in
- Fig.~\ref{fig:chip-seq-comp}, two mappers, BWA and Bowtie takes
+ increased sensitivity\cite{bfast2009,mapping-survey}.  Note that the second step with MACS takes relatively shorter time than the mapping step and thus we focus on the computational characteristics with the first step.  
+ 
+ As shown in Fig.~\ref{fig:chip-seq-comp}, two mappers, BWA and Bowtie takes
  considerably shorter times compared to BFAST.  Note that the results
  presented in Fig.~\ref{fig:chip-seq-comp} were obtained by conducting
- the pipeline we developed as a Type II service, in which concurrent execution of the mapping step using
- 256 cores of a HPC cluster was managed.  Our main focus with the
+ the pipeline we developed as a Type II service, in which the mapping step was carried out using
+ 256 cores of a remote HPC cluster (QB) for 128 tasks concurrently .  Our main focus with the
  ChIP-Seq pipeline is to present a compelling example how the use of
  scalable distributed infrastructure as well as the runtime
  environment supporting dynamic execution of the pipeline for ChIP-Seq
