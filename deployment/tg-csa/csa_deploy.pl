@@ -274,7 +274,7 @@ if ( $do_check )
         else
         {
           my $cmd = "$access $host 'mkdir -p $path ; " .
-                    "cd $path && test -d csa && (cd csa && svn up > /dev/null) || svn co $svn csa > /dev/null; ". 
+                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
                     "$ENV CSA_HOST=$name                 " .
                     "     CSA_LOCATION=$path             " .
                     "     CSA_SAGA_VERSION=$version      " .
