@@ -366,10 +366,10 @@ if ( $do_deploy )
 
           if ( $module eq "readme" )
           {
-            my $cmd = "$access $host ' cd $path/csa/                              && " .
-                                     " cp -v $path/README*$version* $path/csa/    && " . 
-                                     " svn add  README*$version*$name*            && " .
-                                     " $SVNCI -m \"automated update\"              ' ";
+            my $cmd = "$access $host ' cd $path/csa/doc/                           && " .
+                                     " cp -v $path/README*$version* $path/csa/doc/ && " . 
+                                     " svn add  README*$version*$name*             && " .
+                                     " $SVNCI -m \"automated update\"               ' ";
             if ( $fake )
             {
               print " $cmd\n";
