@@ -95,7 +95,7 @@ endif
 # target dependencies
 #
 .PHONY: all
-all::                      saga-core saga-adaptors saga-bindings saga-clients readme
+all::                      saga-core saga-adaptors saga-bindings saga-clients documentation
 
 .PHONY: externals
 externals::                boost postgresql sqlite3
@@ -574,15 +574,15 @@ endif
 
 ########################################################################
 #
-# readme
+# documentation
 #
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
-.PHONY: readme
-readme:: base $(CSA_README_CHECK)
+.PHONY: documentation
+documentation:: base $(CSA_README_CHECK)
 	@    test -e $(CSA_README_CHECK) \
 		&& echo "README                    ok" \
 		|| echo "README                    nok"
@@ -600,6 +600,17 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
+	@echo "module                    creating"
+	@cp -fv $(CSA_MODULE_SRC) $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYLOCATION###|$(PYTHON_LOCATION)|ig;'        $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_MODULE_CHECK)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	-@$(CHMOD) -R a+rX $(EXTDIR)

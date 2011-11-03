@@ -14,19 +14,19 @@ my $ENV       = `which env`;
 my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
 my %csa_hosts = ();
 my %csa_packs = ();
-my @names     = ();
+my @modules   = ();
+my @hosts     = ();
+my @versions  = ();
 my $do_exe    = 0;
 my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $be_strict = 0;
 my $force     = 0;
-my $use_all   = 0;
 my $fake      = 0;
 my $do_remove = 0;
 my $svnuser   = `id -un`;
 my $svnpass   = "";
-my @versions  = ('trunk');
 
 chomp ($svnuser);
 chomp ($ENV);
@@ -46,22 +46,24 @@ while ( my $arg = shift )
   {
     $do_check = 1;
   }
-  elsif ( $arg =~ /^(-v|--versions)$/io )
+  elsif ( $arg =~ /^(-v|--version)$/io )
   {
     my $tmp = shift || "all";
     @versions = split (/,/, $tmp);
   }
-  elsif ( $arg =~ /^(-d|--deploy)$/io )
+  elsif ( $arg =~ /^(-t|--target|--targets|--targethosts)$/io )
   {
-    $do_deploy = 1;
+    my $tmp = shift || "all";
+    @hosts = split (/,/, $tmp);
   }
-  elsif ( $arg =~ /^(-a|--all)$/io )
+  elsif ( $arg =~ /^(-m|--module|--modules)$/io )
   {
-    $use_all = 1;
+    my $tmp = shift || "all";
+    @modules = split (/,/, $tmp);
   }
   elsif ( $arg =~ /^(-u|--user)$/io )
   {
-    $svnuser = shift || "";
+    $svnuser = shift || ""; 
   }
   elsif ( $arg =~ /^(-p|--pass)$/io )
   {
@@ -83,6 +85,10 @@ while ( my $arg = shift )
   {
     $do_remove = 1;
   }
+  elsif ( $arg =~ /^(-d|--deploy)$/io )
+  {
+    $do_deploy = 1;
+  }
   elsif ( $arg =~ /^(-x|--execute)$/io )
   {
     $do_exe = 1;
@@ -97,8 +103,18 @@ while ( my $arg = shift )
   }
   else
   {
-    push (@names, $arg);
+    help (-1);
   }
+}
+
+if ( ! scalar (@hosts) )
+{
+  $hosts[0] = 'all';
+}
+
+if ( ! scalar (@modules) )
+{
+  $modules[0] = 'all';
 }
 
 
@@ -177,17 +193,17 @@ $SVNCI .= " ci";
     }
     elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s+(\S+)\s+((?:ssh|gsissh)\s*?.*?)\s*$/io )
     {
-      my $name   = $1;
-      my $host   = $2;
+      my $host   = $1;
+      my $fqhn   = $2;
       my $path   = $3;
       my $access = $4;
 
-      if ( exists ( $csa_hosts{$name} ) )
+      if ( exists ( $csa_hosts{$host} ) )
       {
-        warn "WARNING: duplicated csa host '$name'\n"
+        warn "WARNING: duplicated csa host '$host'\n"
       }
 
-      $csa_hosts {$1}{'host'}   = $host;
+      $csa_hosts {$1}{'fqhn'}   = $fqhn;
       $csa_hosts {$1}{'path'}   = $path;
       $csa_hosts {$1}{'access'} = $access;
     }
@@ -198,18 +214,32 @@ $SVNCI .= " ci";
   }
 }
 
-if ( $use_all )
+
+if ( grep (/all/, @modules) )
 {
-  @names = sort keys ( %csa_hosts );
+
+ @modules = grep (!/all/, @modules);
+  my $version = $versions[0];
+  foreach my $modver ( @{ $csa_packs{$version} } )
+  {
+    push (@modules, $modver->[0]);
+  }
 }
 
-print @names;
 
-if ( ! scalar (@names) )
+
+if ( grep (!/all/, @hosts) )
+{
+  @hosts = grep (/all/, @hosts);
+  @hosts = sort keys ( %csa_hosts );
+}
+
+
+if ( ! scalar (@hosts) )
 {
   if ( $do_check || $do_deploy || $do_exe || $do_remove )
   {
-    die "no host targets given\n";
+    die "no targets given\n";
   }
 }
 
@@ -219,21 +249,21 @@ if ( $do_list )
 {
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-  foreach my $name ( sort keys (%csa_hosts) )
+  foreach my $host ( sort keys (%csa_hosts) )
   {
-    if ( ! exists $csa_hosts{$name} )
+    if ( ! exists $csa_hosts{$host} )
     {
-      warn "WARNING: Do not know how to handle host '$name'\n";
+      warn "WARNING: Do not know how to handle host '$host'\n";
     }
     else
     {
-      my $host = $csa_hosts{$name}{'host'};
-      my $path = $csa_hosts{$name}{'path'};
+      my $fqhn = $csa_hosts{$host}{'fqhn'};
+      my $path = $csa_hosts{$host}{'path'};
     
-      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
     }
   }
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
@@ -247,35 +277,35 @@ if ( $do_check )
   # just check if we are able to deploy
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
 
-  foreach my $name ( @names )
+  foreach my $host ( @hosts )
   {
-    if ( ! exists $csa_hosts{$name} )
+    if ( ! exists $csa_hosts{$host} )
     {
-      print " WARNING: Do not know how to handle host $name\n";
+      print " WARNING: Do not know how to handle host $host\n";
     }
     else
     {
       foreach my $version ( @versions )
       {
-        my $host   = $csa_hosts{$name}{'host'};
-        my $path   = $csa_hosts{$name}{'path'};
-        my $access = $csa_hosts{$name}{'access'};
+        my $fqhn   = $csa_hosts{$host}{'fqhn'};
+        my $path   = $csa_hosts{$host}{'path'};
+        my $access = $csa_hosts{$host}{'access'};
 
         print "+-----------------+------------------------------------------+-------------------------------------+\n";
-        printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+        printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
         print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
         if ( $fake )
         {
-          print " $access $host 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
+          print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
         }
         else
         {
-          my $cmd = "$access $host 'mkdir -p $path ; " .
+          my $cmd = "$access $fqhn 'mkdir -p $path ; " .
                     "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
-                    "$ENV CSA_HOST=$name                 " .
+                    "$ENV CSA_HOST=$host                 " .
                     "     CSA_LOCATION=$path             " .
                     "     CSA_SAGA_VERSION=$version      " .
                     "     CSA_SAGA_CHECK=yes             " .
@@ -307,22 +337,22 @@ if ( $do_deploy )
 
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
 
-  foreach my $name ( @names )
+  foreach my $host ( @hosts )
   {
-    if ( ! exists $csa_hosts{$name} )
+    if ( ! exists $csa_hosts{$host} )
     {
-      warn "WARNING: Do not know how to handle host '$name'\n";
+      warn "WARNING: Do not know how to handle host '$host'\n";
     }
     else
     {
-      my $host   = $csa_hosts{$name}{'host'};
-      my $path   = $csa_hosts{$name}{'path'};
-      my $access = $csa_hosts{$name}{'access'};
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
       foreach my $version ( @versions )
@@ -334,7 +364,7 @@ if ( $do_deploy )
 
           print " build $module ($version)\n";
 
-          my $cmd = "$access $host '$ENV CSA_HOST=$name                 " .
+          my $cmd = "$access $fqhn '$ENV CSA_HOST=$host                 " .
                                    "     CSA_LOCATION=$path             " .
                                    "     CSA_SAGA_VERSION=$version      " .
                                    "     CSA_SAGA_SRC=\"$src\"          " .
@@ -364,11 +394,11 @@ if ( $do_deploy )
             }
           }
 
-          if ( $module eq "readme" )
+          if ( $module eq "documentation" )
           {
-            my $cmd = "$access $host ' cd $path/csa/doc/                           && " .
-                                     " cp -v $path/README*$version* $path/csa/doc/ && " . 
-                                     " svn add  README*$version*$name*             && " .
+            my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
+                                     " svn add doc/README*$version*$host*          && " .
+                                     " svn add mod/module*$version*$host*          && " .
                                      " $SVNCI -m \"automated update\"               ' ";
             if ( $fake )
             {
@@ -405,29 +435,29 @@ if ( $do_remove )
 
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
 
-  foreach my $name ( @names )
+  foreach my $host ( @hosts )
   {
-    if ( ! exists $csa_hosts{$name} )
+    if ( ! exists $csa_hosts{$host} )
     {
-      warn "WARNING: Do not know how to handle host '$name'\n";
+      warn "WARNING: Do not know how to handle host '$host'\n";
     }
     else
     {
-      my $host   = $csa_hosts{$name}{'host'};
-      my $path   = $csa_hosts{$name}{'path'};
-      my $access = $csa_hosts{$name}{'access'};
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
       foreach my $version ( @versions )
       {
-        print " remove installation $version on $name\n";
+        print " remove installation $version on $host\n";
 
-        my $cmd = "$access $host 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$name'";
+        my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
 
         if ( $fake )
         {
@@ -459,35 +489,35 @@ if ( $do_exe )
 {
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "name", "host", "path";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
 
-  foreach my $name ( @names )
+  foreach my $host ( @hosts )
   {
-    if ( ! exists $csa_hosts{$name} )
+    if ( ! exists $csa_hosts{$host} )
     {
-      print " WARNING: Do not know how to handle host $name\n";
+      print " WARNING: Do not know how to handle host $host\n";
     }
     else
     {
-      my $host   = $csa_hosts{$name}{'host'};
-      my $path   = $csa_hosts{$name}{'path'};
-      my $access = $csa_hosts{$name}{'access'};
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
 
     # my $exe    = "rm -rf $path/csa";
     # my $exe    = "chmod -R a+rX $path/";
       my $exe    = "rm -f $path/saga/$versions[0]/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $name, $host, $path;
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
       if ( $fake )
       {
-        print " $access $host '$exe'\n";
+        print " $access $fqhn '$exe'\n";
       }
       else
       {
-        my $cmd = "$access $host '$exe'";
+        my $cmd = "$access $fqhn '$exe'";
 
         if ( 0 == system ($cmd) )
         {
@@ -520,29 +550,32 @@ sub help (;$)
        [-l|--list] 
        [-c|--check] 
        [-v|--version version=all] 
-       [-d|--deploy] 
        [-n|--no]
        [-e|--exit|--error]
        [-f|--force]
+       [-d|--deploy]
        [-r|--remove]
        [-x|--execute] 
        [-u|--user id] 
        [-p|--pass pw] 
-       [-a|--all|host1 host2 ...] 
+       [-t|--target all,host1,host2,...] 
+       [-m|--module all,saga-core,readme,...] 
 
     -h : this help message
     -l : list available target hosts
     -c : check csa access and tooling               (default: off)
     -v : versions to deploy (see csa_packages file) (default: trunk)
-    -d : deploy SAGA on given target host(s)        (default: off)
     -a : deploy SAGA on all known target hosts      (default: off)
     -u : svn user id                                (default: local user id)
     -p : svn password                               (default: "")
     -n : run 'make -n' to show what *would* be done (default: off)
     -e : exit on errors                             (default: off)
     -f : force re-deploy                            (default: off)
+    -d : deploy version/modules on targets          (default: off)
     -r : remove deployment on target host           (default: off)
     -x : for maintainance, use with care!           (default: off)
+    -t : target hosts to deploy on                  (default: all)
+    -m : modules to deploy                          (default: all)
 
 EOT
   exit ($ret);
