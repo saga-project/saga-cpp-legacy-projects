@@ -175,6 +175,7 @@ PYTHON_CHECK    = $(PYTHON_LOCATION)/bin/python
 PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 SAGA_ENV_VARS  += PYTHON_LOCATION=$(PYTHON_LOCATION)
 SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
+SAGA_ENV_BINS  += $(PYTHON_LOCATION)/bin/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)
@@ -199,9 +200,10 @@ BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
+SAGA_ENV_BINS  += $(BOOST_LOCATION)/bin/
 
 SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
-SAGA_ENV_PATH  += PATH=$(PYTHON_LOCATION)/bin/:$(PATH)
+SAGA_ENV_PATH   =            PATH=$(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d))):$$PATH
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
@@ -277,8 +279,10 @@ SAGA_LOCATION   = $(CSA_LOCATION)/saga/$(CSA_SAGA_VERSION)/$(CC_NAME)/
 SAGA_CORE_CHECK = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
+SAGA_ENV_BINS  += :$(SAGA_LOCATION)/bin/
 
 SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
+SAGA_ENV_PATH   =            PATH=$(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d))):$$PATH
 
 ifeq "$(CSA_HOST)" "abe"
   # boost assumes that all linux hosts know this define.  Well, abe does not.
@@ -306,7 +310,7 @@ endif
 # python bindings
 #
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
-SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)lib/python$(PYTHON_VERSION)/site-packages/
+SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/site-packages/
 
 SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
 
@@ -598,6 +602,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_PATH)|ig;'                    $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
@@ -612,6 +617,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYLOCATION###|$(PYTHON_LOCATION)|ig;'        $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_MODULE_CHECK)
