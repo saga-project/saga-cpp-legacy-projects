@@ -152,9 +152,7 @@ $SVNCI .= " ci";
       my $module  = $1;
       my $src     = $2;
 
-      my @tmp = ($module, $src);
-
-      push (@{$csa_packs {$version}}, \@tmp);
+      $csa_packs{$version}{$module} = $src;
     }
     else
     {
@@ -220,15 +218,14 @@ if ( grep (/all/, @modules) )
 
  @modules = grep (!/all/, @modules);
   my $version = $versions[0];
-  foreach my $modver ( @{ $csa_packs{$version} } )
+  foreach my $module ( keys %{ $csa_packs{$version} } )
   {
-    push (@modules, $modver->[0]);
+    push (@modules, $module);
   }
 }
 
 
-
-if ( grep (!/all/, @hosts) )
+if ( grep (/all/, @hosts) )
 {
   @hosts = grep (/all/, @hosts);
   @hosts = sort keys ( %csa_hosts );
@@ -242,6 +239,15 @@ if ( ! scalar (@hosts) )
     die "no targets given\n";
   }
 }
+
+
+print <<EOT;
+  ----------------------------------
+  hosts    : @hosts
+  modules  : @modules
+  versions : @versions
+  ----------------------------------
+EOT
 
 
 # list mode simply lists the known hosts
@@ -357,10 +363,9 @@ if ( $do_deploy )
 
       foreach my $version ( @versions )
       {
-        foreach my $modver ( @{ $csa_packs{$version} } )
+        foreach my $module ( @modules )
         {
-          my $module = $modver->[0];
-          my $src    = $modver->[1];
+          my $src = $csa_packs{$version}{$module};
 
           print " build $module ($version)\n";
 

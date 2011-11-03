@@ -580,6 +580,8 @@ endif
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
 CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
+CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: documentation
 documentation:: base $(CSA_README_CHECK)
