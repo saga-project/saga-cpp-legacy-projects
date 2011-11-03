@@ -601,9 +601,9 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@echo "fixing permissions"
-	@$(CHMOD) -R a+rX $(SAGA_LOCATION)
-	@$(CHMOD) -R a+rX $(EXTDIR)
-	@$(CHMOD)    a+rX $(CSA_LOCATION) || true
+	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
+	-@$(CHMOD) -R a+rX $(EXTDIR)
+	-@$(CHMOD)    a+rX $(CSA_LOCATION)
 endif
 	
 
