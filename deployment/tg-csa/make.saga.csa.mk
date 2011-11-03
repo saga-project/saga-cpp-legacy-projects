@@ -200,10 +200,8 @@ BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
-SAGA_ENV_BINS  += $(BOOST_LOCATION)/bin/
 
 SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
-SAGA_ENV_PATH   =            PATH=$(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d))):$$PATH
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
