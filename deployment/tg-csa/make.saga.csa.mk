@@ -128,12 +128,6 @@ saga-clients::             saga-client-mandelbrot saga-client-bigjob
 saga-client-mandelbrot::   saga-core
 saga-client-bigjob::       saga-core saga-binding-python            
 
-ifeq "$(CSA_FORCE)" "1" 
- FORCE_REBUILD = /does/not/exist
-else
- FORCE_REBUILD =#
-endif
-
 ########################################################################
 #
 # base
@@ -188,7 +182,7 @@ python:: base $(PYTHON_CHECK)
 		&& echo "python                    ok" \
 		|| echo "python                    nok"
 
-$(PYTHON_CHECK): $(FORCE_REBUILD)
+$(PYTHON_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "python                    installing ($(PYTHON_CHECK))"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
@@ -215,7 +209,7 @@ boost:: base $(BOOST_CHECK)
 		&& echo "boost                     ok" \
 		|| echo "boost                     nok"
 
-$(BOOST_CHECK): $(FORCE_REBUILD)
+$(BOOST_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
@@ -243,7 +237,7 @@ postgresql:: base $(POSTGRESQL_CHECK)
 		&& echo "postgresql                ok" \
 		|| echo "postgresql                nok"
 
-$(POSTGRESQL_CHECK): $(FORCE_REBUILD)
+$(POSTGRESQL_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
@@ -266,7 +260,7 @@ sqlite3:: base $(SQLITE3_CHECK)
 		&& echo "sqlite3                   ok" \
 		|| echo "sqlite3                   nok"
 
-$(SQLITE3_CHECK): $(FORCE_REBUILD)
+$(SQLITE3_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
@@ -297,7 +291,7 @@ saga-core:: base $(SAGA_CORE_CHECK)
 		&& echo "saga-core                 ok" \
 		|| echo "saga-core                 nok"
 
-$(SAGA_CORE_CHECK): $(FORCE_REBUILD)
+$(SAGA_CORE_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -322,7 +316,7 @@ saga-binding-python:: base $(SAGA_PYTHON_CHECK)
 		&& echo "saga-binding-python       ok" \
 		|| echo "saga-binding-python       nok"
 
-$(SAGA_PYTHON_CHECK): $(FORCE_REBUILD)
+$(SAGA_PYTHON_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-binding-python       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -349,7 +343,7 @@ saga-adaptor-x509:: base $(SA_X509_CHECK)
 		&& echo "saga-adaptor-x509         ok" \
 		|| echo "saga-adaptor-x509         nok"
 
-$(SA_X509_CHECK): $(FORCE_REBUILD)
+$(SA_X509_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -368,7 +362,7 @@ saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
 		&& echo "saga-adaptor-globus       ok" \
 		|| echo "saga-adaptor-globus       nok"
 
-$(SA_GLOBUS_CHECK): $(FORCE_REBUILD)
+$(SA_GLOBUS_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -387,7 +381,7 @@ saga-adaptor-ssh:: base $(SA_SSH_CHECK)
 		&& echo "saga-adaptor-ssh          ok" \
 		|| echo "saga-adaptor-ssh          nok"
 
-$(SA_SSH_CHECK): $(FORCE_REBUILD)
+$(SA_SSH_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -406,7 +400,7 @@ saga-adaptor-aws:: base $(SA_AWS_CHECK)
 		&& echo "saga-adaptor-aws          ok" \
 		|| echo "saga-adaptor-aws          nok"
 
-$(SA_AWS_CHECK): $(FORCE_REBUILD)
+$(SA_AWS_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -425,7 +419,7 @@ saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
 		&& echo "saga-adaptor-drmaa        ok" \
 		|| echo "saga-adaptor-drmaa        nok"
 
-$(SA_DRMAA_CHECK): $(FORCE_REBUILD)
+$(SA_DRMAA_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-drmaa        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -444,7 +438,7 @@ saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
 		&& echo "saga-adaptor-condor       ok" \
 		|| echo "saga-adaptor-condor       nok"
 
-$(SA_CONDOR_CHECK): $(FORCE_REBUILD)
+$(SA_CONDOR_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-condor       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -463,7 +457,7 @@ saga-adaptor-glite:: base $(SA_GLITE_CHECK)
 		&& echo "saga-adaptor-glite        ok" \
 		|| echo "saga-adaptor-glite        nok"
 
-$(SA_GLITE_CHECK): $(FORCE_REBUILD)
+$(SA_GLITE_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-glite        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -482,7 +476,7 @@ saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
 		&& echo "saga-adaptor-pbspro       ok" \
 		|| echo "saga-adaptor-pbspro       nok"
 
-$(SA_PBSPRO_CHECK): $(FORCE_REBUILD)
+$(SA_PBSPRO_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-pbspro       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -501,7 +495,7 @@ saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
 		&& echo "saga-adaptor-torque       ok" \
 		|| echo "saga-adaptor-torque       nok"
 
-$(SA_TORQUE_CHECK): $(FORCE_REBUILD)
+$(SA_TORQUE_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-torque       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -520,7 +514,7 @@ saga-adaptor-bes:: base $(SA_BES_CHECK)
 		&& echo "saga-adaptor-bes          ok" \
 		|| echo "saga-adaptor-bes          nok"
 
-$(SA_BES_CHECK): $(FORCE_REBUILD)
+$(SA_BES_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -541,7 +535,7 @@ saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
 		&& echo "saga-client-mandelbrot    ok" \
 		|| echo "saga-client-mandelbrot    nok"
 
-$(SC_MANDELBROT_CHECK): $(FORCE_REBUILD)
+$(SC_MANDELBROT_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -562,7 +556,7 @@ saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
 		&& echo "saga-client-bigjob        ok" \
 		|| echo "saga-client-bigjob        nok"
 
-$(SC_BIGJOB_CHECK): $(FORCE_REBUILD)
+$(SC_BIGJOB_CHECK):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -584,12 +578,15 @@ CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
 CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: documentation
-documentation:: base $(CSA_README_CHECK)
+documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
 	@    test -e $(CSA_README_CHECK) \
 		&& echo "README                    ok" \
 		|| echo "README                    nok"
+	@    test -e $(CSA_MODULE_CHECK) \
+		&& echo "module                    ok" \
+		|| echo "module                    nok"
 
-$(CSA_README_CHECK): $(CSA_README_SRC) $(FORCE_REBUILD)
+$(CSA_README_CHECK): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
@@ -602,6 +599,14 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
+	@echo "fixing permissions"
+	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
+	-@$(CHMOD) -R a+rX $(EXTDIR)
+	-@$(CHMOD)    a+rX $(CSA_LOCATION)
+endif
+	
+$(CSA_MODULE_CHECK): $(CSA_MODULE_SRC)
+ifndef CSA_SAGA_CHECK
 	@echo "module                    creating"
 	@cp -fv $(CSA_MODULE_SRC) $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_MODULE_CHECK)
@@ -613,10 +618,5 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_MODULE_CHECK)
-	@echo "fixing permissions"
-	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
-	-@$(CHMOD) -R a+rX $(EXTDIR)
-	-@$(CHMOD)    a+rX $(CSA_LOCATION)
 endif
-	
 
