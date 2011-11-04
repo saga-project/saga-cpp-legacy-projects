@@ -201,7 +201,8 @@ BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boos
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
+SAGA_ENV        = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)
@@ -214,7 +215,7 @@ ifndef CSA_SAGA_CHECK
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
 	@cd $(SRCDIR) ; tar jxvf boost_1_44_0.tar.bz2
-	@cd $(SRCDIR)/boost_1_44_0 ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) ./bootstrap.sh \
+	@cd $(SRCDIR)/boost_1_44_0 ; $(ENV) $(SAGA_ENV) ./bootstrap.sh \
                                --with-libraries=test,thread,system,iostreams,filesystem,program_options,python,regex,serialization \
                                --with-python=$(PYTHON_LOCATION)/bin/python \
                                --with-python-root=$(PYTHON_LOCATION) \
@@ -279,8 +280,9 @@ SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
 SAGA_ENV_BINS  += :$(SAGA_LOCATION)/bin/
 
-SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
-SAGA_ENV_PATH   =            PATH=$(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d))):$$PATH
+SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
+SAGA_ENV_PATH   =            PATH=$(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d)))
+SAGA_ENV        = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 ifeq "$(CSA_HOST)" "abe"
   # boost assumes that all linux hosts know this define.  Well, abe does not.
@@ -298,7 +300,7 @@ ifndef CSA_SAGA_CHECK
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT) 
-	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
+	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV) \
                  ./configure --prefix=$(SAGA_LOCATION) && make clean && make $J && make install
 endif
 
@@ -310,7 +312,8 @@ endif
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/site-packages/
 
-SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d))):$$LD_LIBRARY_PATH
+SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
+SAGA_ENV = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: saga-binding-python
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)
@@ -323,7 +326,7 @@ ifndef CSA_SAGA_CHECK
 	@echo "saga-binding-python       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
-	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS) \
+	@cd $(SRCDIR)/$(CSA_SAGA_TGT) ; $(ENV) $(SAGA_ENV) \
                    ./configure && make clean && make $J && make install
 endif
 
@@ -332,8 +335,8 @@ endif
 #
 # saga-adaptors
 #
+########################################################################
 
-SAGA_ENV = $(SAGA_ENV_PATH) $(SAGA_ENV_LDPATH) $(SAGA_ENV_VARS)
 
 ########################################################################
 # saga-adaptor-x509
@@ -600,7 +603,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYPATH###|$(SAGA_PYTHON_MODPATH)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_PATH)|ig;'                    $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
