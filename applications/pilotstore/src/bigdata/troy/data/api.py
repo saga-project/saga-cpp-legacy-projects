@@ -218,7 +218,19 @@ class PilotData(object):
         pass
         
     def get_state(self):
+        """
+            get current state of Pilot Store:
+                New => Initialized
+                Pending => Files are synchronized with a pilot store
+                Running => PD is in sync with all replicas
+                Done => Terminated
+        """
+        pass
+    
+    def export(self, target_directory):
+        """ copies content of PD to a directory on the local machine"""
         pass    
+        
     
 
 class DataUnit(object):

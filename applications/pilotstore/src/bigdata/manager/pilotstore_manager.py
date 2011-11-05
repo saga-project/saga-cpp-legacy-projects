@@ -77,6 +77,10 @@ class PilotStore(PilotStore):
         return self.__coordination.get_state()
     
     
+    def export_pd(self, pd, target_directory):
+        self.__coordination.get_pd(pd, target_directory)
+    
+    
     def __repr__(self):
         return self.service_url
     
@@ -142,6 +146,7 @@ class PilotStoreService(PilotStoreService):
             i.cancel()
     
     
+ 
     def __del__(self):
         self.cancel()         
             

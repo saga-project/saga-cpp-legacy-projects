@@ -39,8 +39,9 @@ class WorkDataDescription(compute.api.WorkUnitDescription):
             'total_cpu_time': <cpu time>,
             'wall_time_limit': <walltime in sec, e.g. 600 (sec)>,            
             
-            # Data
-            'pilot_data': [<pilot data url>, ... ]
+            # Data - input/output data flow for WorkUnit
+            'input_pilot_data': [<pilot data url>, ... ],      
+            'output_pilot_data': [<pilot data url>, ... ]
         }
     """
     

@@ -44,6 +44,10 @@ if __name__ == "__main__":
             break
         time.sleep(2)  
     
+    logging.debug("Export files of PD")
+    pd.export("/tmp/pilot-store-export/")
+    
+    
     logging.debug("Terminate Pilot Data/Store Service")
     pilot_data_service.cancel()
     pilot_store_service.cancel()

@@ -197,7 +197,13 @@ class PilotData(PilotData):
         return self.state  
     
     def get_pilot_stores(self):
-        pass  
+        return self.pilot_stores
+    
+    def export(self, target_directory):
+        """ simple implementation of export: 
+                copies file from first pilot store to local machine
+        """
+        self.pilot_stores[0].export_pd(self, target_directory)
     
     def __repr__(self):
         repr_dict = {

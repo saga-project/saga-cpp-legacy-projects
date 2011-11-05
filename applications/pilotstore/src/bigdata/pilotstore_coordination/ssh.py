@@ -71,15 +71,30 @@ class BigDataCoordination(object):
             else:
                 logging.warning("Path %s is a directory. Ignored."%i.local_url)
     
+    
+    def get_pd(self, pd, target_directory):
+        base_dir = self.__get_path_for_pd(pd)
+        logging.debug("Copy PD from %s to %s"%(base_dir, target_directory))        
+        if not os.path.exists(target_directory):
+            os.makedirs(target_directory)
+        for i in os.listdir(base_dir):
+            self.__sftp.get(os.path.join(base_dir, i), os.path.join(target_directory, i))
+    
+        
     def remove_pd(self, pd):
         self.__remove_directory(os.path.join(self.path, pd.id))
+    
         
     def put_progress(self, transfered_bytes, total_bytes):
         logging.debug("Bytes transfered %d/%d"%(transfered_bytes, total_bytes))
     
     
+    
+    
     ###########################################################################
     # Private support methods
+    def __get_path_for_pd(self, pd):
+        return os.path.join(self.path, str(pd.id))
     
     def __remove_directory(self, path):
         """Remove remote directory that may contain files.        
