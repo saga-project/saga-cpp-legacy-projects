@@ -55,7 +55,7 @@ CXX        = g++
 # different distrubution channels.  Thus this detour to get the version directly
 # via gcc compiler macros:
 #
-CC_VERSION   = $(shell (rm cpp_version ; make cpp_version ; ./cpp_version) | tail -n 1)
+CC_VERSION   = $(shell (rm -f cpp_version ; make cpp_version ; ./cpp_version) | tail -n 1)
 CC_NAME      = $(notdir $(CC))-$(CC_VERSION)
 MAKE_VERSION = $(shell make --version | head -1)
 
