@@ -17,7 +17,7 @@ mkdir /N/u/pmantha/pmantha/MapReduce_Python/source/agent
 
 echo " Starting MapReduce"
 #k=`expr 64 \* 1024 \* 1024`
-k=1000000
+k=1000
 echo $k
 
 python genApp.py -i "file://localhost//N/u/pmantha/gen_data" -o  "file://localhost/N/u/pmantha/output" -t "file://localhost/N/u/pmantha/temp" -b 8 -c $k -m "/N/u/pmantha/pmantha/MapReduce_Python/source/applications/genseq/gen_map_partition.py" -r "/N/u/pmantha/pmantha/MapReduce_Python/source/applications/genseq/gen_reduce.py" -a "advert://advert.cct.lsu.edu:8080" -u "pbs-ssh://sierra.futuregrid.org" -n 2 -w 40 -s 8 -d "/N/u/pmantha/pmantha/MapReduce_Python/source/agent" -q None -x None -y None -e 1 -g /N/u/pmantha/hg/hg18.fa

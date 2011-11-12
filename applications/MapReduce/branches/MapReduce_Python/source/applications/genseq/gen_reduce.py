@@ -28,9 +28,10 @@ for i in part_list:
         setreads=inp[1].strip()
         reads=setreads.split("READDELIM")
         if final_pairs.has_key(key):
-            final_pairs[key] = final_pairs[key].append(reads)
+            final_pairs[key] = final_pairs[key]+ reads
         else: 
             final_pairs[key] = reads
+
 
 for k,v in final_pairs.items():
     paired_reads={}
@@ -40,10 +41,10 @@ for k,v in final_pairs.items():
         for read in v:
             values=read.split()
             if values[-2] == "paired":
-                paired_reads[values[-1]]= read
+                paired_reads[values[-1]]= "".join(read.split()[0:len(values)-2])
                 ispaired = True
             else:
-                unpaired_reads[values[-1]]=read
+                unpaired_reads[values[-1]]="".join(read.split()[0:len(values)-2])
         if ispaired:
             i=0
             for key in sorted(paired_reads.iterkeys(),reverse=True):
@@ -61,6 +62,6 @@ for k,v in final_pairs.items():
                     duplicates.write(unpaired_reads[key] +"\n")
                 i=i+1;
     else:
-        reduce_write.write(v[0] +"\n") 
+        reduce_write.write("\t".join((v[0].split())[0:len(v[0].split())-2]) +"\n") 
 
 
