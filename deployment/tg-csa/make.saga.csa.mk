@@ -553,7 +553,10 @@ endif
 #
 # bigjob client
 #
-SC_BIGJOB_CHECK    = $(SAGA_PYTHON_MODPATH)/saga/bigjob
+SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
+SAGA_PYTHON_MODPATH += ":$(SC_BIGJOB_CHECK)"
+SUP                  = "saga-client-bigjob-supplemental.tgz"
+SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$(SUP)"
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
@@ -563,6 +566,8 @@ saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
 
 $(SC_BIGJOB_CHECK):
 ifndef CSA_SAGA_CHECK
+	# @echo "saga-client-bigjob        installing (supplementals)"
+	# @cd $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/ ; wget $(SUP_URL) ; tar zxvf $(SUP) 
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -585,8 +590,8 @@ CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_
 .PHONY: documentation
 documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
 	@    test -e $(CSA_README_CHECK) \
-		&& echo "README                    ok" \
-		|| echo "README                    nok"
+		&& echo "documentation             ok" \
+		|| echo "documentation             nok"
 	@    test -e $(CSA_MODULE_CHECK) \
 		&& echo "module                    ok" \
 		|| echo "module                    nok"
