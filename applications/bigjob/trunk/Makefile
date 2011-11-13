@@ -32,11 +32,11 @@ endif
 
 HAVE_SETUP      = $(shell env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH):$(PYTHONPATH) python -c "from setuptools import setup, find_packages" 2>&1 && echo yes)
 
-check::
+install-check::
 	@$(ECHO) "      checking   bigjob installation pre-requisites"
 	@$(TEST) "yes" = '$(HAVE_SETUP)'      || echo "     installing missing python setuptools"
 	@$(TEST) "yes" = '$(HAVE_SETUP)'      || (cd ext/setuptools-0.6c11/ ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION) )
 
-install:: check
+install:: install-check
 	@cd generic ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_LOCATION)/bin/saga-run.sh $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION)
 
