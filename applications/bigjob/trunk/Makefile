@@ -38,5 +38,6 @@ install-check::
 	@$(TEST) "yes" = '$(HAVE_SETUP)'      || (cd ext/setuptools-0.6c11/ ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION) )
 
 install:: install-check
+	@$(ECHO) "      installing bigjob modules"
 	@cd generic ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_LOCATION)/bin/saga-run.sh $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION)
 
