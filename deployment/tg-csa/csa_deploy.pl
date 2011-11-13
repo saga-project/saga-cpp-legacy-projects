@@ -277,10 +277,9 @@ if ( $do_list )
 }
 
 
-# for each csa host, check the csa installation itself (also check on deploy!)
-if ( $do_check )
+# for each csa host, execute some maintainance op
+if ( $do_exe )
 {
-  # just check if we are able to deploy
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
   printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
@@ -293,40 +292,36 @@ if ( $do_check )
     }
     else
     {
-      foreach my $version ( @versions )
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
+
+    # my $exe    = "rm -rf $path/csa";
+    # my $exe    = "chmod -R a+rX $path/";
+      my $exe    = "rm -f $path/saga/$versions[0]/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
+
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+      if ( $fake )
       {
-        my $fqhn   = $csa_hosts{$host}{'fqhn'};
-        my $path   = $csa_hosts{$host}{'path'};
-        my $access = $csa_hosts{$host}{'access'};
+        print " $access $fqhn '$exe'\n";
+      }
+      else
+      {
+        my $cmd = "$access $fqhn '$exe'";
 
-        print "+-----------------+------------------------------------------+-------------------------------------+\n";
-        printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
-        print "+-----------------+------------------------------------------+-------------------------------------+\n";
-
-        if ( $fake )
+        if ( 0 == system ($cmd) )
         {
-          print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
+          print " ok\n" 
         }
         else
         {
-          my $cmd = "$access $fqhn 'mkdir -p $path ; " .
-                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
-                    "$ENV CSA_HOST=$host                 " .
-                    "     CSA_LOCATION=$path             " .
-                    "     CSA_SAGA_VERSION=$version      " .
-                    "     CSA_SAGA_CHECK=yes             " .
-                    "     make -C $path/csa/             " .
-                    "          --no-print-directory      " .
-                    "          -f make.saga.csa.mk       " .
-                    "          all'                      " ;
-
-          if ( 0 != system ($cmd) )
+          print " error\n";
+          if ( $be_strict )
           {
-            print "error running csa checks\n";
-            if ( $be_strict )
-            {
-              exit -1;
-            }
+            exit -1;
           }
         }
       }
@@ -336,6 +331,63 @@ if ( $do_check )
   print "\n";
 
 }
+
+
+if ( $do_remove )
+{
+  # ! check, so do the real deployment
+
+  print "\n";
+  print "+-----------------+------------------------------------------+-------------------------------------+\n";
+  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
+
+  foreach my $host ( @hosts )
+  {
+    if ( ! exists $csa_hosts{$host} )
+    {
+      warn "WARNING: Do not know how to handle host '$host'\n";
+    }
+    else
+    {
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
+
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+      foreach my $version ( @versions )
+      {
+        print " remove installation $version on $host\n";
+
+        my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
+
+        if ( $fake )
+        {
+          print " $cmd\n";
+        }
+        else
+        {
+          if ( 0 == system ($cmd) )
+          {
+            print " ok\n";
+          } 
+          else
+          {
+            print " error\n";
+            if ( $be_strict )
+            {
+              exit -1;
+            }
+          }
+        }
+      }
+    }
+  }
+}
+
+
 
 if ( $do_deploy )
 {
@@ -434,64 +486,12 @@ if ( $do_deploy )
   print "\n";
 }
 
-if ( $do_remove )
+
+
+# for each csa host, check the csa installation itself (also check on deploy!)
+if ( $do_check )
 {
-  # ! check, so do the real deployment
-
-  print "\n";
-  print "+-----------------+------------------------------------------+-------------------------------------+\n";
-  printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
-
-  foreach my $host ( @hosts )
-  {
-    if ( ! exists $csa_hosts{$host} )
-    {
-      warn "WARNING: Do not know how to handle host '$host'\n";
-    }
-    else
-    {
-      my $fqhn   = $csa_hosts{$host}{'fqhn'};
-      my $path   = $csa_hosts{$host}{'path'};
-      my $access = $csa_hosts{$host}{'access'};
-
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-
-      foreach my $version ( @versions )
-      {
-        print " remove installation $version on $host\n";
-
-        my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
-
-        if ( $fake )
-        {
-          print " $cmd\n";
-        }
-        else
-        {
-          if ( 0 == system ($cmd) )
-          {
-            print " ok\n";
-          } 
-          else
-          {
-            print " error\n";
-            if ( $be_strict )
-            {
-              exit -1;
-            }
-          }
-        }
-      }
-    }
-  }
-}
-
-
-# for each csa host, execute some maintainance op
-if ( $do_exe )
-{
+  # just check if we are able to deploy
   print "\n";
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
   printf "| %-15s | %-40s | %-35s |\n", "host", "fqhn", "path";
@@ -504,36 +504,40 @@ if ( $do_exe )
     }
     else
     {
-      my $fqhn   = $csa_hosts{$host}{'fqhn'};
-      my $path   = $csa_hosts{$host}{'path'};
-      my $access = $csa_hosts{$host}{'access'};
-
-    # my $exe    = "rm -rf $path/csa";
-    # my $exe    = "chmod -R a+rX $path/";
-      my $exe    = "rm -f $path/saga/$versions[0]/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
-
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
-      print "+-----------------+------------------------------------------+-------------------------------------+\n";
-
-      if ( $fake )
+      foreach my $version ( @versions )
       {
-        print " $access $fqhn '$exe'\n";
-      }
-      else
-      {
-        my $cmd = "$access $fqhn '$exe'";
+        my $fqhn   = $csa_hosts{$host}{'fqhn'};
+        my $path   = $csa_hosts{$host}{'path'};
+        my $access = $csa_hosts{$host}{'access'};
 
-        if ( 0 == system ($cmd) )
+        print "+-----------------+------------------------------------------+-------------------------------------+\n";
+        printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
+        print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+        if ( $fake )
         {
-          print " ok\n" 
+          print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
         }
         else
         {
-          print " error\n";
-          if ( $be_strict )
+          my $cmd = "$access $fqhn 'mkdir -p $path ; " .
+                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
+                    "$ENV CSA_HOST=$host                 " .
+                    "     CSA_LOCATION=$path             " .
+                    "     CSA_SAGA_VERSION=$version      " .
+                    "     CSA_SAGA_CHECK=yes             " .
+                    "     make -C $path/csa/             " .
+                    "          --no-print-directory      " .
+                    "          -f make.saga.csa.mk       " .
+                    "          all'                      " ;
+
+          if ( 0 != system ($cmd) )
           {
-            exit -1;
+            print "error running csa checks\n";
+            if ( $be_strict )
+            {
+              exit -1;
+            }
           }
         }
       }
@@ -541,8 +545,8 @@ if ( $do_exe )
   }
   print "+-----------------+------------------------------------------+-------------------------------------+\n";
   print "\n";
-
 }
+
 
 
 sub help (;$)
