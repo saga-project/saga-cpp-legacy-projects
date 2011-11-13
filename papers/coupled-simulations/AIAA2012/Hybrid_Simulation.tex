@@ -217,31 +217,31 @@ summarize our studies and propose further applications in Section~\ref{sec:concl
 \label{sec:hybrid_design}
 
 
+%%%%% FIGURE %%%%%
+\begin{wrapfigure}{R}{0.5\linewidth}
+\includegraphics{Hybrid_Schematic.pdf}
+\caption{Schematic Diagram of the Hybrid Domain with Detailed View of Overlapping Zone: 
+Left figure expresses the composition of hybrid simulation domain and 
+the right figure presents individual layers in the overlapping region.}
+\label{Fig:Couette}
+\end{wrapfigure}
+%\begin{figure}
+%\centering
+%\includegraphics[width=0.5\linewidth]{Hybrid_Schematic.pdf}
+%\caption{Schematic Diagram of the Hybrid Domain with Detailed View of Overlapping Zone: 
+%Left figure expresses the composition of hybrid simulation domain and 
+%the right figure presents individual layers in the overlapping region.}
+%\label{Fig:Couette}
+%\end{figure}
+%%%%% FIGURE %%%%%
+
+
 A detailed structure of the fluid domain for the hybrid CFD-MD approach is
 described in Figure~\ref{Fig:Couette}. CFD solves the flow region where 
 the continuum hypothesis is valid while MD analyzes the complex microscopic 
 flow feature near the solid obstacle. Overlapping region is placed sufficiently 
 far from the solid stationary wall to prevent the direct influence of 
 molecular-level physics.
-
-
-%%%%% FIGURE %%%%%
-%\begin{wrapfigure}{R}{0.6\linewidth}
-%\includegraphics{Hybrid_Schematic.pdf}
-%\caption{Schematic Diagram of the Hybrid Domain with Detailed View of Overlapping Zone: 
-%Left figure expresses the composition of hybrid simulation domain and 
-%the right figure presents individual layers in the overlapping region.}
-%\end{wrapfigure}
-\begin{figure}
-\centering
-\includegraphics[width=0.6\linewidth]{Hybrid_Schematic.pdf}
-\caption{Schematic Diagram of the Hybrid Domain with Detailed View of Overlapping Zone: 
-Left figure expresses the composition of hybrid simulation domain and 
-the right figure presents individual layers in the overlapping region.}
-\label{Fig:Couette}
-\end{figure}
-%%%%% FIGURE %%%%%
-
 
 The overlapping region is designed sufficiently large to contain 
 five individual layers with sufficient spacing. From the bottom, 
@@ -449,6 +449,128 @@ provide the same order of accuracy as an individual solution from N times larger
 domain: this approach (running multiple small tasks instead of one big task) is 
 computationally more effective in view of scheduling on many supercomputing
 resources.
+
+
+%%%%% Numerical Solutions %%%%%
+\section{Numerical Results}
+\label{sec:result}
+
+\subsection{Problem Description and Validation}
+\label{sec:result_val}
+
+The application problem is a transient Couette flow problem, which is widely used
+for the verification of the hybrid CFD-MD solver. Fluid model is the liquid argon, whose
+characteristic length is ${\sigma}=3.405{\times}10^{-10}$ meter and the time scale is 
+$\tau=2.2{\times}10^{-12}$ second. The number density is $0.81m{\sigma}^{-3}$.
+The channel is 52 $\sigma$ in height and the solid wall has artificial properties 
+that are the same as those of liquid argon. The slip ratio between the fluid and the wall
+material is set at 0.6 to satisfy the linear velocity gradient along a vertical 
+direction.~\cite{Nie}
+
+
+%%%%% FIGURE %%%%%
+\begin{wrapfigure}{R}{0.5\linewidth}
+\includegraphics{Couette_Val_Domain.pdf}
+\caption{Computational Domain of the Couette Flow Simulation: The height 
+of the fluid domain is 52$\sigma$ ($\approx$177$\AA$). CFD mesh size is 
+71$\times$27 and CFD cells at the pure MD region are treated as holes. 
+MD domain size is about 140$\sigma$ along the horizontal direction and 
+around 26$\sigma$ along the vertical direction, including the bottom wall. 
+Periodic boundary condition is applied on the principal flow direction.}
+\label{Fig:Couette_Val_Domain}
+\end{wrapfigure}
+%\begin{figure}
+%\centering
+%\includegraphics[width=0.5\linewidth]{Couette_Val_Domain.pdf}
+%\caption{Computational Domain of the Couette Flow Simulation: The height 
+%of the fluid domain is 52$\sigma$ ($\approx$177$\AA$). CFD mesh size is 
+%71$\times$27 and CFD cells at the pure MD region are treated as holes. 
+%MD domain size is about 140$\sigma$ along the horizontal direction and 
+%around 26$\sigma$ along the vertical direction, including the bottom wall. 
+%Periodic boundary condition is applied on the principal flow direction.}
+%\label{Fig:Couette_Val_Domain}
+%\end{figure}
+%%%%% FIGURE %%%%%
+
+
+The computational domain for the hybrid simulation is depicted in Figure
+\ref{Fig:Couette_Val_Domain}. The pure MD region is specified as 10 $\sigma$, 
+which was reported to be sufficient to prevent the excessive sampling noise
+on the hybrid CFD boundary condition.\cite{Yen} Individual hybrid layer has
+2 $\sigma$ in height. Hybrid CFD boundary region consists of two consecutive 
+layers to provide the accurate boundary condition for this collocated mesh system.
+The width of the MD domain along the periodic direction is determined at 140 
+$\sigma$, after a number of numerical experiments.
+Both the sampling interval and the sampling duration are set to be 10 $\tau$,
+considering the characteristics of our deterministic application targets. 
+
+
+%%%%% FIGURE %%%%%
+\begin{wrapfigure}{R}{0.5\linewidth}
+\includegraphics{Flat_Plate_Sol2.pdf}
+\caption{A Time-accurate Couette Flow Profile: The evolution of velocity field 
+along the vertical direction is presented. CFD solution is the instantaneous 
+profile at specified time and MD solution is spatially averaged over 
+2 $\sigma$ in height and temporally averaged for 1 sampling durations (=10$\tau$).
+Hybrid solution presents the same flow physics as the analytic solution
+with the slight variation due to the sampling noise.}
+\label{Fig:Flat_Plate_Sol}
+\end{wrapfigure}
+%\begin{figure}
+%\centering
+%\includegraphics[width=0.5\linewidth]{Flat_Plate_Sol2.pdf}
+%\caption{A Time-accurate Couette Flow Profile: The evolution of velocity field 
+%along the vertical direction is presented. CFD solution is the instantaneous 
+%profile at specified time and MD solution is spatially averaged over 
+%2 $\sigma$ in height and temporally averaged for 1 sampling durations (=10$\tau$).
+%Hybrid solution presents the same flow physics as the analytic solution
+%with the slight variation due to the sampling noise.}
+%\label{Fig:Flat_Plate_Sol}
+%\end{figure}
+%%%%% FIGURE %%%%%
+
+
+Figure~\ref{Fig:Flat_Plate_Sol} presents a transient Couette flow profile 
+by the hybrid simulation which is compared to the analytic solution. 
+The hybrid solution succeeds in describing the same flow physics as the 
+analytic solution under the level of molecular dynamic sampling noise.
+This evaluates the accuracy of the current hybrid simulation package
+as a tool for solving the nano-scale flow field. This sampling noise is 
+even diminished further through the sampling of multiple replicas.\cite{JoCS2012}
+
+
+%\begin{figure}
+%\centering
+%\begin{subfigmatrix}{2}
+%\subfigure[Analytic Solution, Pure CFD and MD Results]{\includegraphics[width=0.4\linewidth]{Flat_Plate_Sol1.pdf}}
+%\subfigure[Pure CFD and Hybrid Simulations]{\includegraphics[width=0.4\linewidth]{Flat_Plate_Sol2.pdf}}
+%\end{subfigmatrix}
+%\caption{A Time-accurate Couette Flow Profile: The evolution of velocity field 
+%along the vertical direction is presented. CFD solution is the instantaneous 
+%profile at specified time and MD solution is spatially averaged over 
+%2 $\sigma$ in height and temporally averaged for 1 sampling durations (=10$\tau$).
+%Hybrid solution presents the same flow physics as the analytic solution
+%under the sampling noise level.}
+%\label{Fig:Flat_Plate_Sol}
+%\end{figure}
+
+
+%Figure~\ref{Fig:Flat_Plate_Sol} presents a transient Couette flow profile 
+%by CFD, MD, and hybrid simulations. Solution by the CFD is identical to the
+%analytic solution and an MD simulation also describe the same flow physics
+%while a slight fluctuation due to the sampling noise is also observed. 
+%The hybrid solution also describes the same flow physics as the analytic 
+%solution under the same magnitude of the sampling noise as the pure MD result.
+%This sampling noise is even diminished further through the sampling of
+%multiple replicas.\cite{JoCS2012}
+
+
+\subsection{Transient Couette Flow Profiles in Multi-species and Polyatomic Fluids}
+\label{sec:result_multi}
+
+Contents
+
+%%%%% End Numerical Solutions %%%%%
 
 
 %%%%% Conclusion and Future Works %%%%%
