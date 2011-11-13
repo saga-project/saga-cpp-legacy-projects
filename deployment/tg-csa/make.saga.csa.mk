@@ -610,6 +610,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_README_CHECK)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	-@$(CHMOD) -R a+rX $(EXTDIR)
@@ -630,5 +631,6 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_MODULE_CHECK)
 endif
 
