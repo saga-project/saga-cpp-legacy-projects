@@ -16,7 +16,7 @@ my %csa_hosts = ();
 my %csa_packs = ();
 my @modules   = ();
 my @hosts     = ();
-my @versions  = ();
+my $version   = "trunk";
 my $do_exe    = 0;
 my $do_list   = 0;
 my $do_check  = 0;
@@ -48,8 +48,7 @@ while ( my $arg = shift )
   }
   elsif ( $arg =~ /^(-v|--version)$/io )
   {
-    my $tmp = shift || "all";
-    @versions = split (/,/, $tmp);
+    $version = shift || "trunk";
   }
   elsif ( $arg =~ /^(-t|--target|--targets|--targethosts)$/io )
   {
@@ -132,7 +131,7 @@ $SVNCI .= " ci";
   close  (TMP);
   chomp  (@tmp);
 
-  my $version = "";
+  my $tmp_version = "";
 
   LINE_P:
   foreach my $tmp ( @tmp )
@@ -143,16 +142,16 @@ $SVNCI .= " ci";
     }
     elsif ( $tmp =~ /^\s*version\s*:\s*(\S+)\s*$/ )
     {
-      $version = $1;
-      $csa_packs {$version} = ();
+      $tmp_version = $1;
+      $csa_packs {$tmp_version} = ();
       next LINE_P;
     }
     elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s*$/io )
     {
-      my $module  = $1;
-      my $src     = $2;
+      my $tmp_module  = $1;
+      my $tmp_src     = $2;
 
-      $csa_packs{$version}{$module} = $src;
+      $csa_packs{$tmp_version}{$tmp_module} = $tmp_src;
     }
     else
     {
@@ -161,16 +160,10 @@ $SVNCI .= " ci";
   }
 
 
-  foreach my $version ( @versions )
+  if ( ! exists $csa_packs{$version} )
   {
-    if ( $version ne "all" )
-    {
-      if ( ! exists $csa_packs{$version} )
-      {
-        print "Version '$version' is not defined in '$CSA_PACK'\n";
-        exit -1;
-      }
-    }
+    print "Version '$version' is not defined in '$CSA_PACK'\n";
+    exit -1;
   }
 }
 
@@ -215,9 +208,7 @@ $SVNCI .= " ci";
 
 if ( grep (/all/, @modules) )
 {
-
- @modules = grep (!/all/, @modules);
-  my $version = $versions[0];
+  @modules = grep (!/all/, @modules);
   foreach my $module ( keys %{ $csa_packs{$version} } )
   {
     push (@modules, $module);
@@ -245,7 +236,7 @@ print <<EOT;
   ----------------------------------
   hosts    : @hosts
   modules  : @modules
-  versions : @versions
+  version  : $version
   ----------------------------------
 EOT
 
@@ -298,7 +289,12 @@ if ( $do_exe )
 
     # my $exe    = "rm -rf $path/csa";
     # my $exe    = "chmod -R a+rX $path/";
-      my $exe    = "rm -f $path/saga/$versions[0]/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
+    # my $exe    = "rm -v $path/saga/$version/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
+    # my $exe    = "rm -rf " .
+    #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/bigjob* " .
+    #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/saga/bigjob*";
+    # my $exe    = "rm -v $path/README.saga-$version.gcc-`$path/csa/cpp_version`.$host";
+      my $exe    = "cd    $path/csa/ ; svn up";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
@@ -357,29 +353,26 @@ if ( $do_remove )
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      foreach my $version ( @versions )
+      print " remove installation $version on $host\n";
+
+      my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
+
+      if ( $fake )
       {
-        print " remove installation $version on $host\n";
-
-        my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
-
-        if ( $fake )
+        print " $cmd\n";
+      }
+      else
+      {
+        if ( 0 == system ($cmd) )
         {
-          print " $cmd\n";
-        }
+          print " ok\n";
+        } 
         else
         {
-          if ( 0 == system ($cmd) )
+          print " error\n";
+          if ( $be_strict )
           {
-            print " ok\n";
-          } 
-          else
-          {
-            print " error\n";
-            if ( $be_strict )
-            {
-              exit -1;
-            }
+            exit -1;
           }
         }
       }
@@ -413,24 +406,49 @@ if ( $do_deploy )
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      foreach my $version ( @versions )
+      
+      foreach my $module ( @modules )
       {
-        foreach my $module ( @modules )
+        my $src = $csa_packs{$version}{$module};
+
+        print " build $module ($version)\n";
+
+        my $cmd = "$access $fqhn '$ENV CSA_HOST=$host                 " .
+                                 "     CSA_LOCATION=$path             " .
+                                 "     CSA_SAGA_VERSION=$version      " .
+                                 "     CSA_SAGA_SRC=\"$src\"          " .
+                                 "     CSA_SAGA_TGT=$module-$version  " .
+                                 "     CSA_FORCE=$force               " .
+                                 "     make -C $path/csa/             " .
+                                 "          --no-print-directory      " .
+                                 "          -f make.saga.csa.mk       " .
+                                 "          $module    '              " ;
+        if ( $fake )
         {
-          my $src = $csa_packs{$version}{$module};
+          print " $cmd\n";
+        }
+        else
+        {
+          if ( 0 == system ($cmd) )
+          {
+            print " ok\n";
+          } 
+          else
+          {
+            print " error\n";
+            if ( $be_strict )
+            {
+              exit -1;
+            }
+          }
+        }
 
-          print " build $module ($version)\n";
-
-          my $cmd = "$access $fqhn '$ENV CSA_HOST=$host                 " .
-                                   "     CSA_LOCATION=$path             " .
-                                   "     CSA_SAGA_VERSION=$version      " .
-                                   "     CSA_SAGA_SRC=\"$src\"          " .
-                                   "     CSA_SAGA_TGT=$module-$version  " .
-                                   "     CSA_FORCE=$force               " .
-                                   "     make -C $path/csa/             " .
-                                   "          --no-print-directory      " .
-                                   "          -f make.saga.csa.mk       " .
-                                   "          $module    '              " ;
+        if ( $module eq "documentation" )
+        {
+          my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
+                                   " svn add doc/README*$version*$host*          && " .
+                                   " svn add mod/module*$version*$host*          && " .
+                                   " $SVNCI -m \"automated update\"               ' ";
           if ( $fake )
           {
             print " $cmd\n";
@@ -450,35 +468,8 @@ if ( $do_deploy )
               }
             }
           }
-
-          if ( $module eq "documentation" )
-          {
-            my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
-                                     " svn add doc/README*$version*$host*          && " .
-                                     " svn add mod/module*$version*$host*          && " .
-                                     " $SVNCI -m \"automated update\"               ' ";
-            if ( $fake )
-            {
-              print " $cmd\n";
-            }
-            else
-            {
-              if ( 0 == system ($cmd) )
-              {
-                print " ok\n";
-              } 
-              else
-              {
-                print " error\n";
-                if ( $be_strict )
-                {
-                  exit -1;
-                }
-              }
-            }
-          }
-          print "\n";
         }
+        print "\n";
       }
     }
   }
@@ -504,40 +495,37 @@ if ( $do_check )
     }
     else
     {
-      foreach my $version ( @versions )
+      my $fqhn   = $csa_hosts{$host}{'fqhn'};
+      my $path   = $csa_hosts{$host}{'path'};
+      my $access = $csa_hosts{$host}{'access'};
+
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+      printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
+      print "+-----------------+------------------------------------------+-------------------------------------+\n";
+
+      if ( $fake )
       {
-        my $fqhn   = $csa_hosts{$host}{'fqhn'};
-        my $path   = $csa_hosts{$host}{'path'};
-        my $access = $csa_hosts{$host}{'access'};
+        print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
+      }
+      else
+      {
+        my $cmd = "$access $fqhn 'mkdir -p $path ; " .
+                  "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
+                  "$ENV CSA_HOST=$host                 " .
+                  "     CSA_LOCATION=$path             " .
+                  "     CSA_SAGA_VERSION=$version      " .
+                  "     CSA_SAGA_CHECK=yes             " .
+                  "     make -C $path/csa/             " .
+                  "          --no-print-directory      " .
+                  "          -f make.saga.csa.mk       " .
+                  "          all'                      " ;
 
-        print "+-----------------+------------------------------------------+-------------------------------------+\n";
-        printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
-        print "+-----------------+------------------------------------------+-------------------------------------+\n";
-
-        if ( $fake )
+        if ( 0 != system ($cmd) )
         {
-          print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
-        }
-        else
-        {
-          my $cmd = "$access $fqhn 'mkdir -p $path ; " .
-                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
-                    "$ENV CSA_HOST=$host                 " .
-                    "     CSA_LOCATION=$path             " .
-                    "     CSA_SAGA_VERSION=$version      " .
-                    "     CSA_SAGA_CHECK=yes             " .
-                    "     make -C $path/csa/             " .
-                    "          --no-print-directory      " .
-                    "          -f make.saga.csa.mk       " .
-                    "          all'                      " ;
-
-          if ( 0 != system ($cmd) )
+          print "error running csa checks\n";
+          if ( $be_strict )
           {
-            print "error running csa checks\n";
-            if ( $be_strict )
-            {
-              exit -1;
-            }
+            exit -1;
           }
         }
       }
@@ -573,7 +561,7 @@ sub help (;$)
     -h : this help message
     -l : list available target hosts
     -c : check csa access and tooling               (default: off)
-    -v : versions to deploy (see csa_packages file) (default: trunk)
+    -v : version to deploy (see csa_packages file)  (default: trunk)
     -a : deploy SAGA on all known target hosts      (default: off)
     -u : svn user id                                (default: local user id)
     -p : svn password                               (default: "")
