@@ -568,7 +568,25 @@ even diminished further through the sampling of multiple replicas.\cite{JoCS2012
 \subsection{Transient Couette Flow Profiles in Multi-species and Polyatomic Fluids}
 \label{sec:result_multi}
 
-Contents
+We currently apply our simulation package to solving two fluid systems.
+The first experiment solves a liquid compound which consists of two
+monatonic molecule species differing in mass. Chemical properties of
+each artificially designed molecule are set to be the same as that of
+the liquid argon. This numerical experiment will aims to verify the
+accuracy of the improved constrained Lagrangian dynamics equation, by comparing its result with the pure molecular dynamic solution.
+
+
+The next experiment will solve a polyatomic molecular fluid whose
+molecular structure is equivalent to that of water. This experiment 
+focuses on proving that imposing the constrained equation on the center
+of mass of each molecule is advantegeous in preserving the molecular
+structure of polyatomic fluid, compared with the traditional imposition
+of constrained equation on individual atom. We sense that the hybrid
+CFD-MD approach is incomplete in considering the long-range force field
+since outside the hybrid region is treated as the vacuum in particle
+domain. Thus, we apply the short-range Lennard-Jones potential for
+describing the molecular motion and compare our hybrid solution with
+the pure molecular dynamic simulation on the same flow field.
 
 %%%%% End Numerical Solutions %%%%%
 
@@ -577,40 +595,36 @@ Contents
 \section{Conclusion and Future Works}
 \label{sec:conclusion}
 
+We have proposed the improved constrained Lagrangian dynamics model for 
+a hybrid CFD-MD simulation in this paper. It is designed to satisfy 
+the momentum conservation of the fluid solution and avoid the numerical
+unstability in applying the equation to polyatomic molecules. The 
+classical constrained Lagrangian dynamics equation is reformulated
+to satisfy the linear momentum conservation of the multi-species fluid
+system and the equation is applied on the center of mass of each 
+molecule to preserve the chemical bond of a polyatomic molecule.
+We have implemented this model on our hybrid CFD-MD simulation package
+which consists of a pseudo-compressibility incompressible Navier-Stokes
+solver and a molecular dynamics solver solving the Lennard-Jones
+potential. The simulation package has been verified by solving the 
+transient Couette flow profile of a single-species monatomic fluid 
+system.
+It is under the application to two fluid systems who contains different
+atomic species in the particle domain. Simulation of the monatomic 
+fluid solution with different mass will verify the accuracy of
+the improved equation. Simulation of a polyatomic fluid will provide 
+the numerical validity of imposing the constrained Lagrangian dynamics
+equation on molecular level. These numerical experiments, in turn, will
+express the potential to apply the hybrid CFD-MD approach to any fluid
+systems.
 
-Accurate and efficient multi-scale flow simulations by a hybrid CFD-MD simulation framework have been presented in this paper. Constrained Lagrangian dynamics equations of motion and file-based hybrid interfaces are implemented on a highly-reliable LAMMPS molecular dynamics package and a verified in-house incompressible CFD code. They are virtually integrated as a single BigJob framework.
-
-A number of numerical issues which harm the accuracy of a hybrid solution have been explored. First, quantifying the sampling noise from a stationary flow has been proposed as a way of determining coupling parameters. We argue that our simple and intuitive idea unveils the influence of individual coupling parameter on the magnitude of statistical error and is very cost-effective in contrast to traditional trial-and-error approach.
-%until getting a stable solution.
-Moreover, the empirical equation derived from the stationary flow simulation describes that well-know mathematical expressions on statistical error are not accurate on nano-scale wall-bounded systems.
-Second, sampling multiple independent replicas has been introduced to refine the sampling noise of an individual solution and to explore to the low-speed flow regimes. This approach is superior to simulating a single large-scale problem set which is technically bound by computing capacity. The application to a Couette flow simulation in O(10) m/s velocity field is the first successful report of a moderate-speed flow simulation using a hybrid CFD-MD approach.
-Last, a prediction-correction approach has been designed for the accurate unsteady simulation. This approach acquires better solution by enabling the imposition of interpolated hybrid boundary conditions. The application to the oscillating boundary problem expresses that the current approach diminishes the overshoot/undershoot phenomena in the conventional methods.
-
-Along with numerical issues, computational issues for the efficient coupled simulations have been also discussed. We introduced a BigJob framework and this directly solves the co-scheduling problem among logically separated sub-tasks. A simple load-balancing function is also implemented on a BigJob framework, to achieve the load-balancing among those separated-yet-coupled codes. From numerical experiments, we evaluate that a BigJob is very powerful in reducing the waiting time of the coupled simulation. Also, a simple load-balancing function employed in a BigJob is effective in reducing the simulation runtime.
-
-We emphasize that above numerical investigations ease the challenge to the hybrid simulation and broaden the application area. Also, our computational experiments contribute on how to efficiently conduct coupled simulations.
-
-
-
-%The empirical mathematical equation on sampling noise has been presented in Sec.~\ref{sec:accuracy_conditions}. We argue that this is a refined model compared to previous mathematical expressions. However, the formulation has not been verified by various systems and conditions: coefficients will be changing according to the distance from the wall, characteristics of fluid and solid elements, etc. More rigorous research is required to address a globally acceptable equation of sampling noise.
-
-Numerical simulations in Sec.~\ref{sec:accuracy} demonstrates that the delicate determination of coupling parameters along with the supplementary use of replica sampling approaches (in Sec.~\ref{sec:numerical_noise} is very important for the accurate hybrid simulations. Unfortunately, coupling conditions have been rather intuitively or empirically determined according to the flow physics of the target problem, and proposed mathematical expressions in statistical error~\cite{Hadjicon3,Time_Mechanism} fails to consider the variation of sampling noise depending on the geometric configuration. It is highly required to develop a mathematical model for predicting the sampling noise in wall-bounded flow systems.
-
-Unsteady flow simulation in Sec.~\ref{sec:accuracy_oscillation} verifies that the prediction-correction approach provides more accurate solution than conventional temporal coupling scheme. The new approach is especially powerful in resolving the unfavorable overshoot/undershoot phenomena. On the other hand, the slight time-lagging effect in the conventional model has not been improved by the prediction-correction approach. We expect that this phenomenon can be resolved by applying higher-order extrapolation/interpolation on hybrid boundary regions.
-
-%The unstable solution at Fig.~\ref{Couette_Noisy} represents the result of Couette flow simulation with 0.1 $\sigma / \tau$ upper plate velocity in O(100) nanometer system. The diverging solution is intuitively natural, according to the statistical noise measurement in Table~\ref{table:MD_Vel0_L}: the amount of statistical error is 25 percent of the steady-state velocity in MDtoCFD layer. For the worse, the signal-to-noise ratio is even larger at early stage. Thus the strong initial instability makes it harder for the solver to reach the steady-state solution. Increasing the sampling duration to 1000 $\tau$ did not help; increasing the height of layers implies the abandonment of hybrid method's merit over pure MD method.
-%Clearly, this is one of the most important issues to make the family of hybrid methods a powerful tool which describes the detailed phenomena between solid obstacles and surrounding fluids more accurately. So far, two possible ways are observed at the first glance. First, setting the initial MD condition the same as steady-state CFD profile and starting hybrid simulation will, at least, alleviate the influence of noise at early stage. However, time-accurate unsteady solution can not be gained by this approach. Second, \skonote{check the clear term of zeta at Nie's formulation!} increasing $\zeta$ looks helpful in alleviating the noise in system level. However, this is worried whether excessive suppress of particles' vibration results in the breakup of fluid physics, i.e., breakup of energy conservation. A thorough investigation on the characteristics of statistical noise and design of numerical algorithm for acquiring the accurate solution without numerical damping are highly required.
-
-%%\begin{figure}[ht!]
-%\begin{figure}
-%\centering
-%\includegraphics[width=0.6\linewidth]{Couette_Noisy.pdf}
-%\vskip-0.2cm
-%\caption{\small {\bf Unstable solution at low shear rate.} Velocity of the upper plate is 0.1 $\sigma / \tau$ and all other conditions are identical to the Couette flow simulation in large domain. The solution diverges at early stage, since the statistical error is very large compared to the hydrodynamic velocity.}
-%\label{Stokes_Sol}
-%\end{figure}
-
-
+The future work will be dedicated to solving the long-range force
+field (e.g., Coulombic force) as well as the short-range Lennard-Jones
+potential on the particle domain. Hybrid simulation so far does not
+consider long-range potentials since outside the hybrid region is
+modelled as the vacuum state in view of particle domain. Mathematically
+modelling the long-range force field or putting the virtual slab 
+on the border of hybrid region could be ones of potential answers.
 
 %%%%% End Conclusion and Future Works %%%%%
 
