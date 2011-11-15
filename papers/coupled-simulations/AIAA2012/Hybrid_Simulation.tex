@@ -109,7 +109,7 @@
 
 %%%%% Note Configuration %%%%%
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***Jha: #1 }}}
-\newcommand{\Nkimnote}[1]{ {\textcolor{blue} { ***NKim: #1 }}}
+\newcommand{\nynote}[1]{ {\textcolor{blue} { ***NKim: #1 }}}
 \newcommand{\skonote}[1]{ {\textcolor{green} { ***Jeff: #1 }}}
 \newcommand{\menote}[1]{ {\textcolor{purple} { ***Comment from ME: #1 }}} 
 %%%%% End Note Configuration %%%%%
@@ -286,23 +286,68 @@ by Nie {\it{et al.}}\cite{Nie}.
 
 \skonote{To Nayong: What shall be added here}
 
-1. How classical constrained Lagrangian dynamics equation is implemented
+Once the hybrid simulation accomplished for the monatomic system, it was developing for the more realistic problem, which is polyatomic fluids including water molecules.  The first step of the development was start with developing to the equation of motion in coupling CFDtoMD region. The average velocity of particles in J{\it{th}} cell is equal to the velocity $\it u_J$ in continuum cell.
 
--- what is the objective: to eventually equilibrate the continuum and mean microscopic velocity
+\begin{equation}
+ u_{J}(t) = \frac{1}{N_{J}} \displaystyle\sum_{k} v_{k} =  {  \frac{\displaystyle\sum_{k}m_{k}\  {\dot x_k(t)}} {\displaystyle\sum_{k}m_{k}}}
+ \label{eq:Con_vel}
+\end{equation}
+\normalsize
+where $\it v_{i}$ is the velocity of $\it k^{th}$ particle and $\it N_{J}$ is the number of particles in the cell.  With taking Lagrangian derivative of eq. ~\ref{eq:Con_vel},
 
--- what is the governing equation: the governing equation and the meaning of each term under the equation
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ \frac{Du_{J}(t)}{Dt} = {  \frac{\displaystyle\sum_{k}m_{k}\  \frac{d\dot x_k(t)}{dt} } {\displaystyle\sum_{k}m_{k}}} = {  \frac{\displaystyle\sum_{k}m_{k}\  {\ddot x_k(t)}} {\displaystyle\sum_{k}m_{k}}}
+ \label{eq:gov1}
+\end{equation}
+\normalsize
 
-2. Why it needs change
+The Classical MD equation of motion can be generalized to obtain the constraint by adopting the fluctuation in the acceleration of each particles, $\zeta_{k}$
 
--- The limitation of the equation to be applied to multi-species fluid model
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+\frac{F_{k}}{m_{k}}  =  \ddot{x_{k}}(t) =  \frac{Du_{J}(t)}{Dt} + \zeta_{k} = {  \frac{\displaystyle\sum_{k}m_{k}\  {\ddot x_k(t)}} {\displaystyle\sum_{k}m_{k}}}+ \zeta_{k} =  {  \frac{\displaystyle\sum_{k}F_{k}(t)} {\displaystyle\sum_{k}m_{k}}}+ \zeta_{k}
+ \label{eq:zeta1}
+\end{equation}
 
-3. How it is improved
+\begin{equation}
+\zeta_{k} = \ddot{x_{k}}(t) - {  \frac{\displaystyle\sum_{k}F_{k}(t)} {\displaystyle\sum_{k}m_{k}}}= \frac{F_{k}(t)}{m_{k}} - {  \frac{\displaystyle\sum_{k}F_{k}(t)} {\displaystyle\sum_{k}m_{k}}} 
+ \label{eq:zeta2}
+\end{equation}
+\normalsize
+where $m_k$  = $m$ only for monatomic system, 
 
--- The formulation of "Polyatomic Multi-species Constrained Lagrangian Dynamics Equation"
+Finally, constrained particle dynamics equation was modified with the conventional equation of motion considering multi-mass to simulate polyatomic CFD-MD coupling hybrid simulation, it can be written as:
+\vspace{-.2em}
+%\footnotesize
+\begin{equation}
+ \ddot{x_{k}}(t) = \frac{F_{k}}{m_{k}} -  \frac{1}{m_k} \frac{\displaystyle\sum_{i=1}^{N_J}F_{i}} {\displaystyle\sum_{i=1}^{N_J}m_{i}} - \frac{m_k}{\Delta t_{MD}} \{  \frac{\displaystyle\sum_{i=1}^{N_J}m_{i}\dot{x_{i}}} {\displaystyle\sum_{i=1}^{N_J}m_{i}} - u_{J}(t + \Delta t_{MD})\}
+ \label{eq:EOM}
+\end{equation}
+\normalsize
 
--- Difference compared to the original equation
+The acceleration of the cell is now constrained instead of the average acceleration of the particle in the cells in this equation.  Again, these two quantities are the same when all of the masses of atoms are the same. 
 
--- Difference in applying the equation: apply on the center of mass of each molecule, not on individual atom (which will imply that atoms under the same molecule will experience the same acceleration, which tells that the linear momentum is of particular concern)
+
+%1. How classical constrained Lagrangian dynamics equation is implemented
+
+%-- what is the objective: to eventually equilibrate the continuum and mean microscopic velocity
+
+%-- what is the governing equation: the governing equation and the meaning of each term under the equation
+
+%2. Why it needs change
+
+%-- The limitation of the equation to be applied to multi-species fluid model
+
+%3. How it is improved
+
+%-- The formulation of "Polyatomic Multi-species Constrained Lagrangian Dynamics Equation"
+
+%-- Difference compared to the original equation
+
+%-- Difference in applying the equation: apply on the center of mass of each molecule, not on individual atom (which will imply that atoms under the same molecule will experience the same acceleration, which tells that the linear momentum is of particular concern)
 
 %%%%% End Hybrid Schema %%%%%
 
