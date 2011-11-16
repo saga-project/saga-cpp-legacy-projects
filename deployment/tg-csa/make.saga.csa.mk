@@ -596,7 +596,6 @@ documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
 	@    test -e $(CSA_MODULE_CHECK) \
 		&& echo "module                    ok" \
 		|| echo "module                    nok"
-	@cp -fv $(CSA_README_SRC) $(CSA_LOCATION)
 
 $(CSA_README_CHECK): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK
