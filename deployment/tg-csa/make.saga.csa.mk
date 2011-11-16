@@ -7,6 +7,10 @@
 # CSA_SAGA_VERSION, which should be available as release tag in svn.  Otherwise,
 # we are going to install trunk.   Finally, CSA_SAGA_CHECK will not install
 # anything, but print status information for an existing deployment.
+#
+# NOTE: this makefile should only be used in conjunction with csa_deploy.pl, 
+# and won't be of much use oherwise...
+#
 
 ifndef CSA_LOCATION
  $(error CSA_LOCATION not set - should point to the CSA space allocated on this TG machine)
@@ -90,43 +94,45 @@ ifeq "$(SVN)" ""
  $(error Could not find svn binary)
 endif
 
-########################################################################
-#
-# target dependencies
-#
-.PHONY: all
-all::                      saga-core saga-adaptors saga-bindings saga-clients documentation
-
-.PHONY: externals
-externals::                boost postgresql sqlite3
-boost::                    python
-
-.PHONY: saga-core
-saga-core::                externals
-
-.PHONY: saga-adaptors
-saga-adaptors::            saga-adaptor-x509
-saga-adaptors::            saga-adaptor-globus 
-saga-adaptors::            saga-adaptor-ssh 
-saga-adaptors::            saga-adaptor-bes 
-saga-adaptors::            saga-adaptor-glite
-saga-adaptors::            saga-adaptor-aws 
-saga-adaptors::            saga-adaptor-drmaa
-saga-adaptors::            saga-adaptor-torque
-saga-adaptors::            saga-adaptor-pbspro
-saga-adaptors::            saga-adaptor-condor
-
-.PHONY: saga-bindings
-saga-bindings::            saga-core
-saga-bindings::            saga-binding-python
-
-.PHONY: saga-binding-python
-saga-binding-python::      python
-
-.PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
-saga-clients::             saga-client-mandelbrot saga-client-bigjob
-saga-client-mandelbrot::   saga-core
-saga-client-bigjob::       saga-core saga-binding-python            
+##########################################################################
+# #
+# # target dependencies
+# #
+# # NOTE: dependencies are now resolved in csa_deploy.pl
+# #
+# .PHONY: all
+# all::                      saga-core saga-adaptors saga-bindings saga-clients documentation
+# 
+# .PHONY: externals
+# externals::                boost postgresql sqlite3
+# boost::                    python
+# 
+# .PHONY: saga-core
+# saga-core::                externals
+# 
+# .PHONY: saga-adaptors
+# saga-adaptors::            saga-adaptor-x509
+# saga-adaptors::            saga-adaptor-globus 
+# saga-adaptors::            saga-adaptor-ssh 
+# saga-adaptors::            saga-adaptor-bes 
+# saga-adaptors::            saga-adaptor-glite
+# saga-adaptors::            saga-adaptor-aws 
+# saga-adaptors::            saga-adaptor-drmaa
+# saga-adaptors::            saga-adaptor-torque
+# saga-adaptors::            saga-adaptor-pbspro
+# saga-adaptors::            saga-adaptor-condor
+# 
+# .PHONY: saga-bindings
+# saga-bindings::            saga-core
+# saga-bindings::            saga-binding-python
+# 
+# .PHONY: saga-binding-python
+# saga-binding-python::      python
+# 
+# .PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
+# saga-clients::             saga-client-mandelbrot saga-client-bigjob
+# saga-client-mandelbrot::   saga-core
+# saga-client-bigjob::       saga-core saga-binding-python            
 
 ########################################################################
 #
@@ -318,9 +324,11 @@ SAGA_ENV = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_E
 
 .PHONY: saga-binding-python
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)
+ifdef CSA_SAGA_CHECK
 	@    test -e $(SAGA_PYTHON_CHECK) \
 		&& echo "saga-binding-python       ok" \
 		|| echo "saga-binding-python       nok"
+endif
 
 $(SAGA_PYTHON_CHECK):
 ifndef CSA_SAGA_CHECK
@@ -555,9 +563,16 @@ endif
 # bigjob client
 #
 SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
-SAGA_PYTHON_MODPATH += ":$(SC_BIGJOB_CHECK)"
 SUP                  = "saga-client-bigjob-supplemental.tgz"
 SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$(SUP)"
+BIGJOB_SETUP_URL     = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/generic/setup.py
+BIGJOB_VERSION       = $(shell wget -qO - $(BIGJOB_SETUP_URL) | grep version | cut -f 2 -d "'")
+BIGJOB_EGG           = $(shell echo "BigJob-$(BIGJOB_VERSION)-py$(PYTHON_SVERSION).egg")
+SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/python$(PYTHON_SVERSION)/$(BIGJOB_EGG)/
+
+# $(warning bigjob-version: $(BIGJOB_VERSION))
+# $(warning bigjob-egg    : $(BIGJOB_EGG))
+# $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
