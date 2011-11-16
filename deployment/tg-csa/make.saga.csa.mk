@@ -595,6 +595,7 @@ documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
 	@    test -e $(CSA_MODULE_CHECK) \
 		&& echo "module                    ok" \
 		|| echo "module                    nok"
+	@cp -fv $(CSA_README_SRC) $(CSA_LOCATION)
 
 $(CSA_README_CHECK): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK
@@ -611,6 +612,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_README_CHECK)
+	@cp -fv $(CSA_README_SRC) $(CSA_LOCATION)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	-@$(CHMOD) -R a+rX $(EXTDIR)
