@@ -152,10 +152,10 @@ ifndef CSA_SAGA_CHECK
 	@mkdir $@
 endif
 
-# always do an svn up
+# always do an svn up, on check
 .PHONY: $(CSA_LOCATION)/csa/ 
 $(CSA_LOCATION)/csa/:
-ifndef CSA_SAGA_CHECK
+ifdef CSA_SAGA_CHECK
 	@test -d $@ || $(SVNCO) https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa $@
 	@test -d $@ && cd $@ && $(SVNUP)
 endif
