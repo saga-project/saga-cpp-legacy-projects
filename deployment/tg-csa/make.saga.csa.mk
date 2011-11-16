@@ -613,7 +613,7 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_README_CHECK)
-	@cp -fv $(CSA_README_SRC) $(CSA_LOCATION)
+	@cp -fv $(CSA_README_CHECK) $(CSA_LOCATION)
 	@echo "fixing permissions"
 	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
 	-@$(CHMOD) -R a+rX $(EXTDIR)

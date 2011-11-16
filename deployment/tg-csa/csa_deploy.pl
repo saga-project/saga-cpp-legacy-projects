@@ -293,8 +293,9 @@ if ( $do_exe )
     # my $exe    = "rm -rf " .
     #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/bigjob* " .
     #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/saga/bigjob*";
-    # my $exe    = "rm -v $path/README.saga-$version.gcc-`$path/csa/cpp_version`.$host";
-      my $exe    = "cd    $path/csa/ ; svn up";
+      my $exe    = "rm -v $path/README.saga-$version.gcc-`$path/csa/cpp_version`.$host" .
+                   "      $path/csa/doc/README.saga-$version.gcc-`$path/csa/cpp_version`.$host";
+    # my $exe    = "cd    $path/csa/ ; svn up";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
