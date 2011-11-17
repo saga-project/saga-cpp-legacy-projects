@@ -33,6 +33,12 @@ ifdef CSA_HOST
   HOSTNAME     = $(CSA_HOST)
 endif
 
+# NOTE that the CHECK files have a dummy ppostfix - we always want to recreate
+# them...
+ifdef CSA_FORCE
+  FORCE        = .dummy
+endif
+
 ########################################################################
 # 
 # make helper to remove white space from vars
@@ -185,12 +191,12 @@ SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
 SAGA_ENV_BINS  += $(PYTHON_LOCATION)/bin/
 
 .PHONY: python
-python:: base $(PYTHON_CHECK)
+python:: base $(PYTHON_CHECK)$(FORCE)
 	@    test -e $(PYTHON_CHECK) \
 		&& echo "python                    ok" \
 		|| echo "python                    nok"
 
-$(PYTHON_CHECK):
+$(PYTHON_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "python                    installing ($(PYTHON_CHECK))"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
@@ -212,12 +218,12 @@ SAGA_ENV_LDPATH = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:
 SAGA_ENV        = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: boost
-boost:: base $(BOOST_CHECK)
+boost:: base $(BOOST_CHECK)$(FORCE)
 	@    test -e $(BOOST_CHECK) \
 		&& echo "boost                     ok" \
 		|| echo "boost                     nok"
 
-$(BOOST_CHECK):
+$(BOOST_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "boost                     installing"
 	@cd $(SRCDIR) ; $(WGET) $(BOOST_SRC)
@@ -240,12 +246,12 @@ SAGA_ENV_VARS      += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
 SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 
 .PHONY: postgresql
-postgresql:: base $(POSTGRESQL_CHECK)
+postgresql:: base $(POSTGRESQL_CHECK)$(FORCE)
 	@    test -e $(POSTGRESQL_CHECK) \
 		&& echo "postgresql                ok" \
 		|| echo "postgresql                nok"
 
-$(POSTGRESQL_CHECK):
+$(POSTGRESQL_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "postgresql                installing"
 	@cd $(SRCDIR) ; $(WGET) $(POSTGRESQL_SRC)
@@ -263,12 +269,12 @@ SAGA_ENV_VARS   += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
 SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 
 .PHONY: sqlite3
-sqlite3:: base $(SQLITE3_CHECK)
+sqlite3:: base $(SQLITE3_CHECK)$(FORCE)
 	@    test -e $(SQLITE3_CHECK) \
 		&& echo "sqlite3                   ok" \
 		|| echo "sqlite3                   nok"
 
-$(SQLITE3_CHECK):
+$(SQLITE3_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "sqlite3                   installing"
 	@cd $(SRCDIR) ; $(WGET) $(SQLITE3_SRC)
@@ -297,12 +303,12 @@ ifeq "$(CSA_HOST)" "abe"
 endif
 
 .PHONY: saga-core
-saga-core:: base $(SAGA_CORE_CHECK)
+saga-core:: base $(SAGA_CORE_CHECK)$(FORCE)
 	@    test -e $(SAGA_CORE_CHECK) \
 		&& echo "saga-core                 ok" \
 		|| echo "saga-core                 nok"
 
-$(SAGA_CORE_CHECK):
+$(SAGA_CORE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-core                 installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -323,14 +329,14 @@ SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LI
 SAGA_ENV = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: saga-binding-python
-saga-binding-python:: base $(SAGA_PYTHON_CHECK)
+saga-binding-python:: base $(SAGA_PYTHON_CHECK)$(FORCE)
 ifdef CSA_SAGA_CHECK
 	@    test -e $(SAGA_PYTHON_CHECK) \
 		&& echo "saga-binding-python       ok" \
 		|| echo "saga-binding-python       nok"
 endif
 
-$(SAGA_PYTHON_CHECK):
+$(SAGA_PYTHON_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-binding-python       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -352,12 +358,12 @@ endif
 SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
 
 .PHONY: saga-adaptor-x509
-saga-adaptor-x509:: base $(SA_X509_CHECK)
+saga-adaptor-x509:: base $(SA_X509_CHECK)$(FORCE)
 	@    test -e $(SA_X509_CHECK) \
 		&& echo "saga-adaptor-x509         ok" \
 		|| echo "saga-adaptor-x509         nok"
 
-$(SA_X509_CHECK):
+$(SA_X509_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-x509         installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -371,12 +377,12 @@ endif
 SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.ini
 
 .PHONY: saga-adaptor-globus
-saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)
+saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)$(FORCE)
 	@    test -e $(SA_GLOBUS_CHECK) \
 		&& echo "saga-adaptor-globus       ok" \
 		|| echo "saga-adaptor-globus       nok"
 
-$(SA_GLOBUS_CHECK):
+$(SA_GLOBUS_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-globus       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -390,12 +396,12 @@ endif
 SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
 
 .PHONY: saga-adaptor-ssh
-saga-adaptor-ssh:: base $(SA_SSH_CHECK)
+saga-adaptor-ssh:: base $(SA_SSH_CHECK)$(FORCE)
 	@    test -e $(SA_SSH_CHECK) \
 		&& echo "saga-adaptor-ssh          ok" \
 		|| echo "saga-adaptor-ssh          nok"
 
-$(SA_SSH_CHECK):
+$(SA_SSH_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-ssh          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -409,12 +415,12 @@ endif
 SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
 
 .PHONY: saga-adaptor-aws
-saga-adaptor-aws:: base $(SA_AWS_CHECK)
+saga-adaptor-aws:: base $(SA_AWS_CHECK)$(FORCE)
 	@    test -e $(SA_AWS_CHECK) \
 		&& echo "saga-adaptor-aws          ok" \
 		|| echo "saga-adaptor-aws          nok"
 
-$(SA_AWS_CHECK):
+$(SA_AWS_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-aws          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -428,12 +434,12 @@ endif
 SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
 
 .PHONY: saga-adaptor-drmaa
-saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)
+saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)$(FORCE)
 	@    test -e $(SA_DRMAA_CHECK) \
 		&& echo "saga-adaptor-drmaa        ok" \
 		|| echo "saga-adaptor-drmaa        nok"
 
-$(SA_DRMAA_CHECK):
+$(SA_DRMAA_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-drmaa        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -447,12 +453,12 @@ endif
 SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 
 .PHONY: saga-adaptor-condor
-saga-adaptor-condor:: base $(SA_CONDOR_CHECK)
+saga-adaptor-condor:: base $(SA_CONDOR_CHECK)$(FORCE)
 	@    test -e $(SA_CONDOR_CHECK) \
 		&& echo "saga-adaptor-condor       ok" \
 		|| echo "saga-adaptor-condor       nok"
 
-$(SA_CONDOR_CHECK):
+$(SA_CONDOR_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-condor       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -466,12 +472,12 @@ endif
 SA_GLITE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_glite_sd.ini
 
 .PHONY: saga-adaptor-glite
-saga-adaptor-glite:: base $(SA_GLITE_CHECK)
+saga-adaptor-glite:: base $(SA_GLITE_CHECK)$(FORCE)
 	@    test -e $(SA_GLITE_CHECK) \
 		&& echo "saga-adaptor-glite        ok" \
 		|| echo "saga-adaptor-glite        nok"
 
-$(SA_GLITE_CHECK):
+$(SA_GLITE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-glite        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -485,12 +491,12 @@ endif
 SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 
 .PHONY: saga-adaptor-pbspro
-saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)
+saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)$(FORCE)
 	@    test -e $(SA_PBSPRO_CHECK) \
 		&& echo "saga-adaptor-pbspro       ok" \
 		|| echo "saga-adaptor-pbspro       nok"
 
-$(SA_PBSPRO_CHECK):
+$(SA_PBSPRO_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-pbspro       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -504,12 +510,12 @@ endif
 SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 
 .PHONY: saga-adaptor-torque
-saga-adaptor-torque:: base $(SA_TORQUE_CHECK)
+saga-adaptor-torque:: base $(SA_TORQUE_CHECK)$(FORCE)
 	@    test -e $(SA_TORQUE_CHECK) \
 		&& echo "saga-adaptor-torque       ok" \
 		|| echo "saga-adaptor-torque       nok"
 
-$(SA_TORQUE_CHECK):
+$(SA_TORQUE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-torque       installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -523,12 +529,12 @@ endif
 SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_bes_hpcbp_job.ini
 
 .PHONY: saga-adaptor-bes
-saga-adaptor-bes:: base $(SA_BES_CHECK)
+saga-adaptor-bes:: base $(SA_BES_CHECK)$(FORCE)
 	@    test -e $(SA_BES_CHECK) \
 		&& echo "saga-adaptor-bes          ok" \
 		|| echo "saga-adaptor-bes          nok"
 
-$(SA_BES_CHECK):
+$(SA_BES_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-adaptor-bes          installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -544,12 +550,12 @@ endif
 SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
 
 .PHONY: saga-client-mandelbrot
-saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)
+saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)$(FORCE)
 	@    test -e $(SC_MANDELBROT_CHECK) \
 		&& echo "saga-client-mandelbrot    ok" \
 		|| echo "saga-client-mandelbrot    nok"
 
-$(SC_MANDELBROT_CHECK):
+$(SC_MANDELBROT_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-client-mandelbrot    installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
@@ -579,12 +585,12 @@ SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$
 # $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
 .PHONY: saga-client-bigjob
-saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
+saga-client-bigjob:: base $(SC_BIGJOB_CHECK)$(FORCE)
 	@    test -e $(SC_BIGJOB_CHECK) \
 		&& echo "saga-client-bigjob        ok" \
 		|| echo "saga-client-bigjob        nok"
 
-$(SC_BIGJOB_CHECK):
+$(SC_BIGJOB_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 #	@echo "saga-client-bigjob        installing (supplementals)"
 #	@cd $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/ ; wget $(SUP_URL) ; tar zxvf $(SUP) 
@@ -601,16 +607,14 @@ endif
 # documentation
 #
 # create some basic documentation about the installed software packages
-# NOTE that the CHECK files have a dummy ppostfix - we always want to recreate
-# them...
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME).dummy
+CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
-CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME).dummy
+CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: documentation
-documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
+documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE)
 	@    test -e $(CSA_README_CHECK) \
 		&& echo "documentation             ok" \
 		|| echo "documentation             nok"
@@ -618,7 +622,7 @@ documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
 		&& echo "module                    ok" \
 		|| echo "module                    nok"
 
-$(CSA_README_CHECK): $(CSA_README_SRC)
+$(CSA_README_CHECK)$(FORCE): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK
 	@echo "README                    creating"
 	@cp -fv $(CSA_README_SRC) $(CSA_README_CHECK)
@@ -641,7 +645,7 @@ ifndef CSA_SAGA_CHECK
 	-@$(CHMOD)    a+rX $(CSA_LOCATION)
 endif
 	
-$(CSA_MODULE_CHECK): $(CSA_MODULE_SRC)
+$(CSA_MODULE_CHECK)$(FORCE): $(CSA_MODULE_SRC)
 ifndef CSA_SAGA_CHECK
 	@echo "module                    creating"
 	@cp -fv $(CSA_MODULE_SRC) $(CSA_MODULE_CHECK)

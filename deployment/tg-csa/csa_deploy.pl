@@ -22,7 +22,7 @@ my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $be_strict = 0;
-my $force     = 0;
+my $force     = "";
 my $fake      = 0;
 my $do_remove = 0;
 my $svnuser   = `id -un`;
@@ -78,7 +78,7 @@ while ( my $arg = shift )
   }
   elsif ( $arg =~ /^(-f|--force)$/io )
   {
-    $force = 1;
+    $force = "CSA_FORCE=true";
   }
   elsif ( $arg =~ /^(-r|--remove)$/io )
   {
@@ -151,7 +151,8 @@ $SVNCI .= " ci";
       my $tmp_module  = $1;
       my $tmp_src     = $2;
 
-      $csa_packs{$tmp_version}{$tmp_module} = $tmp_src;
+      push ( @{$csa_packs{$tmp_version}{'modules'}}, {'name' => $tmp_module,
+                                                      'src'  => $tmp_src});
     }
     else
     {
@@ -209,9 +210,29 @@ $SVNCI .= " ci";
 if ( grep (/all/, @modules) )
 {
   @modules = grep (!/all/, @modules);
-  foreach my $module ( keys %{ $csa_packs{$version} } )
+  foreach my $entry ( @{$csa_packs{$version}{'modules'}} )
   {
-    push (@modules, $module);
+    push (@modules, $entry->{'name'});
+  }
+}
+
+# modules need to be re-ordered, as we assume that the order given in the
+# csa_packages file is significant (i.e. resolves dependenncies).
+# FWIW, this procedure also weeds out duplicates.
+#
+# TODO: for each module, we should also include all modules listed before 
+# that one, to actually satisfy not specified dependencies...
+{
+  my  @tmp = @modules;
+  @modules = ();
+
+  foreach my $entry ( @{$csa_packs{$version}{'modules'}} )
+  {
+    my $name = $entry->{'name'};
+    if ( grep (/^$name$/, @tmp) )
+    {
+      push (@modules, $entry);
+    }
   }
 }
 
@@ -231,11 +252,16 @@ if ( ! scalar (@hosts) )
   }
 }
 
+my $modstring = "";
+foreach my $entry ( @modules )
+{
+  $modstring .= "$entry->{name} ";
+}
 
 print <<EOT;
   ----------------------------------
   hosts    : @hosts
-  modules  : @modules
+  modules  : $modstring
   version  : $version
   ----------------------------------
 EOT
@@ -410,22 +436,23 @@ if ( $do_deploy )
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
       
-      foreach my $module ( @modules )
+      foreach my $entry ( @modules )
       {
-        my $src = $csa_packs{$version}{$module};
+        my $mod_name = $entry->{'name'};
+        my $mod_src  = $entry->{'src'};
 
-        print " build $module ($version)\n";
+        print " build $mod_name ($version)\n";
 
         my $cmd = "$access $fqhn '$ENV CSA_HOST=$host                 " .
                                  "     CSA_LOCATION=$path             " .
                                  "     CSA_SAGA_VERSION=$version      " .
-                                 "     CSA_SAGA_SRC=\"$src\"          " .
-                                 "     CSA_SAGA_TGT=$module-$version  " .
-                                 "     CSA_FORCE=$force               " .
+                                 "     CSA_SAGA_SRC=\"$mod_src\"      " .
+                                 "     CSA_SAGA_TGT=$mod_name-$version" .
+                                 "     $force                         " .
                                  "     make -C $path/csa/             " .
                                  "          --no-print-directory      " .
                                  "          -f make.saga.csa.mk       " .
-                                 "          $module    '              " ;
+                                 "          $mod_name'                " ;
         if ( $fake )
         {
           print " $cmd\n";
@@ -446,7 +473,7 @@ if ( $do_deploy )
           }
         }
 
-        if ( $module eq "documentation" )
+        if ( $mod_name eq "documentation" )
         {
           my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
                                    " svn add doc/README*$version*$host*          && " .
