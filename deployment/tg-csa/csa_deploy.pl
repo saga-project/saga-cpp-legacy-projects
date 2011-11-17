@@ -286,16 +286,18 @@ if ( $do_exe )
       my $fqhn   = $csa_hosts{$host}{'fqhn'};
       my $path   = $csa_hosts{$host}{'path'};
       my $access = $csa_hosts{$host}{'access'};
+      my $CPP    = "gcc-`$path/csa/cpp_version`";
 
     # my $exe    = "rm -rf $path/csa";
     # my $exe    = "chmod -R a+rX $path/";
-    # my $exe    = "rm -v $path/saga/$version/gcc-`$path/csa/cpp_version`/share/saga/saga_adaptor_ssh_job.ini";
-    # my $exe    = "rm -rf " .
-    #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/bigjob* " .
-    #              "      $path/saga/$version/gcc-`$path/csa/cpp_version`/lib/python*/site-packages/saga/bigjob*";
-      my $exe    = "rm -v $path/README.saga-$version.gcc-`$path/csa/cpp_version`.$host" .
-                   "      $path/csa/doc/README.saga-$version.gcc-`$path/csa/cpp_version`.$host";
-    # my $exe    = "cd    $path/csa/ ; svn up";
+    # my $exe    = "rm -v  $path/saga/$version/gcc-$CPP/share/saga/saga_adaptor_ssh_job.ini";
+    # my $exe    = "rm -rf $path/saga/$version/gcc-$CPP/lib/python*/site-packages/bigjob* " .
+    #              "       $path/saga/$version/gcc-$CPP/lib/python*/site-packages/saga/bigjob*";
+      my $exe    = "rm -rv $path/README.saga-$version.$CPP.$host" .
+                   "       $path/csa/doc/README.saga-$version.$CPP.$host" .
+                   "       $path/saga/$version/$CPP/share/saga/config/python.m4" .
+                   "       $path/saga/$version/$CPP/lib/python*";
+    # my $exe    = "cd     $path/csa/ ; svn up";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;

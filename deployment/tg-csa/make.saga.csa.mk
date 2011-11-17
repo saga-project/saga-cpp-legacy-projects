@@ -317,7 +317,7 @@ endif
 # python bindings
 #
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
-SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/site-packages/
+SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/
 
 SAGA_ENV_LDPATH      = LD_LIBRARY_PATH=$(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
 SAGA_ENV = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
@@ -565,12 +565,14 @@ endif
 SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
 SUP                  = "saga-client-bigjob-supplemental.tgz"
 SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$(SUP)"
-SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/python$(PYTHON_SVERSION)/
+
+# this path is already present in the current bj installation scheme
+# SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/
 
 # BIGJOB_SETUP_URL     = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/generic/setup.py
 # BIGJOB_VERSION       = $(shell wget -qO - $(BIGJOB_SETUP_URL) | grep version | cut -f 2 -d "'")
 # BIGJOB_EGG           = $(shell echo "BigJob-$(BIGJOB_VERSION)-py$(PYTHON_SVERSION).egg")
-# SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/python$(PYTHON_SVERSION)/$(BIGJOB_EGG)/
+# SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/$(BIGJOB_EGG)/
 
 # $(warning bigjob-version: $(BIGJOB_VERSION))
 # $(warning bigjob-egg    : $(BIGJOB_EGG))
