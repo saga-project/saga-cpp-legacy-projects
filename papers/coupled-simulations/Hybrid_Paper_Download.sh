@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ### Name of the new paper directory
-Paper="eScience11"
+Paper="AIAA2012"
 ### Name of repository home
 Repository="https://svn.cct.lsu.edu/repos/saga-projects/papers/coupled-simulations"
 ### Name of reference Bibs 1: saga files
