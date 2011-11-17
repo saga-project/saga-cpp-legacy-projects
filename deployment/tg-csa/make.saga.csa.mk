@@ -100,6 +100,9 @@ ifeq "$(SVN)" ""
  $(error Could not find svn binary)
 endif
 
+.PHONY: all
+all: saga-core saga-bindings saga-adaptor-x509 saga-adaptor-globus saga-adaptor-ssh saga-adaptor-bes saga-adaptor-glite saga-adaptor-aws saga-adaptor-drmaa saga-adaptor-torque saga-adaptor-pbspro saga-adaptor-condor saga-client-mandelbrot saga-client-bigjob documentation
+
 ##########################################################################
 # #
 # # target dependencies
@@ -107,7 +110,7 @@ endif
 # # NOTE: dependencies are now resolved in csa_deploy.pl
 # #
 # .PHONY: all
-# all::                      saga-core saga-adaptors saga-bindings saga-clients documentation
+# all:                      saga-core saga-adaptors saga-bindings saga-clients documentation
 # 
 # .PHONY: externals
 # externals::                boost postgresql sqlite3
