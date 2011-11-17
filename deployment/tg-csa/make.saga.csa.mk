@@ -103,7 +103,7 @@ endif
 # default target makes only sense for checking
 .PHONY: all
 ifdef CSA_SAGA_CHECK
-all: saga-core saga-bindings saga-adaptor-x509 saga-adaptor-globus saga-adaptor-ssh saga-adaptor-bes saga-adaptor-glite saga-adaptor-aws saga-adaptor-drmaa saga-adaptor-torque saga-adaptor-pbspro saga-adaptor-condor saga-client-mandelbrot saga-client-bigjob documentation
+all: saga-core saga-binding-python saga-adaptor-x509 saga-adaptor-globus saga-adaptor-ssh saga-adaptor-bes saga-adaptor-glite saga-adaptor-aws saga-adaptor-drmaa saga-adaptor-torque saga-adaptor-pbspro saga-adaptor-condor saga-client-mandelbrot saga-client-bigjob documentation
 else
 all:
 endif
