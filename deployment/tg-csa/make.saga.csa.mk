@@ -586,8 +586,8 @@ saga-client-bigjob:: base $(SC_BIGJOB_CHECK)
 
 $(SC_BIGJOB_CHECK):
 ifndef CSA_SAGA_CHECK
-	# @echo "saga-client-bigjob        installing (supplementals)"
-	# @cd $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/ ; wget $(SUP_URL) ; tar zxvf $(SUP) 
+#	@echo "saga-client-bigjob        installing (supplementals)"
+#	@cd $(SAGA_LOCATION)/lib/python$(PYTHON_VERSION)/ ; wget $(SUP_URL) ; tar zxvf $(SUP) 
 	@echo "saga-client-bigjob        installing"
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
@@ -601,11 +601,13 @@ endif
 # documentation
 #
 # create some basic documentation about the installed software packages
+# NOTE that the CHECK files have a dummy ppostfix - we always want to recreate
+# them...
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME).dummy
 CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
-CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME).dummy
 
 .PHONY: documentation
 documentation:: base $(CSA_README_CHECK) $(CSA_MODULE_CHECK)
