@@ -11,19 +11,27 @@ from bigdata.troy.compute.api import State
 
 if __name__ == "__main__":        
     
-    # What files? Create Pilot Data Description
+    # What files? Create Pilot Data Description using absolute URLs
     base_dir = "/Users/luckow/workspace-saga/applications/pilot-store/test/data1"
     url_list = os.listdir(base_dir)
     # make absolute paths
     absolute_url_list = [os.path.join(base_dir, i) for i in url_list]
+    pilot_data_description1 = {"file_urls":absolute_url_list}
+    logging.debug("Pilot Data Description 1: \n%s"%str(pilot_data_description1))
+    
+    
+    # What files? Create Pilot Data Description using remote SSH URLs
+    # make remotete paths
+    remote_url_list = ["ssh://localhost"+os.path.join(base_dir, i) for i in url_list]
+    pilot_data_description2 = {"file_urls":remote_url_list}
+    
+    logging.debug("Pilot Data Description 2: \n%s"%str(pilot_data_description2))
         
-        
-    pilot_data_description = {"file_urls":absolute_url_list}
-    logging.debug("Pilot Data Description: \n%s"%str(pilot_data_description))
     
     # create pilot data service
     pilot_data_service = PilotDataService()
-    pd = pilot_data_service.submit_pilot_data(pilot_data_description)
+    pd1 = pilot_data_service.submit_pilot_data(pilot_data_description1)
+    pd2 = pilot_data_service.submit_pilot_data(pilot_data_description2)
     
     # create pilot store service (factory for pilot stores (physical, distributed storage))
     pilot_store_service = PilotStoreService()
@@ -37,17 +45,21 @@ if __name__ == "__main__":
     
     logging.debug("Finished setup of PSS and PDS. Waiting for scheduling of PD")
     
-    while pd.get_state() != State.Done:
-        state = pd.get_state()
-        print "PD URL: %s State: %s"%(pd, state)
-        if state==State.Running:
+    while True:
+        state1 = pd1.get_state()
+        print "PD URL: %s State: %s"%(pd1, state1)
+        
+        state2 = pd2.get_state()
+        print "PD URL: %s State: %s"%(pd2, state2)
+        
+        if state1==State.Running and state2==State.Running:
             break
         time.sleep(2)  
     
     logging.debug("Export files of PD")
-    pd.export("/tmp/pilot-store-export/")
-    
-    
+    pd1.export("/tmp/pilot-store-export/pd1/")
+    pd2.export("/tmp/pilot-store-export/pd2/")
+        
     logging.debug("Terminate Pilot Data/Store Service")
     pilot_data_service.cancel()
     pilot_store_service.cancel()

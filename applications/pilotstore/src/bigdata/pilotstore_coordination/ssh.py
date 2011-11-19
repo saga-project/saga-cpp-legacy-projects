@@ -63,13 +63,22 @@ class BigDataCoordination(object):
         
         
     def put_pd(self, pd):
-        for i in pd.list_data_units():      
+        for i in pd.list_data_units():     
             remote_path = os.path.join(self.path, str(pd.id), os.path.basename(i.local_url))
             logging.debug("Put file: %s to %s"%(i.local_url, remote_path))
-            if not stat.S_ISDIR(os.stat(i.local_url).st_mode):
-                self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
+                        
+            if i.local_url.startswith("ssh://"):
+                # check if remote path is directory
+                if self.__is_remote_directory(i.local_url):
+                    logging.warning("Path %s is a directory. Ignored."%i.local_url)                
+                    continue      
+                self.__third_party_transfer(i.local_url, remote_path)                
             else:
-                logging.warning("Path %s is a directory. Ignored."%i.local_url)
+                if stat.S_ISDIR(os.stat(i.local_url).st_mode):
+                    logging.warning("Path %s is a directory. Ignored."%i.local_url)                
+                    continue            
+                self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
+                
     
     
     def get_pd(self, pd, target_directory):
@@ -110,6 +119,50 @@ class BigDataCoordination(object):
                 else:
                     self.__sftp.remove(filepath)
             self.__sftp.rmdir(path)
+    
+    def __is_remote_directory(self, url):
+        result = urlparse.urlparse(url)
+        host = result.netloc
+        path = result.path
+        client = paramiko.SSHClient()
+        client.load_system_host_keys()
+        client.connect(host)
+        sftp = client.open_sftp()
+        if stat.S_ISDIR(sftp.stat(path).st_mode):
+            return True
+        else:
+            return False
+        
+    
+    def __third_party_transfer(self, source_url, target_path):
+        result = urlparse.urlparse(source_url)
+        source_host = result.netloc
+        source_path = result.path
+        
+        python_script= """import sys
+import os
+import urllib
+import sys
+import time
+import paramiko
+
+client = paramiko.SSHClient()
+client.load_system_host_keys()
+client.connect("%s")
+sftp = client.open_sftp()
+sftp.put("%s", "%s")
+
+"""%(self.host, source_path, target_path)
+
+        logging.debug("Execute: \n%s"%python_script)
+        source_client = paramiko.SSHClient()
+        source_client.load_system_host_keys()
+        source_client.connect(source_host)
+        stdin, stdout, stderr = source_client.exec_command("python -c \'%s\'"%python_script)
+        stdin.close()
+        logging.debug("************************************************")
+        logging.debug("Stdout: %s\nStderr:%s", stdout, stderr)
+        logging.debug("************************************************")
     
     def __exists(self, path):
         """Return True if the remote path exists
