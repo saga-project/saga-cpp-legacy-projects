@@ -45,6 +45,13 @@ class PilotDataService(PilotDataService):
         self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
         self.scheduler_thread.start()
         
+    
+    def pilot_data_for_url(self, url):
+        for i in self.pilot_data.values():
+            if i.url==url:
+                return i
+            
+        return None
         
     def add_pilot_store_service(self, pss):
         """ Add a PilotStoreService 

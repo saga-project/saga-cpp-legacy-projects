@@ -61,7 +61,7 @@ class PilotJobService(PilotJobService):
             
         resource_description = self.__translate_pj_bj_description(pilot_job_description)
         bigjob = self.__mjs.add_resource(resource_description)
-        pj = PilotJob(bigjob)
+        pj = PilotJob(self, bigjob)
         self.pilot_jobs.append(pj)
         return pj
         
@@ -86,7 +86,7 @@ class PilotJobService(PilotJobService):
         return resource_description
     
     def list_pilotjobs(self):
-        return self.__mjs.get_resources()
+        return self.pilot_jobs
         
     
     def cancel(self):
@@ -102,22 +102,51 @@ class PilotJobService(PilotJobService):
         """
         self.__mjs.cancel()
         
-    
+        
     def _submit_wu(self, work_unit):
+        """ Submits work unit to Dynamic Bigjob (ManyJob) 
+            Scheduler of Dynamic Bigjob will assign appropriate PJ to WorkUnit        
+        """
         subjob = self.__mjs.create_job(work_unit.subjob_description)
         subjob.run()
         work_unit.subjob=subjob
         return work_unit
     
     
+    def __repr__(self):
+        status_string = "{\n"
+        for i in self.pilot_jobs:
+            status_string = status_string + " PJ: %s, State: %s;"%(i.get_url(), i.get_state())
+        status_string = status_string + "\n}"
+        return status_string
+    
+    
 class PilotJob(PilotJob):
-    """ TROY Wrapper for bigjob class """
+    """ TROY Wrapper for BigJob class """
      
-    def __init__(self, bigjob):
-        self.__bigJob = bigjob
+    def __init__(self, pilot_job_service, bigjob):
+        self.__pilot_job_service=pilot_job_service
+        self.__bigjob = bigjob
+        self.__subjobs = []
         
     def cancel(self):
         self.__bigjob.cancel()
     
     def get_state(self):
         return self.__bigjob.get_state()
+    
+    def get_url(self):
+        return self.__bigjob.pilot_url
+    
+    def _submit_wu(self, work_unit):
+        """ Submits work unit to Bigjob """
+        logging.debug("Submit sub-job to big-job")
+        sj = bigjob.bigjob_manager.subjob()
+        sj.submit_job(self.__bigjob.pilot_url, work_unit.subjob_description)
+        self.__subjobs.append(sj)
+        work_unit.subjob=sj
+        return work_unit
+        
+        
+        
+        

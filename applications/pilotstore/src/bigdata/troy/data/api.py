@@ -219,7 +219,7 @@ class PilotData(object):
         
     def get_state(self):
         """
-            get current state of Pilot Store:
+            get current state of Pilot Data:
                 New => Initialized
                 Pending => Files are synchronized with a pilot store
                 Running => PD is in sync with all replicas

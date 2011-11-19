@@ -16,7 +16,7 @@ class Scheduler:
     
     def set_pilot_jobs(self, pilot_jobs):
         """ set resources which are used for scheduling """
-        self.pilot_jobs=pilot_stores
+        self.pilot_jobs=pilot_jobs
     
         
     def schedule_pilot_data(self):
@@ -27,7 +27,7 @@ class Scheduler:
     
     
     def schedule_pilot_job(self):
-        logging.debug("Schedule to PJ - # Avail stores: %d"%len(self.pilot_jobs))        
-        if len(self.pilot_stores)!=0:
+        logging.debug("Schedule to PJ - # Avail PJs: %d"%len(self.pilot_jobs))        
+        if len(self.pilot_jobs)!=0:
             return random.choice(self.pilot_jobs)[0]
         return None

@@ -7,6 +7,7 @@ import pdb
 import Queue
 import saga
 import uuid
+import traceback
 
 from bigdata.troy.api import WorkDataService
 from bigdata.troy.compute.api import WorkUnit, State
@@ -158,6 +159,12 @@ class WorkDataService(WorkDataService):
    
     ###########################################################################
     # Internal Scheduling
+    def __update_scheduler_resources(self):
+        logging.debug("__update_scheduler_resources")        
+        ps = [i.list_pilotstores() for i in self.pilot_store_services]
+        self.scheduler.set_pilot_stores(ps)
+        pj = [i.list_pilotjobs() for i in self.pilot_job_services]
+        self.scheduler.set_pilot_jobs(pj)
     
     def _schedule_pd(self, pd):
         """ Schedule PD to a suitable pilot store
@@ -166,18 +173,22 @@ class WorkDataService(WorkDataService):
                 1.) Add all resources managed by PSS of this PSS
                 2.) Select one resource
         """ 
-        ps = [i.list_pilotstores() for i in self.pilot_store_services]
-        #ps.append(i.list_pilotstores())
-        #pdb.set_trace()
-        self.scheduler.set_pilot_stores(ps)
+        logging.debug("Schedule PD")
+        self.__update_scheduler_resources()
         selected_pilot_store = self.scheduler.schedule_pilot_data()
         return selected_pilot_store 
     
+    def _schedule_wu(self, wu):
+        logging.debug("Schedule PD")
+        self.__update_scheduler_resources()
+        selected_pilot_job = self.scheduler.schedule_pilot_job()
+        return selected_pilot_job
+    
     def _scheduler_thread(self):
-        while True and self.stop.isSet()==False:
-            logging.debug("Scheduler Thread: " + str(self.__class__) + " Pilot Data")
+        while True and self.stop.isSet()==False:            
             try:
-                pd = self.pd_queue.get(True, 2)  
+                logging.debug("Scheduler Thread: " + str(self.__class__) + " Pilot Data")
+                pd = self.pd_queue.get(True, 1)  
                 # check whether this is a real pd object  
                 if isinstance(pd, PilotData):
                     ps=self._schedule_pd(pd)                
@@ -188,16 +199,27 @@ class WorkDataService(WorkDataService):
                         pd.add_pilot_store(ps)                    
                     else:
                         self.pd_queue.put(pd)
-                        
+            except Queue.Empty:
+                pass
+                    
+            try:    
                 logging.debug("Scheduler Thread: " + str(self.__class__) + " Pilot Job")
-                wu = self.wu_queue.get(True, 2)
+                wu = self.wu_queue.get(True, 1)
                 if isinstance(wu, WorkUnit):
-                    if len(self.pilot_job_services)>0:                        
-                        self.pilot_job_services[0]._submit_wu(wu)
+                    pj=self._schedule_wu(wu) 
+                    if pj !=None:
+                        pj._submit_wu(wu)                    
                     else:
                         self.wu_queue.put(pd)
-            except:
+            except Queue.Empty:
                 pass
+            except:
+                exc_type, exc_value, exc_traceback = sys.exc_info()
+                print "*** print_tb:"
+                traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+                print "*** print_exception:"
+                traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              limit=2, file=sys.stdout)
             time.sleep(5)        
 
         logging.debug("Re-Scheduler terminated")
