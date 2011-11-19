@@ -77,8 +77,10 @@ class BigDataCoordination(object):
         logging.debug("Copy PD from %s to %s"%(base_dir, target_directory))        
         if not os.path.exists(target_directory):
             os.makedirs(target_directory)
-        for i in os.listdir(base_dir):
-            self.__sftp.get(os.path.join(base_dir, i), os.path.join(target_directory, i))
+            
+        for filename in self.__sftp.listdir(base_dir):
+            logging.debug("Get %s"%filename)
+            self.__sftp.get(os.path.join(base_dir, filename), os.path.join(target_directory, filename))
     
         
     def remove_pd(self, pd):
