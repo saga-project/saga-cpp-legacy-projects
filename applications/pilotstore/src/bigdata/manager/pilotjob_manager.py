@@ -125,6 +125,7 @@ class PilotJob(PilotJob):
     """ TROY Wrapper for BigJob class """
      
     def __init__(self, pilot_job_service, bigjob):
+        logging.debug("Create PilotJob for BigJob: " + str(bigjob))
         self.__pilot_job_service=pilot_job_service
         self.__bigjob = bigjob
         self.__subjobs = []
