@@ -152,7 +152,7 @@ client.connect("%s")
 sftp = client.open_sftp()
 sftp.put("%s", "%s")
 
-"""%(self.host, source_path, target_path)
+"""%(source_host, source_path, target_path)
 
         logging.debug("Execute: \n%s"%python_script)
         source_client = paramiko.SSHClient()
