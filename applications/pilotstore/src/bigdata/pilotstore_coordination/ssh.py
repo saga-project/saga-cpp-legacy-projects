@@ -157,11 +157,11 @@ sftp.put("%s", "%s")
         logging.debug("Execute: \n%s"%python_script)
         source_client = paramiko.SSHClient()
         source_client.load_system_host_keys()
-        source_client.connect(source_host)
+        source_client.connect(self.host)
         stdin, stdout, stderr = source_client.exec_command("python -c \'%s\'"%python_script)
         stdin.close()
         logging.debug("************************************************")
-        logging.debug("Stdout: %s\nStderr:%s", stdout, stderr)
+        logging.debug("Stdout: %s\nStderr:%s", stdout.read(), stderr.read())
         logging.debug("************************************************")
     
     def __exists(self, path):
