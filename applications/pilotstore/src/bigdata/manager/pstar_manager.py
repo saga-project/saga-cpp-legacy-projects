@@ -244,7 +244,9 @@ class WorkUnit(WorkUnit):
         self.work_unit_description = work_unit_description # WU Description
         self.subjob_description = self.__translate_wu_sj_description(work_unit_description)
                 
-        
+    def get_id(self):
+        return self.id
+    
     def get_state(self):
         if self.subjob != None:
             return self.subjob.get_state()
