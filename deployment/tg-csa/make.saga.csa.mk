@@ -28,6 +28,10 @@ SRCDIR         = $(CSA_LOCATION)/src/
 EXTDIR         = $(CSA_LOCATION)/external/
 
 HOSTNAME       = $(shell hostname)
+DATE           = $(shell date '+%M:%H-%d.%m.%Y')
+LOG            = $(CSA_LOCATION)/csa/test/test.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+
+CHECK          = (printf "%-25s %-10s : " $(1) $(2); $(3) && echo ok || echo nok) 2>&1 | tee -a $(LOG)
 
 ifdef CSA_HOST
   HOSTNAME     = $(CSA_HOST)
@@ -75,10 +79,11 @@ MAKE_VERSION = $(shell make --version | head -1)
 # report setup
 #
 ifdef CSA_SAGA_CHECK
-$(shell echo "csa      location         $(CSA_LOCATION)"     1>&2 )
-$(shell echo "saga     version          $(CSA_SAGA_VERSION)" 1>&2 )
-$(shell echo "make     version          $(MAKE_VERSION)"     1>&2 )
-$(shell echo "compiler version          $(CC_NAME)"          1>&2 )
+$(shell echo "time stamp                $(DATE)"             1>&2 | tee -a $(LOG))
+$(shell echo "csa      location         $(CSA_LOCATION)"     1>&2 | tee -a $(LOG))
+$(shell echo "saga     version          $(CSA_SAGA_VERSION)" 1>&2 | tee -a $(LOG))
+$(shell echo "make     version          $(MAKE_VERSION)"     1>&2 | tee -a $(LOG))
+$(shell echo "compiler version          $(CC_NAME)"          1>&2 | tee -a $(LOG))
 endif
 
 
@@ -100,15 +105,6 @@ ifeq "$(SVN)" ""
  $(error Could not find svn binary)
 endif
 
-# default target makes only sense for checking
-.PHONY: all
-ifdef CSA_SAGA_CHECK
-all: saga-core saga-binding-python saga-adaptor-x509 saga-adaptor-globus saga-adaptor-ssh saga-adaptor-bes saga-adaptor-glite saga-adaptor-aws saga-adaptor-drmaa saga-adaptor-torque saga-adaptor-pbspro saga-adaptor-condor saga-client-mandelbrot saga-client-bigjob documentation
-else
-all:
-endif
-
-
 ##########################################################################
 # #
 # # target dependencies
@@ -118,36 +114,48 @@ endif
 # .PHONY: all
 # all:                      saga-core saga-adaptors saga-bindings saga-clients documentation
 # 
-# .PHONY: externals
-# externals::                boost postgresql sqlite3
-# boost::                    python
+.PHONY: externals
+externals::                boost postgresql sqlite3
+boost::                    python
 # 
 # .PHONY: saga-core
 # saga-core::                externals
 # 
-# .PHONY: saga-adaptors
-# saga-adaptors::            saga-adaptor-x509
-# saga-adaptors::            saga-adaptor-globus 
-# saga-adaptors::            saga-adaptor-ssh 
-# saga-adaptors::            saga-adaptor-bes 
-# saga-adaptors::            saga-adaptor-glite
-# saga-adaptors::            saga-adaptor-aws 
-# saga-adaptors::            saga-adaptor-drmaa
-# saga-adaptors::            saga-adaptor-torque
-# saga-adaptors::            saga-adaptor-pbspro
-# saga-adaptors::            saga-adaptor-condor
+.PHONY: saga-adaptors
+saga-adaptors::            saga-adaptor-x509
+saga-adaptors::            saga-adaptor-globus 
+saga-adaptors::            saga-adaptor-ssh 
+saga-adaptors::            saga-adaptor-bes 
+saga-adaptors::            saga-adaptor-glite
+saga-adaptors::            saga-adaptor-aws 
+saga-adaptors::            saga-adaptor-drmaa
+saga-adaptors::            saga-adaptor-torque
+saga-adaptors::            saga-adaptor-pbspro
+saga-adaptors::            saga-adaptor-condor
 # 
-# .PHONY: saga-bindings
+.PHONY: saga-bindings
+saga-bindings::            saga-binding-python
 # saga-bindings::            saga-core
-# saga-bindings::            saga-binding-python
-# 
+
 # .PHONY: saga-binding-python
 # saga-binding-python::      python
 # 
-# .PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
-# saga-clients::             saga-client-mandelbrot saga-client-bigjob
+.PHONY: saga-clients saga-client-mandelbrot saga-client-bigjob
+saga-clients::             saga-client-mandelbrot saga-client-bigjob
 # saga-client-mandelbrot::   saga-core
 # saga-client-bigjob::       saga-core saga-binding-python            
+
+########################################################################
+# 
+# default target makes only sense for checking
+#
+.PHONY: all
+ifdef CSA_SAGA_CHECK
+all: saga-core saga-bindings saga-adaptors saga-clients
+else
+all:
+endif
+
 
 ########################################################################
 #
@@ -157,11 +165,10 @@ endif
 #
 .PHONY: base
 base:: $(CSA_LOCATION)/src/ $(CSA_LOCATION)/external/ $(CSA_LOCATION)/csa/
-	@    test -d $(CSA_LOCATION)/src/        \
-		&& test -d $(CSA_LOCATION)/external/   \
-		&& test -d $(CSA_LOCATION)/csa/        \
-		&& echo "csa setup                 ok" \
-		|| echo "csa setup                 nok"
+ifdef CSA_SAGA_CHECK
+	@rm -f $(LOG)
+	@$(call CHECK, $@, install, test -d $(CSA_LOCATION)/src/ && test -d $(CSA_LOCATION)/external/ && test -d $(CSA_LOCATION)/csa/)
+endif
 
 $(CSA_LOCATION)/src/:
 ifndef CSA_SAGA_CHECK
@@ -193,6 +200,7 @@ PYTHON_VERSION  = 2.7.1
 PYTHON_SVERSION = 2.7
 PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
 PYTHON_PATH     = $(PYTHON_LOCATION)/bin
+PYTHON_MODPATH  = $(PYTHON_LOCATION)/lib/$(PYTHON_SVERSION)/site-packages/
 PYTHON_CHECK    = $(PYTHON_PATH)/python
 PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
 SAGA_ENV_VARS  += PYTHON_LOCATION=$(PYTHON_LOCATION)
@@ -201,9 +209,7 @@ SAGA_ENV_BINS  += $(PYTHON_LOCATION)/bin/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)$(FORCE)
-	@    test -e $(PYTHON_CHECK) \
-		&& echo "python                    ok" \
-		|| echo "python                    nok"
+	@$(call CHECK, $@, install, test -e $(PYTHON_CHECK))
 
 $(PYTHON_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -228,9 +234,7 @@ SAGA_ENV        = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)$(FORCE)
-	@    test -e $(BOOST_CHECK) \
-		&& echo "boost                     ok" \
-		|| echo "boost                     nok"
+	@$(call CHECK, $@, install, test -e $(BOOST_CHECK))
 
 $(BOOST_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -256,9 +260,7 @@ SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)$(FORCE)
-	@    test -e $(POSTGRESQL_CHECK) \
-		&& echo "postgresql                ok" \
-		|| echo "postgresql                nok"
+	@$(call CHECK, $@, install, test -e $(POSTGRESQL_CHECK))
 
 $(POSTGRESQL_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -279,9 +281,7 @@ SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)$(FORCE)
-	@    test -e $(SQLITE3_CHECK) \
-		&& echo "sqlite3                   ok" \
-		|| echo "sqlite3                   nok"
+	@$(call CHECK, $@, install, test -e $(SQLITE3_CHECK))
 
 $(SQLITE3_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -313,9 +313,7 @@ endif
 
 .PHONY: saga-core
 saga-core:: base $(SAGA_CORE_CHECK)$(FORCE)
-	@    test -e $(SAGA_CORE_CHECK) \
-		&& echo "saga-core                 ok" \
-		|| echo "saga-core                 nok"
+	@$(call CHECK, $@, install, test -e $(SAGA_CORE_CHECK))
 
 $(SAGA_CORE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -340,9 +338,7 @@ SAGA_ENV = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_E
 .PHONY: saga-binding-python
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)$(FORCE)
 ifdef CSA_SAGA_CHECK
-	@    test -e $(SAGA_PYTHON_CHECK) \
-		&& echo "saga-binding-python       ok" \
-		|| echo "saga-binding-python       nok"
+	@$(call CHECK, $@, install, test -e $(SAGA_PYTHON_CHECK))
 endif
 
 $(SAGA_PYTHON_CHECK)$(FORCE):
@@ -368,9 +364,7 @@ SA_X509_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_x509_context.ini
 
 .PHONY: saga-adaptor-x509
 saga-adaptor-x509:: base $(SA_X509_CHECK)$(FORCE)
-	@    test -e $(SA_X509_CHECK) \
-		&& echo "saga-adaptor-x509         ok" \
-		|| echo "saga-adaptor-x509         nok"
+	@$(call CHECK, $@, install, test -e $(SA_X509_CHECK))
 
 $(SA_X509_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -387,9 +381,7 @@ SA_GLOBUS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_globus_gram_job.in
 
 .PHONY: saga-adaptor-globus
 saga-adaptor-globus:: base $(SA_GLOBUS_CHECK)$(FORCE)
-	@    test -e $(SA_GLOBUS_CHECK) \
-		&& echo "saga-adaptor-globus       ok" \
-		|| echo "saga-adaptor-globus       nok"
+	@$(call CHECK, $@, install, test -e $(SA_GLOBUS_CHECK))
 
 $(SA_GLOBUS_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -406,9 +398,7 @@ SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
 
 .PHONY: saga-adaptor-ssh
 saga-adaptor-ssh:: base $(SA_SSH_CHECK)$(FORCE)
-	@    test -e $(SA_SSH_CHECK) \
-		&& echo "saga-adaptor-ssh          ok" \
-		|| echo "saga-adaptor-ssh          nok"
+	@$(call CHECK, $@, install, test -e $(SA_SSH_CHECK))
 
 $(SA_SSH_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -425,9 +415,7 @@ SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
 
 .PHONY: saga-adaptor-aws
 saga-adaptor-aws:: base $(SA_AWS_CHECK)$(FORCE)
-	@    test -e $(SA_AWS_CHECK) \
-		&& echo "saga-adaptor-aws          ok" \
-		|| echo "saga-adaptor-aws          nok"
+	@$(call CHECK, $@, install, test -e $(SA_AWS_CHECK))
 
 $(SA_AWS_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -444,9 +432,7 @@ SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
 
 .PHONY: saga-adaptor-drmaa
 saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)$(FORCE)
-	@    test -e $(SA_DRMAA_CHECK) \
-		&& echo "saga-adaptor-drmaa        ok" \
-		|| echo "saga-adaptor-drmaa        nok"
+	@$(call CHECK, $@, install, test -e $(SA_DRMAA_CHECK))
 
 $(SA_DRMAA_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -463,9 +449,7 @@ SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 
 .PHONY: saga-adaptor-condor
 saga-adaptor-condor:: base $(SA_CONDOR_CHECK)$(FORCE)
-	@    test -e $(SA_CONDOR_CHECK) \
-		&& echo "saga-adaptor-condor       ok" \
-		|| echo "saga-adaptor-condor       nok"
+	@$(call CHECK, $@, install, test -e $(SA_CONDOR_CHECK))
 
 $(SA_CONDOR_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -482,9 +466,7 @@ SA_GLITE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_glite_sd.ini
 
 .PHONY: saga-adaptor-glite
 saga-adaptor-glite:: base $(SA_GLITE_CHECK)$(FORCE)
-	@    test -e $(SA_GLITE_CHECK) \
-		&& echo "saga-adaptor-glite        ok" \
-		|| echo "saga-adaptor-glite        nok"
+	@$(call CHECK, $@, install, test -e $(SA_GLITE_CHECK))
 
 $(SA_GLITE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -501,9 +483,7 @@ SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 
 .PHONY: saga-adaptor-pbspro
 saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)$(FORCE)
-	@    test -e $(SA_PBSPRO_CHECK) \
-		&& echo "saga-adaptor-pbspro       ok" \
-		|| echo "saga-adaptor-pbspro       nok"
+	@$(call CHECK, $@, install, test -e $(SA_PBSPRO_CHECK))
 
 $(SA_PBSPRO_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -520,9 +500,7 @@ SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 
 .PHONY: saga-adaptor-torque
 saga-adaptor-torque:: base $(SA_TORQUE_CHECK)$(FORCE)
-	@    test -e $(SA_TORQUE_CHECK) \
-		&& echo "saga-adaptor-torque       ok" \
-		|| echo "saga-adaptor-torque       nok"
+	@$(call CHECK, $@, install, test -e $(SA_TORQUE_CHECK))
 
 $(SA_TORQUE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -539,9 +517,7 @@ SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_bes_hpcbp_job.ini
 
 .PHONY: saga-adaptor-bes
 saga-adaptor-bes:: base $(SA_BES_CHECK)$(FORCE)
-	@    test -e $(SA_BES_CHECK) \
-		&& echo "saga-adaptor-bes          ok" \
-		|| echo "saga-adaptor-bes          nok"
+	@$(call CHECK, $@, install, test -e $(SA_BES_CHECK))
 
 $(SA_BES_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -560,9 +536,7 @@ SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
 
 .PHONY: saga-client-mandelbrot
 saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)$(FORCE)
-	@    test -e $(SC_MANDELBROT_CHECK) \
-		&& echo "saga-client-mandelbrot    ok" \
-		|| echo "saga-client-mandelbrot    nok"
+	@$(call CHECK, $@, install, test -e $(SC_MANDELBROT_CHECK))
 
 $(SC_MANDELBROT_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -593,11 +567,14 @@ SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$
 # $(warning bigjob-egg    : $(BIGJOB_EGG))
 # $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
+TEST_ENV                 = /usr/bin/env
+TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
+TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH)
+
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)$(FORCE)
-	@    test -e $(SC_BIGJOB_CHECK) \
-		&& echo "saga-client-bigjob        ok" \
-		|| echo "saga-client-bigjob        nok"
+	@$(call CHECK, $@, install, test -e $(SC_BIGJOB_CHECK))
+	@$(call CHECK, $@, loading, $(TEST_ENV) $(PYTHON_CHECK) -c 'import bigjob')
 
 $(SC_BIGJOB_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -623,13 +600,9 @@ CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
 CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
 .PHONY: documentation
-documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE)
-	@    test -e $(CSA_README_CHECK) \
-		&& echo "documentation             ok" \
-		|| echo "documentation             nok"
-	@    test -e $(CSA_MODULE_CHECK) \
-		&& echo "module                    ok" \
-		|| echo "module                    nok"
+documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE) permissions
+	@$(call CHECK, $@, readme, test -e $(CSA_README_CHECK))
+	@$(call CHECK, $@, module, test -e $(CSA_MODULE_CHECK))
 
 $(CSA_README_CHECK)$(FORCE): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK
@@ -638,20 +611,17 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_LOCATION)/bin|ig;'            $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_MODPATH###|$(SAGA_PYTHON_MODPATH)|ig;'       $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###PYTHON_PATH###|$(PYTHON_LOCATION)/bin|ig;'        $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###PYTHON_MODPATH###|$(PYTHON_MODPATH)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYLOCATION###|$(PYTHON_LOCATION)|ig;'        $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYMODPATH###|$(SAGA_PYTHON_MODPATH)|ig;'     $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYPATH###|$(PYTHON_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
-	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_README_CHECK)
 	@cp -fv $(CSA_README_CHECK) $(CSA_LOCATION)
-	@echo "fixing permissions"
-	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
-	-@$(CHMOD) -R a+rX $(EXTDIR)
-	-@$(CHMOD)    a+rX $(CSA_LOCATION)
 endif
 	
 $(CSA_MODULE_CHECK)$(FORCE): $(CSA_MODULE_SRC)
@@ -661,14 +631,23 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_MODULE_CHECK)
-	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_LOCATION)/bin|ig;'            $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###SAGA_MODPATH###|$(SAGA_PYTHON_MODPATH)|ig;'       $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###PYTHON_PATH###|$(PYTHON_LOCATION)/bin|ig;'        $(CSA_README_CHECK)
+	@$(SED) -i -e 's|###PYTHON_MODPATH###|$(PYTHON_MODPATH)|ig;'          $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYLOCATION###|$(PYTHON_LOCATION)|ig;'        $(CSA_MODULE_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYMODPATH###|$(SAGA_PYTHON_MODPATH)|ig;'     $(CSA_MODULE_CHECK)
-	@$(SED) -i -e 's|###SAGA_PYPATH###|$(PYTHON_PATH)|ig;'                $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_MODULE_CHECK)
 endif
 
+.PHONY: permissions
+permissions:
+ifndef CSA_SAGA_CHECK
+	@echo "fixing permissions"
+	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
+	-@$(CHMOD) -R a+rX $(EXTDIR)
+	-@$(CHMOD)    a+rX $(CSA_LOCATION)
+endif

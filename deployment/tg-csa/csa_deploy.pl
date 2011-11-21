@@ -337,17 +337,10 @@ if ( $do_exe )
       {
         my $cmd = "$access $fqhn '$exe'";
 
-        if ( 0 == system ($cmd) )
+        if ( 0 != system ($cmd) )
         {
-          print " ok\n" 
-        }
-        else
-        {
-          print " error\n";
-          if ( $be_strict )
-          {
-            exit -1;
-          }
+          print " error running $cmd\n";
+          exit -1 if $be_strict;
         }
       }
     }
@@ -392,17 +385,10 @@ if ( $do_remove )
       }
       else
       {
-        if ( 0 == system ($cmd) )
+        if ( 0 != system ($cmd) )
         {
-          print " ok\n";
-        } 
-        else
-        {
-          print " error\n";
-          if ( $be_strict )
-          {
-            exit -1;
-          }
+          print " error removing csa installation\n";
+          exit -1 if $be_strict;
         }
       }
     }
@@ -459,43 +445,31 @@ if ( $do_deploy )
         }
         else
         {
-          if ( 0 == system ($cmd) )
+          if ( 0 != system ($cmd) )
           {
-            print " ok\n";
-          } 
-          else
-          {
-            print " error\n";
-            if ( $be_strict )
-            {
-              exit -1;
-            }
+            print " error deploying $mod_name on $host\n";
+            exit -1 if $be_strict;
           }
         }
 
         if ( $mod_name eq "documentation" )
         {
-          my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
-                                   " svn add doc/README*$version*$host*          && " .
-                                   " svn add mod/module*$version*$host*          && " .
-                                   " $SVNCI -m \"automated update\"               ' ";
+          my $cmd = "$access $fqhn ' cd $path/csa/                            && " .
+                                   " svn add doc/README.saga-$version.*.$host && " .
+                                   " svn add mod/module.saga-$version.*.$host && " .
+                                   " $SVNCI -m \"automated update\"              " .
+                                   "   doc/README.saga-$version.*.$host          " .
+                                   "   mod/module.saga-$version.*.$host       '  " ;
           if ( $fake )
           {
             print " $cmd\n";
           }
           else
           {
-            if ( 0 == system ($cmd) )
+            if ( 0 != system ($cmd) )
             {
-              print " ok\n";
-            } 
-            else
-            {
-              print " error\n";
-              if ( $be_strict )
-              {
-                exit -1;
-              }
+              print " error committing documentation\n";
+              exit -1 if $be_strict;
             }
           }
         }
@@ -533,11 +507,6 @@ if ( $do_check )
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      if ( $fake )
-      {
-        print " $access $fqhn 'mkdir -p $path ; cd $path && test -d csa && (cd csa && svn up) || svn co $svn'\n";
-      }
-      else
       {
         my $cmd = "$access $fqhn 'mkdir -p $path ; " .
                   "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
@@ -550,12 +519,35 @@ if ( $do_check )
                   "          -f make.saga.csa.mk       " .
                   "          all'                      " ;
 
-        if ( 0 != system ($cmd) )
+        if ( $fake )
         {
-          print "error running csa checks\n";
-          if ( $be_strict )
+          print " $cmd\n";
+        }
+        else
+        {
+          if ( 0 != system ($cmd) )
           {
-            exit -1;
+            print "error running csa checks\n";
+            exit -1 if $be_strict;
+          }
+        }
+      }
+
+      {
+        my $cmd = "$access $fqhn ' cd $path/csa/                           && " .
+                                 " svn add test/test.saga-$version.*.$host && " .
+                                 " $SVNCI -m \"automated update\"             " .
+                                 "    test/test.saga-$version.*.$host      '  " ;
+        if ( $fake )
+        {
+          print " $cmd\n";
+        }
+        else
+        {
+          if ( 0 != system ($cmd) )
+          {
+            print " error committing csa checks\n";
+            exit -1 if $be_strict;
           }
         }
       }
