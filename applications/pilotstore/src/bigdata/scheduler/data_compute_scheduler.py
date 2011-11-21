@@ -22,12 +22,12 @@ class Scheduler:
     def schedule_pilot_data(self):
         logging.debug("Schedule to PS - # Avail stores: %d"%len(self.pilot_stores))        
         if len(self.pilot_stores)!=0:
-            return random.choice(self.pilot_stores)[0]
+            return random.choice(self.pilot_stores)
         return None
     
     
     def schedule_pilot_job(self):
         logging.debug("Schedule to PJ - # Avail PJs: %d"%len(self.pilot_jobs))        
         if len(self.pilot_jobs)!=0:
-            return random.choice(self.pilot_jobs)[0]
+            return random.choice(self.pilot_jobs)
         return None

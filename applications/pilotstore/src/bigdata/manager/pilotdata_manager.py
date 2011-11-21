@@ -122,7 +122,7 @@ class PilotDataService(PilotDataService):
                 1.) Add all resources managed by PSS of this PSS
                 2.) Select one resource
         """ 
-        ps = [i.list_pilotstores() for i in self.pilot_store_services]
+        ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
         #ps.append(i.list_pilotstores())
         #pdb.set_trace()
         self.scheduler.set_pilot_stores(ps)

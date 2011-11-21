@@ -161,9 +161,10 @@ class WorkDataService(WorkDataService):
     # Internal Scheduling
     def __update_scheduler_resources(self):
         logging.debug("__update_scheduler_resources")        
-        ps = [i.list_pilotstores() for i in self.pilot_store_services]
+        ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
         self.scheduler.set_pilot_stores(ps)
-        pj = [i.list_pilotjobs() for i in self.pilot_job_services]
+        pj = [p for i in self.pilot_job_services for p in i.list_pilotjobs()]
+        logging.debug("Pilot-Jobs: " + str(pj))
         self.scheduler.set_pilot_jobs(pj)
     
     def _schedule_pd(self, pd):

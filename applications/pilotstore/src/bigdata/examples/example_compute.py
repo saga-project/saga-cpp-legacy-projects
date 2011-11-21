@@ -25,6 +25,7 @@ if __name__ == "__main__":
                             }
     
     pilotjob = pilot_job_service.create_pilotjob(pilot_job_description=pilot_job_description)
+    pilotjob2 = pilot_job_service.create_pilotjob(pilot_job_description=pilot_job_description)
          
     work_data_service = WorkDataService()
     work_data_service.add_pilot_job_service(pilot_job_service)

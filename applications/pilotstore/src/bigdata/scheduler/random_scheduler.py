@@ -15,5 +15,5 @@ class Scheduler:
     def schedule(self):
         logging.debug("Schedule to PS - # Avail stores: %d"%len(self.pilot_stores))        
         if len(self.pilot_stores)!=0:
-            return random.choice(self.pilot_stores)[0]
+            return random.choice(self.pilot_stores)
         return None
