@@ -31,7 +31,14 @@ HOSTNAME       = $(shell hostname)
 DATE           = $(shell date '+%M:%H-%d.%m.%Y')
 LOG            = $(CSA_LOCATION)/csa/test/test.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
 
-CHECK          = (printf "%-25s %-10s : " $(1) $(2); $(3) && echo ok || echo nok) 2>&1 | tee -a $(LOG)
+# to be call'ed by individual tests.  the first check expects the call to
+# succeed, the second expects it to fail (like running /bin/false).  
+# Parameters:
+#  $1: module to check
+#  $2: name of test
+#  $3: command to run
+CHECK          = (printf "%-25s %-20s : " $(1) $(2); if   `$(3)`; then echo ok; else echo nok; fi) 2>&1 | tee -a $(LOG)
+NOCHECK        = (printf "%-25s %-20s : " $(1) $(2); if ! `$(3)`; then echo ok; else echo nok; fi) 2>&1 | tee -a $(LOG)
 
 ifdef CSA_HOST
   HOSTNAME     = $(CSA_HOST)
@@ -80,10 +87,16 @@ MAKE_VERSION = $(shell make --version | head -1)
 #
 ifdef CSA_SAGA_CHECK
 $(shell echo "time stamp                $(DATE)"             1>&2 | tee -a $(LOG))
-$(shell echo "csa      location         $(CSA_LOCATION)"     1>&2 | tee -a $(LOG))
-$(shell echo "saga     version          $(CSA_SAGA_VERSION)" 1>&2 | tee -a $(LOG))
-$(shell echo "make     version          $(MAKE_VERSION)"     1>&2 | tee -a $(LOG))
+$(shell echo "csa  location             $(CSA_LOCATION)"     1>&2 | tee -a $(LOG))
+$(shell echo "saga version              $(CSA_SAGA_VERSION)" 1>&2 | tee -a $(LOG))
+$(shell echo "make version              $(MAKE_VERSION)"     1>&2 | tee -a $(LOG))
 $(shell echo "compiler version          $(CC_NAME)"          1>&2 | tee -a $(LOG))
+else
+$(shell echo "time stamp                $(DATE)"             1>&2 )
+$(shell echo "csa  location             $(CSA_LOCATION)"     1>&2 )
+$(shell echo "saga version              $(CSA_SAGA_VERSION)" 1>&2 )
+$(shell echo "make version              $(MAKE_VERSION)"     1>&2 )
+$(shell echo "compiler version          $(CC_NAME)"          1>&2 )
 endif
 
 
@@ -209,7 +222,9 @@ SAGA_ENV_BINS  += $(PYTHON_LOCATION)/bin/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(PYTHON_CHECK))
+endif
 
 $(PYTHON_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -234,7 +249,9 @@ SAGA_ENV        = $(SAGA_ENV_PATH):$$PATH $(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(BOOST_CHECK))
+endif
 
 $(BOOST_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -260,7 +277,9 @@ SAGA_ENV_LIBS      += :$(POSTGRESQL_LOCATION)/lib/
 
 .PHONY: postgresql
 postgresql:: base $(POSTGRESQL_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(POSTGRESQL_CHECK))
+endif
 
 $(POSTGRESQL_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -281,7 +300,9 @@ SAGA_ENV_LIBS   += :$(SQLITE3_LOCATION)/lib/
 
 .PHONY: sqlite3
 sqlite3:: base $(SQLITE3_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SQLITE3_CHECK))
+endif
 
 $(SQLITE3_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -313,7 +334,10 @@ endif
 
 .PHONY: saga-core
 saga-core:: base $(SAGA_CORE_CHECK)$(FORCE)
-	@$(call CHECK, $@, install, test -e $(SAGA_CORE_CHECK))
+ifdef CSA_SAGA_CHECK
+	@$(call   CHECK, $@, "local job 1", env $(SAGA_ENV) saga-job run fork://localhost true)
+	@$(call NOCHECK, $@, "local job 2", env $(SAGA_ENV) saga-job run fork://localhost false)
+endif
 
 $(SAGA_CORE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -398,7 +422,11 @@ SA_SSH_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_ssh_job.ini
 
 .PHONY: saga-adaptor-ssh
 saga-adaptor-ssh:: base $(SA_SSH_CHECK)$(FORCE)
-	@$(call CHECK, $@, install, test -e $(SA_SSH_CHECK))
+ifdef CSA_SAGA_CHECK
+	@$(call   CHECK, $@, "install",   test -e $(SA_SSH_CHECK))
+	@$(call   CHECK, $@, "ssh job 1", env $(SAGA_ENV) saga-job run ssh://localhost true)
+	@$(call NOCHECK, $@, "ssh job 2", env $(SAGA_ENV) saga-job run ssh://localhost false)
+endif
 
 $(SA_SSH_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -415,7 +443,9 @@ SA_AWS_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_aws_context.ini
 
 .PHONY: saga-adaptor-aws
 saga-adaptor-aws:: base $(SA_AWS_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_AWS_CHECK))
+endif
 
 $(SA_AWS_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -432,7 +462,9 @@ SA_DRMAA_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_ogf_drmaa_job.ini
 
 .PHONY: saga-adaptor-drmaa
 saga-adaptor-drmaa:: base $(SA_DRMAA_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_DRMAA_CHECK))
+endif
 
 $(SA_DRMAA_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -449,7 +481,9 @@ SA_CONDOR_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_condor_job.ini
 
 .PHONY: saga-adaptor-condor
 saga-adaptor-condor:: base $(SA_CONDOR_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_CONDOR_CHECK))
+endif
 
 $(SA_CONDOR_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -466,7 +500,9 @@ SA_GLITE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_glite_sd.ini
 
 .PHONY: saga-adaptor-glite
 saga-adaptor-glite:: base $(SA_GLITE_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_GLITE_CHECK))
+endif
 
 $(SA_GLITE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -483,7 +519,9 @@ SA_PBSPRO_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_pbspro_job.ini
 
 .PHONY: saga-adaptor-pbspro
 saga-adaptor-pbspro:: base $(SA_PBSPRO_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_PBSPRO_CHECK))
+endif
 
 $(SA_PBSPRO_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -500,7 +538,9 @@ SA_TORQUE_CHECK  = $(SAGA_LOCATION)/share/saga/saga_adaptor_torque_job.ini
 
 .PHONY: saga-adaptor-torque
 saga-adaptor-torque:: base $(SA_TORQUE_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_TORQUE_CHECK))
+endif
 
 $(SA_TORQUE_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -517,7 +557,9 @@ SA_BES_CHECK    = $(SAGA_LOCATION)/share/saga/saga_adaptor_bes_hpcbp_job.ini
 
 .PHONY: saga-adaptor-bes
 saga-adaptor-bes:: base $(SA_BES_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SA_BES_CHECK))
+endif
 
 $(SA_BES_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -536,7 +578,9 @@ SC_MANDELBROT_CHECK    = $(SAGA_LOCATION)/bin/mandelbrot_client
 
 .PHONY: saga-client-mandelbrot
 saga-client-mandelbrot:: base $(SC_MANDELBROT_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SC_MANDELBROT_CHECK))
+endif
 
 $(SC_MANDELBROT_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -573,8 +617,10 @@ TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH)
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)$(FORCE)
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, install, test -e $(SC_BIGJOB_CHECK))
 	@$(call CHECK, $@, loading, $(TEST_ENV) $(PYTHON_CHECK) -c 'import bigjob')
+endif
 
 $(SC_BIGJOB_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
@@ -601,8 +647,10 @@ CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_
 
 .PHONY: documentation
 documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE) permissions
+ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, readme, test -e $(CSA_README_CHECK))
 	@$(call CHECK, $@, module, test -e $(CSA_MODULE_CHECK))
+endif
 
 $(CSA_README_CHECK)$(FORCE): $(CSA_README_SRC)
 ifndef CSA_SAGA_CHECK

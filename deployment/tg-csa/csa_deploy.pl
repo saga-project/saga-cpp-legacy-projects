@@ -22,6 +22,7 @@ my $do_list   = 0;
 my $do_check  = 0;
 my $do_deploy = 0;
 my $be_strict = 0;
+my $do_force  = 0;
 my $force     = "";
 my $fake      = 0;
 my $do_remove = 0;
@@ -78,7 +79,8 @@ while ( my $arg = shift )
   }
   elsif ( $arg =~ /^(-f|--force)$/io )
   {
-    $force = "CSA_FORCE=true";
+    $do_force = 1;
+    $force    = "CSA_FORCE=true";
   }
   elsif ( $arg =~ /^(-r|--remove)$/io )
   {
@@ -259,11 +261,21 @@ foreach my $entry ( @modules )
 }
 
 print <<EOT;
-  ----------------------------------
-  hosts    : @hosts
-  modules  : $modstring
-  version  : $version
-  ----------------------------------
++-------------------------------------------------------------------
+|
+| targets  : @hosts
+| modules  : $modstring
+| version  : $version
+|
+| exec     : $do_exe
+| remove   : $do_remove
+| deploy   : $do_deploy
+| check    : $do_check
+|
+| force    : $do_force
+| strict   : $be_strict
+|
++-------------------------------------------------------------------
 EOT
 
 
