@@ -441,7 +441,9 @@ if ( $do_deploy )
 
         print " build $mod_name ($version)\n";
 
-        my $cmd = "$access $fqhn '$ENV CSA_HOST=$host                 " .
+        my $cmd = "$access $fqhn 'mkdir -p $path ; " .
+                                 "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
+                                 "$ENV CSA_HOST=$host                 " .
                                  "     CSA_LOCATION=$path             " .
                                  "     CSA_SAGA_VERSION=$version      " .
                                  "     CSA_SAGA_SRC=\"$mod_src\"      " .
@@ -450,7 +452,7 @@ if ( $do_deploy )
                                  "     make -C $path/csa/             " .
                                  "          --no-print-directory      " .
                                  "          -f make.saga.csa.mk       " .
-                                 "          $mod_name'                " ;
+                                 "          $mod_name               ' " ;
         if ( $fake )
         {
           print " $cmd\n";
