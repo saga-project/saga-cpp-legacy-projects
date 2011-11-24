@@ -165,7 +165,7 @@ $SVNCI .= " ci";
 
   if ( ! exists $csa_packs{$version} )
   {
-    print "Version '$version' is not defined in '$CSA_PACK'\n";
+    print " -- error: undefined version '$version'\n";
     exit -1;
   }
 }
@@ -317,7 +317,7 @@ if ( $do_exe )
   {
     if ( ! exists $csa_hosts{$host} )
     {
-      print " WARNING: Do not know how to handle host $host\n";
+      print " -- warning: unknown host '$host'\n";
     }
     else
     {
@@ -343,7 +343,7 @@ if ( $do_exe )
 
       if ( $fake )
       {
-        print " $access $fqhn '$exe'\n";
+        print " -- $access $fqhn '$exe'\n";
       }
       else
       {
@@ -351,7 +351,7 @@ if ( $do_exe )
 
         if ( 0 != system ($cmd) )
         {
-          print " error running $cmd\n";
+          print " -- error: cannot run $cmd\n";
           exit -1 if $be_strict;
         }
       }
@@ -375,7 +375,7 @@ if ( $do_remove )
   {
     if ( ! exists $csa_hosts{$host} )
     {
-      warn "WARNING: Do not know how to handle host '$host'\n";
+      warn " -- warning: unknown host '$host'\n";
     }
     else
     {
@@ -387,19 +387,19 @@ if ( $do_remove )
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      print " remove installation $version on $host\n";
+      print " -- remove installation $version on $host\n";
 
       my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
 
       if ( $fake )
       {
-        print " $cmd\n";
+        print " -- $cmd\n";
       }
       else
       {
         if ( 0 != system ($cmd) )
         {
-          print " error removing csa installation\n";
+          print " -- error: cannot remove csa installation\n";
           exit -1 if $be_strict;
         }
       }
@@ -421,7 +421,7 @@ if ( $do_deploy )
   {
     if ( ! exists $csa_hosts{$host} )
     {
-      warn "WARNING: Do not know how to handle host '$host'\n";
+      warn " -- warning: unknown host '$host'\n";
     }
     else
     {
@@ -439,7 +439,7 @@ if ( $do_deploy )
         my $mod_name = $entry->{'name'};
         my $mod_src  = $entry->{'src'};
 
-        print " build $mod_name ($version)\n";
+        print " -- build $mod_name ($version)\n";
 
         my $cmd = "$access $fqhn 'mkdir -p $path ; " .
                                  "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
@@ -455,13 +455,13 @@ if ( $do_deploy )
                                  "          $mod_name               ' " ;
         if ( $fake )
         {
-          print " $cmd\n";
+          print " -- $cmd\n";
         }
         else
         {
           if ( 0 != system ($cmd) )
           {
-            print " error deploying $mod_name on $host\n";
+            print " -- error: cannot deploy $mod_name on $host\n";
             exit -1 if $be_strict;
           }
         }
@@ -476,13 +476,13 @@ if ( $do_deploy )
                                    "   mod/module.saga-$version.*.$host       '  " ;
           if ( $fake )
           {
-            print " $cmd\n";
+            print " -- $cmd\n";
           }
           else
           {
             if ( 0 != system ($cmd) )
             {
-              print " error committing documentation\n";
+              print " -- error: cannot commit documentation\n";
               exit -1 if $be_strict;
             }
           }
@@ -509,7 +509,7 @@ if ( $do_check )
   {
     if ( ! exists $csa_hosts{$host} )
     {
-      print " WARNING: Do not know how to handle host $host\n";
+      print " -- warning: unknown host '$host'\n";
     }
     else
     {
@@ -535,13 +535,13 @@ if ( $do_check )
 
         if ( $fake )
         {
-          print " $cmd\n";
+          print " -- $cmd\n";
         }
         else
         {
           if ( 0 != system ($cmd) )
           {
-            print "error running csa checks\n";
+            print " -- error: cannot run csa checks\n";
             exit -1 if $be_strict;
           }
         }
@@ -554,13 +554,13 @@ if ( $do_check )
                                  "    test/test.saga-$version.*.$host      '  " ;
         if ( $fake )
         {
-          print " $cmd\n";
+          print " -- $cmd\n";
         }
         else
         {
           if ( 0 != system ($cmd) )
           {
-            print " error committing csa checks\n";
+            print " -- error: cannot commit csa checks\n";
             exit -1 if $be_strict;
           }
         }
