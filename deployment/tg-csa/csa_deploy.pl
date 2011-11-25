@@ -25,6 +25,7 @@ my $be_strict = 0;
 my $do_force  = 0;
 my $force     = "";
 my $fake      = 0;
+my $show      = 0;
 my $do_remove = 0;
 my $svnuser   = `id -un`;
 my $svnpass   = "";
@@ -72,6 +73,10 @@ while ( my $arg = shift )
   elsif ( $arg =~ /^(-n|--nothing|--noop|--no)$/io )
   {
     $fake = 1;
+  }
+  elsif ( $arg =~ /^(-s|--show)$/io )
+  {
+    $show = 1;
   }
   elsif ( $arg =~ /^(-e|--error|--exit)$/io )
   {
@@ -331,21 +336,24 @@ if ( $do_exe )
     # my $exe    = "rm -v  $path/saga/$version/gcc-$CPP/share/saga/saga_adaptor_ssh_job.ini";
     # my $exe    = "rm -rf $path/saga/$version/gcc-$CPP/lib/python*/site-packages/bigjob* " .
     #              "       $path/saga/$version/gcc-$CPP/lib/python*/site-packages/saga/bigjob*";
-      my $exe    = "rm -rv $path/README.saga-$version.$CPP.$host" .
-                   "       $path/csa/doc/README.saga-$version.$CPP.$host" .
-                   "       $path/saga/$version/$CPP/share/saga/config/python.m4" .
-                   "       $path/saga/$version/$CPP/lib/python*";
+    # my $exe    = "rm -rv $path/README.saga-$version.$CPP.$host" .
+    #              "       $path/csa/doc/README.saga-$version.$CPP.$host" .
+    #              "       $path/saga/$version/$CPP/share/saga/config/python.m4" .
+    #              "       $path/saga/$version/$CPP/lib/python*";
     # my $exe    = "cd     $path/csa/ ; svn up";
+      my $exe    = "eval `grep \"  export\" $path/README.saga-1.6.gcc-*.$host` ; " .
+                   "python -c \"import saga ; print saga ; import bigjob ; print bigjob\"";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
 
-      if ( $fake )
+      if ( $show || $fake )
       {
         print " -- $access $fqhn '$exe'\n";
       }
-      else
+      
+      unless ( $fake )
       {
         my $cmd = "$access $fqhn '$exe'";
 
@@ -391,11 +399,12 @@ if ( $do_remove )
 
       my $cmd = "$access $fqhn 'rm -rf $path/saga/$version/ $path/README.saga-$version.*.$host'";
 
-      if ( $fake )
+      if ( $show || $fake )
       {
         print " -- $cmd\n";
       }
-      else
+
+      unless ( $fake )
       {
         if ( 0 != system ($cmd) )
         {
@@ -453,11 +462,12 @@ if ( $do_deploy )
                                  "          --no-print-directory      " .
                                  "          -f make.saga.csa.mk       " .
                                  "          $mod_name               ' " ;
-        if ( $fake )
+        if ( $show || $fake )
         {
           print " -- $cmd\n";
         }
-        else
+        
+        unless ( $fake )
         {
           if ( 0 != system ($cmd) )
           {
@@ -474,11 +484,12 @@ if ( $do_deploy )
                                    " $SVNCI -m \"automated update\"              " .
                                    "   doc/README.saga-$version.*.$host          " .
                                    "   mod/module.saga-$version.*.$host       '  " ;
-          if ( $fake )
+          if ( $show || $fake )
           {
             print " -- $cmd\n";
           }
-          else
+          
+          unless ( $fake )
           {
             if ( 0 != system ($cmd) )
             {
@@ -533,11 +544,12 @@ if ( $do_check )
                   "          -f make.saga.csa.mk       " .
                   "          all'                      " ;
 
-        if ( $fake )
+        if ( $show || $fake )
         {
           print " -- $cmd\n";
         }
-        else
+        
+        unless ( $fake )
         {
           if ( 0 != system ($cmd) )
           {
@@ -552,11 +564,12 @@ if ( $do_check )
                                  " svn add test/test.saga-$version.*.$host && " .
                                  " $SVNCI -m \"automated update\"             " .
                                  "    test/test.saga-$version.*.$host      '  " ;
-        if ( $fake )
+        if ( $show || $fake )
         {
           print " -- $cmd\n";
         }
-        else
+        
+        unless ( $fake )
         {
           if ( 0 != system ($cmd) )
           {
@@ -586,6 +599,7 @@ sub help (;$)
        [-n|--no]
        [-e|--exit|--error]
        [-f|--force]
+       [-s|--show]
        [-d|--deploy]
        [-r|--remove]
        [-x|--execute] 
@@ -602,6 +616,7 @@ sub help (;$)
     -u : svn user id                                (default: local user id)
     -p : svn password                               (default: "")
     -n : run 'make -n' to show what *would* be done (default: off)
+    -s : show commands to be run                    (default: off)
     -e : exit on errors                             (default: off)
     -f : force re-deploy                            (default: off)
     -d : deploy version/modules on targets          (default: off)
