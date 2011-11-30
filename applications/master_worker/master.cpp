@@ -89,32 +89,11 @@ namespace saga_pm
         // first send QUIT command
         for ( it = ads_.begin (); it != ads_.end (); it++ )
         {
-          std::cout << " quitting worker " << it->first 
-                    << " (" << state_to_string (it->second.get_state ()) << ")" 
-                    << std::endl;
-
-       // it->second.dump ();
-          it->second.set_task ("quit");
+          worker_stop (it->first);
         }
 
-        // let that sink in ;-)
-        ::sleep (TIMEOUT);
-
-        // kill zombie workers, and purge adverts
-        for ( it = ads_.begin (); it != ads_.end (); it++ )
-        {
-          if ( it->second.get_state () != Quit )
-          {
-            std::cout << " stopping worker " << it->first << std::endl;
-            it->second.get_job ().cancel ();
-            it->second.set_state  (Failed);
-            it->second.set_error  ("Worker ignored QUIT command");
-          }
-        }
-
-        // clean out the adverts
-        // but then also state and error msgs are gone...
-        ad_.remove (saga::advert::Recursive);
+        // keep state around for now...
+        // ad_.remove (saga::advert::Recursive);
       }
     }
 
@@ -136,21 +115,16 @@ namespace saga_pm
         {
           saga::url u = std::string (ADVERT_BASE_URL) + "/" + session_ + "/" + itoa (id);
 
-          // add worker advert URL to job description as first command line
+          // add worker advert URL to job description as last command line
           // argument
           std::vector <std::string> args;
-          args.push_back (u.get_string ());
 
           if ( d.jd.attribute_exists (saga::job::attributes::description_arguments) )
           {
-
-            std::vector <std::string> tmp = d.jd.get_vector_attribute (saga::job::attributes::description_arguments);
-
-            for ( unsigned int i = 0; i < tmp.size (); i++ )
-            {
-              args.push_back (tmp[i]);
-            }
+            args = d.jd.get_vector_attribute (saga::job::attributes::description_arguments);
           }
+
+          args.push_back (u.get_string ());
 
           d.jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
 

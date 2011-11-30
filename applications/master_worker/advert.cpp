@@ -77,9 +77,7 @@ namespace saga_pm
         ad_.set_vector_attribute ("par_in",   empty_vec);
         ad_.set_vector_attribute ("par_out",  empty_vec);
 
-        // advert is initalized, we can set the state to notify master of
-        // successfull startup
-        ad_.set_attribute        ("state",    "Started");
+        set_state (Unknown);
 
         std::cout << "create ad ok " << id_ << std::endl;
 

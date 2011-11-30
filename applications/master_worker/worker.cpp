@@ -24,12 +24,12 @@ namespace saga_pm
       }
 
 
+      // init worker advert
       LOG << "worker advert address: " << u;
-
-      // create the worker advert
       ad_ = advert  (u);
-      ad_.set_state (Started);
-      LOG << "worker set to started: " << u;
+
+      // run the worker loop
+      run ();
     }
 
 
@@ -43,6 +43,12 @@ namespace saga_pm
     void worker::run (void)
     {
       LOG << "worker run";
+      ::sleep (5);
+
+      ad_.set_state (Started);
+      LOG << "worker set to Started";
+      ::sleep (5);
+
       while ( work_ )
       {
         LOG << "worker running";
@@ -56,8 +62,8 @@ namespace saga_pm
 
           ad_.set_state (Busy);
           busy = true;
-
           LOG << "worker: busy";
+          ::sleep (5);
 
           // FIXME: de-obfuscate!
           argvec_t    args = ad_.get_par_in ();
@@ -66,6 +72,7 @@ namespace saga_pm
           call_t      call = call_map_[task];
 
           LOG << "worker: call" << task;
+          ::sleep (5);
 
           ret = (*this.*call)(args);
 
@@ -73,13 +80,16 @@ namespace saga_pm
           ad_.set_state   (Done);
 
           LOG << "worker: call done";
+          ::sleep (5);
         }
-
 
         // avoid idle polling
         if ( busy ) busy = false;
         else        ::sleep (3);
       }
+
+      LOG << "worker run done";
+      ::sleep (5);
     }
 
 
