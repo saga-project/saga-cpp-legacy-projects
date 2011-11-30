@@ -34,7 +34,7 @@ namespace saga_pm
         saga::job::service  js_;
         saga::job::job      job_;
         saga::url           url_;
-        std::string         id_;
+        id_t                id_;
         saga::advert::entry ad_;
 
       public:
@@ -42,17 +42,20 @@ namespace saga_pm
         advert  (saga::url          url);
         advert  (saga::job::service js, 
                  saga::job::job     job, 
-                 saga::url          url);
+                 saga::url          url, 
+                 id_t               id);
         ~advert (void);
 
 
-        bool           init        (void);
         void           run         (std::string c , 
                                     argvec_t    a );
         argvec_t       wait        (void          );
+        void           dump        (void          );
         void           purge       (void          );
 
         saga::job::job get_job     (void          );
+
+        id_t           get_id      (void          );    // called by master and worker
 
         void           set_state   (state       s );    // called by master and worker
         state          get_state   (void          );    // called by master and worker

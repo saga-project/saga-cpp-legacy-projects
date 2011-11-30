@@ -8,7 +8,10 @@
 
 #include <saga/saga.hpp>
 
+#define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
+
 #define LOG SAGA_LOG(SAGA_VERBOSE_LEVEL_CRITICAL)
+// #define LOG std::cerr
 
 namespace saga_pm
 {
@@ -16,7 +19,10 @@ namespace saga_pm
   {
     ////////////////////////////////////////////////////////////////////
     
-    class worker;
+    class   master;
+    class   worker;
+
+    typedef unsigned long long int                     id_t;
     typedef std::string                                arg_t;
     typedef std::vector <arg_t>                        argvec_t;
     typedef argvec_t (saga_pm::master_worker::worker::*call_t)(argvec_t);
@@ -25,8 +31,8 @@ namespace saga_pm
 
     ////////////////////////////////////////////////////////////////////
     
-    std::string     get_master_id (void);
-    std::string     get_worker_id (void);
+    id_t            get_master_id (void);
+    id_t            get_worker_id (void);
 
     bool            is_master     (void);
     bool            is_worker     (void);

@@ -3,6 +3,7 @@
 #define SAGA_PM_MASTER_WORKER_MASTER_HPP
 
 #include "util.hpp"
+#include "worker_description.hpp"
 #include "advert.hpp"
 
 namespace saga_pm
@@ -13,28 +14,43 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     class master
     {
+      // FIXME:
+      //  - use map to quickly find workers by id
+      
       private:
-        unsigned int              nworker_;
-        std::string               worker_exe_;
-        std::vector <std::string> worker_args_;
-        std::vector <advert>      worker_ads_;
-        std::string               master_ad_;
-        saga::advert::directory   ad_;
+        typedef std::map <id_t, advert> admap_t;
 
-
-      protected:
-        int      worker_run  (std::string task, 
-                              argvec_t    args);
-        argvec_t worker_wait (int         tid);
+        bool                            initialized_;
+        id_t                            max_id_;
+        std::string                     session_;
+        std::string                     ad_url_;
+        saga::advert::directory         ad_;
+        admap_t                         ads_;
 
 
       public:
-        master (unsigned int              nworker, 
-                std::string               worker_exe, 
-                std::vector <std::string> worker_args = saga_pm::master_worker::noargs_);
+        master  (void);
         ~master (void);
 
-        void shutdown (void);
+        void               initialize         (std::string session = "");
+        void               shutdown           (void);
+
+        id_t               worker_start       (worker_description & d);
+        void               worker_stop        (id_t id);
+        std::vector <id_t> worker_list        (void);
+
+        void               worker_run         (std::string task, 
+                                               id_t        id = 0);
+        void               worker_run         (std::string task, 
+                                               argvec_t    args, 
+                                               id_t        id = 0);
+        state              worker_get_state   (id_t id);
+        std::string        worker_get_error   (id_t id);
+        std::string        worker_get_task    (id_t id);
+        argvec_t           worker_get_args    (id_t id);
+        argvec_t           worker_get_results (id_t id);
+        void               worker_wait        (id_t id); // ?
+        void               worker_dump        (id_t id);
     };
     ////////////////////////////////////////////////////////////////////
 

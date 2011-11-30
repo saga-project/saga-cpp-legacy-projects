@@ -1,9 +1,7 @@
 
 #include <saga/saga.hpp>
 
-#include "master_worker.hpp"
-#include "master.hpp"
-#include "worker.hpp"
+#include <master_worker.hpp>
 
 int main (int argc, char** argv)
 {
@@ -12,31 +10,56 @@ int main (int argc, char** argv)
 
   try 
   {
-    if ( saga_pm::master_worker::is_master () )
+    if ( argc == 1 )
     {
-      LOG << "MASTER";
+      LOG << "MASTER START" << std::endl;
 
-      saga_pm::master_worker::master m (1, "test_mw");
+      saga_pm::master_worker::master m;
+      m.initialize ("test");
 
-      // m.run ();
-      // m.wait ();
+      LOG << "MASTER TEST" << std::endl;
 
-      LOG << "MASTER DONE";
+      saga_pm::master_worker::worker_description wd;
+
+      wd.rm = "fork://localhost/";
+      wd.jd.set_attribute (saga::job::attributes::description_executable, argv[0]);
+
+      m.worker_start (wd);
+
+      std::vector <saga_pm::master_worker::id_t> ids = m.worker_list ();
+
+      for ( unsigned int i = 0; i < ids.size (); i++ )
+      {
+        m.worker_dump (ids[i]);
+      }
+
+      m.worker_run ("quit");
+
+      for ( unsigned int i = 0; i < ids.size (); i++ )
+      {
+        m.worker_dump (ids[i]);
+      }
+
+      LOG << "MASTER DONE" << std::endl;
     }
-    else
+    else if ( argc == 2 )
     {
-      LOG << "WORKER";
+      saga::job::service js;
+
+      LOG << "WORKER START" << std::endl;
 
       saga_pm::master_worker::call_map_t call_map;
 
-      LOG << "worker 1";
+      saga_pm::master_worker::worker w (saga::url (argv[1]), call_map);
 
-      saga_pm::master_worker::worker w (call_map);
-
-      LOG << "worker 2";
       w.run ();
 
-      LOG << "WORKER DONE";
+      LOG << "WORKER DONE" << std::endl;
+    }
+    else
+    {
+      LOG << "need 0 (master) or 1 (client) arguments" << std::endl;
+      exit (-1);
     }
   }
   catch ( const saga::exception & e )

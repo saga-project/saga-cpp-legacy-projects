@@ -5,9 +5,9 @@ namespace saga_pm
 {
   namespace master_worker
   {
-
     ////////////////////////////////////////////////////////////////////
-    worker::worker (call_map_t call_map)
+    worker::worker (saga::url  u, 
+                    call_map_t call_map)
       : work_ (true)
     {
       saga::session s;
@@ -24,19 +24,12 @@ namespace saga_pm
       }
 
 
-      char* adurl_env = ::getenv ("SAGA_WORKER_AD");
-      if ( NULL == adurl_env )
-      {
-        std::cout << "Could not get advert address from environment" << std::endl;
-        LOG << "Could not get advert address from environment" << std::flush;
-        exit (-1);
-      }
-
-      LOG << "worker advert address: " << adurl_env;
+      LOG << "worker advert address: " << u;
 
       // create the worker advert
-      ad_ = advert  (saga::url (adurl_env));
+      ad_ = advert  (u);
       ad_.set_state (Started);
+      LOG << "worker set to started: " << u;
     }
 
 
@@ -46,18 +39,25 @@ namespace saga_pm
     }
 
 
-
     ////////////////////////////////////////////////////////////////////
     void worker::run (void)
     {
+      LOG << "worker run";
       while ( work_ )
       {
+        LOG << "worker running";
+        ad_.dump ();
+
         bool busy = false;
 
         if ( ad_.get_state () == Assigned )
         {
+          LOG << "worker: assigned";
+
           ad_.set_state (Busy);
           busy = true;
+
+          LOG << "worker: busy";
 
           // FIXME: de-obfuscate!
           argvec_t    args = ad_.get_par_in ();
@@ -65,17 +65,20 @@ namespace saga_pm
           std::string task = ad_.get_task ();
           call_t      call = call_map_[task];
 
+          LOG << "worker: call" << task;
+
           ret = (*this.*call)(args);
 
           ad_.set_par_out (ret);
           ad_.set_state   (Done);
 
+          LOG << "worker: call done";
         }
 
 
         // avoid idle polling
         if ( busy ) busy = false;
-        else        ::sleep (1);
+        else        ::sleep (3);
       }
     }
 
@@ -83,10 +86,11 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     saga_pm::master_worker::argvec_t worker::call_quit (saga_pm::master_worker::argvec_t av)
     {
-      ad_.set_state (Quit);
       std::cout << "Quit" << std::endl;
 
       work_ = false;
+
+      ad_.set_state (Quit);
 
       argvec_t ret;
       return ret;

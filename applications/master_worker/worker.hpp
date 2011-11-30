@@ -22,7 +22,8 @@ namespace saga_pm
         saga_pm::master_worker::argvec_t call_quit (saga_pm::master_worker::argvec_t av);
 
       public:
-        worker (call_map_t call_map);
+        worker (saga::url  u, 
+                call_map_t call_map);
         virtual ~worker (void);
 
         void run (void);
