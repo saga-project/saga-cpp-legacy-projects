@@ -117,7 +117,7 @@ class mrfunctions:
         for fname in dirList:
             os.system("cd " + temp + "; split -d -a 5 -l " + str(lines) + " " +  input + "/" + fname + " " + fname + "--" )
         dirList=os.listdir(temp)
-        for fname in dirList:
+        for fname in sorted(dirList):
             chunk_list.append(temp + "/" + fname)
         for chunk in chunk_list:
             seq=chunk.split("--")[1]

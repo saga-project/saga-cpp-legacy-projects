@@ -14,10 +14,16 @@ f=open(file1,"r")
 part_nbr=[[] for _ in range(int(nbr_reduces))]
 
 #Map phase logic starts
-os.system("bwa aln " + application_args[0] + " " + file1 + " > " + file1 +"-aln ")
-os.system("bwa aln " + application_args[0] + " " + file2 + " > " + file2 +"-aln ")
+k="bwa aln " + application_args[0] + " " + file1 + " > " + file1 +"-aln "
+print "executing " + k
+os.system(k)
+k="bwa aln " + application_args[0] + " " + file2 + " > " + file2 +"-aln "
+print "executing " + k
+os.system(k)
 output_sam=os.path.dirname(file1) + "/" + os.path.split(file1)[1] + "_" + os.path.split(file2)[1] + ".sam"
-os.system("bwa sampe " + application_args[0] + " " + file1 + "-aln" + " " + file2 + "-aln" + " " + file1 + " " + file2 +  " > " + output_sam)
+k="bwa sampe " + application_args[0] + " " + file1 + "-aln" + " " + file2 + "-aln" + " " + file1 + " " + file2 +  " > " + output_sam
+print "executing " + k
+os.system(k)
 output_sam_file = open(output_sam,"r")
 # bwa alignment done
 pairs={}
@@ -80,9 +86,7 @@ for i in range(0,int(nbr_reduces)):
 
 for i in range(0,int(nbr_reduces)): 
     sorted_part_nbr[i].close()
-        
-        
-            
 
-            
-
+os.system("rm " + file1 + " " + file2)
+os.system("rm " + file1 + "-aln " + file2 + "-aln ")
+os.system("rm " + output_sam)

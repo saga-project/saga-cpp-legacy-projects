@@ -32,36 +32,46 @@ for i in part_list:
         else: 
             final_pairs[key] = reads
 
-
 for k,v in final_pairs.items():
-    paired_reads={}
-    unpaired_reads={}
+    paired_reads=[]
+    unpaired_reads=[]
     ispaired = False
     if len(v) > 1:
         for read in v:
             values=read.split()
             if values[-2] == "paired":
-                paired_reads[values[-1]]= "".join(read.split()[0:len(values)-2])
+                paired_reads.append("\t".join(read.split()))
                 ispaired = True
             else:
-                unpaired_reads[values[-1]]="".join(read.split()[0:len(values)-2])
+                unpaired_reads.append("\t".join(read.split()))
         if ispaired:
-            i=0
-            for key in sorted(paired_reads.iterkeys(),reverse=True):
-                if i==0:
-                    reduce_write.write(paired_reads[key] +"\n")
-                else:
-                    duplicates.write(paired_reads[key] +"\n")
+            i = 0
+            firstread = paired_reads[0]
+            max_value = firstread.split()[-1]
+            max_value_index=0
+            for read in paired_reads:
+                values = read.split()
+                if values[-1] > max_value:
+                    max_value_index = i
                 i=i+1
+            reduce_write.write("\t".join((paired_reads[max_value_index].split())[0:len(paired_reads[max_value_index].split())-2])+ "\n")
+            del paired_reads[max_value_index]
+            for i in paired_reads:
+                duplicates.write("\t".join((i.split())[0:len(i.split())-2]) +"\n")
         else:
             i=0
-            for key in sorted(unpaired_reads.iterkeys(),reverse=True):
-                if i==0:
-                    reduce_write.write(unpaired_reads[key] +"\n")
-                else:
-                    duplicates.write(unpaired_reads[key] +"\n")
-                i=i+1;
+            firstread = unpaired_reads[0]
+            max_value = firstread.split()[-1]
+            max_value_index=0
+            for read in unpaired_reads:
+                values = read.split()
+                if values[-1] > max_value:
+                    max_value_index = i
+                i=i+1
+            reduce_write.write("\t".join((unpaired_reads[max_value_index].split())[0:len(unpaired_reads[max_value_index].split())-2])+ "\n")
+            del unpaired_reads[max_value_index]
+            for i in unpaired_reads:
+                duplicates.write("\t".join((i.split())[0:len(i.split())-2]) +"\n")
     else:
         reduce_write.write("\t".join((v[0].split())[0:len(v[0].split())-2]) +"\n") 
-
 

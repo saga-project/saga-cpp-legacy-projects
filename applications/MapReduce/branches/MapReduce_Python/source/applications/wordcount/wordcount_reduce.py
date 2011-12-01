@@ -9,7 +9,7 @@ print part_files
 part_list=part_files.split(":")
 part_list=part_list[1:]
 key_count={}
-k=part_list[0][-1]
+k=str(part_list[0].split("-")[-1:][0])
 reduce_path=(os.path.split(part_list[0]))[0]
 reduce_file=reduce_path+"/reduce-"+str(k)
 reduce_write=open(reduce_file,'w')

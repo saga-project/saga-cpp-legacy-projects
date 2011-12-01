@@ -19,4 +19,4 @@ echo " Starting MapReduce"
 k=`expr 64 \* 1024 \* 1024`
 echo $k
 
-python wordcountApp.py -i "file://localhost//N/u/pmantha/data" -o  "file://localhost/N/u/pmantha/output" -t "file://localhost/N/u/pmantha/temp" -b 8 -c $k -m "/N/u/pmantha/pmantha/MapReduce_Python/source/applications/wordcount/wordcount_map_partition.py" -r "/N/u/pmantha/pmantha/MapReduce_Python/source/applications/wordcount/wordcount_reduce.py" -a "advert://advert.cct.lsu.edu:8080" -u "pbs-ssh://sierra.futuregrid.org" -n 2 -w 40 -s 8 -d "/N/u/pmantha/pmantha/MapReduce_Python/source/agent" -q None -x None -y None -e 1
+python wordcountApp.py -i "file://localhost//N/u/pmantha/data" -o  "file://localhost/N/u/pmantha/output" -t "file://localhost/N/u/pmantha/temp" -b 32 -c $k -m "/N/u/pmantha/MapReduce_Python/source/applications/wordcount/wordcount_map_partition.py" -r "/N/u/pmantha/MapReduce_Python/source/applications/wordcount/wordcount_reduce.py" -a "advert://advert.cct.lsu.edu:8080" -u "pbs-ssh://localhost" -n 2 -w 40 -s 8 -d "/N/u/pmantha/MapReduce_Python/source/agent" -q None -x None -y None -e 1
