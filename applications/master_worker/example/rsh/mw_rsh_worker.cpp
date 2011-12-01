@@ -59,11 +59,13 @@ int main (int argc, char** argv)
   {
     saga::job::service js; // init logging :-(
 
-    LOG << "WORKER" << std::endl;
+    std::cerr << "WORKER" << std::endl << std::endl;
+    LOG       << "WORKER" << std::endl;
 
     if ( argc == 2 )
     {
-      LOG << "WORKER START";
+      std::cerr << "WORKER START" << std::endl;
+      LOG       << "WORKER START";
 
       // create worker class, which registers with master
       // and also adds calls to the call_map
@@ -73,27 +75,32 @@ int main (int argc, char** argv)
       // run the worker loop
       w.run ();
 
-      LOG << "WORKER DONE";
+      std::cerr << "WORKER DONE" << std::endl;
+      LOG       << "WORKER DONE";
     }
     else
     {
-      LOG << "need 1 argument (advert url)";
+      std::cerr << "need 1 argument (advert url)" << std::endl;
+      LOG       << "need 1 argument (advert url)";
       exit (-1);
     }
   }
   catch ( const saga::exception & e )
   {
-    LOG << " saga exception: " << e.what ();
+    std::cerr << " saga exception: " << e.what () << std::endl;
+    LOG       << " saga exception: " << e.what ();
   }
 
   catch ( const std::exception & e )
   {
-    LOG << " std exception: " << e.what ();
+    std::cerr << " std exception: " << e.what () << std::endl;
+    LOG       << " std exception: " << e.what ();
   }
 
   catch ( ... )
   {
-    LOG << " some exception ";
+    std::cerr << " some exception " << std::endl;
+    LOG       << " some exception ";
   }
 
   return 0;
