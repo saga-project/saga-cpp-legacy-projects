@@ -40,17 +40,18 @@ namespace saga_pm
         std::vector <id_t> worker_list        (void);
 
         void               worker_run         (std::string task, 
-                                               id_t        id = 0);
-        void               worker_run         (std::string task, 
-                                               argvec_t    args, 
-                                               id_t        id = 0);
-        state              worker_get_state   (id_t id);
-        std::string        worker_get_error   (id_t id);
-        std::string        worker_get_task    (id_t id);
-        argvec_t           worker_get_args    (id_t id);
-        argvec_t           worker_get_results (id_t id);
-        void               worker_wait        (id_t id); // ?
-        void               worker_dump        (id_t id);
+                                               argvec_t    args = noargs_);
+        void               worker_run         (id_t        id,
+                                               std::string task, 
+                                               argvec_t    args = noargs_);
+                                               
+        state              worker_get_state   (id_t id = 0);
+        std::string        worker_get_error   (id_t id = 0);
+        std::string        worker_get_task    (id_t id = 0);
+        argvec_t           worker_get_args    (id_t id = 0);
+        argvec_t           worker_get_results (id_t id = 0);
+        void               worker_wait        (id_t id = 0);
+        void               worker_dump        (id_t id = 0);
     };
     ////////////////////////////////////////////////////////////////////
 

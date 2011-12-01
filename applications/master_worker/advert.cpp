@@ -102,8 +102,6 @@ namespace saga_pm
     void advert::run (std::string command, 
                       argvec_t    args)
     {
-      argvec_t ret;
-
       std::cout << " running test on 0: " << get_state () << std::endl;
 
       if ( (! ok_) || (Idle != get_state ()) )
@@ -118,7 +116,7 @@ namespace saga_pm
 
 
     ////////////////////////////////////////////////////////////////////
-    argvec_t advert::wait (void)
+    void advert::wait (void)
     {
       if ( ! ok_ )
       {
@@ -127,7 +125,9 @@ namespace saga_pm
 
       state s = get_state ();
 
-      while ( Busy == s )
+      while ( Done   != s &&
+              Failed != s &&
+              Quit   != s )
       {
         :: sleep (1);
         std::cout << "waiting for worker " << job_.get_job_id () << std::endl;
@@ -135,19 +135,15 @@ namespace saga_pm
       }
 
 
-      if ( Failed == s )
-      {
-        ok_ = false;
-        throw saga::no_success ("command failed");
-      }
+      // if ( Failed == s )
+      // {
+      //   throw saga::no_success ("command failed");
+      // }
 
-      if ( Done != s )
-      {
-        ok_ = false;
-        throw saga::no_success ("worker in incorrect state");
-      }
-
-      return get_par_out ();
+      // if ( Done != s )
+      // {
+      //   throw saga::no_success ("worker in incorrect state");
+      // }
     }
 
 
@@ -204,6 +200,7 @@ namespace saga_pm
               std::cout << " " << vals[i];
               LOG       << " " << vals[i];
             }
+            std::cout << std::endl;
           }
           else
           {
@@ -238,8 +235,6 @@ namespace saga_pm
 
       id_t id = ::atoi (ad_.get_attribute ("id").c_str ());
 
-      std::cout << " --- get_id: " << id << std::endl;
-
       return id;
     }
 
@@ -254,8 +249,6 @@ namespace saga_pm
 
       std::string old = ad_.get_attribute ("state");
       ad_.set_attribute ("state", state_to_string (s));
-
-      std::cout << " --- set_state: " << old << " -> " << s << " -> " << state_to_string (s) << std::endl;
     }
 
 
@@ -268,8 +261,6 @@ namespace saga_pm
       }
 
       std::string s = ad_.get_attribute ("state");
-
-      std::cout << " --- get_state: " << s << std::endl;
 
       return string_to_state (s);
     }
@@ -292,14 +283,13 @@ namespace saga_pm
 
       std::string error = ad_.get_attribute ("error");
 
-      std::cout << " --- get_error: " << error << std::endl;
       return error;
 
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    std::vector <std::string> advert::get_par_in (void )
+    argvec_t advert::get_par_in (void )
     {
       if ( ! ok_ )
       {
@@ -310,7 +300,7 @@ namespace saga_pm
       {
         throw saga::no_success ("worker does not have in parameters, yet");
 
-        // std::vector <std::string> par_in;
+        // argvec_t par_in;
         // return par_in;
       }
 
@@ -318,14 +308,14 @@ namespace saga_pm
     }
 
     ////////////////////////////////////////////////////////////////////
-    void advert::set_par_in (std::vector <std::string> pi)
+    void advert::set_par_in (argvec_t pi)
     {
       ad_.set_vector_attribute ("par_in", pi);
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    std::vector <std::string> advert::get_par_out (void )
+    argvec_t advert::get_par_out (void )
     {
       if ( ! ok_ )
       {
@@ -336,7 +326,7 @@ namespace saga_pm
       {
         throw saga::no_success ("worker does not have out parameters, yet");
 
-        // std::vector <std::string> par_out;
+        // argvec_t par_out;
         // return par_out;
       }
 
@@ -345,7 +335,7 @@ namespace saga_pm
 
 
     ////////////////////////////////////////////////////////////////////
-    void advert::set_par_out (std::vector <std::string> po)
+    void advert::set_par_out (argvec_t po)
     {
       ad_.set_vector_attribute ("par_out", po);
     }

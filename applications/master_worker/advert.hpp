@@ -49,7 +49,7 @@ namespace saga_pm
 
         void           run         (std::string c , 
                                     argvec_t    a );
-        argvec_t       wait        (void          );
+        void           wait        (void          );
         void           dump        (void          );
         void           purge       (void          );
 

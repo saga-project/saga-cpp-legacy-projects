@@ -6,48 +6,57 @@ namespace saga_pm
   namespace master_worker
   {
     ////////////////////////////////////////////////////////////////////
-    worker::worker (saga::url  u, 
-                    call_map_t call_map)
+    worker::worker (saga::url  u)
       : work_ (true)
     {
       saga::session s;
 
       LOG << "worker started: " << ::getpid ();
 
-      call_map_ = call_map;
-
-      // make sure that the call map has a quit entry
-      // NOTE: not sure if a custom quite would make sense anyway...
-      if ( call_map_.find ("quit") == call_map_.end () )
-      {
-        call_map_["quit"] = &worker::call_quit;
-      }
-
+      // make sure that the task map has a run and quit entry.
+      // a custom quit most likely would only make sense if there is also
+      // a custom run.
+      register_task ("quit", this, to_voidstar (0, &worker::task_quit));
+      register_task ("run",  this, to_voidstar (0, &worker::task_run));
 
       // init worker advert
       LOG << "worker advert address: " << u;
       ad_ = advert  (u);
-
-      // run the worker loop
-      run ();
     }
 
+    void worker::register_task (std::string name, void * thisptr, void * taskptr)
+    {
+      task_t task = (task_t) taskptr;
+      task_map_[name] = std::pair <void*, task_t> (thisptr, task);
+    }
 
     ////////////////////////////////////////////////////////////////////
     worker::~worker (void)
     {
     }
 
-
-    ////////////////////////////////////////////////////////////////////
     void worker::run (void)
     {
+      void * thisptr = task_map_["run"].first;
+      task_t task    = task_map_["run"].second;
+
+      LOG << "worker: calls run " << typeid (thisptr).name () << std::endl;
+
+      task (thisptr, noargs_);
+    }
+
+    state worker::get_state (void)
+    {
+      return ad_.get_state ();
+    }
+
+    ////////////////////////////////////////////////////////////////////
+    argvec_t worker::task_run (argvec_t args)
+    {
       LOG << "worker run";
-      ::sleep (5);
 
       ad_.set_state (Started);
       LOG << "worker set to Started";
-      ::sleep (5);
 
       while ( work_ )
       {
@@ -63,38 +72,41 @@ namespace saga_pm
           ad_.set_state (Busy);
           busy = true;
           LOG << "worker: busy";
-          ::sleep (5);
 
           // FIXME: de-obfuscate!
-          argvec_t    args = ad_.get_par_in ();
           argvec_t    ret;
-          std::string task = ad_.get_task ();
-          call_t      call = call_map_[task];
+          argvec_t    targs    = ad_.get_par_in ();
+          std::string taskname = ad_.get_task ();
+          void *      thisptr  = task_map_[taskname].first;
+          task_t      task     = task_map_[taskname].second;
 
-          LOG << "worker: call" << task;
-          ::sleep (5);
+          LOG << "worker: task" << task;
 
-          ret = (*this.*call)(args);
+          ret = task (thisptr, targs);
+
+          LOG << "worker task done" << std::endl;
 
           ad_.set_par_out (ret);
           ad_.set_state   (Done);
 
-          LOG << "worker: call done";
-          ::sleep (5);
+          ad_.dump ();
+
+          LOG << "worker: task done";
         }
 
         // avoid idle polling
         if ( busy ) busy = false;
-        else        ::sleep (3);
+        else        ::sleep (TIMEOUT);
       }
 
       LOG << "worker run done";
-      ::sleep (5);
+
+      return args;
     }
 
 
     ////////////////////////////////////////////////////////////////////
-    saga_pm::master_worker::argvec_t worker::call_quit (saga_pm::master_worker::argvec_t av)
+    argvec_t worker::task_quit (argvec_t av)
     {
       std::cout << "Quit" << std::endl;
 
@@ -102,8 +114,7 @@ namespace saga_pm
 
       ad_.set_state (Quit);
 
-      argvec_t ret;
-      return ret;
+      return noargs_;
     }
     ////////////////////////////////////////////////////////////////////
 

@@ -14,19 +14,21 @@ namespace saga_pm
     class worker
     {
       private:
-        call_map_t call_map_;
+        task_map_t task_map_;
         advert     ad_;
         bool       work_;
 
       protected:
-        saga_pm::master_worker::argvec_t call_quit (saga_pm::master_worker::argvec_t av);
+        saga_pm::master_worker::argvec_t task_quit (saga_pm::master_worker::argvec_t av);
+        saga_pm::master_worker::argvec_t task_run  (saga_pm::master_worker::argvec_t av);
 
       public:
-        worker (saga::url  u, 
-                call_map_t call_map);
+        worker (saga::url u);
         virtual ~worker (void);
 
-        void run (void);
+        void  run           (void);
+        state get_state     (void);
+        void  register_task (std::string name, void * thisptr, void * taskptr);
     };
     ////////////////////////////////////////////////////////////////////
 

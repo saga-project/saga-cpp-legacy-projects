@@ -1,6 +1,8 @@
 
 #include <sstream>
 
+#include <stdarg.h>
+
 #include "util.hpp"
 
 
@@ -83,6 +85,22 @@ namespace saga_pm
       else if ( s == "Quit"    ) { return Quit    ; }
       else                       { return Unknown ; }
     }
+
+
+    // somewhat ugly but fascinating trick to cast *anything* to a void*
+    // Kudos Nitzan Shaked (http://www.codeproject.com/KB/cpp/Ellipses.aspx)
+    void * to_voidstar (void * dummy, ... )
+    {
+      va_list list;
+      void *  ret;
+
+            va_start (list, dummy);
+      ret = va_arg   (list, void *);
+            va_end   (list);
+
+      return ret;
+    }
+
 
   } // namespace master_worker
 

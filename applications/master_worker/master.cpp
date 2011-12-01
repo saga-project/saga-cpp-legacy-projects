@@ -3,8 +3,6 @@
 
 #include "master.hpp"
 
-#define TIMEOUT 5 // seconds to wait for worker to react on a task
-
 
 namespace saga_pm
 {
@@ -150,7 +148,7 @@ namespace saga_pm
           {
             cnt++;
             std::cout << "master: waiting for worker to register" << cnt << std::endl;
-            ::sleep (TIMEOUT);
+            ::sleep (1);
             s = ads_[id].get_state ();
           }
 
@@ -240,16 +238,21 @@ namespace saga_pm
 
     ////////////////////////////////////////////////////////////////////
     void master::worker_run (std::string task,
-                             id_t        id)
+                             argvec_t    args)
     {
-      argvec_t    args;
-      worker_run (task, args, id);
+      admap_t :: iterator it;
+
+      for ( it = ads_.begin (); it != ads_.end (); it++ )
+      {
+        worker_run (it->first, task, args);
+      }
     }
 
+                             
     ////////////////////////////////////////////////////////////////////
-    void master::worker_run (std::string task,
-                             argvec_t    args,
-                             id_t        id)
+    void master::worker_run (id_t        id, 
+                             std::string task,
+                             argvec_t    args)
     {
       // FIXME: checks
       if ( ! initialized_ )
@@ -325,9 +328,19 @@ namespace saga_pm
 
 
     ////////////////////////////////////////////////////////////////////
-    std::vector <std::string> master::worker_get_results (id_t id)
+    argvec_t master::worker_get_results (id_t id)
     {
       // FIXME: checks
+      if ( Done != ads_[id].get_state () )
+      {
+        std::cerr << "cannot get results from " << id 
+                  << " - incorrect state " <<  ads_[id].get_state () << std::endl;
+        return noargs_;
+      }
+
+      // reset state to idle
+      ads_[id].set_state (Idle);
+
       return ads_[id].get_par_out ();
     }
 
@@ -335,7 +348,15 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     void master::worker_wait (id_t id)
     {
-      ads_[id].wait ();
+      admap_t :: iterator it;
+
+      for ( it = ads_.begin (); it != ads_.end (); it++ )
+      {
+        if ( id == 0 || id == it->first )
+        {
+          it->second.wait ();
+        }
+      }
     }
 
 

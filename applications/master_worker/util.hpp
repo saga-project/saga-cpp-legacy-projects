@@ -13,6 +13,8 @@
 #define LOG SAGA_LOG(SAGA_VERBOSE_LEVEL_CRITICAL)
 // #define LOG std::cerr
 
+#define TIMEOUT 5 // seconds to wait for worker to react on a task
+
 namespace saga_pm
 {
   namespace master_worker
@@ -22,11 +24,12 @@ namespace saga_pm
     class   master;
     class   worker;
 
-    typedef unsigned long long int                     id_t;
-    typedef std::string                                arg_t;
-    typedef std::vector <arg_t>                        argvec_t;
-    typedef argvec_t (saga_pm::master_worker::worker::*call_t)(argvec_t);
-    typedef std::map <std::string, call_t>             call_map_t;
+    typedef unsigned long long int                               id_t;
+    typedef std::string                                          arg_t;
+    typedef std::vector <arg_t>                                  argvec_t;
+
+    typedef argvec_t (*task_t)(void * thisptr, argvec_t args);
+    typedef std::map <std::string, std::pair <void *, task_t> >  task_map_t;
 
 
     ////////////////////////////////////////////////////////////////////
@@ -41,6 +44,8 @@ namespace saga_pm
 
     static argvec_t noargs_;
 
+    void * to_voidstar (void * dummy, ... );
+
     // worker state enum
     //
     // valid state transitions:
@@ -50,7 +55,7 @@ namespace saga_pm
     //
     // Unkown   -> Failed   (by worker) : unknown command, command failed, internal error
     // Unkown   -> Started  (by worker) : upon successfull startup, or after successful command execution
-    // Unkown   -> Idle     (by master) : prepare after startup
+    // Started  -> Idle     (by master) : prepare after startup
     // Idle     -> Assigned (by master) : upon task assignment
     // Assigned -> Busy     (by worker) : upon task acceptance
     // Busy     -> Done     (by worker) : upon   successful task completion
