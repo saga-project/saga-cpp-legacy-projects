@@ -49,6 +49,11 @@ int main ()
 
     // create the worker on target host
     id_t id = m.worker_start (wd);
+    if ( m.worker_get_state (id) == saga_pm::master_worker::Failed )
+    {
+      std::cerr << "could not start worker" << std::endl;
+      return (-1);
+    }
 
 
     // now we prompt for commands, and send them to the (single) worker.
