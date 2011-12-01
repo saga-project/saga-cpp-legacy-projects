@@ -73,25 +73,42 @@ namespace saga_pm
           busy = true;
           LOG << "worker: busy";
 
+
           // FIXME: de-obfuscate!
-          argvec_t    ret;
-          argvec_t    targs    = ad_.get_par_in ();
-          std::string taskname = ad_.get_task ();
-          void *      thisptr  = task_map_[taskname].first;
-          task_t      task     = task_map_[taskname].second;
+          std::string task_name   = ad_.get_task ();
+          argvec_t    task_args   = ad_.get_par_in ();
+          argvec_t    task_result = noargs_;
+          
+          // check if such task is registered
+          if ( task_map_.find (task_name) == task_map_.end () )
+          {
+            ad_.set_error   ("Unknown task");
+            ad_.set_state   (Failed);
+          }
+          else
+          {
+            void *      thisptr     = task_map_[task_name].first;
+            task_t      task        = task_map_[task_name].second;
 
-          LOG << "worker: task" << task;
+            LOG << "worker: task " << task_name;
 
-          ret = task (thisptr, targs);
+            try
+            {
+              task_result = task (thisptr, task_args);
+              ad_.set_par_out (task_result);
 
-          LOG << "worker task done" << std::endl;
+              if ( ad_.get_state () != Quit )
+              {
+                ad_.set_state   (Done);
+              }
 
-          ad_.set_par_out (ret);
-          ad_.set_state   (Done);
-
-          ad_.dump ();
-
-          LOG << "worker: task done";
+              LOG << "worker task done" << std::endl;
+            }
+            catch ( ... )
+            {
+              LOG << "worker task failed" << std::endl;
+            }
+          }
         }
 
         // avoid idle polling
@@ -108,7 +125,7 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     argvec_t worker::task_quit (argvec_t av)
     {
-      std::cout << "Quit" << std::endl;
+      LOG << "worker is quitting";
 
       work_ = false;
 

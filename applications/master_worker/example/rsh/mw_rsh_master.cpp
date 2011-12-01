@@ -1,7 +1,13 @@
 
-#include <saga/saga.hpp>
-
+#include <stdio.h>
 #include <master_worker.hpp>
+
+void prompt (void)
+{
+  // std::cout << " > " << std::flush;
+  // ::getchar ();
+}
+
 
 int main ()
 {
@@ -24,15 +30,18 @@ int main ()
 
     id_t id = m.worker_start (wd);
  // m.worker_dump (id);
+    prompt ();
 
-    m.worker_run  (id, "test");
+    m.worker_run  (id, "hello");
  // m.worker_dump (id);
+    prompt ();
 
     m.worker_wait (id);
  // m.worker_dump (id);
+    prompt ();
 
     saga_pm::master_worker::argvec_t res = m.worker_get_results (id);
-    std::cout << "results for test()" << std::endl;
+    std::cout << "results for hello()" << std::endl;
     for ( unsigned int i = 0; i < res.size (); i++ )
     {
       std::cout << "  " << i << " : " << res[i] << std::endl;
@@ -41,9 +50,11 @@ int main ()
 
     m.worker_run  (id, "quit");
  // m.worker_dump (id);
+    prompt ();
 
     m.worker_wait (id);
  // m.worker_dump (id);
+    prompt ();
 
     LOG << "MASTER DONE" << std::endl;
   }

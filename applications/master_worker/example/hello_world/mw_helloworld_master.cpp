@@ -1,7 +1,13 @@
 
-#include <saga/saga.hpp>
-
+#include <stdio.h>
 #include <master_worker.hpp>
+
+void prompt (void)
+{
+  // std::cout << " > " << std::flush;
+  // ::getchar ();
+}
+
 
 int main ()
 {
@@ -13,10 +19,6 @@ int main ()
 
     m.initialize ("test");
 
-    LOG << "MASTER TEST" << std::endl;
-
-    LOG << "MASTER init done" << std::endl;
-
     saga_pm::master_worker::worker_description wd;
 
     std::vector <std::string> args;
@@ -26,25 +28,33 @@ int main ()
     wd.jd.set_attribute        (saga::job::attributes::description_executable, "saga-run.sh");
     wd.jd.set_vector_attribute (saga::job::attributes::description_arguments,  args);
 
-    m.worker_start (wd);
+    id_t id = m.worker_start (wd);
+ // m.worker_dump (id);
+    prompt ();
 
-    std::vector <saga_pm::master_worker::id_t> ids = m.worker_list ();
+    m.worker_run  (id, "hello");
+ // m.worker_dump (id);
+    prompt ();
 
-    for ( unsigned int i = 0; i < ids.size (); i++ )
+    m.worker_wait (id);
+ // m.worker_dump (id);
+    prompt ();
+
+    saga_pm::master_worker::argvec_t res = m.worker_get_results (id);
+    std::cout << "results for hello()" << std::endl;
+    for ( unsigned int i = 0; i < res.size (); i++ )
     {
-      m.worker_dump (ids[i]);
+      std::cout << "  " << i << " : " << res[i] << std::endl;
     }
 
-    LOG << "MASTER started worker" << std::endl;
 
-    m.worker_run ("quit");
+    m.worker_run  (id, "quit");
+ // m.worker_dump (id);
+    prompt ();
 
-    LOG << "MASTER sent quit worker" << std::endl;
-
-    for ( unsigned int i = 0; i < ids.size (); i++ )
-    {
-      m.worker_dump (ids[i]);
-    }
+    m.worker_wait (id);
+ // m.worker_dump (id);
+    prompt ();
 
     LOG << "MASTER DONE" << std::endl;
   }

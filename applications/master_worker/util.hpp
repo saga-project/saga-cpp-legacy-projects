@@ -13,7 +13,7 @@
 #define LOG SAGA_LOG(SAGA_VERBOSE_LEVEL_CRITICAL)
 // #define LOG std::cerr
 
-#define TIMEOUT 5 // seconds to wait for worker to react on a task
+#define TIMEOUT 1 // seconds to wait for worker to react on a task
 
 namespace saga_pm
 {

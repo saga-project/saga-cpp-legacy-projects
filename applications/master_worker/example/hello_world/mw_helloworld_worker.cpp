@@ -9,16 +9,14 @@ class my_worker : public saga_pm::master_worker::worker
     my_worker (saga::url u)
       : saga_pm::master_worker::worker (u)
     {
-      register_task ("test", this, saga_pm::master_worker::to_voidstar (0, &my_worker::call_test));
+      register_task ("hello", this, saga_pm::master_worker::to_voidstar (0, &my_worker::call_hello));
     }
 
-    saga_pm::master_worker::argvec_t call_test (saga_pm::master_worker::argvec_t av)
+    saga_pm::master_worker::argvec_t call_hello (saga_pm::master_worker::argvec_t av)
     {
       saga_pm::master_worker::argvec_t ret;
 
-      LOG << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~";
-
-      ret.push_back ("hello world");
+      ret.push_back ("world");
 
       return ret;
     }
@@ -35,9 +33,7 @@ int main (int argc, char** argv)
 
     if ( argc == 2 )
     {
-
-      LOG << "WORKER START" << std::endl;
-
+      LOG << "WORKER START";
 
       // create worker class, which registers with master
       // and also adds calls to the call_map
@@ -47,27 +43,27 @@ int main (int argc, char** argv)
       // run the worker loop
       w.run ();
 
-      LOG << "WORKER DONE" << std::endl;
+      LOG << "WORKER DONE";
     }
     else
     {
-      LOG << "need 1 arguments (advert url)" << std::endl;
+      LOG << "need 1 argument (advert url)";
       exit (-1);
     }
   }
   catch ( const saga::exception & e )
   {
-    std::cout << " saga exception: " << e.what () << std::endl;
+    LOG << " saga exception: " << e.what ();
   }
 
   catch ( const std::exception & e )
   {
-    std::cout << " std exception: " << e.what () << std::endl;
+    LOG << " std exception: " << e.what ();
   }
 
   catch ( ... )
   {
-    std::cout << " some exception " << std::endl;
+    LOG << " some exception ";
   }
 
   return 0;

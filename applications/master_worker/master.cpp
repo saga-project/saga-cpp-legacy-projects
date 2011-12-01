@@ -15,8 +15,8 @@ namespace saga_pm
       , max_id_      (0)
       , session_     ("")
     {
-      // master: spawn off worker
-      std::cout << "master c'tor" << std::endl;
+      saga::session s;
+      LOG << "master started: " << ::getpid ();
     }
 
 
@@ -30,50 +30,45 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     void master::initialize (std::string session)
     {
-      std::cout << "master init" << std::endl;
       if ( initialized_ )
       {
-        std::cerr << "master: initialize failed : already initialized session " 
-                  << session_ << std::endl;
+        throw saga::no_success ("master: already initialized ");
       }
-      else
+      
+      // get default session name (uid)
+      if ( session.empty () )
       {
-        // get default session name (uid)
-        if ( session.empty () )
-        {
-          session = itoa (::getuid ());
-        }
-
-        // open master advert dir
-        try
-        {
-          session_ = session;
-          ad_url_  = std::string (ADVERT_BASE_URL) + "/" + session_ + "/";
-          ad_      = saga::advert::directory (ad_url_, saga::advert::CreateParents 
-                                                     | saga::advert::ReadWrite );
-
-          // pick up existing worker ads
-          std::vector <saga::url> entries = ad_.list ();
-
-          for ( unsigned int i = 0; i < entries.size (); i++ )
-          {
-            advert a (ad_url_ + entries[i].get_string ());
-            ads_[a.get_id ()] = a;
-          }
-
-          initialized_ = true;
-        }
-        catch ( const saga::exception & e )
-        {
-          // clean up
-          try { ad_.close  (); } catch ( ... ) { } 
-          try { ads_.clear (); } catch ( ... ) { } 
-
-          std::cerr << " master: cannot create / open / reconnect MW session at " 
-                    << ad_url_ << " : \n" << e.what () << std::endl;
-        }
+        session = itoa (::getuid ());
       }
-      std::cout << "master init done" << std::endl;
+
+      // open master advert dir
+      try
+      {
+        session_ = session;
+        ad_url_  = std::string (ADVERT_BASE_URL) + "/" + session_ + "/";
+        ad_      = saga::advert::directory (ad_url_, saga::advert::CreateParents 
+                                                   | saga::advert::ReadWrite );
+
+        // pick up existing worker ads
+        std::vector <saga::url> entries = ad_.list ();
+
+        for ( unsigned int i = 0; i < entries.size (); i++ )
+        {
+          advert a (ad_url_ + entries[i].get_string ());
+          ads_[a.get_id ()] = a;
+        }
+
+        initialized_ = true;
+      }
+      catch ( const saga::exception & e )
+      {
+        // clean up
+        try { ad_.close  (); } catch ( ... ) { } 
+        try { ads_.clear (); } catch ( ... ) { } 
+
+        throw saga::no_success (std::string ("master: invalid session?  ") + e.what ());
+      }
+      
     }
 
     ////////////////////////////////////////////////////////////////////
@@ -98,83 +93,73 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     id_t master::worker_start (worker_description & d)
     {
-      id_t id = max_id_ + 1; // ignore overrun of id_t
-
       if ( ! initialized_ )
       {
-        std::cerr << "cannot run worker before initilize()" << std::endl;
-        id = 0;
+        throw saga::no_success ("master: worker_start: not initialized");
       }
-      else
+
+      id_t id = max_id_ + 1; // ignore overrun of id_t
+
+      try
       {
-        std::cout << "master: worker_start" << std::endl;
+        saga::url u = std::string (ADVERT_BASE_URL) + "/" + session_ + "/" + itoa (id);
 
-        try
+        // add worker advert URL to job description as last command line
+        // argument
+        std::vector <std::string> args;
+
+        if ( d.jd.attribute_exists (saga::job::attributes::description_arguments) )
         {
-          saga::url u = std::string (ADVERT_BASE_URL) + "/" + session_ + "/" + itoa (id);
-
-          // add worker advert URL to job description as last command line
-          // argument
-          std::vector <std::string> args;
-
-          if ( d.jd.attribute_exists (saga::job::attributes::description_arguments) )
-          {
-            args = d.jd.get_vector_attribute (saga::job::attributes::description_arguments);
-          }
-
-          args.push_back (u.get_string ());
-
-          d.jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
-
-
-          // create job
-          saga::job::service js            (d.rm);
-          saga::job::job j = js.create_job (d.jd);
-
-
-          // register job under new id
-          ads_[id] = advert (js, j, u, id);
-          max_id_++;
-
-
-          // advert is created, not job can be started and will register 
-          // (in due time)
-          j.run ();
-
-          int cnt = 0;
-          state s = ads_[id].get_state ();
-          ads_[id].dump ();
-          while ( s != Started )
-          {
-            cnt++;
-            std::cout << "master: waiting for worker to register" << cnt << std::endl;
-            ::sleep (1);
-            s = ads_[id].get_state ();
-          }
-
-          if ( ads_[id].get_state () == Started )
-          {
-            // great, we can use that worker
-            ads_[id].set_state (Idle);
-            std::cout << "master: worker registered, now idle " <<  std::endl;
-            std::cout << "----------------------" << std::endl;
-            ads_[id].dump ();
-            std::cout << "----------------------" << std::endl;
-          }
-          else
-          {
-            ads_[id].set_state (Failed);
-          }
-
-          std::cout << "master: worker_start done" << std::endl;
+          args = d.jd.get_vector_attribute (saga::job::attributes::description_arguments);
         }
-        catch ( const saga::exception & e )
+
+        args.push_back (u.get_string ());
+
+        d.jd.set_vector_attribute (saga::job::attributes::description_arguments, args);
+
+
+        // create job
+        saga::job::service js            (d.rm);
+        saga::job::job j = js.create_job (d.jd);
+
+
+        // register job under new id
+        ads_[id] = advert (js, j, u, id);
+        max_id_++;
+
+
+        // advert is created, not job can be started and will register 
+        // (in due time)
+        j.run ();
+
+        int cnt = 0;
+        state s = ads_[id].get_state ();
+
+        while ( s != Started )
         {
-          std::cerr << " master: cannot run worker :\n" << e.what () << std::endl;
-          id = 0;
+          LOG << "master: waiting for worker " << id << " to register";
+          cnt++;
+          ::sleep (1);
+          s = ads_[id].get_state ();
         }
+
+        if ( ads_[id].get_state () == Started )
+        {
+          // great, we can use that worker
+          ads_[id].set_state (Idle);
+        }
+        else
+        {
+          ads_[id].set_state (Failed);
+        }
+
+        LOG << "master: worker_start done for " << id;
       }
-
+      catch ( const saga::exception & e )
+      {
+        throw saga::no_success (std::string ("master: worker_start: error: ") + e.what ());
+      }
+      
       return id;
     }
 
@@ -184,39 +169,32 @@ namespace saga_pm
     {
       if ( ! initialized_ )
       {
-        std::cerr << "cannot stop worker before initilize()" << std::endl;
+        throw saga::no_success ("master: worker_stop: not initialized");
       }
-      else
+
+      try
       {
-        try
+        // ads_[id].dump ();
+        ads_[id].set_task ("quit");
+
+        // let that sink in ;-)
+        ::sleep (TIMEOUT);
+
+        if ( ads_[id].get_state () != Quit )
         {
-          std::cout << " quitting worker " << id
-                    << " (" << state_to_string (ads_[id].get_state ()) << ")" 
-                    << std::endl;
-
-          // ads_[id].dump ();
-          ads_[id].set_task ("quit");
-
-          // let that sink in ;-)
-          ::sleep (TIMEOUT);
-
-          if ( ads_[id].get_state () != Quit )
-          {
-            std::cout << " stopping worker " << id << std::endl;
-            ads_[id].get_job ().cancel ();
-            ads_[id].set_state  (Failed);
-            ads_[id].set_error  ("Worker ignored QUIT command");
-          }
-
-          // clean out advert
-          // but then also state and error msgs are gone...
-          ads_[id].purge ();
+          LOG << " stopping worker " << id;
+          ads_[id].get_job ().cancel ();
+          ads_[id].set_state  (Failed);
+          ads_[id].set_error  ("Worker ignored QUIT command");
         }
-        catch ( const saga::exception & e )
-        {
-          std::cerr << " master: cannot stop worker :\n" << e.what () << std::endl;
-          id = 0;
-        }
+
+        // clean out advert
+        // but then also state and error msgs are gone...
+        ads_[id].purge ();
+      }
+      catch ( const saga::exception & e )
+      {
+        throw saga::no_success (std::string ("cannot stop worker: ") + e.what ());
       }
     }
 
@@ -257,11 +235,8 @@ namespace saga_pm
       // FIXME: checks
       if ( ! initialized_ )
       {
-        std::cerr << "master: worker_run : not yet initialized " << std::endl;
-        return;
+        throw saga::no_success ("master: worker_run: not initialized");
       }
-
-      std::cerr << "master: worker_run " << std::endl;
 
       // run task on given worker if worker is idle
       int ok = 0;
@@ -281,8 +256,7 @@ namespace saga_pm
             }
             catch ( const saga::exception & e )
             {
-              std::cerr << " master: cannot assign task " << task 
-                        << " to " << it->first << " : \n" << e.what () << std::endl;
+              throw saga::no_success (std::string ("master: worker_run: error: ") + e.what ());
             }
           }
         }
@@ -290,7 +264,7 @@ namespace saga_pm
 
       if ( 0 == ok )
       {
-        std::cerr << "master: could not find idle worker to assign task " << task << std::endl;
+        throw saga::no_success ("master: could not find idle worker to assign task " + task);
       }
     }
 
@@ -333,9 +307,7 @@ namespace saga_pm
       // FIXME: checks
       if ( Done != ads_[id].get_state () )
       {
-        std::cerr << "cannot get results from " << id 
-                  << " - incorrect state " <<  ads_[id].get_state () << std::endl;
-        return noargs_;
+        throw saga::no_success ("master: cannot get results, task !Done ");
       }
 
       // reset state to idle

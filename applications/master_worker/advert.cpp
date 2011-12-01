@@ -61,8 +61,9 @@ namespace saga_pm
         LOG << "creating ad at " << url_;
 
         ad_ = saga::advert::entry (url_, saga::advert::ReadWrite | 
-                                   saga::advert::Create    );
+                                   saga::advert::CreateParents );
 
+        LOG << "created ad at " << url_;
         std::string               empty ("");
         std::vector <std::string> empty_vec;
 
@@ -74,18 +75,15 @@ namespace saga_pm
         ad_.set_attribute        ("task",     empty);
         ad_.set_attribute        ("error",    empty);
         ad_.set_attribute        ("task",     empty);
+        ad_.set_attribute        ("state",    itoa (Unknown));
         ad_.set_vector_attribute ("par_in",   empty_vec);
         ad_.set_vector_attribute ("par_out",  empty_vec);
-
-        set_state (Unknown);
-
-        std::cout << "create ad ok " << id_ << std::endl;
 
         ok_ = true; // no exception means success :-)
       }
       catch ( const saga::exception & e )
       {
-          LOG << " worker: cannot create advert " 
+          LOG << " advert: cannot create advert " 
               << url_ << " : \n" << e.what () << std::endl;
           exit (-1);
       }
@@ -102,9 +100,12 @@ namespace saga_pm
     void advert::run (std::string command, 
                       argvec_t    args)
     {
-      std::cout << " running test on 0: " << get_state () << std::endl;
+      if ( ! ok_ )
+      {
+        throw saga::no_success ("advert: run: not initialized");
+      }
 
-      if ( (! ok_) || (Idle != get_state ()) )
+      if ( Idle != get_state () )
       {
         throw saga::no_success ("Cannot run command - worker not idle");
       }
@@ -120,7 +121,7 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        throw saga::no_success ("worker in incorrect state");
+        throw saga::no_success ("advert: wait: not initialized");
       }
 
       state s = get_state ();
@@ -129,8 +130,9 @@ namespace saga_pm
               Failed != s &&
               Quit   != s )
       {
+        LOG << "waiting for worker " << get_id ();
+
         :: sleep (1);
-        std::cout << "waiting for worker " << job_.get_job_id () << std::endl;
         s = get_state ();
       }
 
@@ -152,7 +154,7 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        throw saga::no_success ("worker in incorrect state");
+        throw saga::no_success ("advert: purge: not initialized");
       }
 
       ad_.remove ();
@@ -164,28 +166,23 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        std::cout << "advert: dump: not yet initialized" << std::endl;
-        return;
+        throw saga::no_success ("advert: dump: not initialized");
       }
 
       try
       {
         std::vector <std::string> attribs = ad_.list_attributes ();
 
-        std::cout << " -----------------------------------------------------" << std::endl;
-        std::cout << "  dumping worker " << get_id () << " @ " << url_ << std::endl;
-        std::cout << std::endl;
-
-        LOG       << " -----------------------------------------------------" << std::endl;
-        LOG       << "  dumping worker " << get_id () << " @ " << url_ << std::endl;
-        LOG       << std::endl;
+        LOG << " -----------------------------------------------------";
+        LOG << "  dumping worker " << get_id () << " @ " << url_;
+        LOG << "";
 
         for ( unsigned int i = 0; i < attribs.size (); i++ )
         {
           if ( ad_.attribute_is_vector (attribs[i]) )
           {
-            std::cout << "  " << attribs[i] << " \t:";
-            LOG       << "  " << attribs[i] << " \t:";
+            std::string val;
+            val += "  " + attribs[i] + " \t:";
             
             std::vector <std::string> vals =  ad_.get_vector_attribute (attribs[i]);
 
@@ -193,26 +190,23 @@ namespace saga_pm
             {
               if ( j > 0 )
               {
-                std::cout << ",";
-                LOG       << ",";
+                val += ",";
               }
 
-              std::cout << " " << vals[i];
-              LOG       << " " << vals[i];
+              val += " " + vals[j];
             }
-            std::cout << std::endl;
+
+            LOG << val;
           }
           else
           {
-            std::cout << "  " << attribs[i] << " \t: " << ad_.get_attribute (attribs[i]) << std::endl;
-            LOG       << "  " << attribs[i] << " \t: " << ad_.get_attribute (attribs[i]) << std::endl;
+            LOG << "  " << attribs[i] << " \t: " << ad_.get_attribute (attribs[i]) << std::endl;
           }
         }
       }
       catch ( const saga::exception & e )
       {
-        std::cout << "advert: dump error: \n" << e.what () << std::endl;
-        LOG       << "advert: dump error: \n" << e.what () << std::endl;
+        throw saga::no_success (std::string ("advert: dump error: ") + e.what ());
       }
     }
     
@@ -293,7 +287,7 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        throw saga::no_success ("worker in incorrect state");
+        throw saga::no_success ("advert: get_par_in: not initialized");
       }
 
       if ( ! ad_.attribute_exists ("par_in") )
@@ -319,7 +313,7 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        throw saga::no_success ("worker in incorrect state");
+        throw saga::no_success ("advert: get_par_out: not initialized");
       }
 
       if ( ! ad_.attribute_exists ("par_out") )
@@ -346,7 +340,7 @@ namespace saga_pm
     {
       if ( ! ok_ )
       {
-        throw saga::no_success ("worker in incorrect state");
+        throw saga::no_success ("advert: get_task: not initialized");
       }
 
       if ( ! ad_.attribute_exists ("task") )
@@ -355,7 +349,6 @@ namespace saga_pm
       }
 
       std::string t = ad_.get_attribute ("task");
-      std::cout << " worker " << id_ << " : task found: " << t << std::endl;
 
       return t;
     }
@@ -365,7 +358,6 @@ namespace saga_pm
     void advert::set_task (std::string t)
     {
       ad_.set_attribute ("task", t);
-      std::cout << " worker " << id_ << " : task set to " << t << std::endl;
     }
 
 
