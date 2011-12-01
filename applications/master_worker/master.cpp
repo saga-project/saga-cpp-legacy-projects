@@ -138,7 +138,8 @@ namespace saga_pm
         int cnt = 0;
         state s = ads_[id].get_state ();
 
-        while ( s != Started )
+        while ( s              != Started && 
+                j.get_state () == saga::job::Running )
         {
           LOG << "master: waiting for worker " << id << " to register";
           cnt++;
