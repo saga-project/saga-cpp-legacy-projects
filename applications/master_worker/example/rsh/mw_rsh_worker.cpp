@@ -9,14 +9,44 @@ class my_worker : public saga_pm::master_worker::worker
     my_worker (saga::url u)
       : saga_pm::master_worker::worker (u)
     {
-      register_task ("hello", this, saga_pm::master_worker::to_voidstar (0, &my_worker::call_hello));
+      register_task ("rsh", this, saga_pm::master_worker::to_voidstar (0, &my_worker::call_rsh));
     }
 
-    saga_pm::master_worker::argvec_t call_hello (saga_pm::master_worker::argvec_t av)
+    saga_pm::master_worker::argvec_t call_rsh (saga_pm::master_worker::argvec_t args)
     {
-      saga_pm::master_worker::argvec_t ret;
+      // we interpret the arguments to the call as shell command line, run it
+      // locally (via saga::job), and return the resulting output as array of
+      // lines.
 
-      ret.push_back ("world");
+      saga_pm::master_worker::argvec_t ret;
+      std::string                      cmd;
+
+      for ( unsigned int i = 0; i < args.size (); i++ )
+      {
+        if ( i > 0 )
+        {
+          cmd == " ";
+        }
+
+        cmd += args[i];
+      }
+
+
+      saga::job::ostream in;
+      saga::job::istream err;
+      saga::job::istream out;
+
+      saga::job::service js ("fork://localhost/");
+      saga::job::job j = js.run_job (cmd, "localhost", in, out, err);
+
+      j.wait ();
+
+      std::string output;
+
+      while ( std::getline (out, output) )
+      {
+        ret.push_back (output);
+      }
 
       return ret;
     }

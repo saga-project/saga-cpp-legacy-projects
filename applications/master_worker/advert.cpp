@@ -112,6 +112,8 @@ namespace saga_pm
 
       set_task    (command);
       set_par_in  (args);
+      set_par_out (noargs_);
+      set_error   ("");
       set_state   (Assigned);
     }
 

@@ -51,6 +51,7 @@ namespace saga_pm
         argvec_t           worker_get_args    (id_t id = 0);
         argvec_t           worker_get_results (id_t id = 0);
         void               worker_wait        (id_t id = 0);
+        void               worker_reset       (id_t id = 0);
         void               worker_dump        (id_t id = 0);
     };
     ////////////////////////////////////////////////////////////////////

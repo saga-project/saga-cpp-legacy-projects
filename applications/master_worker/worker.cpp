@@ -104,9 +104,23 @@ namespace saga_pm
 
               LOG << "worker task done" << std::endl;
             }
+            catch ( const saga::exception & e )
+            {
+              LOG << "worker task failed: " << e.what () << std::endl;
+              ad_.set_state (Failed);
+              ad_.set_error (e.what ());
+            }
+            catch ( const std::exception & e )
+            {
+              LOG << "worker task failed: " << e.what () << std::endl;
+              ad_.set_state (Failed);
+              ad_.set_error (e.what ());
+            }
             catch ( ... )
             {
-              LOG << "worker task failed" << std::endl;
+              LOG << "worker task failed (unknown)" << std::endl;
+              ad_.set_state (Failed);
+              ad_.set_error ("unknown error");
             }
           }
         }

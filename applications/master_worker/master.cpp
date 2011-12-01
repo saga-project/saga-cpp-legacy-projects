@@ -1,4 +1,7 @@
 
+#include <sys/types.h>
+#include <pwd.h>
+
 #include <saga/saga/adaptors/utils.hpp>
 
 #include "master.hpp"
@@ -35,10 +38,10 @@ namespace saga_pm
         throw saga::no_success ("master: already initialized ");
       }
       
-      // get default session name (uid)
+      // get default session name (unix username)
       if ( session.empty () )
       {
-        session = itoa (::getuid ());
+        session = ::getpwuid (::getuid ())->pw_name;
       }
 
       // open master advert dir
@@ -304,14 +307,10 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     argvec_t master::worker_get_results (id_t id)
     {
-      // FIXME: checks
-      if ( Done != ads_[id].get_state () )
+      if ( ads_[id].get_state () != Done )
       {
-        throw saga::no_success ("master: cannot get results, task !Done ");
+        throw saga::no_success ("master: cannot get results, state != Done");
       }
-
-      // reset state to idle
-      ads_[id].set_state (Idle);
 
       return ads_[id].get_par_out ();
     }
@@ -327,6 +326,26 @@ namespace saga_pm
         if ( id == 0 || id == it->first )
         {
           it->second.wait ();
+        }
+      }
+    }
+
+
+    ////////////////////////////////////////////////////////////////////
+    void master::worker_reset (id_t id)
+    {
+      admap_t :: iterator it;
+
+      for ( it = ads_.begin (); it != ads_.end (); it++ )
+      {
+        if ( id == 0 || id == it->first )
+        {
+          // reset state to idle
+          ads_[id].set_state   (Idle);
+          ads_[id].set_task    ("");
+          ads_[id].set_error   ("");
+          ads_[id].set_par_in  (noargs_);
+          ads_[id].set_par_out (noargs_);
         }
       }
     }
