@@ -1,0 +1,74 @@
+<html>
+<head>
+    <title> Super Computing Fall 2011 </title>
+</head>
+
+<body>   
+<h1>Introduction</h1>
+
+<p>
+MapReduce is a programming model and an associated implementation for processing and generating large data sets.
+The below framework is a SAGA BigJob based python MapReduce. The SAGA BigJob is used to submit map & reduce 
+jobs on to the grid resource. The framework processes multiple files in the input directory. The 
+files are physically chunked in the temp directory and map jobs are submitted for each input chunk file. 
+After completion of map jobs, based on the number of reduces, partition files are created and sorted and then 'moved' 
+from the temp directory to the output directory. Sorted partition files which belong to a reduce are grouped together
+and submitted as an argument to the reduce job. The output files are created in the output directory when reduce jobs
+are completed.<p>
+<ul>
+<li><h2>Local MapReduce(LMR)</h2></li>
+   Data is moved into one centralized cluster and perform the MapReduce job on that single cluster itself.
+
+<li><h2>Distributed MapReduce(DMR)</h2></li>
+   Data is distributed onto multiple clusters, perform individual local MapReduce job on each cluster and then combine the results
+with final MapReduce job. <br>( HINT: To implement DMR use SAGA BigJob to launch LMRs on remote machines ). <br>
+On futuregrid,since globus is not present  use pbs-ssh//<cluster hostname> to launch BigJob remotely. To use this url, ssh adaptors need to be installed.
+</ul>
+<h1>Dependencies</h1>
+ SAGA BigJob based MapReduce is dependent on
+    <ul><li> SAGA ( http://saga.cct.lsu.edu/)</li>
+    <li> PBSPro/ssh adaptors(http://www.saga-project.org/download/adaptors)</li>
+    <li> BigJob ( http://faust.cct.lsu.edu/trac/BigJob/wiki) </li>
+ Most of the dependencies are already available on futuregrid. Checkout <a href="http://www.saga-project.org/documentation/deployment">Deployments</a>    
+</ul>    
+
+<h1>MapReduce Installation</h1>
+
+    Obtain MapReduce code<br>
+          svn co https://svn.cct.lsu.edu/repos/users/pmantha/class_sc11/ 
+
+<h1>Files</h1>
+    <h3>MapReduce</h3>
+<ul>
+        <li>mapreduce.py - it is a python class which initiates BigJob, submit map & reduce tasks to the BigJob.</li>
+        <li>mrfunctions.py - It is class which contain functions to chunk the data based on the user requirement.</li>
+</ul>
+    <h3>MapReduce/applications/wordcount</h3>
+    Directory which contain  wordcount application.
+    <ul>
+        <li>wordcount_wrapper.sh - wrapper shell script  to wordcount MapReduce application (wordcountApp.py)</li>
+        <li>wordcountApp.py - MapReduce application python script, uses mapreduce.py & mrfunctions.py class functions.</li>
+        <li>wordcount_map_partition.py - wordcount mapper script.</li>
+        <li>wordcount_reduce.py - wordcount reduce script.</li>
+        <li>wordcount_map_partition_comb.py - Used in case of distributed MapReduce. For local MapReduce it is not required.</li>
+</ul>
+    
+<h1>LMR Execution</h1>
+    <li>Create Input, temp, Output directories.</li>
+    <li>Edit the inputs in the wordcount_wrapper.sh script as per the requirement.</li>
+    <li>Run the wordcount_wrapper.sh which launches the wordcountApp.py script with required inputs.</li>
+    <li>Temporary & output files are created in the temp directory & output directory specified.</li>
+
+<h1>wordcount application help</h1>
+python wordcountApp.py --help
+
+
+<h1>contact</h1>
+<ul>
+<li>saga_users@cct.lsu.edu - SAGA installation related problems.</li>
+<li>bigjob-users@cct.lsu.edu - BigJob installation problems.</li>
+<li>pmanth2@cct.lsu.edu - MapReduce related problems.</li>
+
+
+</body>
+</html>

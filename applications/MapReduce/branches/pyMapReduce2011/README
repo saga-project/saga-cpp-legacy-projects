@@ -1,0 +1,49 @@
+Introduction:
+
+MapReduce is a programming model and an associated implementation for processing and generating large data sets.
+The below framework is a SAGA BigJob based python MapReduce. The SAGA BigJob is used to submit map & reduce 
+jobs in MapReduce on to the grid resource. The framework processes multiple files in the input directory. The 
+files are physically chunked in the temp directory and map jobs are submitted for each input chunk file. 
+After completion of map jobs, based on the number of reduces, partition files are created and sorted and then 'moved' 
+from the temp directory to the output directory. Sorted partition files which belong to a reduce are grouped together
+and submitted as an argument to the reduce job. The output files are created in the output directory when reduce jobs
+are completed.
+
+Local MapReduce(LMR):
+   Data is moved into one centralized cluster and perform the MapReduce job on that single cluster itself.
+
+Distributed MapReduce(DMR):
+   Data is distributed onto multiple clusters, perform individual local MapReduce job on each cluster and then combine the results
+with final MapReduce job. ( HINT: Use SAGA BigJob to launch Local MRs on remote machines ). 
+On futuregrid,since globus is not present  use pbs-ssh//<cluster hostname> to launch BigJob remotely. 
+To use this url, ssh adaptors need to be installed.
+
+Dependencies:
+ SAGA BigJob based MapReduce is dependent on
+    1. SAGA ( http://saga.cct.lsu.edu/)
+    2. PBSPro/ssh adaptors(http://www.saga-project.org/download/adaptors)
+    3. BigJob ( http://faust.cct.lsu.edu/trac/BigJob/wiki)
+ Most of the dependencies are already available on futuregrid. Checkout http://www.saga-project.org/documentation/deployment    
+    
+
+MapReduce Installation:
+
+    1. Obtain MapReduce code
+          svn co https://svn.cct.lsu.edu/repos/users/pmantha/class_sc11/ 
+
+Files:
+    MapReduce
+        mapreduce.py - it is a python class which initiates BigJob, submit map & reduce tasks to the BigJob.
+        mrfunctions.py - It is class which contain functions to chunk the data based on the user requirement.
+    MapReduce/applications/wordcount - Directory which contain  wordcount application.
+        wordcount_wrapper.sh - wrapper shell script  to wordcount MapReduce application (wordcountApp.py)
+        wordcountApp.py - MapReduce application python script, uses mapreduce.py & mrfunctions.py class functions.
+        wordcount_map_partition.py - wordcount mapper script.
+        wordcount_reduce.py - wordcount reduce script.
+        wordcount_map_partition_comb.py - Used in case of distributed MapReduce. For Local MapReduce it is not required.
+    
+LMR Execution:
+    1. Create Input, temp, Output directories.
+    2. Edit the inputs in the wordcount_wrapper.sh script as per the requirement.
+    3. Run the wordcount_wrapper.sh which launches the wordcountApp.py script with required inputs.
+    4. Temporary & output files are created in the temp directory & output directory specified.
