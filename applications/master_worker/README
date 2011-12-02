@@ -16,13 +16,39 @@ Quickstart
     # make
     # make install
 
-  The worker instances are, obviously, supposed to run on remote hosts.  You
-  will also need to deploy both the library and the worker code on the remote
-  machine.  Take care to set up your environment so that the code is actually
-  runnable.  Easiest is to ensure saga-run.sh is in your PATH (it lives in
-  $SAGA_LOCATION/bin), and then to start the worker with
+  run a local example
+    # vim util.hpp 
+      edit the base advert URL
+    # make install
+    # cd examples/hello_world
+    # vim mw_helloworld_master.cpp
+      edit the workerdescription resource manager URL to point
+      to fork://localhost/
+    # make install
+    # ./mw_helloworld_master
+      merzky@thinkie:~/saga/applications/master_worker/example/hello_world$ ./mw_helloworld_master 
+      hello world
+      hello thinkie
+
+  NOTE: you will need a remotely accessable advert service to
+        run distributed worker!
+
+
+  The worker instances can run on local and/or remote hosts.  In the remote
+  case, will also need to deploy both the library and the worker code on the
+  remote machine.  Take care to set up your environment so that the code is
+  actually runnable.  Easiest is to ensure saga-run.sh is in your PATH (it lives
+  in $SAGA_LOCATION/bin), and then to start the worker with
 
     saga-run.sh mw_worker <url>
+
+
+  The RSH example is similar:
+    merzky@thinkie:~/saga/applications/master_worker/example/rsh$ ./mw_rsh_master 
+    worker rm : fork://localhost
+    command   : hostname
+    thinkie
+    command   : quit
 
 
 
@@ -144,6 +170,8 @@ Master/Worker
           serialization if that is needed.
 
     ------------------------------------------------------------------------
+    //////////////////////////
+    // custom worker example
     class my_worker : public saga_pm::master_worker::worker 
     {
       public:
@@ -162,7 +190,10 @@ Master/Worker
           if ( ! args.size () || args[0] != "hello" )
             throw "what?";
 
-          ret.push_back ("world");
+          char host[256];
+          ::gethostname (host, 256); // ignore errors
+          ret.push_back (host);
+
           return ret;
         }
     };
@@ -214,6 +245,79 @@ Master/Worker
      dump()  will dump the worker advert
 
 
+     An example application would use the master class like shown below to use
+     the hello_world worker from above for 5 workers
+
+    ------------------------------------------------------------------------
+    /////////////////////////////
+    // example master application
+    {
+      // init master
+      saga_mw::master m;
+
+      // add 5 worker to the master's worker pool
+      std::vector <saga_mw::id_t> ids;
+
+      // first, create job descriptio patr of worker description
+      saga_mw::worker_description wd;
+      
+      wd.jd.set_attribute  (saga::job::attributes::description_executable, "saga-run.sh");
+
+      std::vector <std::string> args;
+      args.push_back ("mw_worker");
+      wd.jd.set_vector_attribute (saga::job::attributes::description_arguments,  args);
+
+      // then run workers for 5 different backends (resource managers, rm)
+      wd.rm = "fork://localhost/";
+      ids.push_back (m.worker_start (wd));
+
+      wd.rm = "ssh://india.futuregrid.org/";
+      ids.push_back (m.worker_start (wd));
+
+      wd.rm = "ssh://sierra.futuregrid.org/";
+      ids.push_back (m.worker_start (wd));
+
+      wd.rm = "ssh://alamo.futuregrid.org/";
+      ids.push_back (m.worker_start (wd));
+
+      wd.rm = "ssh://amerzky@cyder.cct.lsu.edu/";
+      ids.push_back (m.worker_start (wd));
+
+      // dump one for fun to stdout
+      m.worker_dump (0);
+
+      // run the hello task on each worker, not waiting for the to finish
+      for ( unsigned int i = 0; i < ids.size (); i++ )
+        m.worker_run  (ids[i], "hello");
+
+      // dump one for fun to stdout, again
+      m.worker_dump (0);
+
+      // *now* we wait for all of them to finish, and print results
+      for ( unsigned int i = 0; i < ids.size (); i++ )
+      {
+        m.worker_wait (ids[i]);
+        saga_mw::argvec_t res = m.worker_get_results (ids[i]);
+        
+        std::cout << "hello (" << ids[i] << " : ";
+        for ( unsigned int j = 0; j < res.size (); j++ )
+          std::cout << res[j] << " ";
+
+        std::cout << std::endl;
+
+        // clean up worker state
+        m.worker_reset (ids[i]);
+      }
+
+      // tell all workers to quite, but don't wait for them to do so
+      for ( unsigned int i = 0; i < ids.size (); i++ )
+        m.worker_run  (ids[i], "quit");
+    }
+    ------------------------------------------------------------------------
+
+
+
+
  Additional Notes:
  -----------------
 
@@ -223,5 +327,4 @@ Master/Worker
 
    The code is new, and WILL contain errors.  Also, some API calls have slightly
    different sigs than listed above.  Please report errors (and provide pathces!) 
-   on saga-users@cct.lsu.edu.
-
+   on saga-users@cct.lsu.edu
