@@ -29,9 +29,6 @@ int main ()
     // create a master, and init it's session
     saga_pm::master_worker::master m;
 
-    m.initialize ();
-
-
     // describe a worker to start
     saga_pm::master_worker::worker_description wd;
 

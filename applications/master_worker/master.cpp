@@ -14,30 +14,9 @@ namespace saga_pm
 
     ////////////////////////////////////////////////////////////////////
     master::master (void)
-      : initialized_ (false)
       , max_id_      (0)
       , session_     ("")
     {
-      saga::session s;
-      LOG << "master started: " << ::getpid ();
-    }
-
-
-    ////////////////////////////////////////////////////////////////////
-    master::~master (void)
-    {
-      // note that we do *not* call shutdown, so that the workers are kept alive
-      // between individual master runs
-    }
-
-    ////////////////////////////////////////////////////////////////////
-    void master::initialize (std::string session)
-    {
-      if ( initialized_ )
-      {
-        throw saga::no_success ("master: already initialized ");
-      }
-      
       // get default session name (unix username)
       if ( session.empty () )
       {
@@ -60,8 +39,6 @@ namespace saga_pm
           advert a (ad_url_ + entries[i].get_string ());
           ads_[a.get_id ()] = a;
         }
-
-        initialized_ = true;
       }
       catch ( const saga::exception & e )
       {
@@ -72,35 +49,37 @@ namespace saga_pm
         throw saga::no_success (std::string ("master: invalid session?  ") + e.what ());
       }
       
+      LOG << "master started: " << ::getpid ();
     }
+
+
+    ////////////////////////////////////////////////////////////////////
+    master::~master (void)
+    {
+      // note that we do *not* call shutdown, so that the workers are kept alive
+      // between individual master runs
+    }
+
 
     ////////////////////////////////////////////////////////////////////
     void master::shutdown (void)
     {
-      if ( initialized_ )
+      // kill all worker
+      admap_t :: iterator it;
+
+      // first send QUIT command
+      for ( it = ads_.begin (); it != ads_.end (); it++ )
       {
-        // kill all worker
-        admap_t :: iterator it;
-
-        // first send QUIT command
-        for ( it = ads_.begin (); it != ads_.end (); it++ )
-        {
-          worker_stop (it->first);
-        }
-
-        // keep state around for now...
-        // ad_.remove (saga::advert::Recursive);
+        worker_stop (it->first);
       }
+
+      // keep state around for now...
+      // ad_.remove (saga::advert::Recursive);
     }
 
     ////////////////////////////////////////////////////////////////////
     id_t master::worker_start (worker_description & d)
     {
-      if ( ! initialized_ )
-      {
-        throw saga::no_success ("master: worker_start: not initialized");
-      }
-
       id_t id = max_id_ + 1; // ignore overrun of id_t
 
       try
@@ -171,11 +150,6 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     void master::worker_stop (id_t id)
     {
-      if ( ! initialized_ )
-      {
-        throw saga::no_success ("master: worker_stop: not initialized");
-      }
-
       try
       {
         // ads_[id].dump ();
@@ -237,10 +211,6 @@ namespace saga_pm
                              argvec_t    args)
     {
       // FIXME: checks
-      if ( ! initialized_ )
-      {
-        throw saga::no_success ("master: worker_run: not initialized");
-      }
 
       // run task on given worker if worker is idle
       int ok = 0;

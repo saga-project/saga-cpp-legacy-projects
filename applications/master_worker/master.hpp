@@ -29,10 +29,9 @@ namespace saga_pm
 
 
       public:
-        master  (void);
+        master  (std::string session = "");
         ~master (void);
 
-        void               initialize         (std::string session = "");
         void               shutdown           (void);
 
         id_t               worker_start       (worker_description & d);
