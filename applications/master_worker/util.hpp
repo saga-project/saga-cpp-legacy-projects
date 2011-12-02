@@ -8,8 +8,8 @@
 
 #include <saga/saga.hpp>
 
-// #define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
-#define ADVERT_BASE_URL "advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
+#define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
+// #define ADVERT_BASE_URL "advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
 
 #define LOG SAGA_LOG(SAGA_VERBOSE_LEVEL_CRITICAL)
 // #define LOG std::cerr

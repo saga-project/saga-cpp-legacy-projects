@@ -18,7 +18,6 @@ void output (saga_pm::master_worker::argvec_t lines)
   {
     std::cout << lines[i] << std::endl;
   }
-  std::cout << std::endl;
 }
 
 
@@ -33,8 +32,7 @@ int main ()
     saga_pm::master_worker::worker_description wd;
 
     // prompt user for target host (url), and set all other worker info
-    std::string input = prompt ("worker host url");
-
+    std::string input = prompt ("worker rm url");
     wd.rm = input;
 
     std::vector <std::string> args;
@@ -95,6 +93,7 @@ int main ()
     // tel worker to shut down
     m.worker_run  (id, "quit");
     m.worker_wait (id);
+    m.worker_stop (id);
   }
   catch ( const saga::exception & e )
   {

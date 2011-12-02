@@ -18,6 +18,10 @@ class my_worker : public saga_pm::master_worker::worker
 
       ret.push_back ("world");
 
+      char host[256];
+      ::gethostname (host, 256); // ignore errors
+      ret.push_back (host);
+
       return ret;
     }
 };

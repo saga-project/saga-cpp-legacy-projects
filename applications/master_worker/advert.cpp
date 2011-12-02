@@ -75,7 +75,7 @@ namespace saga_pm
         ad_.set_attribute        ("task",     empty);
         ad_.set_attribute        ("error",    empty);
         ad_.set_attribute        ("task",     empty);
-        ad_.set_attribute        ("state",    itoa (Unknown));
+        ad_.set_attribute        ("state",    state_to_string (Unknown));
         ad_.set_vector_attribute ("par_in",   empty_vec);
         ad_.set_vector_attribute ("par_out",  empty_vec);
 
@@ -154,12 +154,11 @@ namespace saga_pm
     ////////////////////////////////////////////////////////////////////
     void advert::purge (void)
     {
-      if ( ! ok_ )
+      if ( ok_ )
       {
-        throw saga::no_success ("advert: purge: not initialized");
+        ad_.remove ();
+        ok_ = false;
       }
-
-      ad_.remove ();
     }
     
 

@@ -13,48 +13,38 @@ int main ()
 {
   try 
   {
-    saga::job::service js; // init logging :-(
-
+    // start a master
     saga_pm::master_worker::master m;
 
-    m.initialize ("test");
-
+    // create a worker description
     saga_pm::master_worker::worker_description wd;
 
     std::vector <std::string> args;
-    args.push_back ("mw_worker");
-
-    wd.rm = "fork://localhost/";
+    args.push_back ("mw_helloworld_worker"); // executable name
     wd.jd.set_attribute        (saga::job::attributes::description_executable, "saga-run.sh");
     wd.jd.set_vector_attribute (saga::job::attributes::description_arguments,  args);
 
+
+    // create one worker on localhost
+    wd.rm = "fork://localhost/";
     id_t id = m.worker_start (wd);
- // m.worker_dump (id);
-    prompt ();
 
+    // run the hello
     m.worker_run  (id, "hello");
- // m.worker_dump (id);
-    prompt ();
-
     m.worker_wait (id);
- // m.worker_dump (id);
-    prompt ();
 
     saga_pm::master_worker::argvec_t res = m.worker_get_results (id);
-    std::cout << "results for hello()" << std::endl;
     for ( unsigned int i = 0; i < res.size (); i++ )
     {
-      std::cout << "  " << i << " : " << res[i] << std::endl;
+      std::cout << "hello " << res[i] << std::endl;
     }
 
+    // prepare worker for next run
+    m.worker_reset (id);
 
+    // tell worker to quit
     m.worker_run  (id, "quit");
- // m.worker_dump (id);
-    prompt ();
-
     m.worker_wait (id);
- // m.worker_dump (id);
-    prompt ();
 
     LOG << "MASTER DONE" << std::endl;
   }

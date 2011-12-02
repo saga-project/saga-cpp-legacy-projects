@@ -13,20 +13,19 @@ namespace saga_pm
   {
 
     ////////////////////////////////////////////////////////////////////
-    master::master (void)
-      , max_id_      (0)
-      , session_     ("")
+    master::master (std::string session)
+      : max_id_      (0)
+      , session_     (session)
     {
       // get default session name (unix username)
-      if ( session.empty () )
+      if ( session_.empty () )
       {
-        session = ::getpwuid (::getuid ())->pw_name;
+        session_ = ::getpwuid (::getuid ())->pw_name;
       }
 
       // open master advert dir
       try
       {
-        session_ = session;
         ad_url_  = std::string (ADVERT_BASE_URL) + "/" + session_ + "/";
         ad_      = saga::advert::directory (ad_url_, saga::advert::CreateParents 
                                                    | saga::advert::ReadWrite );
