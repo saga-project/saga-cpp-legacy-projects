@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 """ Hadoop Bootstrap Script (based on hadoop 0.20.203 release) """
 import os, sys
+import pdb
 import urllib
 import subprocess
 import logging
@@ -73,6 +74,8 @@ class HadoopBootstrap(object):
             return
         f = open(pbs_node_file)
         nodes = f.readlines()
+        for i in nodes:
+            i.strip()
         f.close()    
         return nodes
 
@@ -80,11 +83,13 @@ class HadoopBootstrap(object):
     def configure_hadoop(self):
         logging.debug("Configure Hadoop")
         shutil.copytree(os.path.join(HADOOP_HOME, "conf"), self.job_conf_dir)
-        
+        master="localhost"
+
         nodes = self.get_pbs_allocated_nodes()
         if nodes!=None:
+            master = nodes[0].strip()
             master_file = open(os.path.join(self.job_working_directory, "conf/masters"), "w")
-            master_file.write(nodes[0]) 
+            master_file.write(master) 
             master_file.close()
 
             slave_file = open(os.path.join(self.job_working_directory, "conf/slaves"), "w")
@@ -93,15 +98,15 @@ class HadoopBootstrap(object):
             logging.debug("Hadoop cluster nodes: " + str(nodes))
         
         core_site_file = open(os.path.join(self.job_working_directory, "conf/core-site.xml"), "w")
-        core_site_file.write(self.get_core_site_xml("localhost"))
+        core_site_file.write(self.get_core_site_xml(master))
         core_site_file.close() 
         
         hdfs_site_file = open(os.path.join(self.job_working_directory,"conf/hdfs-site.xml"), "w")
-        hdfs_site_file.write(self.get_hdfs_site_xml("localhost", self.job_name_dir))
+        hdfs_site_file.write(self.get_hdfs_site_xml(master, self.job_name_dir))
         hdfs_site_file.close() 
         
         mapred_site_file = open(os.path.join(self.job_working_directory,"conf/mapred-site.xml"), "w")
-        mapred_site_file.write(self.get_mapred_site_xml("localhost"))
+        mapred_site_file.write(self.get_mapred_site_xml(master))
         mapred_site_file.close() 
         
     def start_hadoop(self):
@@ -113,6 +118,7 @@ class HadoopBootstrap(object):
         start_command = os.path.join(HADOOP_HOME, "bin/start-all.sh")
         logging.debug("Execute: %s"%start_command)
         os.system(start_command)
+        print("Hadoop started, please set HADOOP_CONF_DIR to:\nexport HADOOP_CONF_DIR=%s"%self.job_conf_dir)
         
         
     def stop_hadoop(self, job_configuration_directory):
