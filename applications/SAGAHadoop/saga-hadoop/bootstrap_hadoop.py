@@ -13,7 +13,8 @@ HADOOP_DOWNLOAD_URL="http://www.apache.org/dist//hadoop/common/hadoop-0.20.203.0
 WORKING_DIRECTORY=os.path.join(os.getcwd(), "work")
 
 # For using an existing installation
-HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.20.203.0"
+#HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.20.203.0"
+HADOOP_HOME="/N/u/luckow/sw/hadoop-0.20.203.0/"
 JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home/"
 
 class HadoopBootstrap(object):
@@ -67,11 +68,29 @@ class HadoopBootstrap(object):
     
     
     def get_pbs_allocated_nodes(self):
-        pass
-    
+        pbs_node_file = os.environ.get("PBS_NODEFILE")    
+        if pbs_node_file == None:
+            return
+        f = open(pbs_node_file)
+        nodes = f.readlines()
+        f.close()    
+        return nodes
+
+
     def configure_hadoop(self):
         logging.debug("Configure Hadoop")
         shutil.copytree(os.path.join(HADOOP_HOME, "conf"), self.job_conf_dir)
+        
+        nodes = self.get_pbs_allocated_nodes()
+        if nodes!=None:
+            master_file = open(os.path.join(self.job_working_directory, "conf/masters"), "w")
+            master_file.write(nodes[0]) 
+            master_file.close()
+
+            slave_file = open(os.path.join(self.job_working_directory, "conf/slaves"), "w")
+            slave_file.writelines(nodes) 
+            slave_file.close()
+            logging.debug("Hadoop cluster nodes: " + str(nodes))
         
         core_site_file = open(os.path.join(self.job_working_directory, "conf/core-site.xml"), "w")
         core_site_file.write(self.get_core_site_xml("localhost"))

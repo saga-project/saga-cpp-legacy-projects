@@ -11,7 +11,7 @@ def main():
     
     try:
         # create a job service for Futuregrid's 'india' PBS cluster
-        js = saga.job.Service("fork://localhost")
+        js = saga.job.Service("pbs+ssh://india")
 
         # describe our job
         jd = saga.job.Description()
