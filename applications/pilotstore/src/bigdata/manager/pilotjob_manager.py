@@ -61,7 +61,7 @@ class PilotJobService(PilotJobService):
             
         resource_description = self.__translate_pj_bj_description(pilot_job_description)
         bigjob = self.__mjs.add_resource(resource_description)
-        pj = PilotJob(self, bigjob)
+        pj = PilotJob(self, bigjob, pilot_job_description)
         self.pilot_jobs.append(pj)
         return pj
         
@@ -124,10 +124,11 @@ class PilotJobService(PilotJobService):
 class PilotJob(PilotJob):
     """ TROY Wrapper for BigJob class """
      
-    def __init__(self, pilot_job_service, bigjob):
+    def __init__(self, pilot_job_service, bigjob, pilot_job_description):
         logging.debug("Create PilotJob for BigJob: " + str(bigjob))
+        self.pilot_job_description=pilot_job_description
         self.__pilot_job_service=pilot_job_service
-        self.__bigjob = bigjob
+        self.__bigjob = bigjob        
         self.__subjobs = []
         
     def cancel(self):

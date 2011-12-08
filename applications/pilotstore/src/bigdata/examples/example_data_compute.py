@@ -21,7 +21,7 @@ if __name__ == "__main__":
                              "number_of_processes": 1,                             
                              "working_directory": "/tmp/pilotjob/",
                              'affinity_datacenter_label': "eu-de-south",              
-                             'affinity_machine_label': "mymachine" 
+                             'affinity_machine_label': "mymachine-1" 
                             }
     
     pilotjob = pilot_job_service.create_pilotjob(pilot_job_description=pilot_job_description)
@@ -34,7 +34,7 @@ if __name__ == "__main__":
                                 "service_url": "ssh://localhost/tmp/pilotstore/",
                                 "size": 100,   
                                 "affinity_datacenter_label": "eu-de-south",              
-                                "affinity_machine_label": "mymachine"                              
+                                "affinity_machine_label": "mymachine-1"                              
                              }
     ps = pilot_store_service.create_pilotstore(pilot_store_description=pilot_store_description)
     
@@ -67,7 +67,7 @@ if __name__ == "__main__":
             "output": "stdout.txt",
             "error": "stderr.txt",   
             "affinity_datacenter_label": "eu-de-south",              
-            "affinity_machine_label": "mymachine" 
+            "affinity_machine_label": "mymachine-1" 
     }    
     work_unit = work_data_service.submit_work_unit(work_unit_description)
     
