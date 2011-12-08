@@ -13,7 +13,15 @@ from bigdata.troy.api import WorkDataService
 from bigdata.troy.compute.api import WorkUnit, State
 from bigdata.manager.pilotdata_manager import PilotData
 
-from bigdata.scheduler.data_compute_scheduler import Scheduler
+
+""" Loaded Module determines scheduler:
+    
+    bigdata.scheduler.data_compute_scheduler - selects random locations for PD and WUs
+    bigdata.scheduler.data_compute_affinity_scheduler - considers affinity descriptions
+    
+"""
+
+from bigdata.scheduler.data_compute_affinity_scheduler import Scheduler
 
 class WorkDataService(WorkDataService):
     """ TROY WorkDataService.
@@ -182,7 +190,7 @@ class WorkDataService(WorkDataService):
     def _schedule_wu(self, wu):
         logging.debug("Schedule PD")
         self.__update_scheduler_resources()
-        selected_pilot_job = self.scheduler.schedule_pilot_job()
+        selected_pilot_job = self.scheduler.schedule_pilot_job(wu.work_unit_description)
         return selected_pilot_job
     
     def _scheduler_thread(self):

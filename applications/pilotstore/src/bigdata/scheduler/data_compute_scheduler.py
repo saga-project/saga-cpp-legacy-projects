@@ -26,7 +26,7 @@ class Scheduler:
         return None
     
     
-    def schedule_pilot_job(self):
+    def schedule_pilot_job(self, work_unit_description=None):
         logging.debug("Schedule to PJ - # Avail PJs: %d"%len(self.pilot_jobs))        
         if len(self.pilot_jobs)!=0:
             return random.choice(self.pilot_jobs)
