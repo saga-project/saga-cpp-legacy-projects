@@ -8,10 +8,11 @@ import Queue
 import saga
 import uuid
 import traceback
+import urlparse
 
 from bigdata.troy.api import WorkDataService
 from bigdata.troy.compute.api import WorkUnit, State
-from bigdata.manager.pilotdata_manager import PilotData
+from bigdata.manager.pilotdata_manager import PilotData, PilotDataService, PILOTDATA_URL_SCHEME
 
 
 """ Loaded Module determines scheduler:
@@ -165,6 +166,13 @@ class WorkDataService(WorkDataService):
         # terminate background thread
         self.stop.set()
    
+    def get_state(self):
+        return self.state
+    
+    
+    def get_id(self):
+        return str(self.id)
+   
     ###########################################################################
     # Internal Scheduling
     def __update_scheduler_resources(self):
@@ -217,6 +225,7 @@ class WorkDataService(WorkDataService):
                 if isinstance(wu, WorkUnit):
                     pj=self._schedule_wu(wu) 
                     if pj !=None:
+                        wu = self.__expand_working_directory(wu, pj)                        
                         pj._submit_wu(wu)                    
                     else:
                         self.wu_queue.put(pd)
@@ -234,13 +243,56 @@ class WorkDataService(WorkDataService):
         logging.debug("Re-Scheduler terminated")
     
     
-    def get_state(self):
-        return self.state
-    
-    
-    
-    def get_id(self):
-        return str(self.id)
+    def __expand_working_directory(self, work_unit, pilot_job):
+        """ Expand pilotdata:// url specified in the work_unit_description 
+            to a local url on the machine of the PJ
+            
+            pilotdata://localhost/434bfc5c-23fd-11e1-a43f-00264a13ca4c
+            
+            to
+            
+           /tmp/pilotstore//434bfc5c-23fd-11e1-a43f-00264a13ca4c on machine running pilot_job        
+        """ 
+        working_directory=work_unit.work_unit_description["working_directory"]       
+        if working_directory.startswith(PILOTDATA_URL_SCHEME):
+            pilot_data_url = working_directory
+            pj_description = pilot_job.pilot_job_description
+            pj_dc_affinity = pj_description["affinity_datacenter_label"]
+            pj_machine_affinity = pj_description["affinity_machine_label"]
+            ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
+            
+            # find all pilot stores with the same affinity
+            candidate_ps = []
+            for i in ps:
+                ps_description = i.pilot_store_description
+                ps_dc_affinity = ps_description["affinity_datacenter_label"]
+                ps_machine_affinity = ps_description["affinity_machine_label"]
+                if ps_dc_affinity == pj_dc_affinity and ps_machine_affinity == pj_machine_affinity:
+                    candidate_ps.append(i)
+                
+            # check whether required pilot_data is part of pilot_store
+            target_ps = None  
+            target_pd = None  
+            for ps in candidate_ps:
+                for pd in ps.list_pilotdata():
+                    if pd.url == pilot_data_url:
+                        logging.debug("Found PD %s at %s"%(pd.url, ps.service_url))
+                        target_ps = ps 
+                        target_pd = pd
+                        break
+            ps_url = target_ps.url_for_pd(target_pd)
+            components = urlparse.urlparse(ps_url)
+            work_unit.work_unit_description["working_directory"] = components.path
+            work_unit._update_work_unit_description(work_unit.work_unit_description)
+            logging.debug("__expand_working_directory %s: Set working directory to %s"%(pilot_data_url, work_unit.work_unit_description["working_directory"]))
+            return work_unit
+            
+    def __stage_pd_to_pj(self, pilotdata, pilotjob):
+        """
+            stage required files to machine of pilot job
+        """
+        pass
+   
     
     
 class WorkUnit(WorkUnit):
@@ -267,7 +319,10 @@ class WorkUnit(WorkUnit):
             return self.subjob.cancel()
         return None
 
-
+    def _update_work_unit_description(self, work_unit_description):
+        self.work_unit_description = work_unit_description # WU Description
+        self.subjob_description = self.__translate_wu_sj_description(work_unit_description)
+        
     # INTERNAL
     def __translate_wu_sj_description(self, work_unit_description):
         jd = saga.job.description()

@@ -19,13 +19,15 @@ class PilotStore(PilotStore):
     # Class members
     __slots__ = (
         'id',           # Unique identity
-        'service_url',  # Resource  URL              
+        'service_url',  # Resource  URL          
+        'size',         # max size of allocated storage
+        'pilot_store_description', # PS description    
         'state',        # State of the PilotStore
         'pilot_data',   # pilot_data
         '__coordination'
     )
     
-    def __init__(self, service_url, size):    
+    def __init__(self, pilot_store_description):    
         """ 
             Initialize PilotStore at given service url:
             
@@ -34,12 +36,14 @@ class PilotStore(PilotStore):
             
             Currently only ssh schemes are supported. In the future all 
             SAGA URL schemes/adaptors should be supported.        
-        """
-            
+        """ 
+                        
         self.id = uuid.uuid1()
-        self.service_url=service_url
+        self.service_url=pilot_store_description["service_url"]
+        self.size = pilot_store_description["size"]
+        self.pilot_store_description = pilot_store_description
         self.pilot_data={}
-        self.__coordination = BigDataCoordination(service_url)
+        self.__coordination = BigDataCoordination(self.service_url)
         self.__coordination.initialize_pilotstore()
         self.__coordination.get_pilotstore_size()
                 
@@ -71,8 +75,12 @@ class PilotStore(PilotStore):
         if self.pilot_data.has_key(pd.id):
             self.__coordination.remove_pd(pd)
             del self.pilot_data[pd.id]
-                
-        
+    
+    
+    def list_pilotdata(self):           
+        return self.pilot_data.values()
+    
+    
     def get_state(self):
         return self.__coordination.get_state()
     
@@ -118,8 +126,7 @@ class PilotStoreService(PilotStoreService):
             Return value:
             A PilotStore handle
         """
-        ps = PilotStore(pilot_store_description["service_url"], 
-                        pilot_store_description["size"])
+        ps = PilotStore(pilot_store_description)
         self.pilot_stores[ps.id]=ps
         return ps
     

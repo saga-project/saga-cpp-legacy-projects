@@ -49,8 +49,7 @@ class PilotDataService(PilotDataService):
     def pilot_data_for_url(self, url):
         for i in self.pilot_data.values():
             if i.url==url:
-                return i
-            
+                return i            
         return None
         
     def add_pilot_store_service(self, pss):

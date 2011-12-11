@@ -59,11 +59,11 @@ if __name__ == "__main__":
     
     # start work unit
     work_unit_description = {
-            "executable": "/bin/date",
-            "arguments": [],
+            "executable": "/bin/cat",
+            "arguments": ["test1.txt"],
             "total_core_count": 1,
             "number_of_processes": 1,
-            "working_directory": os.getcwd(),
+            "working_directory": pd.url,
             "output": "stdout.txt",
             "error": "stderr.txt",   
             "affinity_datacenter_label": "eu-de-south",              
