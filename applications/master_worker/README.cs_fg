@@ -2,8 +2,8 @@
 Using the SAGA based Master/Worker abstraction on FutureGrid
 ============================================================
 
-  *FIRST* - please skim the README to understand what parts 
-            are covered there, then return here
+ *FIRST* - please skim the README to understand what parts 
+           are covered there, then return here
 
 
 Build/install the MasterWorker abstraction:
@@ -54,55 +54,71 @@ Build/install the MasterWorker abstraction:
 Master/Worker distribution
 --------------------------
 
-  There are two distribution components to the MW sbatrction:
-    - running workers on remote machines
-    - coordinating between master and worker (local to remote machine)
+ There are two distribution components to the MW sbatrction:
+
+  - running workers on remote machines
+  - coordinating between master and worker (local to remote machine)
 
 
   Running remote worker
   ---------------------
 
-    The two example codes contain the following lines of code:
+   The two example codes contain the following lines of code:
 
-      merzky@thinkie:~/saga/applications/master_worker$ grep wd.rm example/*/*cpp
-      example/hello_world/mw_helloworld_master.cpp:    wd.rm = "fork://localhost/";
-      example/rsh/mw_rsh_master.cpp:    wd.rm = input;
+     merzky@thinkie:~/saga/applications/master_worker$ grep wd.rm example/*/*cpp
+     example/hello_world/mw_helloworld_master.cpp:    wd.rm = "fork://localhost/";
+     example/rsh/mw_rsh_master.cpp:    wd.rm = input;
 
-    The 'wd.rm' specifies what resource URL should be used to start the worker.  
-    helloworld has that fixed at "fork://localhost/", the rsh example accepts
-    the same as user input.
+   The 'wd.rm' specifies what resource URL should be used to start the worker.  
+   helloworld has that fixed at "fork://localhost/", the rsh example accepts
+   the same as user input.
 
-    If you want to run the worker on a different host, change 
-     "fork://localhost/" 
-    into, for example
-     "ssh://sierra.futuregrid.org/" 
+   If you want to run the worker on a different host, change 
+    "fork://localhost/" 
+   into, for example
+    "ssh://sierra.futuregrid.org/" 
 
 
 
   Coordinating master / worker
   ----------------------------
 
-    The coordination of the MW components is done via SAGA's advert service,
-    which is a kind of central database, used to exchange small pices of
-    information.  The URL of that database is:
+   The coordination of the MW components is done via SAGA's advert service,
+   which is a kind of central database, used to exchange small pices of
+   information.  The URL of that database is:
 
-      advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/mw/run_1
+     advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/mw/run_1
 
-    In detail:
+   In detail:
    
-      avert://           - this is an advert database URL
-      SAGA:SAGA_client   - username/password for accessing that database
-      advert.cct.lsu.edu - the database is hosted on that machine
-      8080               - port the database listens on
-      /home/merzky/...   - some path to separate information for each user
+     avert://           - this is an advert database URL
+     SAGA:SAGA_client   - username/password for accessing that database
+     advert.cct.lsu.edu - the database is hosted on that machine
+     8080               - port the database listens on
+     /home/merzky/...   - some path to separate information for each user
 
-    The MW library has, at the moment, the base advert URL hardcoded:
+   The MW library has, at the moment, the base advert URL hardcoded:
 
-      merzky@thinkie:~/saga/applications/master_worker$ grep ADVERT_BASE_URL * | grep define
-      util.hpp:   #define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
-      util.hpp:// #define ADVERT_BASE_URL "advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
+     merzky@thinkie:~/saga/applications/master_worker$ grep ADVERT_BASE_URL * | grep define
+     util.hpp:   #define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
+     util.hpp:// #define ADVERT_BASE_URL "advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
                         
-    For FutureGrid runs, please enable the second URL, adjust it so that it is
-    unique for *you*, recompile the library, and re-install it.  
+   For FutureGrid runs, please enable the second URL, adjust it so that it is
+   unique for *you*, recompile the library, and re-install it.  
+
+
+Running the examples
+--------------------
+
+ With the settings from above, you should be able to run the MW examples on FG:
+
+   # source ~/.profile
+   # mw_helloworld_master
+
+ Which will result in something like this:
+    
+   merzky@thinkie:~/saga/applications/master_worker/example/hello_world$ ./mw_helloworld_master
+   hello world
+   hello thinkie
 
 
