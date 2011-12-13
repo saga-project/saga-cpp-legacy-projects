@@ -83,7 +83,20 @@ namespace saga_pm
 
       try
       {
-        saga::url u = std::string (ADVERT_BASE_URL) + "/" + session_ + "/" + itoa (id);
+        // try to get the advert base url from the environment, and use the
+        // defined callback if that fails
+        saga::url u;
+        char *    tmp = ::getenv ("SAGA_MW_ADVERT_URL");
+
+        if ( NULL != tmp )
+        {
+          u.set_url (tmp);
+        }
+        else
+        {
+          u.set_url (std::string (ADVERT_BASE_URL) + "/" + session_ + "/" + itoa (id));
+        }
+
 
         // add worker advert URL to job description as last command line
         // argument
