@@ -1,0 +1,108 @@
+
+Using the SAGA based Master/Worker abstraction on FutureGrid
+============================================================
+
+  *FIRST* - please skim the README to understand what parts 
+            are covered there, then return here
+
+
+Build/install the MasterWorker abstraction:
+--------------------------------------------
+
+ On all FG machines, you can use the SAGA CSA installations to build
+ the master/worker library and examples, and any MW application you
+ want to write on your own.  The SAGA CSA installations are documented
+ here: 
+
+   http://www.saga-project.org/documentation/deployment/xsede-fg
+
+ The REAME files linked on the page above contains the environment
+ settings you will need to set in order to use SAGA on those machines.
+
+   # create installation tree (feel free to choose a different location)
+   mkdir $HOME/install
+   mkdir $HOME/install/lib
+   mkdir $HOME/install/bin
+
+   # build the MW library and examples
+   make
+   make -C example
+
+   # install library and examples
+   cp libsaga_pm_master_worker.so              $HOME/install/lib/
+   cp example/rsh/mw_rsh_master                $HOME/install/bin/
+   cp example/rsh/mw_rsh_worker                $HOME/install/bin/
+   cp example/hello_world/mw_helloworld_master $HOME/install/bin/
+   cp example/hello_world/mw_helloworld_worker $HOME/install/bin/
+
+   # make sure your environment is set so that the code can be run.
+   echo 'export PATH=$PATH:$HOME/install/bin/'                       >> $HOME/.profile
+   echo 'export LD_LIBRRAY_PATH=$LD_LIBRRAY_PATH:$HOME/install/lib/' >> $HOME/.profile
+
+   # you can also load the SAGA environment at that point
+   echo 'eval "grep export [CSA_LOCATION]/README.saga-1.6.gcc-4.1.2.[host]"`
+   # in the above line, you need to replace CSA_LOCATION with the SAGA
+   # installation root dir (usually /N/soft/SAGA/ on futuregrid), and 
+   # [host] with the hostname you are on (india, sierra etc).  Make sure that
+   # the thus created README file exists!
+
+
+ The above preparations need to be repeated on all hosts which you intent
+ use for the M/W ensemble.
+
+
+Master/Worker distribution
+--------------------------
+
+  There are two distribution components to the MW sbatrction:
+    - running workers on remote machines
+    - coordinating between master and worker (local to remote machine)
+
+
+  Running remote worker
+  ---------------------
+
+    The two example codes contain the following lines of code:
+
+      merzky@thinkie:~/saga/applications/master_worker$ grep wd.rm example/*/*cpp
+      example/hello_world/mw_helloworld_master.cpp:    wd.rm = "fork://localhost/";
+      example/rsh/mw_rsh_master.cpp:    wd.rm = input;
+
+    The 'wd.rm' specifies what resource URL should be used to start the worker.  
+    helloworld has that fixed at "fork://localhost/", the rsh example accepts
+    the same as user input.
+
+    If you want to run the worker on a different host, change 
+     "fork://localhost/" 
+    into, for example
+     "ssh://sierra.futuregrid.org/" 
+
+
+
+  Coordinating master / worker
+  ----------------------------
+
+    The coordination of the MW components is done via SAGA's advert service,
+    which is a kind of central database, used to exchange small pices of
+    information.  The URL of that database is:
+
+      advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/mw/run_1
+
+    In detail:
+   
+      avert://           - this is an advert database URL
+      SAGA:SAGA_client   - username/password for accessing that database
+      advert.cct.lsu.edu - the database is hosted on that machine
+      8080               - port the database listens on
+      /home/merzky/...   - some path to separate information for each user
+
+    The MW library has, at the moment, the base advert URL hardcoded:
+
+      merzky@thinkie:~/saga/applications/master_worker$ grep ADVERT_BASE_URL * | grep define
+      util.hpp:   #define ADVERT_BASE_URL "advert://localhost/home/merzky/master_worker/"
+      util.hpp:// #define ADVERT_BASE_URL "advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
+                        
+    For FutureGrid runs, please enable the second URL, adjust it so that it is
+    unique for *you*, recompile the library, and re-install it.  
+
+
