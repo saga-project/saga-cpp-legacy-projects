@@ -700,10 +700,10 @@ address some of these requirements dynamically, and to provide the
 basis for rapid development of gateways that are capable of utilizing
 heterogeneous distributed computing resources in a scalable manner, we
 develop the Distributed Application Runtime Environment (DARE)
-framework\cite{dareurl}. Using SAGA and SAGA-based frameworks to build
-gateways enables the fundamental design objectives (IDEAS) to be met
+framework\cite{dareurl}, hereafter referred to as the DARE
+framework. Using SAGA and SAGA-based frameworks to build gateways
+enables the fundamental design objectives (IDEAS) to be met
 efficiently and effectively.
-
 
 % We first briefly describe SAGA and a Pilot Job abstraction
 % SAGA-BigJob.  We will show how the combination of the open-source
@@ -760,7 +760,7 @@ execution, such as gateways, workflows, application management
 systems, and runtime environments.
 
 Different aspects of SAGA appeal to different groups. SAGA is now an
-Open Grid Forum (OGF) is a standard. The standardization is important
+Open Grid Forum (OGF) standard. The standardization is important
 because it makes it more likely that production infrastructures, like
 NSF XSEDE and Open Science Grid, will support SAGA, which will make it
 widely available for users and developers of tools on/of national CI
@@ -771,10 +771,10 @@ fact that SAGA is an OGF technical specification also makes SAGA
 highly appealing to application frameworks, services and tool
 developers, which is quite understandable, as it not only simplifies
 their development but also makes for scalable, extensible and
-sustainable development. Users find the simple and extensible interface
-providing the basic abstractions required for distributed computing is
-very appealing to add their own “functionality” to a core base of
-functionality.
+sustainable development. Users find the simple and extensible
+interface providing the basic abstractions required for distributed
+computing is very appealing to add their own “functionality” to a core
+base of functionality.
 
 The SAGA API provides the base abstractions upon which tools and
 frameworks that provide higher-level functionality can be
@@ -1182,38 +1182,140 @@ Type III services obviously can run Type II workflows.
 % services.
 
 \subsection{Runtime System Level ($L3$)}
-L3 represents the DARE and we describe here some backgrounds for its
-development and the relation with SAGA and SAGA-based pilot job
-abstraction, SAGA-BigJob. The challenges in building a scalable
-distributed gateway is greatly mitigated by SAGA and/or SAGA-based
-frameworks. For example, by varying SAGA-BigJob configuration, it is
-easy to optimize the usage of target resources for a given
+
+L3 represents the core of the DARE framework. In a nutshell, it
+integrates the application-level capabilities (L2, support for Type
+I/II/III) with the HPDC infrastructure (resources/L4) layer.  The DARE
+runtime level in turn achieves this via a critical dependence upon
+SAGA; the challenges in building a scalable distributed gateway are
+greatly mitigated by SAGA and/or SAGA-based frameworks, as the
+SAGA-runtime system has the responsibilty to make middleware specific
+dispatches.
+
+DARE exposes support for a range of execution patterns, which in turn
+can use the pilot-job/data abstractions.  Application-level
+capabilities can be provided via these execution patterns, or use the
+pilot abstractions directly; or possibly use the SAGA
+job/file/replica/advert functionality directly.
+
+% and we describe here some backgrounds for its development and the
+% relation with SAGA and SAGA-based pilot job abstraction, SAGA-BigJob.
+%For example, by varying SAGA-BigJob configuration, 
+
+The SAGA-BigJob supports dynamic configuration changes, thus it is
+relatively easy to optimize the usage of target resources for a given
 computational workload and their execution characteristics, such as
 pleasingly parallel, loosely-coupled, or even multiple instances of
-tightly-coupled applications. Thus once the desired configuration
-\jhanote{of what?} has been determined, a gateway developer can easily
-construct an optimized runtime environment for a given target
-application capable of utilizing distributed resources in a relatively
-short development cycle.
+tightly-coupled applications. Thus once the desired configuration has
+been determined, a gateway developer can easily construct an optimized
+runtime environment for a given target application capable of
+utilizing distributed resources without any application or
+infrastructure refactoring.
 
-It is important to consider data movement requirements, since the
-movement of large data sets such as input, output, and temporary files
-is increasingly becoming a major challenge. We have recently analyzed
-the date-volumes that need to be moved around, and demonstrated some
-of the challenges and solutions (for the BFAST~\cite{ecmls11} -- as an
-NGS application prototype). At the moment, GridFTP and scp are used as
-the primary protocols for data
-transfer. Table~\ref{table:NGS-Distributed-file} highlights the
-significance of data transfer with data analytics for DARE-NGS with a
-model system (human genome).
+Furthemore, it is important to consider data movement requirements,
+since the movement of large data sets such as input, output, and
+temporary files is increasingly becoming a major challenge.  For
+example, we have recently analyzed the date-volumes that need to be
+moved around, and demonstrated some of the challenges and solutions
+(for the BFAST~\cite{ecmls11} -- as an NGS application prototype).
+Table~\ref{table:NGS-Distributed-file} highlights some data volumes
+that need to be transferred with data analytics for DARE-NGS with a
+model system (human genome).  At the moment, GridFTP and scp are used
+as the primary protocols for data transfer; however support for
+Globus-Online is imminent.
 
-It is worth noting that SAGA provides different transfer protocols as
-well as data-intensive programming models such as MapReduce. SAGA also
-provides execution support for emerging data intensive computing
+It is worth noting that SAGA supports different transfer protocols
+along with data-intensive programming models such as MapReduce.
+Thanks to the dynamic adaptor loading mechanism, SAGA can provide
+these execution patterns for emerging data intensive computing
 infrastructure such as clouds~\cite{abstractions-azure,saga-ccgrid10}.
-The DARE framework enables the simple utilization of these additional
-frameworks -- either as execution patterns or actual functional
-capabilities.
+
+The important DARE framework enables the simple utilization of these
+additional frameworks -- either as execution patterns or actual
+functional capabilities.
+
+
+Frameworks are an organization principle for building applications and
+runtime systems that make use of these abstractions; we demonstrate
+how such frameworks enable deep integration of the application with
+the HPDC infrastructure/resources.
+
+A {\em framework} is a software design paradigm that provides a set of
+abstractions to enable the construction of software systems meeting
+specific objectives. An {\em application framework} allows the
+application developer/user to focus on the unique requirements of
+their application rather than the tedious and complex details of
+application infrastructure ``plumbing". Similarly, a {\em runtime
+  framework} allows the developer/user to focus on the unique runtime
+requirements of an application rather than the tedious and complex
+details of resource infrastructure ``plumbing". Frameworks achieve
+this by providing a set of abstractions that can be tailored and
+combined to meet application objectives.
+
+Frameworks are well-suited to distributed applications, as they are a
+natural way to provide the structure and abstractions needed to
+support the cross-cutting design objectives (IDEAS) and properties.
+
+They provide a way to manage the complexity associated with developing
+and executing distributed applications~\cite{dpa-paper} and to provide
+them in an a way that they can be used for a broad range of
+applications in a scalable and extensible fashion. For example, common
+data access patterns can be easily expressed using framework
+abstractions.  Frameworks can also address other unique distributed
+application challenges: scalability and adaptivity.
+
+{\it Scale-out} is raised by the need to efficiently distribute across
+multiple disparate systems. {\it Adaptivity} addresses the requirement
+that distributed petascale applications may have to adapt to resource
+fluctuation {\bf \em across} platforms, and to the availability of
+dynamic data.  Frameworks can physically be realized as the
+infrastructure that supports the development distributed applications
+and as a way to address the many co-dependent issues in their
+execution: the emergence of disparate resource platforms and network
+capabilities, the inherent distribution of compute and data,
+multiple-levels of application abstractions, and run-time decision
+making.
+
+The use of SAGA to build the DARE framework overcomes a traditional
+limitation of a frameworks: the lack of generality and coupling
+to specific infrastructure.
+
+%  Traditionally, frameworks are limited to specific patterns or to
+%  specific platform implementations. In short, they lack generality, as
+%  shown by a team working with HiMach~\cite{deshaw_sc09}, a
+%  MapReduce-based solution for analyzing molecular dynamics trajectory
+%  for petascale distributed data.  They found that minor extensions to
+%  and a different usage model of MapReduce rendered existing MapReduce
+%  implementations unusable on their platforms (not Hadoop)
+%  and required the creation of new runtime frameworks and application
+%  support.
+
+In Figure~\ref{datefig}, we present a layered framework approach for
+achieving the... 
+
+L2 provides application level support at the programmatic level to
+exploit identified abstractions and cross-cutting concerns; L3
+provides runtime mechanisms that manage the execution of the
+application.  For example, the proposed runtime framework will be
+designed to support both dynamically .... Different methods and
+mechanisms to be used for each..., however these methods will be
+integrated in the same runtime framework.  At the AF level, taking
+data-access patterns as an example, there exist multiple data-access
+patterns that can be used to express computations for data-intensive
+scientific applications. Often several of them can be used
+simultaneously, thus there is need for the implementations of these
+patterns to be necessarily extensible, general, and multiplatform.
+
+The proposed frameworks-based approach to distributed applications
+will enable applications to utilize different platforms, programming
+systems, data-transfer protocols, tools and services, concurrently and
+with the flexibility that scientific applications demand.  
+
+DARE represents the first-steps towards developing an integrated
+runtime and application framework that provide abstractions to
+facilitate the development of distributed applications.
+
+
 
 % This work presents four different gateways for different life-science
 % applications, once 
