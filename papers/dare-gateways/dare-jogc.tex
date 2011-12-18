@@ -771,6 +771,22 @@ implemented. Ref.~\cite{saga_url} discusses distributed application
 frameworks and run-time systems that SAGA has been used to develop
 successfully. 
 
+\begin{figure}[t]
+\centering \includegraphics[width=0.66\textwidth]{figures/saga-architecture-1.png}
+\caption{\textbf{SAGA Overview: } SAGA is an OGF technical
+  specification that provides a common interface to heterogeneous DCI
+  -- hitherto typically Grid systems.  The implementation of the
+  SAGA\cite{saga_url} specification consists of a high-level {\it
+    API}, the SAGA {\it Engine} providing that API, and backend,
+  system-specific {\it Adaptors}.  The engine is a lightweight,
+  highly-configurable dynamic library that manages call dispatching
+  and the dynamic runtime loading of the middleware adaptors.  Each of
+  these adaptors implements the functionality of a specific functional
+  package (e.g., job adaptors, file adaptors) for a specific
+  middleware system. Adaptors are also realized as dynamic libraries.}
+ \label{fig:saga-overview}
+\end{figure}
+ 
 A prominent example of such a tool is the SAGA-based pilot-job – which
 provides an interoperable pilot-job (see next subsection), with
 consistent semantics and common usage across different middleware. The
@@ -813,18 +829,16 @@ next-generation sequencing, docking and high-throughput of ensembles.
 \jhanote{See Fig. 3: DARE is defined as L2 and L3: SAGA + SAGA-based
   Pilot-Job + Patterns (MR) + L2 (Application Capabilities)}
 
-\subsubsection{SAGA-based Pilot-Job}
 
 Applications that support dynamic execution have the ability to
 respond to a fluctuating resource pool, i.\,e., the set of resources
-utilized at time (T), $T=0$ is not the same as $T>0$. Distributed CI
-almost by definition is comprised of a set of resources that is
-fluctuating -- growing, shrinking, changing in load and capability;
+utilized at time (T), $T=0$ is not the same as $T>0$. HPDC
+infrastructure is by definition comprised of a set of resources that
+is fluctuating -- growing, shrinking, changing in load and capability;
 this is in contrast to a static resource utilization model
-traditionally a characteristic of parallel and cluster computing.
-
-The ability to utilize a dynamic resource pool is thus an important
-attribute of any application that needs to utilize distributed CI
+traditionally a characteristic of parallel and cluster computing.  The
+ability to utilize a dynamic resource pool is thus an important
+attribute of any application that needs to utilize HPDC infrastructure
 efficiently.  However, even for traditional high-performance/parallel
 applications, the evolution or internal dynamics of an application may
 vary, thereby changing the resource requirements.  For example,
@@ -833,21 +847,81 @@ also require applications to utilize different set/amounts of
 resources.  Thus, the need to support dynamic execution is widespread
 for computational science applications.
 
+\subsubsection{SAGA-based Pilot-Job}
+
 A common approach for decoupling workload management and resource
-scheduling typically in user-space (i.e. application-level scheduling)
-are \emph{pilot-jobs (PJ)}.  The PJ abstraction is also a promising
-route to address additional, as well as specific requirements of
-distributed scientific
-applications~\cite{ko-efficient,bigjob_cloudcom10}.
+scheduling, and thereby the dynamical fluctuations inherent in both,
+% typically in user-space (i.e. application-level scheduling)
+is the use of \emph{pilot-jobs (PJ)}.  The PJ abstraction is also a
+promising route to address additional, as well as specific
+requirements of distributed scientific
+applications~\cite{ko-efficient,bigjob_cloudcom10}, such as
+application-level scheduling.
  
-SAGA-BigJob~\cite{saga-ccgrid10} was introduced as a general-purpose
-pilot-job framework, with which various execution patterns and
-application usage modes have been
+\begin{figure}[t]
+  \centering
+%  \includegraphics[width=0.48\textwidth]{figures/saga-architecture-1.png}
+   \includegraphics[width=0.48\textwidth]{figures/re_bigjob_interactions.pdf}
+  \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
+
+        \caption{\textbf{BigJob Architecture:} The core of the
+          framework, the BigJob-Manager orchestrates a set of
+          pilots. Pilots are started using the SAGA Job API. The
+          application submits WUs, the so-called sub-jobs via the
+          BigJob-Manager. Communication between the BJ-Manager and
+          BJ-Agent is done via a shared data space, the Advert
+          Service. The BJ-Agent is responsible for managing and
+          monitoring sub-jobs. From
+          Ref.~\cite{saga_bigjob_condor_cloud}}
+        \label{fig:figures_re_bigjob_interactions}
+\end{figure}
+
+A SAGA-based PJ -- BigJob
+(BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud}, was introduced as a
+general-purpose pilot-job framework, with which various execution
+patterns and application usage modes have been
 supported~\cite{async_repex11,saga-royalsoc}. Previously, we
 demonstrated how SAGA-BigJob was able to execute scientific
 applications categorized as pleasingly parallel applications and
 loosely coupled applications on scalable distributed
 resources\cite{jha2009developing, ecmls10, ecmls11}
+
+Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
+architecture of BJ. BJ utilizes a M/W coordination model: The
+BigJob-Manager is responsible for the orchestration of pilots, for the
+binding of sub-tasks. For submission of the pilots, SAGA relies on the
+SAGA Job API, and thus can be used in conjunction with different SAGA
+adaptors, e.\,g.\ the Globus, the PBS, the Condor and the Amazon Web
+Service adaptor. Each pilot initializes a so called BJ-agent. The
+agent is responsible for gathering local information and for executing
+tasks on its local resource. The SAGA Advert Service API is used for
+communication between manager and agent. The Advert Service (AS)
+exposes a shared data space that can be accessed by manager and agent,
+which use the AS to realize a push/pull communication pattern, i.\,e.\
+the manager pushes a SU to the AS while the agents periodically pull
+for new SUs. Results and state updates are similarly pushed back from
+the agent to the manager. Further, BJ provides a pluggable
+communication \& coordination layer and also supports alternative c\&c
+systems, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+
+In many scenarios it is beneficial to utilize multiple resources,
+e.\,g.\ to accelerate the time-to-completion or to provide resilience
+to resource failures and/or unexpected delays. 
+BJ supports a wide range of application types, and is usable over a
+broad range of infrastructures, i.\,e.\ it is general-purpose and
+extensible (see figure~\ref{fig:figures_distributed_pilot_job}). In
+addition there are specific BJ flavors for cloud resources such as
+Amazon EC2 and Microsoft Azure that are capable of managing set of
+VMs, as well as a BJ with a Condor-G based backend.
+
+BJ supports dynamic resource additions/removals as well as late
+binding. The support of this feature depends on the backend used. To
+support this feature on top of various BigJob implementations that are
+by default restricted to single resource use (e.\,g.\ BJ), the concept
+of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
+(each BigJob managing one particular resource). An extensible
+scheduler is used for dispatching WUs to one of the BJs of the pool
+(late binding). By default a FIFO scheduler is provided.
 
 \subsubsection{Support for Patterns-based Execution}
 
@@ -1324,12 +1398,11 @@ Reads FTT&34&153.9  \\
 
 \begin{figure}
  \centering
- \fbox{
-
-   \includegraphics[scale=0.2]{figures/screenshot-ngs.png}
-   \includegraphics[scale=0.2]{figures/screenshot-hthp.png}
-   
-  }
+% \fbox{
+% \includegraphics[width=0.66\textwidth]{figures/saga-architecture-1.png}
+\includegraphics[width=0.5\textwidth]{figures/screenshot-ngs.png} \hspace{0.1in}
+\includegraphics[width=0.42\textwidth]{figures/screenshot-hthp.png}
+% }
   \caption{\small (L) The User Interface of the DARE-NGS Gateway that
     utilizes DARE to execute BFAST (NGS) analytics. (R) NAMD job
     submission web page form through DARE-HTHP. Here, the form
