@@ -5,12 +5,8 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
+from bigdata import *
 
-from bigdata.manager.pilotjob_manager import PilotJobService
-from bigdata.manager.pilotstore_manager import PilotStoreService
-from bigdata.manager.pstar_manager import WorkDataService
-from bigdata.troy.compute.api import State
- 
 if __name__ == "__main__":      
     
     pilot_job_service = PilotJobService()

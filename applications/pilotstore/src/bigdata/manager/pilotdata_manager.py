@@ -171,7 +171,7 @@ class PilotData(PilotData):
         'id',                  # Reference
         'url',                  # url for referencing the store 
         'pilot_data_service',  # Reference to Pilot Data Service
-        'description',      # Description
+        'pilot_data_description',  # Pilot Data Description        
         'state',            # State
         'data_units',        # DU managed by PilotData object
         'pilot_stores'      # List of pilot stores that store a replica of PD        
@@ -180,10 +180,10 @@ class PilotData(PilotData):
     def __init__(self, pilot_data_service, pilot_data_description):
         self.id = uuid.uuid1()
         self.url = PILOTDATA_URL_SCHEME + "localhost/" + str(self.id)
-        self.description = pilot_data_description        
+        self.pilot_data_description = pilot_data_description        
         self.pilot_data_service = pilot_data_service
         self.pilot_stores=[]
-        self.data_units = DataUnit.create_data_unit_list(self.description["file_urls"]) 
+        self.data_units = DataUnit.create_data_unit_list(self.pilot_data_description["file_urls"]) 
         self.state = State.New
         
     def cancel(self):

@@ -8,7 +8,12 @@ sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import logging
 
-from bigdata.pilotstore_coordination.ssh import BigDataCoordination
+import bigdata
+from bigdata.filemanagement.ssh import SSHFileAdaptor
+from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
+
+
+
 from bigdata.troy.data.api import PilotStore, PilotStoreService
 
 
@@ -24,7 +29,8 @@ class PilotStore(PilotStore):
         'pilot_store_description', # PS description    
         'state',        # State of the PilotStore
         'pilot_data',   # pilot_data
-        '__coordination'
+        '__filemanager',  # File Adaptor (SSH, ...)
+        '__coordination'  # Distributed Coordination (Advert,...)
     )
     
     def __init__(self, pilot_store_description):    
@@ -38,14 +44,23 @@ class PilotStore(PilotStore):
             SAGA URL schemes/adaptors should be supported.        
         """ 
                         
-        self.id = uuid.uuid1()
+        self.id = "ps-"+str(uuid.uuid1())
         self.service_url=pilot_store_description["service_url"]
         self.size = pilot_store_description["size"]
         self.pilot_store_description = pilot_store_description
         self.pilot_data={}
-        self.__coordination = BigDataCoordination(self.service_url)
-        self.__coordination.initialize_pilotstore()
-        self.__coordination.get_pilotstore_size()
+        
+        # initialize file adaptor
+        self.__filemanager = SSHFileAdaptor(self.service_url)
+        self.__filemanager.initialize_pilotstore()
+        self.__filemanager.get_pilotstore_size()
+        
+        
+        # initialize coordination systems
+        application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
+        CoordinationAdaptor.add_ps(application_url, self)
+        
+                
                 
 
     def cancel(self):        
@@ -54,7 +69,7 @@ class PilotStore(PilotStore):
             Keyword arguments:
             None
         """
-        self.__coordination.delete_pilotstore()
+        self.__filemanager.delete_pilotstore()
         
         
     def url_for_pd(self, pd):
@@ -65,15 +80,15 @@ class PilotStore(PilotStore):
     
     def put_pd(self, pd):
         logging.debug("Put PD: %s to PS: %s"%(pd.id,self.service_url))
-        self.__coordination.create_pd(pd.id)
-        self.__coordination.put_pd(pd)
+        self.__filemanager.create_pd(pd.id)
+        self.__filemanager.put_pd(pd)
         self.pilot_data[pd.id] = pd
         
         
     def remove_pd(self, pd):
         """ Remove pilot data from pilot store """
         if self.pilot_data.has_key(pd.id):
-            self.__coordination.remove_pd(pd)
+            self.__filemanager.remove_pd(pd)
             del self.pilot_data[pd.id]
     
     
@@ -82,11 +97,11 @@ class PilotStore(PilotStore):
     
     
     def get_state(self):
-        return self.__coordination.get_state()
+        return self.__filemanager.get_state()
     
     
     def export_pd(self, pd, target_directory):
-        self.__coordination.get_pd(pd, target_directory)
+        self.__filemanager.get_pd(pd, target_directory)
     
     
     def __repr__(self):
@@ -111,6 +126,7 @@ class PilotStoreService(PilotStoreService):
             Keyword arguments:
             pss_id -- restore from pss_id
         """
+        self.id = "pss-"+str(uuid.uuid1())
         self.pilot_stores={}
        
 

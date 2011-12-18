@@ -192,7 +192,7 @@ class WorkDataService(WorkDataService):
         """ 
         logging.debug("Schedule PD")
         self.__update_scheduler_resources()
-        selected_pilot_store = self.scheduler.schedule_pilot_data()
+        selected_pilot_store = self.scheduler.schedule_pilot_data(pd.pilot_data_description)
         return selected_pilot_store 
     
     def _schedule_wu(self, wu):

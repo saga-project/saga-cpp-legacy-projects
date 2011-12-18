@@ -5,11 +5,7 @@ import logging
 logging.basicConfig(level=logging.DEBUG)
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
-
-from bigdata.manager.pilotjob_manager import PilotJobService
-from bigdata.manager.pilotstore_manager import PilotStoreService
-from bigdata.manager.pstar_manager import WorkDataService
-from bigdata.troy.compute.api import State
+from bigdata import *
  
 if __name__ == "__main__":      
     
@@ -47,7 +43,11 @@ if __name__ == "__main__":
     url_list = os.listdir(base_dir)
     # make absolute paths
     absolute_url_list = [os.path.join(base_dir, i) for i in url_list]
-    pilot_data_description = {"file_urls":absolute_url_list}    
+    pilot_data_description = {
+                              "file_urls":absolute_url_list,
+                              "affinity_datacenter_label": "eu-de-south",              
+                              "affinity_machine_label": "mymachine-1"
+                             }    
       
     
     # submit pilot data to a pilot store    

@@ -13,7 +13,7 @@ import logging
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from bigdata.troy.compute.api import State
 
-class BigDataCoordination(object):
+class SSHFileAdaptor(object):
     """ BigData Coordination File Management for Pilot Store """
     
     def __init__(self, service_url):        

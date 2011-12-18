@@ -23,9 +23,24 @@ class Scheduler:
     
         
     def schedule_pilot_data(self, pilot_data_description=None):
-        logging.debug("Schedule to PS - # Avail stores: %d"%len(self.pilot_stores))        
-        if len(self.pilot_stores)!=0:
-            return random.choice(self.pilot_stores)
+        logging.debug("Schedule to PS - # Avail stores: %d"%len(self.pilot_stores))     
+        candidate_pilot_stores = []  
+        if pilot_data_description.has_key("affinity_datacenter_label") and pilot_data_description.has_key("affinity_machine_label"):
+            for i in self.pilot_stores: 
+                pilot_store_description = i.pilot_store_description
+                if pilot_store_description["affinity_datacenter_label"] == pilot_data_description["affinity_datacenter_label"]\
+                and pilot_store_description["affinity_machine_label"] == pilot_data_description["affinity_machine_label"]:
+                    candidate_pilot_stores.append(i)
+        else:
+            candidate_pilot_stores = self.pilot_stores
+            
+        if len(candidate_pilot_stores)>0:
+            return random.choice(candidate_pilot_stores)
+        
+        return None
+        
+        #if len(self.pilot_stores)!=0:
+        #    return random.choice(self.pilot_stores)
         return None
     
     
@@ -38,11 +53,14 @@ class Scheduler:
         """    
         logging.debug("Schedule to PJ - # Avail PJs: %d"%len(self.pilot_jobs))
         candidate_pilot_jobs = []
-        for i in self.pilot_jobs:
-            pilot_job_description = i.pilot_job_description
-            if pilot_job_description["affinity_datacenter_label"] == work_unit_description["affinity_datacenter_label"]\
-            and pilot_job_description["affinity_machine_label"] == work_unit_description["affinity_machine_label"]:
-                candidate_pilot_jobs.append(i)
+        if work_unit_description.has_key("affinity_datacenter_label") and work_unit_description.has_key("affinity_machine_label"):
+            for i in self.pilot_jobs:
+                pilot_job_description = i.pilot_job_description
+                if pilot_job_description["affinity_datacenter_label"] == work_unit_description["affinity_datacenter_label"]\
+                and pilot_job_description["affinity_machine_label"] == work_unit_description["affinity_machine_label"]:
+                    candidate_pilot_jobs.append(i)
+        else:
+            candidate_pilot_jobs=self.pilot_jobs
              
         if len(candidate_pilot_jobs)>0:
             return random.choice(candidate_pilot_jobs)
