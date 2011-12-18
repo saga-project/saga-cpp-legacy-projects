@@ -20,7 +20,7 @@ from bigdata.troy.compute.api import PilotJob, PilotJobService
         redis://localhost:6379 (Redis at localhost)
         tcp://localhost (ZMQ)
 """
-COORDINATION_URL = "advert://localhost"
+COORDINATION_URL = "advert://localhost/?dbtype=sqlite3"
 
 
 class PilotJobService(PilotJobService):

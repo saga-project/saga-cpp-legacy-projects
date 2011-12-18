@@ -25,6 +25,7 @@ class BigDataCoordination(object):
         # initialize ssh client
         self.__client = paramiko.SSHClient()
         self.__client.load_system_host_keys()
+        self.__client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         self.__client.connect(self.host)
         self.__sftp = self.__client.open_sftp()
         self.__state=State.New
@@ -150,7 +151,7 @@ client = paramiko.SSHClient()
 client.load_system_host_keys()
 client.connect("%s")
 sftp = client.open_sftp()
-sftp.put("%s", "%s")
+sftp.get("%s", "%s")
 
 """%(source_host, source_path, target_path)
 

@@ -40,8 +40,8 @@ class WorkDataDescription(compute.api.WorkUnitDescription):
             'wall_time_limit': <walltime in sec, e.g. 600 (sec)>,            
             
             # Data - input/output data flow for WorkUnit
-            'input_pilot_data': [<pilot data url>, ... ],      
-            'output_pilot_data': [<pilot data url>, ... ]
+            'input_data': [<pilot data url>, ... ],      
+            'output_data': [<pilot data url>, ... ]
         }
     """
     

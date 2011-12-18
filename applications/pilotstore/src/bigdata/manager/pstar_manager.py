@@ -221,8 +221,8 @@ class WorkDataService(WorkDataService):
                     
             try:    
                 logging.debug("Scheduler Thread: " + str(self.__class__) + " Pilot Job")
-                wu = self.wu_queue.get(True, 1)
-                if isinstance(wu, WorkUnit):
+                wu = self.wu_queue.get(True, 1)                
+                if isinstance(wu, WorkUnit):                    
                     pj=self._schedule_wu(wu) 
                     if pj !=None:
                         wu = self.__expand_working_directory(wu, pj)                        
@@ -280,17 +280,26 @@ class WorkDataService(WorkDataService):
                         target_ps = ps 
                         target_pd = pd
                         break
+            if target_pd == None:
+                self.__stage_pd_to_pj(pilot_data_url, pj)
+                
             ps_url = target_ps.url_for_pd(target_pd)
             components = urlparse.urlparse(ps_url)
             work_unit.work_unit_description["working_directory"] = components.path
             work_unit._update_work_unit_description(work_unit.work_unit_description)
             logging.debug("__expand_working_directory %s: Set working directory to %s"%(pilot_data_url, work_unit.work_unit_description["working_directory"]))
             return work_unit
+         
+        return work_unit
+            
             
     def __stage_pd_to_pj(self, pilotdata, pilotjob):
         """
             stage required files to machine of pilot job
         """
+        pass
+    
+    def __find_ps_at_pj_resource(self, pilotjob):
         pass
    
     

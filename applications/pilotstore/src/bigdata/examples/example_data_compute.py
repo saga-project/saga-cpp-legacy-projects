@@ -37,8 +37,6 @@ if __name__ == "__main__":
                                 "affinity_machine_label": "mymachine-1"                              
                              }
     ps = pilot_store_service.create_pilotstore(pilot_store_description=pilot_store_description)
-    
-    
      
     work_data_service = WorkDataService()
     work_data_service.add_pilot_job_service(pilot_job_service)
