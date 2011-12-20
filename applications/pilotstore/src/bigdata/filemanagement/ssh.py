@@ -127,6 +127,7 @@ class SSHFileAdaptor(object):
         path = result.path
         client = paramiko.SSHClient()
         client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(host)
         sftp = client.open_sftp()
         if stat.S_ISDIR(sftp.stat(path).st_mode):
@@ -149,6 +150,7 @@ import paramiko
 
 client = paramiko.SSHClient()
 client.load_system_host_keys()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.connect("%s")
 sftp = client.open_sftp()
 sftp.get("%s", "%s")
@@ -158,6 +160,7 @@ sftp.get("%s", "%s")
         logging.debug("Execute: \n%s"%python_script)
         source_client = paramiko.SSHClient()
         source_client.load_system_host_keys()
+        source_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         source_client.connect(self.host)
         stdin, stdout, stderr = source_client.exec_command("python -c \'%s\'"%python_script)
         stdin.close()

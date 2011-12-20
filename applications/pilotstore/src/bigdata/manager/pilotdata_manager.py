@@ -21,139 +21,151 @@ from bigdata.troy.compute.api import State
 from bigdata.manager.pilotstore_manager import *
 from bigdata.scheduler.random_scheduler import Scheduler
 
+from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
+
 PILOTDATA_URL_SCHEME="pilotdata://"
 DATA_UNIT_URL_SCHEME="dataunit://"
 
 
-class PilotDataService(PilotDataService):
-    """ TROY PilotDataService (PDS).   
-    """
-
-
-    def __init__(self, pds_id=None):
-        """ Create a PilotDataService.
-
-            Keyword arguments:
-            pds_id -- Reconnect to an existing PilotDataService 
-        """
-        self.id=uuid.uuid1()
-        self.pilot_data={}
-        self.pilot_store_services=[]
-        self.scheduler = Scheduler()
-        self.pd_queue = Queue.Queue()
-        self.stop=threading.Event()
-        self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
-        self.scheduler_thread.start()
-        
-    
-    def pilot_data_for_url(self, url):
-        for i in self.pilot_data.values():
-            if i.url==url:
-                return i            
-        return None
-        
-    def add_pilot_store_service(self, pss):
-        """ Add a PilotStoreService 
-
-            Keyword arguments:
-            pss -- The PilotStoreService to add.
-
-            Return:
-            None
-        """
-        self.pilot_store_services.append(pss)
-
-    
-    def remove_pilot_store_service(self, pss):
-
-        """ Remove a PilotStoreService 
-            
-            Keyword arguments:
-            pss -- The PilotStoreService to remove 
-            
-            Return:
-            None
-        """
-        self.pilot_store_services.remove(pss)
-    
-    
-    def list_pilotstores(self):
-        """ List all PDs of PDS """
-        return self.pilot_store_services
-    
-    
-    def list_pilotdata(self):
-        """ List all PDs of PDS """
-        return self.pilot_data.items()
-    
-    
-    def get_pilotdata(self, pd_id):
-        if self.pilot_data.has_key(pd_id):
-            return self.pilot_data[pd_id]
-        return None
-    
-    
-    def submit_pilot_data(self, pilot_data_description):
-        """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
-        pd = PilotData(self, pilot_data_description)
-        self.pilot_data[pd.id]=pd
-        self.pd_queue.put(pd)
-        return pd
-    
-    def cancel(self):
-        """ Cancel the PDS. 
-            All associated PD objects are deleted and removed from the associated pilot stores.            
-            
-            Keyword arguments:
-            None
-
-            Return:
-            None
-        """
-        # terminate background thread
-        self.stop.set()
-    
-        
-    def _schedule_pd(self, pd):
-        """ Schedule PD to a suitable pilot store
-        
-            Currently one level of scheduling is used:
-                1.) Add all resources managed by PSS of this PSS
-                2.) Select one resource
-        """ 
-        ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
-        #ps.append(i.list_pilotstores())
-        #pdb.set_trace()
-        self.scheduler.set_pilot_stores(ps)
-        selected_pilot_store = self.scheduler.schedule()
-        return selected_pilot_store
-    
-    
-    def _scheduler_thread(self):
-        while True and self.stop.isSet()==False:
-            logging.debug("Scheduler Thread " + str(self.__class__))
-            pd = self.pd_queue.get()  
-            # check whether this is a real pd object  
-            if isinstance(pd, PilotData):
-                ps=self._schedule_pd(pd)                
-                if(ps!=None):
-                    ps.put_pd(pd)
-                    logging.debug("Transfer to PS finished.")
-                    pd.update_state(State.Running)
-                    pd.add_pilot_store(ps)                    
-                else:
-                    self.pd_queue.put(pd)
-            time.sleep(5)        
-
-        logging.debug("Re-Scheduler terminated")
-
-    
-    def __repr__(self):
-        return str(self.id)
-
-
-    def __del__(self):
-        self.cancel()
+#class PilotDataService(PilotDataService):
+#    """ TROY PilotDataService (PDS).   
+#    """
+#    PDS_ID_PREFIX="pds-"  
+#
+#    def __init__(self, pds_id=None):
+#        """ Create a PilotDataService.
+#
+#            Keyword arguments:
+#            pds_id -- Reconnect to an existing PilotDataService 
+#        """
+#        # State
+#        if pds_id == None:
+#            self.id=self.PDS_ID_PREFIX + str(uuid.uuid1())
+#            self.pilot_data={}
+#            self.pilot_store_services=[]
+#            
+#            # Store in central data base
+#            application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
+#            self.url = CoordinationAdaptor.add_pds(application_url, self)
+#        
+#        # Background Operations
+#        self.scheduler = Scheduler()
+#        self.pd_queue = Queue.Queue()
+#        self.stop=threading.Event()
+#        self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
+#        self.scheduler_thread.start()
+#        
+#    
+#    def pilot_data_for_url(self, url):
+#        for i in self.pilot_data.values():
+#            if i.url==url:
+#                return i            
+#        return None
+#        
+#    def add_pilot_store_service(self, pss):
+#        """ Add a PilotStoreService 
+#
+#            Keyword arguments:
+#            pss -- The PilotStoreService to add.
+#
+#            Return:
+#            None
+#        """
+#        self.pilot_store_services.append(pss)
+#
+#    
+#    def remove_pilot_store_service(self, pss):
+#
+#        """ Remove a PilotStoreService 
+#            
+#            Keyword arguments:
+#            pss -- The PilotStoreService to remove 
+#            
+#            Return:
+#            None
+#        """
+#        self.pilot_store_services.remove(pss)
+#    
+#    
+#    def list_pilotstores(self):
+#        """ List all PDs of PDS """
+#        return self.pilot_store_services
+#    
+#    
+#    def list_pilotdata(self):
+#        """ List all PDs of PDS """
+#        return self.pilot_data.items()
+#    
+#    
+#    def get_pilotdata(self, pd_id):
+#        if self.pilot_data.has_key(pd_id):
+#            return self.pilot_data[pd_id]
+#        return None
+#    
+#    
+#    def submit_pilot_data(self, pilot_data_description):
+#        """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
+#        pd = PilotData(self, pilot_data_description)
+#        self.pilot_data[pd.id]=pd
+#        self.pd_queue.put(pd)
+#        
+#        CoordinationAdaptor.add_pd(self.url, pd)     
+#        return pd
+#    
+#    def cancel(self):
+#        """ Cancel the PDS. 
+#            All associated PD objects are deleted and removed from the associated pilot stores.            
+#            
+#            Keyword arguments:
+#            None
+#
+#            Return:
+#            None
+#        """
+#        # terminate background thread
+#        self.stop.set()
+#    
+#        
+#    def _schedule_pd(self, pd):
+#        """ Schedule PD to a suitable pilot store
+#        
+#            Currently one level of scheduling is used:
+#                1.) Add all resources managed by PSS of this PSS
+#                2.) Select one resource
+#        """ 
+#        ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
+#        #ps.append(i.list_pilotstores())
+#        #pdb.set_trace()
+#        self.scheduler.set_pilot_stores(ps)
+#        selected_pilot_store = self.scheduler.schedule()
+#        return selected_pilot_store
+#    
+#    
+#    def _scheduler_thread(self):
+#        while True and self.stop.isSet()==False:
+#            logging.debug("Scheduler Thread " + str(self.__class__))
+#            pd = self.pd_queue.get()  
+#            # check whether this is a real pd object  
+#            if isinstance(pd, PilotData):
+#                ps=self._schedule_pd(pd)                
+#                if(ps!=None):
+#                    ps.put_pd(pd)
+#                    logging.debug("Transfer to PS finished.")
+#                    pd.update_state(State.Running)
+#                    pd.add_pilot_store(ps)                    
+#                else:
+#                    self.pd_queue.put(pd)
+#            time.sleep(5)        
+#
+#        logging.debug("Re-Scheduler terminated")
+#
+#    
+#    def __repr__(self):
+#        return str(self.id)
+#
+#
+#    def __del__(self):
+#        self.cancel()
         
     
 
@@ -165,11 +177,13 @@ class PilotData(PilotData):
             Pending: PD object is currently updated  
             Running: At least 1 replica of PD is persistent in a pilot store            
     """
+    
+    PD_ID_PREFIX="pd-"  
 
     # Class members
     __slots__ = (
         'id',                  # Reference
-        'url',                  # url for referencing the store 
+        'url',                  # url for referencing the pd 
         'pilot_data_service',  # Reference to Pilot Data Service
         'pilot_data_description',  # Pilot Data Description        
         'state',            # State
@@ -177,14 +191,19 @@ class PilotData(PilotData):
         'pilot_stores'      # List of pilot stores that store a replica of PD        
     )
 
-    def __init__(self, pilot_data_service, pilot_data_description):
-        self.id = uuid.uuid1()
-        self.url = PILOTDATA_URL_SCHEME + "localhost/" + str(self.id)
-        self.pilot_data_description = pilot_data_description        
-        self.pilot_data_service = pilot_data_service
-        self.pilot_stores=[]
-        self.data_units = DataUnit.create_data_unit_list(self.pilot_data_description["file_urls"]) 
-        self.state = State.New
+    def __init__(self, pilot_data_service, pilot_data_description, pd_url=None):
+        
+        if pd_url==None:
+            self.id = self.PD_ID_PREFIX + str(uuid.uuid1())
+            self.url = pilot_data_service.url + "/" + self.id
+            self.pilot_data_description = pilot_data_description        
+            self.pilot_data_service = pilot_data_service
+            self.pilot_stores=[]
+            self.data_units = DataUnit.create_data_unit_list(self.pilot_data_description["file_urls"]) 
+            self.state = State.New
+        else:
+            self.id = self.__get_pd_id(pd_url)
+            self.url = pd_url
         
     def cancel(self):
         """ Cancel the PD. """
@@ -231,7 +250,10 @@ class PilotData(PilotData):
     def add_pilot_store(self,pilot_store):
         self.pilot_stores.append(pilot_store) 
     
-    
+    def __get_pd_id(self, ps_url):
+        start = ps_url.index(self.PD_ID_PREFIX)
+        end =ps_url.index("/", start)
+        return ps_url[start:end]
     
 
 class DataUnit(DataUnit):
@@ -271,7 +293,7 @@ class DataUnit(DataUnit):
         """    
         du_list = []    
         for i in urls:            
-            if DataUnit.__exists_file(i):
+            if cls.__exists_file(i):
                 du = DataUnit(i)
                 du_list.append(du)
     

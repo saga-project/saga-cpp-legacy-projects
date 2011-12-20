@@ -10,10 +10,13 @@ import uuid
 import traceback
 import urlparse
 
+import bigdata
+
+from bigdata import logger
 from bigdata.troy.api import WorkDataService
 from bigdata.troy.compute.api import WorkUnit, State
 from bigdata.manager.pilotdata_manager import PilotData, PilotDataService, PILOTDATA_URL_SCHEME
-
+from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
 
 """ Loaded Module determines scheduler:
     
@@ -31,30 +34,45 @@ class WorkDataService(WorkDataService):
         WorkUnits and PilotData/DataUnit to the Pilot-Manager 
         in the P* Model.
     """    
+    WDS_ID_PREFIX="wds-"  
 
-    def __init__(self, wds_id=None):
+
+    def __init__(self, wds_url=None):
         """ Create a Work Data Service object.
 
             Keyword arguments:
-            wds_id -- Reconnect to an existing WDS (optional).
+            wds_url -- Reconnect to an existing WDS (optional).
         """
-        self.id=uuid.uuid1()
-        
         # Pilot Data
         self.pilot_data={}
         self.pilot_store_services=[]
-        self.pd_queue = Queue.Queue()
         
         # Pilot Job
         self.pilot_job_services=[]
         self.work_units={}
-        self.scheduler = Scheduler()
-        
+            
+        if wds_url == None:
+            self.id=self.WDS_ID_PREFIX + str(uuid.uuid1())
+            application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
+            self.url = CoordinationAdaptor.add_wds(application_url, self)
+            
+        else:
+            self.id = self.__get_wds_id(wds_url)
+            self.url = wds_url
+           
         # Background Thread for scheduling
+        self.scheduler = Scheduler()
         self.wu_queue = Queue.Queue()
+        self.pd_queue = Queue.Queue()
         self.stop=threading.Event()
         self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
         self.scheduler_thread.start()
+
+    def __get_wds_id(self, wds_url):
+        start = wds_url.index(self.WDS_ID_PREFIX)
+        end =wds_url.index("/", start)
+        return wds_url[start:end]
+
 
     ###########################################################################
     # Pilot Job
@@ -70,7 +88,7 @@ class WorkDataService(WorkDataService):
             Result
         """
         self.pilot_job_services.append(pjs)
-
+        CoordinationAdaptor.update_wds(self.url, self)
 
     def remove_pilot_job_service(self, pjs):
         """ Remove a PilotJobService from this WUS.
@@ -86,7 +104,7 @@ class WorkDataService(WorkDataService):
             Result
         """
         self.pilot_job_services.remove(pjs)
-
+        CoordinationAdaptor.update_wds(self.url, self)
 
     def submit_work_unit(self, work_unit_description):
         """ Submit a WU to this Work Unit Service.
@@ -97,9 +115,10 @@ class WorkDataService(WorkDataService):
             Return:
             WorkUnit object
         """
-        wu = WorkUnit(work_unit_description)
+        wu = WorkUnit(work_unit_description, self)
         self.work_units[wu.id]=wu
         self.wu_queue.put(wu)
+        CoordinationAdaptor.update_wds(self.url, self)
         return wu
     
     ###########################################################################
@@ -115,7 +134,7 @@ class WorkDataService(WorkDataService):
             None
         """
         self.pilot_store_services.append(pss)
-
+        CoordinationAdaptor.update_wds(self.url, self)
     
     def remove_pilot_store_service(self, pss):
 
@@ -128,7 +147,7 @@ class WorkDataService(WorkDataService):
             None
         """
         self.pilot_store_services.remove(pss)
-    
+        CoordinationAdaptor.update_wds(self.url, self)
     
     def list_pilotstores(self):
         """ List all PDs of PDS """
@@ -151,6 +170,7 @@ class WorkDataService(WorkDataService):
         pd = PilotData(self, pilot_data_description)
         self.pilot_data[pd.id]=pd
         self.pd_queue.put(pd)
+        CoordinationAdaptor.update_wds(self.url, self)
         return pd
     
     def cancel(self):
@@ -165,6 +185,7 @@ class WorkDataService(WorkDataService):
         """
         # terminate background thread
         self.stop.set()
+        CoordinationAdaptor.delete_wds(self.url)
    
     def get_state(self):
         return self.state
@@ -254,7 +275,7 @@ class WorkDataService(WorkDataService):
            /tmp/pilotstore//434bfc5c-23fd-11e1-a43f-00264a13ca4c on machine running pilot_job        
         """ 
         working_directory=work_unit.work_unit_description["working_directory"]       
-        if working_directory.startswith(PILOTDATA_URL_SCHEME):
+        if working_directory.find(PilotData.PD_ID_PREFIX)!=-1:
             pilot_data_url = working_directory
             pj_description = pilot_job.pilot_job_description
             pj_dc_affinity = pj_description["affinity_datacenter_label"]
@@ -306,16 +327,20 @@ class WorkDataService(WorkDataService):
     
 class WorkUnit(WorkUnit):
     """ WorkUnit - Wrapper for BigJob subjob """
+    WU_ID_PREFIX="wu-"  
 
-    def __init__(self, work_unit_description):
-        self.id = uuid.uuid1()
+    def __init__(self, work_unit_description, work_data_service):
+        self.id = self.WU_ID_PREFIX + str(uuid.uuid1())
+        self.url = work_data_service.url + "/" + self.id
         self.state = State.New       
         self.subjob = None # reference to BigJob Subjob 
         self.work_unit_description = work_unit_description # WU Description
         self.subjob_description = self.__translate_wu_sj_description(work_unit_description)
+        logger.debug("Created WU: %s"%self.url)     
                 
     def get_id(self):
         return self.id
+    
     
     def get_state(self):
         if self.subjob != None:

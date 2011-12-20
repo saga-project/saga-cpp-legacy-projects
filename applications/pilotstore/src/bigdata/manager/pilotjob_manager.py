@@ -6,12 +6,18 @@ import pdb
 import os
 import traceback
 import logging
+import uuid
 
+import bigdata
 
+from bigdata import logger
 from bigjob.bigjob_manager import *
 from bigjob_dynamic.many_job import *
-
 from bigdata.troy.compute.api import PilotJob, PilotJobService
+
+
+from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
+
 
 """ This variable defines the coordination system that is used by BigJob
     e.g. 
@@ -28,15 +34,18 @@ class PilotJobService(PilotJobService):
                     
     """
 
+    PJS_ID_PREFIX="pjs-"   
+
     # Class members
     __slots__ = (
         'id',           # Reference to this PJS
+        'url',
         'state',       # Status of the PJS
         'pilot_jobs',    # List of PJs under this PJS
         '__mjs'
     )
 
-    def __init__(self, pjs_id=None):
+    def __init__(self, pjs_url=None):
         """ Create a PilotJobService object.
 
             Keyword arguments:
@@ -44,6 +53,13 @@ class PilotJobService(PilotJobService):
         """
         self.__mjs = None
         self.pilot_jobs=[]
+        
+        if pjs_url==None:      # new pjs          
+            self.id = self.PJS_ID_PREFIX+str(uuid.uuid1())
+            self.url = "pilotjob://localhost/"+self.id
+        else:
+            logger.error("Reconnect to PJS currently not supported.")
+            
 
     def create_pilotjob(self, rm=None, pilot_job_description=None, pj_type=None, context=None):
         """ Add a PilotJob to the PilotJobService

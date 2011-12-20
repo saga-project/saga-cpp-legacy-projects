@@ -19,11 +19,12 @@ from bigdata.troy.data.api import PilotStore, PilotStoreService
 
 class PilotStore(PilotStore):
     """ TROY PilotStore. """   
-            
+    PS_ID_PREFIX="ps-"   
 
     # Class members
     __slots__ = (
         'id',           # Unique identity
+        'url',          # URL as a distributed reference
         'service_url',  # Resource  URL          
         'size',         # max size of allocated storage
         'pilot_store_description', # PS description    
@@ -33,7 +34,7 @@ class PilotStore(PilotStore):
         '__coordination'  # Distributed Coordination (Advert,...)
     )
     
-    def __init__(self, pilot_store_description):    
+    def __init__(self, pilot_store_description=None, ps_url=None):    
         """ 
             Initialize PilotStore at given service url:
             
@@ -43,25 +44,27 @@ class PilotStore(PilotStore):
             Currently only ssh schemes are supported. In the future all 
             SAGA URL schemes/adaptors should be supported.        
         """ 
-                        
-        self.id = "ps-"+str(uuid.uuid1())
+        if ps_url==None:      # new ps          
+            self.id = self.PS_ID_PREFIX+str(uuid.uuid1())
+            self.pilot_data={}
+        else:
+            self.id = self.__get_ps_id(ps_url)
+            self.pilot_data={} #TODO restore state
+            
         self.service_url=pilot_store_description["service_url"]
         self.size = pilot_store_description["size"]
         self.pilot_store_description = pilot_store_description
-        self.pilot_data={}
         
         # initialize file adaptor
         self.__filemanager = SSHFileAdaptor(self.service_url)
         self.__filemanager.initialize_pilotstore()
         self.__filemanager.get_pilotstore_size()
-        
-        
-        # initialize coordination systems
-        application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
-        CoordinationAdaptor.add_ps(application_url, self)
-        
                 
-                
+
+    def __get_ps_id(self, ps_url):
+        start = ps_url.index(self.PS_ID_PREFIX)
+        end =ps_url.index("/", start)
+        return ps_url[start:end]
 
     def cancel(self):        
         """ Cancel PilotStore 
@@ -111,24 +114,43 @@ class PilotStore(PilotStore):
 class PilotStoreService(PilotStoreService):
     """ TROY PilotStoreService (PSS)."""
     
+    PSS_ID_PREFIX="pss-"
 
     # Class members
     __slots__ = (
         'id',             # Reference to this PJS
+        'url',            # URL for referencing PilotStoreService
         'state',          # Status of the PJS
         'pilot_stores'    # List of PJs under this PJS
         'affinity_list'   # List of PS on that are affine to each other
     )
 
-    def __init__(self, pss_id=None):
+    def __init__(self, pss_url=None):
         """ Create a PilotStoreService
 
             Keyword arguments:
             pss_id -- restore from pss_id
-        """
-        self.id = "pss-"+str(uuid.uuid1())
+        """        
         self.pilot_stores={}
-       
+        
+        if pss_url == None:
+            self.id = self.PSS_ID_PREFIX + str(uuid.uuid1())
+            application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
+            self.url = CoordinationAdaptor.add_pss(application_url, self)
+        else:
+            self.id = self.__get_pss_id(pss_url)
+    
+    
+    def __get_pss_id(self, pss_url):
+        start = pss_url.index(self.PSS_ID_PREFIX)
+        end =pss_url.index("/", start)
+        return pss_url[start:end]
+    
+    def __restore_ps(self, pss_url):
+        ps_list=CoordinationAdaptor.list_ps(pss_url) 
+        for i in ps_list:
+            ps = PilotStore(ps_url=i)
+            self.pi
 
     def create_pilotstore(self, pilot_store_description):
         """ Create a PilotStore 
@@ -144,12 +166,17 @@ class PilotStoreService(PilotStoreService):
         """
         ps = PilotStore(pilot_store_description)
         self.pilot_stores[ps.id]=ps
+        
+        # store pilot store in central data space
+        CoordinationAdaptor.add_ps(self.url, ps)        
         return ps
+    
     
     def get_pilotstore(self, ps_id):
         if self.pilot_stores.has_key(ps_id):
             return self.pilot_stores[ps_id]
         return None
+
 
     def list_pilotstores(self):
         """ List all PSs of PSS """

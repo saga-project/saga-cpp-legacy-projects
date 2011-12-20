@@ -62,6 +62,7 @@ if __name__ == "__main__":
             "total_core_count": 1,
             "number_of_processes": 1,
             "working_directory": pd.url,
+            #"working_directory": os.getcwd(),
             "output": "stdout.txt",
             "error": "stderr.txt",   
             "affinity_datacenter_label": "eu-de-south",              

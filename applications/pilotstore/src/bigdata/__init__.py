@@ -1,9 +1,10 @@
 import os
 import logging
 import uuid
-logging.basicConfig(level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p',
-                   format='%(asctime)s - %(levelname)s - %(message)s')
 
+logging.basicConfig(level=logging.DEBUG, datefmt='%m/%d/%Y %I:%M:%S %p',
+                   format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+logger = logging.getLogger(name='bigdata')
 
 # read and log the version of the used BigData
 version = "latest"
