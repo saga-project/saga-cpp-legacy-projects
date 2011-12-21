@@ -12,15 +12,18 @@ version = "latest"
 try:
     fn = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'VERSION')
     version = open(fn).read().strip()
-    logging.debug("Loading BigData version: " + version)
+    logger.debug("Loading BigData version: " + version)
 except IOError:
     pass
 
 
 # generate global application id for this instance
-application_id = str(uuid.uuid1())
+#application_id = str(uuid.uuid1())
+application_id = "bigdata"
 
 
+from bigdata.manager.pilotdata_manager import PilotData as MyPilotData
+from bigdata.manager.pilotdata_manager import DataUnit as MyDataUnit
 from bigdata.manager.pilotjob_manager import PilotJobService as MyPilotJobService
 from bigdata.manager.pilotstore_manager import PilotStoreService as MyPilotStoreService
 from bigdata.manager.pstar_manager import WorkDataService as MyWorkDataService
@@ -41,4 +44,12 @@ class WorkDataService(MyWorkDataService):
 
 
 class State(MyState):
+    pass
+
+
+class PilotData(MyPilotData):
+    pass
+
+
+class DataUnit(MyDataUnit):
     pass

@@ -7,8 +7,10 @@ import uuid
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 
 import logging
-
 import bigdata
+import json
+
+from bigdata import logger
 from bigdata.filemanagement.ssh import SSHFileAdaptor
 from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
 
@@ -21,20 +23,8 @@ class PilotStore(PilotStore):
     """ TROY PilotStore. """   
     PS_ID_PREFIX="ps-"   
 
-    # Class members
-    __slots__ = (
-        'id',           # Unique identity
-        'url',          # URL as a distributed reference
-        'service_url',  # Resource  URL          
-        'size',         # max size of allocated storage
-        'pilot_store_description', # PS description    
-        'state',        # State of the PilotStore
-        'pilot_data',   # pilot_data
-        '__filemanager',  # File Adaptor (SSH, ...)
-        '__coordination'  # Distributed Coordination (Advert,...)
-    )
-    
-    def __init__(self, pilot_store_description=None, ps_url=None):    
+        
+    def __init__(self, pilot_store_service=None, pilot_store_description=None, ps_url=None):    
         """ 
             Initialize PilotStore at given service url:
             
@@ -44,27 +34,46 @@ class PilotStore(PilotStore):
             Currently only ssh schemes are supported. In the future all 
             SAGA URL schemes/adaptors should be supported.        
         """ 
-        if ps_url==None:      # new ps          
-            self.id = self.PS_ID_PREFIX+str(uuid.uuid1())
-            self.pilot_data={}
-        else:
-            self.id = self.__get_ps_id(ps_url)
-            self.pilot_data={} #TODO restore state
-            
-        self.service_url=pilot_store_description["service_url"]
-        self.size = pilot_store_description["size"]
-        self.pilot_store_description = pilot_store_description
+        self.id = None
+        self.url = None
+        self.pilot_store_description = None
+        self.service_url=None
+        self.size = None
+        self.pilot_store_description = None
         
-        # initialize file adaptor
-        self.__filemanager = SSHFileAdaptor(self.service_url)
-        self.__filemanager.initialize_pilotstore()
-        self.__filemanager.get_pilotstore_size()
-                
+        if ps_url==None and pilot_store_service!=None:      # new ps          
+            self.id = self.PS_ID_PREFIX+str(uuid.uuid1())
+            self.url = pilot_store_service.url + "/" + self.id
+            self.pilot_store_description = pilot_store_description
+            self.pilot_data={}
+            CoordinationAdaptor.add_ps(self.url, self)
+        elif ps_url != None:
+            logger.warn("Reconnect to PilotStore not supported")
+            dictionary = CoordinationAdaptor.get_ps(ps_url)
+            ps_dict = dictionary["pilot_store"]
+            for i in ps_dict:
+                self.__setattr__(i, ps_dict[i])
+                        
+        self.initialize_pilot_store()
+        
+            
+    def initialize_pilot_store(self):
+        if self.pilot_store_description!=None:
+            self.service_url=self.pilot_store_description["service_url"]
+            self.size = self.pilot_store_description["size"]
+            self.pilot_store_description = self.pilot_store_description
+        
+            # initialize file adaptor
+            self.__filemanager = SSHFileAdaptor(self.service_url)
+            self.__filemanager.initialize_pilotstore()
+            self.__filemanager.get_pilotstore_size()
+            
 
     def __get_ps_id(self, ps_url):
         start = ps_url.index(self.PS_ID_PREFIX)
         end =ps_url.index("/", start)
         return ps_url[start:end]
+    
 
     def cancel(self):        
         """ Cancel PilotStore 
@@ -86,6 +95,7 @@ class PilotStore(PilotStore):
         self.__filemanager.create_pd(pd.id)
         self.__filemanager.put_pd(pd)
         self.pilot_data[pd.id] = pd
+        CoordinationAdaptor.update_ps(self)
         
         
     def remove_pd(self, pd):
@@ -93,7 +103,8 @@ class PilotStore(PilotStore):
         if self.pilot_data.has_key(pd.id):
             self.__filemanager.remove_pd(pd)
             del self.pilot_data[pd.id]
-    
+        CoordinationAdaptor.update_ps(self)
+        
     
     def list_pilotdata(self):           
         return self.pilot_data.values()
@@ -107,8 +118,25 @@ class PilotStore(PilotStore):
         self.__filemanager.get_pd(pd, target_directory)
     
     
+    def to_dict(self):
+        ps_dict = {}
+        ps_dict["id"]=self.id
+        ps_dict["url"]=self.url
+        ps_dict["pilot_store_description"]=self.pilot_store_description
+        logger.debug("PS Dictionary: " + str(ps_dict))
+        return ps_dict
+    
     def __repr__(self):
         return self.service_url
+    
+    @classmethod
+    def create_pilot_store_from_dict(cls, ps_dict):
+        ps = PilotStore()
+        for i in ps_dict.keys():
+            ps.__setattr__(i, ps_dict[i])
+        ps.initialize_pilot_store()
+        logger.debug("created ps " + str(ps))
+        return ps
     
 
 class PilotStoreService(PilotStoreService):
@@ -149,8 +177,7 @@ class PilotStoreService(PilotStoreService):
     def __restore_ps(self, pss_url):
         ps_list=CoordinationAdaptor.list_ps(pss_url) 
         for i in ps_list:
-            ps = PilotStore(ps_url=i)
-            self.pi
+           pass
 
     def create_pilotstore(self, pilot_store_description):
         """ Create a PilotStore 
@@ -164,7 +191,8 @@ class PilotStoreService(PilotStoreService):
             Return value:
             A PilotStore handle
         """
-        ps = PilotStore(pilot_store_description)
+        ps = PilotStore(pilot_store_service=self, 
+                        pilot_store_description=pilot_store_description)
         self.pilot_stores[ps.id]=ps
         
         # store pilot store in central data space
@@ -194,30 +222,19 @@ class PilotStoreService(PilotStoreService):
         """
         for i in self.pilot_stores.values():
             i.cancel()
+ 
     
-    
+    def to_dict(self):
+        pss_dict = self.__dict__
+        pss_dict["id"]=self.id
+        return pss_dict
+ 
  
     def __del__(self):
         self.cancel()         
             
 
 
-            
-            
-if __name__ == "__main__":        
-    pss = PilotStoreService()
-    ps = pss.create_pilotstore({
-                                'service_url': "ssh://localhost/tmp/pilotstore/",
-                                'size':100                                
-                                })
-    print ps.get_state()
-    
-    
-    ps.cancel()
-    print ps.get_state()
-        
-        
-        
         
         
             

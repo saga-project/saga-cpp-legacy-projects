@@ -23,150 +23,6 @@ from bigdata.scheduler.random_scheduler import Scheduler
 
 from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
 
-PILOTDATA_URL_SCHEME="pilotdata://"
-DATA_UNIT_URL_SCHEME="dataunit://"
-
-
-#class PilotDataService(PilotDataService):
-#    """ TROY PilotDataService (PDS).   
-#    """
-#    PDS_ID_PREFIX="pds-"  
-#
-#    def __init__(self, pds_id=None):
-#        """ Create a PilotDataService.
-#
-#            Keyword arguments:
-#            pds_id -- Reconnect to an existing PilotDataService 
-#        """
-#        # State
-#        if pds_id == None:
-#            self.id=self.PDS_ID_PREFIX + str(uuid.uuid1())
-#            self.pilot_data={}
-#            self.pilot_store_services=[]
-#            
-#            # Store in central data base
-#            application_url = CoordinationAdaptor.get_base_url(bigdata.application_id)
-#            self.url = CoordinationAdaptor.add_pds(application_url, self)
-#        
-#        # Background Operations
-#        self.scheduler = Scheduler()
-#        self.pd_queue = Queue.Queue()
-#        self.stop=threading.Event()
-#        self.scheduler_thread=threading.Thread(target=self._scheduler_thread)
-#        self.scheduler_thread.start()
-#        
-#    
-#    def pilot_data_for_url(self, url):
-#        for i in self.pilot_data.values():
-#            if i.url==url:
-#                return i            
-#        return None
-#        
-#    def add_pilot_store_service(self, pss):
-#        """ Add a PilotStoreService 
-#
-#            Keyword arguments:
-#            pss -- The PilotStoreService to add.
-#
-#            Return:
-#            None
-#        """
-#        self.pilot_store_services.append(pss)
-#
-#    
-#    def remove_pilot_store_service(self, pss):
-#
-#        """ Remove a PilotStoreService 
-#            
-#            Keyword arguments:
-#            pss -- The PilotStoreService to remove 
-#            
-#            Return:
-#            None
-#        """
-#        self.pilot_store_services.remove(pss)
-#    
-#    
-#    def list_pilotstores(self):
-#        """ List all PDs of PDS """
-#        return self.pilot_store_services
-#    
-#    
-#    def list_pilotdata(self):
-#        """ List all PDs of PDS """
-#        return self.pilot_data.items()
-#    
-#    
-#    def get_pilotdata(self, pd_id):
-#        if self.pilot_data.has_key(pd_id):
-#            return self.pilot_data[pd_id]
-#        return None
-#    
-#    
-#    def submit_pilot_data(self, pilot_data_description):
-#        """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
-#        pd = PilotData(self, pilot_data_description)
-#        self.pilot_data[pd.id]=pd
-#        self.pd_queue.put(pd)
-#        
-#        CoordinationAdaptor.add_pd(self.url, pd)     
-#        return pd
-#    
-#    def cancel(self):
-#        """ Cancel the PDS. 
-#            All associated PD objects are deleted and removed from the associated pilot stores.            
-#            
-#            Keyword arguments:
-#            None
-#
-#            Return:
-#            None
-#        """
-#        # terminate background thread
-#        self.stop.set()
-#    
-#        
-#    def _schedule_pd(self, pd):
-#        """ Schedule PD to a suitable pilot store
-#        
-#            Currently one level of scheduling is used:
-#                1.) Add all resources managed by PSS of this PSS
-#                2.) Select one resource
-#        """ 
-#        ps = [s for i in self.pilot_store_services for s in i.list_pilotstores()]
-#        #ps.append(i.list_pilotstores())
-#        #pdb.set_trace()
-#        self.scheduler.set_pilot_stores(ps)
-#        selected_pilot_store = self.scheduler.schedule()
-#        return selected_pilot_store
-#    
-#    
-#    def _scheduler_thread(self):
-#        while True and self.stop.isSet()==False:
-#            logging.debug("Scheduler Thread " + str(self.__class__))
-#            pd = self.pd_queue.get()  
-#            # check whether this is a real pd object  
-#            if isinstance(pd, PilotData):
-#                ps=self._schedule_pd(pd)                
-#                if(ps!=None):
-#                    ps.put_pd(pd)
-#                    logging.debug("Transfer to PS finished.")
-#                    pd.update_state(State.Running)
-#                    pd.add_pilot_store(ps)                    
-#                else:
-#                    self.pd_queue.put(pd)
-#            time.sleep(5)        
-#
-#        logging.debug("Re-Scheduler terminated")
-#
-#    
-#    def __repr__(self):
-#        return str(self.id)
-#
-#
-#    def __del__(self):
-#        self.cancel()
-        
     
 
 class PilotData(PilotData):
@@ -180,93 +36,126 @@ class PilotData(PilotData):
     
     PD_ID_PREFIX="pd-"  
 
-    # Class members
-    __slots__ = (
-        'id',                  # Reference
-        'url',                  # url for referencing the pd 
-        'pilot_data_service',  # Reference to Pilot Data Service
-        'pilot_data_description',  # Pilot Data Description        
-        'state',            # State
-        'data_units',        # DU managed by PilotData object
-        'pilot_stores'      # List of pilot stores that store a replica of PD        
-    )
-
-    def __init__(self, pilot_data_service, pilot_data_description, pd_url=None):
-        
+    def __init__(self, pilot_data_service=None, pilot_data_description=None, pd_url=None):
+        """
+            1.) create a new Pilot Data: pilot_data_service and pilot_data_description required
+            2.) reconnect to an existing Pilot Data: pd_url required 
+            
+        """
         if pd_url==None:
             self.id = self.PD_ID_PREFIX + str(uuid.uuid1())
-            self.url = pilot_data_service.url + "/" + self.id
             self.pilot_data_description = pilot_data_description        
-            self.pilot_data_service = pilot_data_service
             self.pilot_stores=[]
-            self.data_units = DataUnit.create_data_unit_list(self.pilot_data_description["file_urls"]) 
+            self.url = CoordinationAdaptor.add_pd(pilot_data_service.url, self)
             self.state = State.New
+            self.data_units = DataUnit.create_data_unit_list(self, self.pilot_data_description["file_urls"]) 
+            CoordinationAdaptor.update_pd(self)
         else:
             self.id = self.__get_pd_id(pd_url)
-            self.url = pd_url
-        
+            self.url = pd_url            
+            self.__restore_state()
+    
+    
+    def __restore_state(self):
+        pd_dict = CoordinationAdaptor.get_pd(self.url)
+        self.pilot_data_description = pd_dict["pilot_data_description"]
+        self.state = pd_dict["state"]
+        data_unit_dict_list = pd_dict["data_units"]
+        self.data_units = [DataUnit.create_data_unit_from_dict(i) for i in data_unit_dict_list]
+        self.pilot_stores = [] 
+        for i in pd_dict["pilot_stores"]:
+            logger.debug("PS:"+str(i)) 
+            ps = PilotStore(ps_url=str(i))
+            self.pilot_stores.append(ps) 
+            
+            
     def cancel(self):
         """ Cancel the PD. """
         self.state = State.Done    
+        CoordinationAdaptor.update_pd(self)
             
-    def add_data_units(self, data_units):
-        self.data_units.append(data_units)    
+    def add_data_unit(self, data_unit):
+        self.data_units.append(data_unit)    
+        CoordinationAdaptor.update_pd(self)
     
     def remove_data_unit(self, data_unit):
         self.data_units.remove(data_unit)
-    
-    def list_data_units(self):
+        CoordinationAdaptor.update_pd(self)
+        
+    def list_data_units(self):        
         return self.data_units
         
-    def get_state(self):
+    
+    def get_state(self):        
         return self.state  
     
+    
+    def add_pilot_store(self, pilot_store):
+        """ add PD to a certain pilot store 
+            data will be moved into this store
+        """
+        pilot_store.put_pd(self)
+        self.pilot_stores.append(pilot_store)
+        CoordinationAdaptor.update_pd(self)  
+        
+    
     def get_pilot_stores(self):
+        """ get a list of pilot stores that have a copy of this PD """
         return self.pilot_stores
+    
     
     def export(self, target_directory):
         """ simple implementation of export: 
                 copies file from first pilot store to local machine
         """
-        self.pilot_stores[0].export_pd(self, target_directory)
+        if len(self.pilot_stores) > 0:
+            self.pilot_stores[0].export_pd(self, target_directory)
+        else:
+            logger.error("No Pilot Store for PD found")
     
-    def __repr__(self):
-        repr_dict = {
-                     "url": self.url,
-                    }        
-        
-        ps = []
-        for i in self.pilot_stores:
-            ps.append(i.url_for_pd(self))        
-        repr_dict["pilot_stores"]=ps            
-        return str(repr_dict)
     
+    def to_dict(self):
+        du_dict = self.__dict__
+        du_dict["id"]=self.id
+        return du_dict        
     
     ###########################################################################
     # BigData Internal Methods
     def update_state(self, state):
         self.state=state
-        
-    def add_pilot_store(self,pilot_store):
-        self.pilot_stores.append(pilot_store) 
+        CoordinationAdaptor.update_pd(self)
+
     
-    def __get_pd_id(self, ps_url):
-        start = ps_url.index(self.PD_ID_PREFIX)
-        end =ps_url.index("/", start)
-        return ps_url[start:end]
+    def __get_pd_id(self, pd_url):
+        try:
+            start = pd_url.index(self.PD_ID_PREFIX)
+            end = pd_url.find("/", start)
+            if end==-1:
+                end = pd_url.find("?", start)
+            if end==-1:
+                end = len(pd_url)-1
+            return pd_url[start:end]
+        except:
+            logger.error("No valid PD URL")
+        return None
+    
+    def __repr__(self):        
+        return "PD: " + str(self.url) 
+        + " \nData Units: " + str(self.data_units)
+        + " \nPilot Stores: " + str(self.pilot_stores)
     
 
 class DataUnit(DataUnit):
     """ TROY DataUnit """
-
-    __slots__ = (
-        'id',        
-        'url',      # url in PD container
-        'local_url' # local url of file
-    )
-    
-    def __init__(self, local_url):
-        self.local_url = local_url        
+    DU_ID_PREFIX="du-"  
+   
+    def __init__(self, pd=None, local_url=None):        
+        if local_url!=None:
+            self.id = self.DU_ID_PREFIX + str(uuid.uuid1())
+            self.local_url = local_url        
+            if pd != None:
+                self.url = pd.url + os.path.basename(local_url)
+        
         
     @classmethod    
     def __exists_file(cls, url):   
@@ -282,22 +171,54 @@ class DataUnit(DataUnit):
                 return True
             else:
                 return False
-        else:
-            # TODO check for remote existences of file
+        else:            
             return True
-         
+        
+    def to_dict(self):
+        du_dict = self.__dict__
+        du_dict["id"]=self.id
+        return du_dict
+    
+    
+    def __repr__(self):
+        return str(self.__dict__) 
+        
          
     @classmethod
-    def create_data_unit_list(cls, urls):
+    def create_data_unit_list(cls, pd=None, urls=None):
         """ Creates a list of DUs from URL list
         """    
         du_list = []    
         for i in urls:            
             if cls.__exists_file(i):
-                du = DataUnit(i)
+                du = DataUnit(pd, i)
                 du_list.append(du)
     
         return du_list
+    
+    @classmethod
+    def create_data_unit_from_urls(cls, urls=None):
+        """ Creates a list of DUs from URL list
+        """    
+        du_list = []    
+        for i in urls:            
+            if cls.__exists_file(i):
+                du = DataUnit(pd, i)
+                du_list.append(du)
+    
+        return du_list
+    
+    
+    @classmethod
+    def create_data_unit_from_dict(cls, du_dict):
+        du = DataUnit()
+        logger.debug("Restore DU: " + str(du_dict))
+        for i in du_dict.keys():
+            du.__setattr__(i, du_dict[i])
+        return du
+    
+    
+
     
 ###############################################################################
     

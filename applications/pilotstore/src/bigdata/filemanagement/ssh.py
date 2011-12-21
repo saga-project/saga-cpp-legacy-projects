@@ -80,6 +80,8 @@ class SSHFileAdaptor(object):
                     continue            
                 self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
                 
+    def copy_pd(self, pd):
+        pass
     
     
     def get_pd(self, pd, target_directory):

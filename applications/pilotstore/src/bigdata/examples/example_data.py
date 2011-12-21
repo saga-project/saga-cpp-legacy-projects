@@ -81,6 +81,12 @@ if __name__ == "__main__":
     logging.debug("Export files of PD")
     pd1.export("/tmp/pilot-store-export/pd1/")
     pd2.export("/tmp/pilot-store-export/pd2/")
+        
+    print "***************************************************************"
+    print "To reconnect to Pilot Data 1 use the following URL: %s"%pd1.url
+    print "Run:\n\n " + sys.executable + " example_data_reconnect.py %s"%pd1.url
+    print "\n\n******************* SLEEPING *********************************"
+    time.sleep(1200)
     
     logging.debug("Terminate Pilot Data/Store Service")
     pilot_data_service.cancel()

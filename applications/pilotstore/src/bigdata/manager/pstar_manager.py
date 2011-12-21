@@ -11,11 +11,11 @@ import traceback
 import urlparse
 
 import bigdata
-
 from bigdata import logger
 from bigdata.troy.api import WorkDataService
 from bigdata.troy.compute.api import WorkUnit, State
-from bigdata.manager.pilotdata_manager import PilotData, PilotDataService, PILOTDATA_URL_SCHEME
+from bigdata.manager.pilotdata_manager import PilotData
+
 from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
 
 """ Loaded Module determines scheduler:
@@ -167,9 +167,11 @@ class WorkDataService(WorkDataService):
     
     def submit_pilot_data(self, pilot_data_description):
         """ creates a pilot data object and binds it to a physical resource (a pilotstore) """
-        pd = PilotData(self, pilot_data_description)
+        pd = PilotData(pilot_data_service=self, 
+                       pilot_data_description=pilot_data_description)
         self.pilot_data[pd.id]=pd
         self.pd_queue.put(pd)
+        # queue currently not persisted
         CoordinationAdaptor.update_wds(self.url, self)
         return pd
     
@@ -231,7 +233,7 @@ class WorkDataService(WorkDataService):
                 if isinstance(pd, PilotData):
                     ps=self._schedule_pd(pd)                
                     if(ps!=None):
-                        ps.put_pd(pd)
+                        #ps.put_pd(pd)
                         logging.debug("Transfer to PS finished.")
                         pd.update_state(State.Running)
                         pd.add_pilot_store(ps)                    
