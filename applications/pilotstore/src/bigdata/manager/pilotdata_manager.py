@@ -77,6 +77,8 @@ class PilotData(PilotData):
     def add_data_unit(self, data_unit):
         self.data_units.append(data_unit)    
         CoordinationAdaptor.update_pd(self)
+        # TODO Update Pilot Stores
+    
     
     def remove_data_unit(self, data_unit):
         self.data_units.remove(data_unit)
@@ -94,7 +96,10 @@ class PilotData(PilotData):
         """ add PD to a certain pilot store 
             data will be moved into this store
         """
-        pilot_store.put_pd(self)
+        if len(self.pilot_stores) > 0: # copy files from other pilot store
+            self.pilot_stores[0].copy_pd(self, pilot_store)
+        else: # copy files from original location
+            pilot_store.put_pd(self)
         self.pilot_stores.append(pilot_store)
         CoordinationAdaptor.update_pd(self)  
         

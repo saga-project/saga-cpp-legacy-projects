@@ -40,15 +40,14 @@ class PilotStore(PilotStore):
         self.service_url=None
         self.size = None
         self.pilot_store_description = None
+        self.pilot_data={}
         
         if ps_url==None and pilot_store_service!=None:      # new ps          
             self.id = self.PS_ID_PREFIX+str(uuid.uuid1())
-            self.url = pilot_store_service.url + "/" + self.id
             self.pilot_store_description = pilot_store_description
-            self.pilot_data={}
-            CoordinationAdaptor.add_ps(self.url, self)
+            self.url = CoordinationAdaptor.add_ps(CoordinationAdaptor.get_base_url(bigdata.application_id)+"/"+pilot_store_service.id, self)
         elif ps_url != None:
-            logger.warn("Reconnect to PilotStore not supported")
+            logger.warn("Reconnect to PilotStore: %s"%ps_url)
             dictionary = CoordinationAdaptor.get_ps(ps_url)
             ps_dict = dictionary["pilot_store"]
             for i in ps_dict:
@@ -90,6 +89,10 @@ class PilotStore(PilotStore):
         return None
     
     
+    def create_pd(self, pd):
+        self.__filemanager.create_pd(pd.id)
+        
+        
     def put_pd(self, pd):
         logging.debug("Put PD: %s to PS: %s"%(pd.id,self.service_url))
         self.__filemanager.create_pd(pd.id)
@@ -106,6 +109,14 @@ class PilotStore(PilotStore):
         CoordinationAdaptor.update_ps(self)
         
     
+    def copy_pd(self, pd, ps_new):
+        ps_new.create_pd(pd)
+        self.__filemanager.copy_pd(pd, ps_new)
+        
+        # update meta data at ps_new
+        ps_new.pilot_data[pd.id] = pd
+        CoordinationAdaptor.update_ps(ps_new)
+        
     def list_pilotdata(self):           
         return self.pilot_data.values()
     

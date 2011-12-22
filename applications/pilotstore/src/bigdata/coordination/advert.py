@@ -72,19 +72,21 @@ class AdvertCoordinationAdaptor:
     @classmethod
     def add_ps(cls, pss_url, ps):
         pss_url = cls.__remove_dbtype(pss_url)        
-        ps_description_url = cls.__get_url(pss_url+"/" + ps.id + "/description")
+        ps_url =pss_url+"/" + ps.id
+        ps_description_url = cls.__get_url(ps_url + "/description")
         logger.debug("PSS URL: %s, PS Description URL: %s"%(pss_url, ps_description_url))
         # directory is recursively created
         ps_desc_entry = saga.advert.entry(saga.url(ps_description_url),
                                            saga.advert.Create | saga.advert.CreateParents | saga.advert.ReadWrite)
         logger.debug("initialized advert entry for pss: " + ps_description_url)
         ps_desc_entry.store_string(json.dumps(ps.pilot_store_description))
-        
+        return ps_url
     
     @classmethod
     def update_ps(cls, ps):
-        pd_urls = [i.url for i in ps.pilot_data.values()]
-        cls.__store_entry(cls.__remove_dbtype(ps.url)+"/pilot-data", pd_urls)
+        if len(ps.pilot_data) > 0:
+            pd_urls = [i.url for i in ps.pilot_data.values()]
+            cls.__store_entry(cls.__remove_dbtype(ps.url)+"/pilot-data", pd_urls)
         cls.__store_entry(cls.__remove_dbtype(ps.url)+"/pilot-store", ps.to_dict())
     
     
@@ -92,7 +94,7 @@ class AdvertCoordinationAdaptor:
     def get_ps(cls, ps_url):
         logger.debug("GET PS: " + ps_url)     
         ps_dict={}        
-        ps_dict["pilot_data" ]=  cls.__retrieve_entry(cls.__remove_dbtype(ps_url)+"/pilot-data")
+        #ps_dict["pilot_data" ]=  cls.__retrieve_entry(cls.__remove_dbtype(ps_url)+"/pilot-data")
         ps_dict["pilot_store"] = cls.__retrieve_entry(cls.__remove_dbtype(ps_url)+"/pilot-store") 
         return ps_dict
         

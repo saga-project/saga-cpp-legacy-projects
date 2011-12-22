@@ -12,6 +12,7 @@ import logging
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from bigdata.troy.compute.api import State
+from bigdata import logger
 
 class SSHFileAdaptor(object):
     """ BigData Coordination File Management for Pilot Store """
@@ -60,7 +61,12 @@ class SSHFileAdaptor(object):
             return self.__state            
             
     def create_pd(self, pd_id):
-        self.__sftp.mkdir(os.path.join(self.path, str(pd_id)))
+        pd_dir = os.path.join(self.path, str(pd_id))
+        logger.debug("mkdir: " + pd_dir)
+        try:
+            self.__sftp.mkdir(pd_dir)
+        except:
+            pass # dir already exists
         
         
     def put_pd(self, pd):
@@ -80,9 +86,17 @@ class SSHFileAdaptor(object):
                     continue            
                 self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
                 
-    def copy_pd(self, pd):
-        pass
-    
+                
+    def copy_pd(self, pd, ps_new):
+        base_dir = self.__get_path_for_pd(pd)
+        remote_url = ps_new.service_url + "/" + str(pd.id)
+        local_url =  self.service_url  + "/" + str(pd.id)
+        for filename in self.__sftp.listdir(base_dir):            
+            file_url = local_url + "/"+ filename
+            file_remote_url = remote_url + "/" + filename
+            logger.debug("Copy " + file_url + " to " + file_remote_url)
+            self.__third_party_transfer_host(file_url, file_remote_url)  
+        
     
     def get_pd(self, pd, target_directory):
         base_dir = self.__get_path_for_pd(pd)
@@ -102,8 +116,7 @@ class SSHFileAdaptor(object):
     def put_progress(self, transfered_bytes, total_bytes):
         logging.debug("Bytes transfered %d/%d"%(transfered_bytes, total_bytes))
     
-    
-    
+        
     
     ###########################################################################
     # Private support methods
@@ -137,8 +150,51 @@ class SSHFileAdaptor(object):
         else:
             return False
         
+    def __third_party_transfer_host(self, source_url, target_url):
+        """
+            Transfers from source URL to machine of PS (target path)
+        """
+        
+        result = urlparse.urlparse(source_url)
+        source_host = result.netloc
+        source_path = result.path
+        
+        result = urlparse.urlparse(target_url)
+        target_host = result.netloc
+        target_path = result.path
+        
+        python_script= """import sys
+import os
+import urllib
+import sys
+import time
+import paramiko
+
+client = paramiko.SSHClient()
+client.load_system_host_keys()
+client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+client.connect("%s")
+sftp = client.open_sftp()
+sftp.get("%s", "%s")
+
+"""%(source_host, source_path, target_path)
+
+        logging.debug("Execute: \n%s"%python_script)
+        source_client = paramiko.SSHClient()
+        source_client.load_system_host_keys()
+        source_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+        source_client.connect(target_host)
+        stdin, stdout, stderr = source_client.exec_command("python -c \'%s\'"%python_script)
+        stdin.close()
+        logging.debug("************************************************")
+        logging.debug("Stdout: %s\nStderr:%s", stdout.read(), stderr.read())
+        logging.debug("************************************************")
+        
     
     def __third_party_transfer(self, source_url, target_path):
+        """
+            Transfers from source URL to machine of PS (target path)
+        """
         result = urlparse.urlparse(source_url)
         source_host = result.netloc
         source_path = result.path

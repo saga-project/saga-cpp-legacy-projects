@@ -19,7 +19,7 @@ if __name__ == "__main__":
         
     # create pilot store service (factory for pilot stores (physical, distributed storage))
     pilot_store_service = PilotStoreService()
-    ps1 = pilot_store_service.create_pilotstore({
+    ps_new = pilot_store_service.create_pilotstore({
                                 'service_url': "ssh://localhost/tmp/pilotstore-reconnect/",
                                 'size':100,
                                'affinity_datacenter_label': "eu-de-south",              
@@ -31,12 +31,15 @@ if __name__ == "__main__":
     
     
     ###########################################################################
-    # PD1 should only be scheduled to machine 1    
+    # PD should only be scheduled to machine 1    
     logging.debug("Connect to PD URL: %s"%reconnect_url)
-    pd1 = PilotData(pd_url=reconnect_url)
+    pd = PilotData(pd_url=reconnect_url)
+    
+    #ps_old = pd.get_pilot_stores()[0]
+    #ps_old.copy_pd(pd, ps_new)
     
     # Move PD to another pilot store    
-    pd1.add_pilot_store(ps1)
+    pd.add_pilot_store(ps_new)
     
     #time.sleep(120)
-    pilot_store_service.cancel()
+    #pilot_store_service.cancel()
