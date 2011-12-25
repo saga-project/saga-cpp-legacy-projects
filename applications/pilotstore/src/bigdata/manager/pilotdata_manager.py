@@ -78,11 +78,13 @@ class PilotData(PilotData):
         self.data_units.append(data_unit)    
         CoordinationAdaptor.update_pd(self)
         # TODO Update Pilot Stores
-    
-    
+        
+        
     def remove_data_unit(self, data_unit):
         self.data_units.remove(data_unit)
         CoordinationAdaptor.update_pd(self)
+        # TODO Update Pilot Stores
+        
         
     def list_data_units(self):        
         return self.data_units
@@ -109,12 +111,12 @@ class PilotData(PilotData):
         return self.pilot_stores
     
     
-    def export(self, target_directory):
+    def export(self, target_url):
         """ simple implementation of export: 
                 copies file from first pilot store to local machine
         """
         if len(self.pilot_stores) > 0:
-            self.pilot_stores[0].export_pd(self, target_directory)
+            self.pilot_stores[0].export_pd(self, target_url)
         else:
             logger.error("No Pilot Store for PD found")
     

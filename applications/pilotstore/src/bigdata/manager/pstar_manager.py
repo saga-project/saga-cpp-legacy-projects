@@ -232,11 +232,10 @@ class WorkDataService(WorkDataService):
                 # check whether this is a real pd object  
                 if isinstance(pd, PilotData):
                     ps=self._schedule_pd(pd)                
-                    if(ps!=None):
-                        #ps.put_pd(pd)
+                    if(ps!=None):                        
                         logging.debug("Transfer to PS finished.")
-                        pd.update_state(State.Running)
-                        pd.add_pilot_store(ps)                    
+                        pd.add_pilot_store(ps)
+                        pd.update_state(State.Running)                    
                     else:
                         self.pd_queue.put(pd)
             except Queue.Empty:
@@ -256,11 +255,11 @@ class WorkDataService(WorkDataService):
                 pass
             except:
                 exc_type, exc_value, exc_traceback = sys.exc_info()
-                print "*** print_tb:"
-                traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
-                print "*** print_exception:"
+                logger.error("*** print_tb:")
+                traceback.print_tb(exc_traceback, limit=1, file=sys.stderr)
+                logger.error("*** print_exception:")
                 traceback.print_exception(exc_type, exc_value, exc_traceback,
-                              limit=2, file=sys.stdout)
+                              limit=2, file=sys.stderr)
             time.sleep(5)        
 
         logging.debug("Re-Scheduler terminated")

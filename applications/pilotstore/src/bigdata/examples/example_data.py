@@ -78,9 +78,9 @@ if __name__ == "__main__":
             break
         time.sleep(2)  
     
-    logging.debug("Export files of PD")
-    pd1.export("/tmp/pilot-store-export/pd1/")
-    pd2.export("/tmp/pilot-store-export/pd2/")
+    logging.debug("Export files of PD to India")
+    #pd1.export("/tmp/pilot-store-export/pd1/")
+    pd2.export("ssh://hotel.futuregrid.org/N/u/luckow/pilot-store-export/")
         
     print "***************************************************************"
     print "To reconnect to Pilot Data 1 use the following URL: %s"%pd1.url

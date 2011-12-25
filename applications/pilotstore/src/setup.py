@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-#from distutils.core import setup
 import sys
+import bigdata
 from setuptools import setup, find_packages
 
 try:
@@ -11,7 +11,7 @@ except:
     #sys.exit(1)
     
 setup(name='BigData',
-      version='0.1.0',
+      version=bigdata.version,
       description='SAGA-based Pilot-Data Implementation',
       author='Andre Luckow',
       author_email='aluckow@cct.lsu.edu',
@@ -23,7 +23,7 @@ setup(name='BigData',
                     ],
       platforms = ('Unix', 'Linux', 'Mac OS'),
       packages=['bigdata', 'examples'],
-      data_files=[],
+      data_files=['bigdata/VERSION'],
       install_requires=['uuid', 'threadpool', 'virtualenv', 'redis==2.2.4', 'paramiko'],
       entry_points = {
         'console_scripts': []

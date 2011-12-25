@@ -125,8 +125,8 @@ class PilotStore(PilotStore):
         return self.__filemanager.get_state()
     
     
-    def export_pd(self, pd, target_directory):
-        self.__filemanager.get_pd(pd, target_directory)
+    def export_pd(self, pd, target_url):
+        self.__filemanager.get_pd(pd, target_url)
     
     
     def to_dict(self):

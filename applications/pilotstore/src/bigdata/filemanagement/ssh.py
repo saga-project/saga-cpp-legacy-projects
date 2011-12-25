@@ -9,6 +9,7 @@ import sys
 import os
 import stat
 import logging
+import traceback
 
 sys.path.append(os.path.join(os.path.dirname(__file__), "../.."))
 from bigdata.troy.compute.api import State
@@ -85,28 +86,41 @@ class SSHFileAdaptor(object):
                     logging.warning("Path %s is a directory. Ignored."%i.local_url)                
                     continue            
                 self.__sftp.put(i.local_url, remote_path, self.put_progress, True)
-                
-                
-    def copy_pd(self, pd, ps_new):
+                             
+
+    def copy_pd_to_url(self, pd,  local_url, remote_url):
         base_dir = self.__get_path_for_pd(pd)
-        remote_url = ps_new.service_url + "/" + str(pd.id)
-        local_url =  self.service_url  + "/" + str(pd.id)
-        for filename in self.__sftp.listdir(base_dir):            
-            file_url = local_url + "/"+ filename
+        self.__create_remote_directory(remote_url)  
+        for filename in self.__sftp.listdir(base_dir):
+            file_url = local_url + "/" + filename
             file_remote_url = remote_url + "/" + filename
             logger.debug("Copy " + file_url + " to " + file_remote_url)
-            self.__third_party_transfer_host(file_url, file_remote_url)  
+            self.__third_party_transfer_host(file_url, file_remote_url)
+
+
+    def copy_pd(self, pd, ps_new):
+        remote_url = ps_new.service_url + "/" + str(pd.id)
+        local_url =  self.service_url  + "/" + str(pd.id)
+        self.copy_pd_to_url(pd, local_url, remote_url)  
         
     
-    def get_pd(self, pd, target_directory):
-        base_dir = self.__get_path_for_pd(pd)
-        logging.debug("Copy PD from %s to %s"%(base_dir, target_directory))        
-        if not os.path.exists(target_directory):
-            os.makedirs(target_directory)
-            
-        for filename in self.__sftp.listdir(base_dir):
-            logging.debug("Get %s"%filename)
-            self.__sftp.get(os.path.join(base_dir, filename), os.path.join(target_directory, filename))
+    def get_pd(self, pd, target_url):
+        
+        #result = urlparse.urlparse(target_url)
+        #target_host = result.netloc
+        #target_path = result.path
+        
+        #base_dir = self.__get_path_for_pd(pd)
+        #logging.debug("Copy PD from %s to %s"%(base_dir, target_url))        
+        #if not os.path.exists(target_url):
+        #    os.makedirs(target_url)
+        remote_url = target_url
+        local_url =  self.service_url  + "/" + str(pd.id)
+        self.copy_pd_to_url(pd, local_url, remote_url)  
+        
+        #for filename in self.__sftp.listdir(base_dir):
+            #logging.debug("Copy %s"%filename)
+            #self.__sftp.get(os.path.join(base_dir, filename), os.path.join(target_url, filename))
     
         
     def remove_pd(self, pd):
@@ -135,7 +149,30 @@ class SSHFileAdaptor(object):
                 else:
                     self.__sftp.remove(filepath)
             self.__sftp.rmdir(path)
-    
+            
+    def __create_remote_directory(self, target_url):
+        result = urlparse.urlparse(target_url)
+        target_host = result.netloc
+        target_path = result.path
+        try:
+            client = paramiko.SSHClient()
+            client.load_system_host_keys()
+            client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
+            client.connect(target_host)
+            sftp = client.open_sftp()            
+            #s = sftp.stat(os.path.dirname(target_path))
+            #if stat.S_ISDIR(s.st_mode):
+            #    logger.debug("Directory: " + target_path + " exists.")
+            #else:
+            sftp.mkdir(target_path)
+            sftp.close()
+            client.close()
+        except:
+            logger.error("Error creating directory: " + str(target_path) 
+                         + " at: " + str(target_host))
+            self.__print_traceback()
+            
+        
     def __is_remote_directory(self, url):
         result = urlparse.urlparse(url)
         host = result.netloc
@@ -149,12 +186,13 @@ class SSHFileAdaptor(object):
             return True
         else:
             return False
+        sftp.close()
+        client.close()
         
     def __third_party_transfer_host(self, source_url, target_url):
         """
             Transfers from source URL to machine of PS (target path)
         """
-        
         result = urlparse.urlparse(source_url)
         source_host = result.netloc
         source_path = result.path
@@ -162,7 +200,7 @@ class SSHFileAdaptor(object):
         result = urlparse.urlparse(target_url)
         target_host = result.netloc
         target_path = result.path
-        
+          
         python_script= """import sys
 import os
 import urllib
@@ -175,15 +213,14 @@ client.load_system_host_keys()
 client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
 client.connect("%s")
 sftp = client.open_sftp()
-sftp.get("%s", "%s")
-
-"""%(source_host, source_path, target_path)
+sftp.put("%s", "%s")
+"""%(target_host, source_path, target_path)
 
         logging.debug("Execute: \n%s"%python_script)
         source_client = paramiko.SSHClient()
         source_client.load_system_host_keys()
         source_client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-        source_client.connect(target_host)
+        source_client.connect(source_host)
         stdin, stdout, stderr = source_client.exec_command("python -c \'%s\'"%python_script)
         stdin.close()
         logging.debug("************************************************")
@@ -238,4 +275,12 @@ sftp.get("%s", "%s")
         else:
             return True
    
+   
+    def __print_traceback(self):
+        exc_type, exc_value, exc_traceback = sys.exc_info()
+        print "*** print_tb:"
+        traceback.print_tb(exc_traceback, limit=1, file=sys.stdout)
+        print "*** print_exception:"
+        traceback.print_exception(exc_type, exc_value, exc_traceback,
+                              limit=2, file=sys.stdout)
     
