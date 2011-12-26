@@ -22,8 +22,18 @@
 \author{Joohyun Kim \and Sharath Maddineni \and Yaakoub El-Khamra \and
   Shantenu Jha}
 
-\institute{Center for Computation and Technology, Louisiana State University, \email{jhkim@cct.lsu.edu} \and Center for Computation and Technology, Louisiana State University, \email{smaddineni@cct.lsu.edu} \and Center for Computation and Technology, Louisiana State University, %  Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, \email{m.a.santcroos@amc.uva.nl}
-  \and Texas Advanced Computing Center, TACC, The University of Texas At Austin, \email{yaakoub@tacc.utexas.edu} \and Center for Computation and Technology, Louisiana State University, Rutgers University, School of Informatics, University of Edinburgh, Department of Computer Science, Louisiana State University, \email{shantenu.jha@rutgers.edu}}
+\institute{Center for Computation and Technology, Louisiana State
+  University, \email{jhkim@cct.lsu.edu} \and Center for Computation
+  and Technology, Louisiana State University,
+  \email{smaddineni@cct.lsu.edu} \and Center for Computation and
+  Technology, Louisiana State
+  University, % Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, \email{m.a.santcroos@amc.uva.nl}
+  \and Texas Advanced Computing Center, TACC, The University of Texas
+  At Austin, \email{yaakoub@tacc.utexas.edu} \and Center for
+  Computation and Technology, Louisiana State University, Rutgers
+  University, School of Informatics, University of Edinburgh,
+  Department of Computer Science, Louisiana State University,
+  \email{shantenu.jha@rutgers.edu}}
 
 %\titlerunning{Dynamic Application Runtime Environment (DARE): A Standards-based Framework For Science Gateways}
 %\authorrunning{Joohyun Kim et al.}
@@ -96,30 +106,38 @@
 
 \begin{abstract}
   Gateways have proven to be very effective access mechanism to
-  distributed HPC resources provided by the production
-  cyberinfrastructure such as TeraGrid/XSEDE. In particular, they have
-  been very successful as a shared/community access models, and thus
-  have been able to ``address the needs of the masses''.  However,
-  there are missing capabilities and abstractions that enable the use
-  of the collective capacity of distributed cyberinfrastructure such
-  as TeraGrid/XSEDE, especially those that can be used to develop
-  gateways in an easy, extensible and scalable fashion for both
-  compute and data-intensive applications.  This is a serious barrier,
-  as Gateways often require customization for specific user groups and
-  infrastructure usage modes.  So whereas a single science gateway is
-  a scalable access mechanism in terms of number of people, that can
-  be supported the development of, the development of multiple similar
-  gateways but with differing infrastructure usage and requirements is
-  not scalable.  We introduce the SAGA-based, Distributed Application
-  Runtime Environment (DARE) framework from which extensible,
-  versatile and effective gateways that seamlessly utilize scalable
-  distributed infrastructure can be built. We analyze a range of
-  life-science applications, and establish that DARE provides an
-  extensible and simple framework which applications can use.  DARE
-  along with SAGA provides effective interoperable middleware upon
-  which to build such gateways.  We discuss the architecture of the
-  DARE framework, discuss how gateways can utilize the framework, and
-  present representative life-science gateways -- DARE-HTHP, DARE-NGS.
+  distributed HPC resources provided by production cyberinfrastructure
+  such as TeraGrid/XSEDE. In particular, they have been very
+  successful as a shared-community access mode to production
+  cyberinfrastructure, as they have been able to ``address the needs
+  of the masses''.  
+  % However, there are missing capabilities and abstractions that
+  % enable the use of the collective capacity of distributed
+  % cyberinfrastructure such as TeraGrid/XSEDE, especially those that
+  % can be used to develop gateways in an easy, extensible and
+  % scalable fashion for both compute and data-intensive applications.
+  However, there are missing capabilities that make distributed
+  cyberinfrastructure such as TeraGrid/XSEDE usable as a collective
+  resource difficult; these missing abstractions include those that
+  can be used to develop Gateways to utilize the collective capacity
+  of distributed cyberinfrastructure in an easy, extensible and
+  scalable fashion for both compute and data-intensive applications.
+  This is a serious barrier, as Gateways often require customization
+  for specific user groups and infrastructure usage modes.  So whereas
+  a single science gateway is a scalable access mechanism in terms of
+  number of people, that can be supported, the development of multiple
+  similar gateways but with differing infrastructure usage and
+  requirements is not scalable.  We introduce the SAGA-based,
+  Distributed Application Runtime Environment (DARE) framework from
+  which extensible, versatile and effective gateways that seamlessly
+  utilize scalable distributed infrastructure can be built. We analyze
+  a range of life-science applications, and establish that DARE
+  provides an extensible and simple framework which applications can
+  use.  DARE along with SAGA provides effective interoperable
+  middleware upon which to build such gateways.  We discuss the
+  architecture of the DARE framework, discuss how gateways can utilize
+  the framework, and present representative life-science gateways --
+  DARE-HTHP, DARE-NGS.
 \end{abstract}
 
 %  This work is predicated on three important trends: (i) that the
@@ -177,19 +195,19 @@
 
 \section{INTRODUCTION}
 
-%\subsection{TeraGrid Usage by the life-science community}
+Our work is motivated by two reasons: The first is the insufficient
+uptake of Gateways and thus a resulting opportunity ..  The second is
+the existing inability to support data-intensive applications using
+distributed CI..
 
-% An interesting corollary is that the rate-of-increase of
-% computing resources devoted to the life sciences is increasing, and
-% arguably is increasing at a rate faster than any other discipline. 
-
-The importance of computing in the life sciences is well appreciated.
 In spite of fundamental limitations on the precision of the data,
-amongst the many indicators is the fact that for, many if not most
-production distributed cyberinfrastructure, the percentage of
-resources devoted to the life sciences is already more than any
-discipline and the usage seems to be increasing, whether measured by
-number of cycles consumed, users or allocations
+amongst the many indicators of the importance of computing in the life
+sciences, is the fact that for most production distributed
+cyberinfrastructure, the percentage of resources devoted to the life
+sciences is already more than any discipline and the usage seems to be
+increasing, whether measured by number of cycles consumed, users or
+allocations. 
+
 
 % as seen from Figs.~\ref{tg2007} \& \ref{tg2008} and
 % Table~\ref{tg2011}, the trends are somewhat unambiguous: among
@@ -213,35 +231,15 @@ number of cycles consumed, users or allocations
   \label{tg2007}
 \end{figure}
 
-However, most life-science applications have not been very effective
-in utilizing HPC cyberinfrastructure. The massive increase in the
-proportion of resources utilized by the life-sciences is skewed by the
-dominance of the large-scale Molecular Dynamics(MD) simulations, and
-phylogenetics.  % MD simulations have
-% mostly relied on scaling-up to high core-counts, whilst virtual
-% docking calculations benefits from high-throughput calculations.
-The former has beneffited from the availability of multiple community
-codes, taylored to the effectively utilize the computing
-infrastructure, thus enabling easy uptake/usage amongst the scientific
-community.
 
-% with the exception of a few common applications, e.g., large-scale
-% simulations (mostly Molecular Dynamics(MD)) and virtual-docking
-% simulations, 
-
-The need for large-scale distributed parallel execution for other
-areas of biological/life-science applications is growing due to the
-advances in experimental techniques producing large scale data sets
-with their high-throughput methods, as well as the advent of computing
-power and data management capacity.
+% MD simulations have mostly relied on scaling-up to high core-counts,
+% whilst virtual docking calculations benefits from high-throughput
+% calculations.  with the exception of a few common applications,
+% e.g., large-scale simulations (mostly Molecular Dynamics(MD)) and
+% virtual-docking simulations,
 
 
 % represents a case that
-
-A specific example highlighting these trends and consequent challenges
-arises in the context of Next-Generation DNA Sequencing (NGS)
-technologies, with unprecedented amounts of data produced through
-high-throughput methods and increasing computational requirements for gathering, management, and analysis of associated or produced data sets along a pipeline process. 
 
 % for analyzing large volumes of data are
 % effectively managed.
@@ -249,25 +247,24 @@ high-throughput methods and increasing computational requirements for gathering,
 % required data analytics required
 % along with dealing with 
 
-Interestingly, the cyberinfrastructure (CI) considerations required to
-support a broad-range of analytical approaches and at the scales
-required, has received less attention than the data-management problem
-and algorithmic advances. Thus not surprisingly, traditional
-production cyberinfrastructure, such as the TG/XSEDE, have not been used for
-such data-intensive analytics and distributed applications. There are
-multiple reasons, but a couple of contributing factors are: (i)
-insufficient runtime environments (and abstractions) to support
-concurrent computational capabilities with large-data sets to support
-data-analytics (beyond visualization) in an easy, scalable and
-extensible fashion, (ii) insufficient support for user-customizable
-data-intensive "workflows" that effectively hide the challenges of
-data-movement and efficient data-management whilst managing concurrent
-distributed (computational) resources.
+%A specific example highlighting these trends and consequent challenges
+Science Gateways have witnessed impressive achievements in terms of
+the growth of the number of supporting researchers and computing time
+usages~\cite{gce11-nancy}. According to the very recent report about
+TG/XSEDE Science Gateway program~\cite{gce11-nancy}, whereas, in 2006,
+10 gateways consumed 100,000 CPU hours, in 2010, 22 gateways provided
+40 million hours usage and by 2011, nearly 40 \% of users on TG/XSEDE
+came through TG/XSEDE gateways. Interestingly, the CIPRES phylogenetic
+gateway, which was notably absent a few years ago, accounts for 25 \%
+of all TG/XSEDE users in 2011 exceeding other gateways dedicated to
+traditionally large-scale scientific computing domains, indicating a
+great potential of the gateway development for nurturing novel
+scientific computing practices and consequently for advancing
+associated scientific domains.
+ 
 
-It is interesting to note~\footnote{Based upon shared
-  information/private communication between SJ and Dave Hart \& Dan
-  Katz}: (i) Molecular Biosciences represented 25\% of
-TG/XSEDE~\footnote{It is difficult to provide such information in a
+It is interesting to note: (i) Molecular Biosciences represented 25\%
+of TG/XSEDE~\footnote{It is difficult to provide such information in a
   consistent way as the total number of cycles available year-to-year
   varies, but also which discipline a proposal gets assigned to is
   somewhat random; thus many chemistry proposals, even physics
@@ -293,19 +290,44 @@ provided this {\it gap} could be overcome.
   \label{tg2008}
 \end{figure}
 
-Science Gateways have witnessed impressive achievements in terms of
-the growth of the number of supporting researchers and computing time
-usages~\cite{gce11-nancy}. According to the very recent report about
-TG/XSEDE Science Gateway program~\cite{gce11-nancy}, whereas, in 2006,
-10 gateways consumed 100,000 CPU hours, in 2010, 22 gateways provided
-40 million hours usage and by 2011, nearly 40 \% of users on TG/XSEDE
-came through TG/XSEDE gateways. Interestingly, the CIPRES phylogenetic
-gateway, which was notably absent a few years ago, accounts for 25 \%
-of all TG/XSEDE users in 2011 exceeding other gateways dedicated to
-traditionally large-scale scientific computing domains, indicating a
-great potential of the gateway development for nurturing novel
-scientific computing practices and consequently for advancing
-associated scientific domains.
+Additionally, most life-science applications have not been very
+effective in utilizing HPC cyberinfrastructure. This rise has been
+dominated by a few well-established domains. In other words, the
+massive increase in the proportion of resources utilized by the
+life-sciences is skewed by the dominance of the large-scale Molecular
+Dynamics(MD) simulations, and phylogenetics.  The former has
+beneffited from the availability of multiple community codes, taylored
+to the effectively utilize the computing infrastructure, thus enabling
+easy uptake/usage amongst the scientific community.
+ 
+The need for large-scale distributed parallel execution for other
+areas of biological/life-science applications is growing due to the
+advances in experimental techniques producing large scale data sets
+with their high-throughput methods, as well as the advent of computing
+power and data management capacity.
+ 
+A specific example highlighting these trends and consequent challenges
+arises in the context of Next-Generation DNA Sequencing (NGS)
+technologies, with unprecedented amounts of data produced through
+high-throughput methods and increasing computational requirements for
+gathering, management, and the analysis of associated or produced data
+sets along a pipeline process.
+
+Interestingly, the cyberinfrastructure (CI) considerations required to
+support a broad-range of analytical approaches and at the scales
+required, has received less attention than the data-management problem
+and algorithmic advances. Thus not surprisingly, traditional
+production cyberinfrastructure, such as the TG/XSEDE, have not been used for
+such data-intensive analytics and distributed applications. There are
+multiple reasons, but a couple of contributing factors are: (i)
+insufficient runtime environments (and abstractions) to support
+concurrent computational capabilities with large-data sets to support
+data-analytics (beyond visualization) in an easy, scalable and
+extensible fashion, (ii) insufficient support for user-customizable
+data-intensive "workflows" that effectively hide the challenges of
+data-movement and efficient data-management whilst managing concurrent
+distributed (computational) resources.
+
 
 {\it Towards a common middleware for Gateways:} A fundamental design
 objective of Science Gateways is to capture the common requirements of
