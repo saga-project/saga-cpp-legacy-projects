@@ -478,14 +478,17 @@ general, DARE supports the general goals of distributed applications:
 interoperability, dynamic execution %distributed scale-out,
 extensibility, adaptivity, scalability (scale-up, scale-out and
 scale-across) -- referred to as IDEAS~\cite{ideas}.  DARE builds upon
-and utilizes SAGA to achieve the IDEAS objective.  {\it Scale-up} and
-{\it Scale-out} refer to the ability to use multiple cores efficiently
-and support multiple concurrent tasks/jobs respectively.  {\it
+and utilizes SAGA to achieve the IDEAS objective.  {\it Scale-up} --
+or the most common type of scaling behavior, refers to the need of a
+single simulations of using many cores efficiently; {\it scale-out} is
+a measure of the ability to support the concurrent execution and
+managment of multiple tasks/jobs respectively (either on a single
+resource, or across multiple physically distributed resources); {\it
   Scale-across} is raised by the need to efficiently distribute across
-multiple heterogenous disparate systems. {\it Adaptivity} addresses
-the requirement that distributed applications may have to adapt to
-resource fluctuation across platforms, and to the availability of
-dynamic data.
+multiple distinct and possibly heterogenous resources. {\it
+  Adaptivity} addresses the requirement that distributed applications
+may have to adapt to resource fluctuation across platforms, and to the
+availability of dynamic data.
 
 \begin{table}
 \centering
@@ -1627,34 +1630,31 @@ Reads FTT&34&153.9  \\
 \includegraphics[width=0.5\textwidth]{figures/screenshot-ngs.png} \hspace{0.1in}
 \includegraphics[width=0.42\textwidth]{figures/screenshot-hthp.png}
 % }
-  \caption{\small (L) The User Interface of the DARE-NGS Gateway that
-    utilizes DARE to execute BFAST (NGS) analytics. (R) NAMD job
-    submission web page form through DARE-HTHP. Here, the form
-    indicates the usage mode with multiple resources. The simple case
-    with a single resource is default, and a user can expands the form
-    by adding more resources as shown. DARE-HTHP and DARE-NGS can be accessed at:
-    \url{http://dare.cct.lsu.edu} }
+\caption{\small (L) The User Interface of the DARE-NGS Gateway that
+  utilizes DARE to execute BFAST (NGS) analytics. (R) NAMD job
+  submission web page form through DARE-HTHP. Here, the form indicates
+  the usage mode with multiple resources. The simple case with a
+  single resource is default, and a user can expands the form by
+  adding more resources as shown. DARE-HTHP and DARE-NGS can be
+  accessed at: \url{http://dare.cct.lsu.edu} }
   \label{fig:NAMD2}
 \end{figure}
 
-
-
-
-
-\subsection{DARE-HTHP}
-%\yyenote{Following sentence needs clarification}
-% An important challenge in modern biomolecular simulations, that has
-% received insufficient attention is to get single long-running jobs
-% completed, but managing and executing multiple instances of the same
-% (or similar) physical system. There are multiple reasons behind this
-% -- ranging from higher accuracy to reduced time-to-solution. For
+% \yyenote{Following sentence needs clarification} An important
+% challenge in modern biomolecular simulations, that has received
+% insufficient attention is to get single long-running jobs completed,
+% but managing and executing multiple instances of the same (or
+% similar) physical system. There are multiple reasons behind this --
+% ranging from higher accuracy to reduced time-to-solution. For
 % example, multiple ensemble-member runs of the same physical system
 % enable better sampling In some cases, such as free-energy
 % calculations, multiple ensembles of the same system need to be
-% utilized. And even where a single long-running simulation is required,
-% thanks to algorithmic advances, such problems can be transformed into
-% the more {\it tractable} problem of solving multiple shorter run
-% simulations.
+% utilized. And even where a single long-running simulation is
+% required, thanks to algorithmic advances, such problems can be
+% transformed into the more {\it tractable} problem of solving
+% multiple shorter run simulations.
+
+\subsection{DARE-HTHP}
 
 In addition to long time simulations of a single large system, an
 important challenge is the ability to run a large number of identical
@@ -1665,26 +1665,56 @@ utilize distributed cyberinfrastructure.  The problem for the
 practitioner is thus effectively marshaling thousands if not millions
 of high-performance simulations on distributed cyberinfrastructure.
 
-An ensemble simulation framework is required which has the following
-characteristics: (i) Usable on a range of underlying distributed
-resources and independent of resource-specific middleware and services
-(i.e. scale-across), (ii) Efficiently manage both scale-up and
-scale-out of ensembles -- possibly scaling up to tens-of-thousands, if
-not millions of ensembles, with varying degrees of coupling, (iii)
-Effective for a range of physical model sizes -- from thousands of
-atoms to hundreds of thousands of atoms, (iv) All of the above without
-being tied to a specific underlying MD kernel, (v) Extensible and
-Interoperable with emerging computational platforms such as
-clouds. 
+Thus fundamental support for an ensemble of simulations with the
+following characters is required: (i) Usable on a range of underlying
+distributed resources and independent of resource-specific middleware
+and services (i.e. scale-across), (ii) Efficiently manage both
+scale-up and scale-out of ensembles -- possibly scaling up to
+tens-of-thousands, if not millions of ensembles, with varying degrees
+of coupling, (iii) Effective for a range of physical model sizes --
+from thousands of atoms to hundreds of thousands of atoms, (iv) All of
+the above without being tied to a specific underlying MD kernel, (v)
+Extensible and Interoperable with emerging computational platforms
+such as clouds.
+
+It is important to establish that the challenges of supporting
+ensemble-based MD simulations are different from traditional workflows
+(e.g, SCEC~\cite{scec-sc10}), where the emphasis is on coordination of
+pre-ordered tasks; by contrast ensemble-based simulations need to be
+designed to support the optimal scale-out and scale-up of tasks across
+multiple machines. In other words, in the latter, the makespan has to
+be reduced by executing as many tasks concurrently as possible,
+whereas in traditional workflows the makespan has to be reduced by the
+efficient scheduling and placement of ordered tasks.
 
 In Ref.~\cite{bigjob-ccgrid12} the ability of an {\it interoperable}
 and {\it extensible} pilot-job tool (BigJob), to support
 high-throughput simulations of high-performance molecular dynamics
 simulations across distributed supercomputing infrastructure was
-assessed.  Building upon these results, DARE-HTHP can be considered as
-a middleware wrapper around SAGA-BigJob.  Results presented in
-Table~\ref{table:HTHP-Distributed} clearly show that DARE-HTHP is able
-to run such an ensemble simulations.
+assessed.  Specifically, a nucleosome positioning problem as an
+exemplar was used, wherein we computed 336 independent trajectories of
+20 ns each.  Each trajectory was further divided into twenty 1 ns long
+simulation tasks. A single task required $\approx$ 42~MB of input, 9
+hours of compute time on 32 cores, and generated 3.8~GB of data.  In
+total 6,720 tasks (6.7 $ \mu $s ) and approximately 25~TB were
+managed.  There is natural task-level concurrency, as these 6,720 can
+be executed with 336-way task concurrency.  A scalable pilot-job
+approach was used to successfully complete this workload on the
+TeraGrid/XSEDE.
+
+% Using NAMD 2.7, this project
+% requires approximately 2 million hours of CPU time and could be
+% completed in just over 1 month on a dedicated supercomputer containing
+% 3,000 cores.  In practice even such a {\it modest} supercomputer is a
+% shared resource and our experience suggests that a simple scheme to
+% automatically batch queue the tasks, might require several years to
+% complete the project.
+
+Building upon these results, DARE-HTHP provides an extensible
+middleware wrapper around SAGA-BigJob, as evidenced by results
+presented in Table~\ref{table:HTHP-Distributed} (from
+Ref.~\cite{ccpe11}), which establish that that DARE-HTHP support
+ensembles of simulations across a range of HPDC infrastructure.
 
 % \jkimnote{need the attention for the following. one or two sentence
 %   summary would be desirable}
@@ -1737,12 +1767,14 @@ of tasks                &     &  Cores    &nodes&   VMs  & (sec) \\
 
 \subsection{Other Examples}
 \subsubsection{DARE-RFOLD}
-\yyenote{The following is a re-write. Please check}
-We have been developing a gateway, DARE-RFOLD to support non-coding RNA research
-and also to serve the RNA structure prediction. Through the DARE-RFOLD,
-users can run simulations to predict the Minimum Free Energy (MFE) secondary
-structure or to obtain an ensemble of structures sampled with a Boltzmann-weighted
-sampling scheme.
+\yyenote{The following is a re-write. Please check} 
+
+We have developed DARE-RFOLD, a gateway to support non-coding RNA
+research and also to serve the RNA structure prediction
+community. Through DARE-RFOLD, users can run simulations to predict
+the Minimum Free Energy (MFE) secondary structure or to obtain an
+ensemble of structures sampled with a Boltzmann-weighted sampling
+scheme.
 
 % To support nc-RNA research and broadly for the community who is
 % interested in the utilization of RNA structure prediction for their
@@ -1752,19 +1784,26 @@ sampling scheme.
 % sampled with a Boltzmann-weighted sampling scheme.
 
 Notably, our investigation into the computational requirements of RNA
-folding dynamics suggested that the support of high-throughput
+folding dynamics suggest that the support of high-throughput
 computation for a large number of tasks on heterogeneous distributed
 resources is beneficial for the exploration of RNA folding energy
 landscape and structural characterization of SAM-I riboswitch
-sequences. In recent works\cite{dare-ecmls11,ccpe11}, the DARE
-framework and its capacity for implementing a many-task-computing
-support were demonstrated with the calculations of the total 2910
-tasks needed for all known SAM-I RNA sequence family with SAGA-BigJob set up.
-
+sequences. As shown in Refs.~\cite{dare-ecmls11,ccpe11}, the DARE
+framework and its ability to support many tasks of over multiple
+scales and resources was demonstrated by effectively completing a
+total of 2910 tasks needed for all known SAM-I RNA sequence family.
 
 \subsubsection{DARE-DOCK}
-DARE-DOCK was developed for the basic virtual screening.  The current service with the gateway supports the docking with a popular application, Autodock\cite{autodock}. \yyenote{The following sentence is five sentences rolled into one. Needs work}\jkimnote{i chnaged}  Specifically, the docking calculation is carried out with the recently announced Autodock-vina, which allows to utilize fine-grain parallelism with multi-threading multi-core
-support.  WIth such new capabilities with Autodock-vina, the gateway is able to carry out a very effective execution of high-throughput docking with multiple resources that is straightforwardly supported by DARE.  
+DARE-DOCK was developed for the basic virtual screening.  The current
+service with the gateway supports the docking with a popular
+application, Autodock\cite{autodock}. \yyenote{The following sentence
+  is five sentences rolled into one. Needs work}\jkimnote{i chnaged}
+Specifically, the docking calculation is carried out with the recently
+announced Autodock-vina, which allows to utilize fine-grain
+parallelism with multi-threading multi-core support.  WIth such new
+capabilities with Autodock-vina, the gateway is able to carry out a
+very effective execution of high-throughput docking with multiple
+resources that is straightforwardly supported by DARE.
 
 %\begin{figure}
 % \centering
