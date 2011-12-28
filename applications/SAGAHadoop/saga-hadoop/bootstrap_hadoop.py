@@ -7,15 +7,19 @@ import subprocess
 import logging
 import uuid
 import shutil
+from optparse import OptionParser
+
 logging.basicConfig(level=logging.DEBUG)
 
 # For automatic Download and Installation
-HADOOP_DOWNLOAD_URL="http://www.apache.org/dist//hadoop/common/hadoop-0.20.203.0/hadoop-0.20.203.0rc1.tar.gz"
-WORKING_DIRECTORY=os.path.join(os.getcwd(), "work")
+HADOOP_DOWNLOAD_URL = "http://www.apache.org/dist//hadoop/common/hadoop-0.20.203.0/hadoop-0.20.203.0rc1.tar.gz"
+WORKING_DIRECTORY = os.path.join(os.getcwd(), "work")
 
 # For using an existing installation
-#HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.20.203.0"
-HADOOP_HOME="/N/u/luckow/sw/hadoop-0.20.203.0/"
+# HADOOP 0.22 - no webhdfs
+# HADOOP 0.20.205.0 - has initial support for webhdfs
+# HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.22.0"
+HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.20.205.0"
 JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home/"
 
 class HadoopBootstrap(object):
@@ -54,7 +58,18 @@ class HadoopBootstrap(object):
          <property>
              <name>dfs.name.dir</name>
              <value>%s</value>
-         </property>     
+         </property>
+         <property>
+              <name>dfs.datanode.data.dir.perm</name>
+              <value>700</value>
+              <description>Permissions for the directories on on the local filesystem where
+              the DFS data node store its blocks. The permissions can either be octal or
+                symbolic.</description>
+        </property>     
+         <property>
+             <name>dfs.webhdfs.enabled</name>
+             <value>true</value>
+         </property>         
     </configuration>"""%(name_dir)
     
     
@@ -121,7 +136,7 @@ class HadoopBootstrap(object):
         print("Hadoop started, please set HADOOP_CONF_DIR to:\nexport HADOOP_CONF_DIR=%s"%self.job_conf_dir)
         
         
-    def stop_hadoop(self, job_configuration_directory):
+    def stop_hadoop(self):
         logging.debug("Stop Hadoop")    
         self.set_env() 
         stop_command = os.path.join(HADOOP_HOME, "bin/stop-all.sh")
@@ -132,6 +147,10 @@ class HadoopBootstrap(object):
     def start(self):
         self.configure_hadoop()
         self.start_hadoop()
+        
+    def stop(self):
+        self.configure_hadoop()
+        self.stop_hadoop()
     
     def set_env(self):
         logging.debug("Export HADOOP_CONF_DIR to %s"%self.job_conf_dir)
@@ -144,7 +163,15 @@ class HadoopBootstrap(object):
 #########################################################
 if __name__ == "__main__" :
     
+    parser = OptionParser()
+    parser.add_option("-s", "--start", action="store_true", dest="start",
+                  help="start Hadoop", default=True)
+    parser.add_option("-q", "--quite", action="store_false", dest="start",
+                  help="terminate Hadoop")
+    parser.add_option("-c", "--clean", action="store_true", dest="clean",
+                  help="clean HDFS datanodes after termination")
    
+    
     if not os.path.exists(HADOOP_HOME):
         logging.debug("Download Hadoop")
         opener = urllib.FancyURLopener({})
@@ -155,11 +182,23 @@ if __name__ == "__main__" :
         os.system("tar -xzf hadoop.tar.gz")
     
    
+    (options, args) = parser.parse_args()
+    
     hadoop = HadoopBootstrap(WORKING_DIRECTORY)
-    hadoop.start()
+    
+    if options.start:
+        hadoop.start()
+    else:
+        hadoop.stop()
+        if options.clean:
+            dir = "/tmp/hadoop-"+os.getlogin()
+            logging.debug("delete: " + dir)
+            shutil.rmtree(dir)
+            
+            
+        
+        
+        
     
     
     
-    
-    
-     
