@@ -11,7 +11,8 @@ import bigdata
 import json
 
 from bigdata import logger
-from bigdata.filemanagement.ssh import SSHFileAdaptor
+from bigdata.filemanagement.ssh_adaptor import SSHFileAdaptor 
+from bigdata.filemanagement.webhdfs_adaptor import WebHDFSFileAdaptor 
 from bigdata.coordination.advert import AdvertCoordinationAdaptor as CoordinationAdaptor
 
 
@@ -63,7 +64,13 @@ class PilotStore(PilotStore):
             self.pilot_store_description = self.pilot_store_description
         
             # initialize file adaptor
-            self.__filemanager = SSHFileAdaptor(self.service_url)
+            if self.service_url.startswith("ssh:"):
+                logger.debug("Use SSH backend")
+                self.__filemanager = SSHFileAdaptor(self.service_url)
+            elif self.service_url.startswith("http:"):
+                logger.debug("Use WebHDFS backend")
+                self.__filemanager = WebHDFSFileAdaptor(self.service_url)
+                
             self.__filemanager.initialize_pilotstore()
             self.__filemanager.get_pilotstore_size()
             
