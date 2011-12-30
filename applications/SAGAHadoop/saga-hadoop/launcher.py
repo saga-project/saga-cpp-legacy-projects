@@ -17,7 +17,7 @@ def main():
         jd = saga.job.Description()
         # resource requirements
         jd.wall_time_limit  = "0:05:00"
-        jd.total_cpu_count = 1     
+        jd.total_cpu_count = 1   
         # environment, executable & arguments
         #jd.environment = {'SLEEP_TIME':'10'}
         executable = os.path.join(os.getcwd(), "bootstrap_hadoop.py")

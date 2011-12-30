@@ -17,9 +17,7 @@ WORKING_DIRECTORY = os.path.join(os.getcwd(), "work")
 
 # For using an existing installation
 # HADOOP 0.22 - no webhdfs
-# HADOOP 0.20.205.0 - has initial support for webhdfs
-# HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.22.0"
-
+# HADOOP 1.0.0 - has support for webhdfs
 HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-1.0.0"
 JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home/"
 
@@ -195,7 +193,9 @@ if __name__ == "__main__" :
             dir = "/tmp/hadoop-"+os.getlogin()
             logging.debug("delete: " + dir)
             shutil.rmtree(dir)
-            
+    
+    print "Finished launching of Hadoop Cluster - Sleeping now"
+    time.sleep(1600)
             
         
         
