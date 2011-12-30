@@ -7,6 +7,8 @@ import subprocess
 import logging
 import uuid
 import shutil
+import time
+import signal
 from optparse import OptionParser
 
 logging.basicConfig(level=logging.DEBUG)
@@ -18,8 +20,15 @@ WORKING_DIRECTORY = os.path.join(os.getcwd(), "work")
 # For using an existing installation
 # HADOOP 0.22 - no webhdfs
 # HADOOP 1.0.0 - has support for webhdfs
-HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-1.0.0"
-JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home/"
+HADOOP_HOME=os.path.join(os.getcwd(), "work/hadoop-1.0.0")
+
+
+STOP=False
+
+def handler(signum, frame):
+    logging.debug("Signal catched. Stop Hadoop")
+    global STOP
+    STOP=True
 
 class HadoopBootstrap(object):
 
@@ -148,7 +157,6 @@ class HadoopBootstrap(object):
         self.start_hadoop()
         
     def stop(self):
-        self.configure_hadoop()
         self.stop_hadoop()
     
     def set_env(self):
@@ -162,6 +170,12 @@ class HadoopBootstrap(object):
 #########################################################
 if __name__ == "__main__" :
     
+
+    signal.signal(signal.SIGALRM, handler)
+    signal.signal(signal.SIGABRT, handler)
+    signal.signal(signal.SIGQUIT, handler)
+    signal.signal(signal.SIGINT, handler)
+
     parser = OptionParser()
     parser.add_option("-s", "--start", action="store_true", dest="start",
                   help="start Hadoop", default=True)
@@ -173,10 +187,15 @@ if __name__ == "__main__" :
     
     if not os.path.exists(HADOOP_HOME):
         logging.debug("Download Hadoop")
+        try:
+            os.makedirs(WORKING_DIRECTORY)
+        except:
+            pass
         opener = urllib.FancyURLopener({})
-        opener.retrieve(HADOOP_DOWNLOAD_URL, WORKING_DIRECTORY+"hadoop.tar.gz");
+        opener.retrieve(HADOOP_DOWNLOAD_URL, os.path.join(WORKING_DIRECTORY,"hadoop.tar.gz"));
     
         logging.debug("Install Hadoop")
+
         os.chdir(WORKING_DIRECTORY)
         os.system("tar -xzf hadoop.tar.gz")
     
@@ -193,11 +212,15 @@ if __name__ == "__main__" :
             dir = "/tmp/hadoop-"+os.getlogin()
             logging.debug("delete: " + dir)
             shutil.rmtree(dir)
+        sys.exit(0)
     
     print "Finished launching of Hadoop Cluster - Sleeping now"
-    time.sleep(1600)
+
+    while STOP==False:
+        logging.debug("stop: " + str(STOP))
+        time.sleep(10)
             
-        
+    hadoop.stop()    
         
         
     
