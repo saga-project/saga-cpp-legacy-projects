@@ -12,14 +12,15 @@ from optparse import OptionParser
 logging.basicConfig(level=logging.DEBUG)
 
 # For automatic Download and Installation
-HADOOP_DOWNLOAD_URL = "http://www.apache.org/dist//hadoop/common/hadoop-0.20.203.0/hadoop-0.20.203.0rc1.tar.gz"
+HADOOP_DOWNLOAD_URL = "http://apache.linux-mirror.org//hadoop/common/hadoop-1.0.0/hadoop-1.0.0.tar.gz"
 WORKING_DIRECTORY = os.path.join(os.getcwd(), "work")
 
 # For using an existing installation
 # HADOOP 0.22 - no webhdfs
 # HADOOP 0.20.205.0 - has initial support for webhdfs
 # HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.22.0"
-HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-0.20.205.0"
+
+HADOOP_HOME="/Users/luckow/workspace-saga/hadoop/hadoop-1.0.0"
 JAVA_HOME="/System/Library/Frameworks/JavaVM.framework/Home/"
 
 class HadoopBootstrap(object):
