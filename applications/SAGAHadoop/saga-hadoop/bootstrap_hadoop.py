@@ -34,7 +34,7 @@ class HadoopBootstrap(object):
 
     def __init__(self, working_directory):
         self.working_directory=working_directory
-        self.jobid = str(uuid.uuid1())
+        self.jobid = "hadoop-conf-"+str(uuid.uuid1())
         self.job_working_directory = os.path.join(WORKING_DIRECTORY, self.jobid)
         self.job_conf_dir = os.path.join(self.job_working_directory, "conf")
         self.job_name_dir = os.path.join(self.job_working_directory, "name")
@@ -215,12 +215,15 @@ if __name__ == "__main__" :
         sys.exit(0)
     
     print "Finished launching of Hadoop Cluster - Sleeping now"
+    f = open(os.path.join(WORKING_DIRECTORY, 'started'), 'w')
+    f.close()
 
     while STOP==False:
         logging.debug("stop: " + str(STOP))
         time.sleep(10)
             
     hadoop.stop()    
+    os.remove(os.path.join(WORKING_DIRECTORY, "started"))
         
         
     

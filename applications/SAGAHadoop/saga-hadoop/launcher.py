@@ -3,9 +3,11 @@
 import time
 import bliss.saga as saga
 import os, sys
+import subprocess
+import pdb
 
 import logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(level=logging.ERROR)
 
 def main():
     
@@ -29,25 +31,54 @@ def main():
         # create the job (state: New)
         myjob = js.create_job(jd)
 
-        print "Job ID    : %s" % (myjob.jobid)
-        print "Job State : %s" % (myjob.get_state())
-
-        print "\n...starting job...\n"
+        print "Starting Hadoop bootstrap job...\n"
         # run the job (submit the job to PBS)
         myjob.run()
 
-        print "Job ID    : %s" % (myjob.jobid)
-        print "Job State : %s" % (myjob.get_state())
+        print "**** Job ID    : %s" % (myjob.jobid)
+        print "**** Job State : %s" % (myjob.get_state())
 
-        print "\n...waiting for job...\n"
-        # wait for the job to either finish or fail
-        myjob.wait()
+        while True:
+            state = myjob.get_state()
+            if state==saga.job.Job.Running:
+                if os.path.exists("work/started"):
+                    get_hadoop_config_data(str(myjob.jobid))
+                    break
+            time.sleep(3)
 
-        print "Job State : %s" % (myjob.get_state())
-        print "Exitcode  : %s" % (myjob.exitcode)
+
 
     except saga.Exception, ex:
-        print "Oh, snap! An error occured: %s" % (str(ex))
+        print "An error occured: %s" % (str(ex))
+
+
+def get_hadoop_config_data(jobid):
+    pbs_id = jobid[jobid.find("-")+2:len(jobid)-1]
+    nodes = subprocess.check_output(["qstat", "-f", pbs_id])
+    hosts = "empty"
+    for i in nodes.split("\n"):
+        if i.find("exec_host")>0:
+            hosts = i[i.find("=")+1:].strip()
+
+    hadoop_home=os.path.join(os.getcwd(), "work/hadoop-1.0.0")
+    print "HADOOP installation directory: %s"%hadoop_home
+    print "Allocated Resources for Hadoop cluster: " + hosts 
+    print "HDFS Web Interface: http://%s:50070"% hosts[:hosts.find("/")]   
+    print "\nTo use Hadoop set HADOOP_CONF_DIR: "
+    print "export HADOOP_CONF_DIR=%s"%(os.path.join(os.getcwd(), "work", get_most_current_job(), "conf")) 
+    print "%s/bin/hadoop dfsadmin -report"%hadoop_home
+    print ""
+
+def get_most_current_job():
+    dir = "work"
+    files = os.listdir(dir)
+    max = None
+    for i in files:
+        if i.startswith("hadoop-conf"):
+            t = os.path.getctime(os.path.join(dir,i))
+            if max == None or t>max[0]:
+                max = (t, i)
+    return max[1]
 
 if __name__ == "__main__":
     main()
