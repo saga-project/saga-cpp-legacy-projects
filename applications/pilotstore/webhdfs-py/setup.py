@@ -2,11 +2,11 @@
 
 import sys
 from setuptools import setup, find_packages
-from webhdf import WebHDFS
+import webhdfs
 
 setup(name='WebHDFS',
-      version=bigdata.version,
-      description='SAGA-based Pilot-Data Implementation',
+      version=webhdfs.version,
+      description='HDFS Python client based on WebHDFS REST API',
       author='Andre Luckow',
       author_email='andre.luckow@gmail.com',
       url='na',
@@ -16,9 +16,9 @@ setup(name='WebHDFS',
                     'Topic :: Utilities',
                     ],
       platforms = ('Unix', 'Linux', 'Mac OS'),
-      packages=['webhdfs', 'examples'],
+      packages=['webhdfs'],
       data_files=['webhdfs/VERSION'],
-      install_requires=['httplib'],
+      install_requires=[],
       entry_points = {
         'console_scripts': []
       }
