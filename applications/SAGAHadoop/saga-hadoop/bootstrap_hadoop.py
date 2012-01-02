@@ -67,6 +67,10 @@ class HadoopBootstrap(object):
              <name>dfs.name.dir</name>
              <value>%s</value>
          </property>
+         <!--property>
+             <name>dfs.datanode.dns.interface</name>
+             <value>eth1</value>
+         </property-->
          <property>
               <name>dfs.datanode.data.dir.perm</name>
               <value>700</value>
@@ -132,12 +136,17 @@ class HadoopBootstrap(object):
         mapred_site_file.write(self.get_mapred_site_xml(master))
         mapred_site_file.close() 
         
+
     def start_hadoop(self):
         logging.debug("Start Hadoop")    
-        self.set_env()    
-        format_command = os.path.join(HADOOP_HOME, "bin/hadoop") + " --config " + self.job_conf_dir + " namenode -format"
-        logging.debug("Execute: %s"%format_command)
-        os.system(format_command)        
+        if not os.environ.has_key("HADOOP_CONF_DIR") or os.path.exists(os.environ["HADOOP_CONF_DIR"])==False:
+            self.set_env()    
+            format_command = os.path.join(HADOOP_HOME, "bin/hadoop") + " --config " + self.job_conf_dir + " namenode -format"
+            logging.debug("Execute: %s"%format_command)
+            os.system(format_command)        
+        else:
+            logging.debug("Don't format namenode. Reconnect to existing namenode")
+
         start_command = os.path.join(HADOOP_HOME, "bin/start-all.sh")
         logging.debug("Execute: %s"%start_command)
         os.system(start_command)
@@ -153,10 +162,19 @@ class HadoopBootstrap(object):
     
     
     def start(self):
-        self.configure_hadoop()
+        if not os.environ.has_key("HADOOP_CONF_DIR") or os.path.exists(os.environ["HADOOP_CONF_DIR"])==False:
+            self.configure_hadoop()
+        else:
+            logging.debug("Existing Hadoop Conf dir? %s"%os.environ["HADOOP_CONF_DIR"])
+            self.job_conf_dir=os.environ["HADOOP_CONF_DIR"]
+            self.job_log_dir=os.path.join(self.job_conf_dir, "../log")
+            self.job_name_dir=os.path.join(self.job_conf_dir, "../name")
         self.start_hadoop()
         
     def stop(self):
+        if os.environ.has_key("HADOOP_CONF_DIR") and os.path.exists(os.environ["HADOOP_CONF_DIR"])==True:
+            self.job_conf_dir=os.environ["HADOOP_CONF_DIR"]
+            self.job_log_dir=os.path.join(self.job_conf_dir, "../log")
         self.stop_hadoop()
     
     def set_env(self):
@@ -203,7 +221,6 @@ if __name__ == "__main__" :
     (options, args) = parser.parse_args()
     
     hadoop = HadoopBootstrap(WORKING_DIRECTORY)
-    
     if options.start:
         hadoop.start()
     else:
