@@ -599,10 +599,10 @@ SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
 SUP                  = "saga-client-bigjob-supplemental.tgz"
 SUP_URL              = "http://download.saga-project.org/saga-interop/dist/csa/$(SUP)"
 
-BIGJOB_SETUP_URL     = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/generic/setup.py
-BIGJOB_VERSION       = $(shell wget -qO - $(BIGJOB_SETUP_URL) | grep version | cut -f 2 -d "'")
+BIGJOB_SETUP_URL     = https://svn.cct.lsu.edu/repos/saga-projects/applications/bigjob/trunk/generic/VERSION
+BIGJOB_VERSION       = $(shell wget -qO - $(BIGJOB_SETUP_URL))
 BIGJOB_EGG           = $(shell echo "BigJob-$(BIGJOB_VERSION)-py$(PYTHON_SVERSION).egg")
-SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/$(BIGJOB_EGG)/
+SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/$(BIGJOB_EGG)/
 
 # $(warning bigjob-version: $(BIGJOB_VERSION))
 # $(warning bigjob-egg    : $(BIGJOB_EGG))
