@@ -628,7 +628,7 @@ ifndef CSA_SAGA_CHECK
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) make install ; rm 
-  @sed -i $(SAGA_LOCATION)/lib/python2.7/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
+	@sed -i $(SAGA_LOCATION)/lib/python2.7/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
 endif
 
 
