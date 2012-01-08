@@ -34,10 +34,10 @@ HAVE_SETUP      = $(shell env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH
 
 install-check::
 	@$(ECHO) "      checking   bigjob installation pre-requisites"
-	@$(TEST) "yes" = '$(HAVE_SETUP)'      || echo "     installing missing python setuptools"
-	@$(TEST) "yes" = '$(HAVE_SETUP)'      || (cd ext/setuptools-0.6c11/ ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION) )
+	 $(TEST) "yes" = '$(HAVE_SETUP)'      || echo "     installing missing python setuptools"
+	 $(TEST) "yes" = '$(HAVE_SETUP)'      || (cd ext/setuptools-0.6c11/ ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION) )
 
 install:: install-check
 	@$(ECHO) "      installing bigjob modules"
-	@cd generic ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_LOCATION)/bin/saga-run.sh $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION)
+	 cd generic ; env PYTHONPATH=$(SAGA_LOCATION)/$(SAGA_PYTHON_PKG_PATH) $(SAGA_LOCATION)/bin/saga-run.sh $(SAGA_PYTHON) setup.py install --prefix=$(SAGA_LOCATION)
 
