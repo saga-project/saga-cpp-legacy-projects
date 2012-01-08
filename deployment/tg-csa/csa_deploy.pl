@@ -341,8 +341,9 @@ if ( $do_exe )
     #              "       $path/saga/$version/$CPP/share/saga/config/python.m4" .
     #              "       $path/saga/$version/$CPP/lib/python*";
     # my $exe    = "cd     $path/csa/ ; svn up";
-      my $exe    = "eval `grep \"  export\" $path/README.saga-1.6.gcc-*.$host` ; " .
-                   "python -c \"import saga ; print saga ; import bigjob ; print bigjob\"";
+    # my $exe    = "eval `grep \"  export\" $path/README.saga-1.6.gcc-*.$host` ; " .
+    #              "python -c \"import saga ; print saga ; import bigjob ; print bigjob\"";
+      my $exe    = "rm -rv $path/src/saga-client-bigjob-*";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;

@@ -640,7 +640,7 @@ SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
 BJ_SETUPTOOLS        = "setuptools-0.6c11-py2.7.egg"
 BJ_SETUPTOOLS_URL    = "http://pypi.python.org/packages/2.7/s/setuptools/$(BJ_SETUPTOOLS)"
 
-BIGJOB_EGGS          = $(shell echo $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg)
+BIGJOB_EGGS          = $(shell ls -d $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg 2> /dev/null)
 BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut 0f 1 -d '/' | rev)
 BIGJOB_VERSION       = $(shell echo $(BIGJOB_EGG)                        | rev | cut -f 2 -d '-' | rev)
 SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EGG)/
@@ -667,7 +667,7 @@ ifndef CSA_SAGA_CHECK
 # @cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) make install
-  @cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS) ; wget $(BJ_SETUPTOOLS_URL) && sh $(BJ_SETUPTOOLS_URL)
+	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS) ; wget $(BJ_SETUPTOOLS_URL) && sh $(BJ_SETUPTOOLS_URL)
 	@sed -i $(SAGA_LOCATION)/lib/python2.7/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
 endif
 
