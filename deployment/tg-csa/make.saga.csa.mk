@@ -641,15 +641,14 @@ BJ_SETUPTOOLS        = "setuptools-0.6c11-py2.7.egg"
 BJ_SETUPTOOLS_URL    = "http://pypi.python.org/packages/2.7/s/setuptools/$(BJ_SETUPTOOLS)"
 
 BIGJOB_EGGS          = $(shell ls -d $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg 2> /dev/null)
-ifneq "$(BIGJOB_EGGS)" ""
-BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut 0f 1 -d '/' | rev)
+BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut -f 1 -d '/' | rev)
 BIGJOB_VERSION       = $(shell echo $(BIGJOB_EGG)                        | rev | cut -f 2 -d '-' | rev)
 SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EGG)/
-endif
 
-$(warning bigjob-version: $(BIGJOB_VERSION))
-$(warning bigjob-egg    : $(BIGJOB_EGG))
-$(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
+# $(warning bigjob-version: $(BIGJOB_VERSION))
+# $(warning bigjob-eggs   : $(BIGJOB_EGGS))
+# $(warning bigjob-egg    : $(BIGJOB_EGG))
+# $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
 TEST_ENV                 = /usr/bin/env
 TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
@@ -665,8 +664,8 @@ endif
 $(SC_BIGJOB_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-client-bigjob        installing"
-# @cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
-# @cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) make install
 	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS) ; wget $(BJ_SETUPTOOLS_URL) && sh $(BJ_SETUPTOOLS_URL)
