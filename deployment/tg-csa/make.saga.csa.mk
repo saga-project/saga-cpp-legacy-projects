@@ -641,9 +641,11 @@ BJ_SETUPTOOLS        = "setuptools-0.6c11-py2.7.egg"
 BJ_SETUPTOOLS_URL    = "http://pypi.python.org/packages/2.7/s/setuptools/$(BJ_SETUPTOOLS)"
 
 BIGJOB_EGGS          = $(shell ls -d $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg 2> /dev/null)
+ifneq "$(BIGJOB_EGGS)" ""
 BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut 0f 1 -d '/' | rev)
 BIGJOB_VERSION       = $(shell echo $(BIGJOB_EGG)                        | rev | cut -f 2 -d '-' | rev)
 SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EGG)/
+endif
 
 $(warning bigjob-version: $(BIGJOB_VERSION))
 $(warning bigjob-egg    : $(BIGJOB_EGG))
