@@ -66,13 +66,14 @@
 \newcommand{\note}[1]{}
 \fi
 
-\newcommand{\pilot}{Pilot }
-\newcommand{\cu}{Compute Unit }
-\newcommand{\cs}{Compute Service }
-\newcommand{\du}{Data Unit }
-\newcommand{\ds}{Data Service }
-\newcommand{\su}{Schedulable Unit }
-\newcommand{\condorg}{Condor-G/Glide-In }
+\newcommand{\pilot}{Pilot}
+\newcommand{\computeunit}{Compute Unit}
+\newcommand{\cu}{CU}
+\newcommand{\cs}{Compute Service}
+\newcommand{\du}{Data Unit}
+\newcommand{\ds}{Data Service}
+\newcommand{\su}{Schedulable Unit}
+\newcommand{\condorg}{Condor-G/Glide-In}
 
 \lstdefinestyle{myListing}{
   frame=single,   
@@ -495,17 +496,12 @@ functionality (e.\,g.\ Condor-G and DIANE).
 \begin{figure}[t]
     \centering\up
     \includegraphics[width=0.43\textwidth]{figures/pstar_model_single.pdf}
-    \caption{ \textbf{P* Model: Elements, Characteristics and Interactions:} The core
-      of the model is the manager that is responsible for managing
-      pilot-jobs and WUs. After a WU is submitted to the manager, it
+    \caption{ \textbf{P* Model: Elements, Characteristics and Interactions:} The 	 	
+  	  manager that is responsible for managing
+      pilots and \computeunit s. After a CU is submitted to the manager, it
       transitions to an SU, which is scheduled to a pilot by the
       PM. The pilot then schedules the SU to an available
-      resource. % \alnote{Needs simplification. Further we need to agree
-%         somehow on i) how many layers of binding/scheduling? ii) the
-%         usage of submit/assign/bind/schedule} \jhanote{Should we
-%         replace Application Kernel with SU's of different sizes i.e.,
-%         different number of fixed-sized WUs?} \alnote{see proposal
-%         above}
+      resource. \alnote{fix caption!}
       \upp\upp}
     \label{fig:figures_pstar}
 \end{figure}
@@ -521,7 +517,7 @@ functionality (e.\,g.\ Condor-G and DIANE).
 
 \alnote{use pilot NOT pilot-job}
 \begin{compactitem}
-\item \textbf{\pilot (Pilot-Compute):} The pilot is the
+\item \textbf{\pilot \ (Pilot-Compute):} The pilot is the
   entity that actually gets submitted and scheduled on a resource
   using the resource's RM system. The PJ provides application (user)
   level control and management of the set of allocated resources.
@@ -535,35 +531,35 @@ functionality (e.\,g.\ Condor-G and DIANE).
   %   simplistic. In a sense it is a application-level resource
   %   manger. Not sure what to do}
 
-\item \textbf{Work Unit (WU):} A WU encapsulates a self-contained
+\item \textbf{\computeunit \ (\cu):} A \cu encapsulates a self-contained
   piece of work (a task) specified by the application that is
   submitted to the pilot-job framework.  There is no intrinsic notion
-  of resource associated with a WU.
+  of resource associated with a \cu.
 
 \item \textbf{Scheduling Unit (SU):} SUs are the units of scheduling
   used internal to the P* model, i.e., an SU is not known by or
   visible to an application. An SU is created after the submission of
-  a WU, i.\,e.\ once a WU has been passed into the control of the
+  a \cu, i.\,e.\ once a \cu has been passed into the control of the
   pilot-job framework.
 
 \item \textbf{Pilot-Manager (PM):} The PM is responsible for (i)
   orchestrating the interaction between the pilots as well as the
-  different components of the P* model (WUs, SUs) and (ii) decisions
+  different components of the P* model (\cu s, SUs) and (ii) decisions
   related to internal resource assignment (once resources have been
   acquired by the pilot-job).  For example, an SU can consists of one
-  or more WUs. Further, WUs and SUs can be combined and aggregated;
+  or more \cu s. Further, \cu s and SUs can be combined and aggregated;
   the PM determines how to group them, when SUs are scheduled and
   executed on a resource via the pilot, as well as how many resources
   to assign to an SU.
 
 % the different characteristics of the P* model. It
 %   facilitates the coordination between the different P* elements,
-%   i.\,e.\ the pilots, WUs and SUs. 
+%   i.\,e.\ the pilots, \cus and SUs. 
 % A PM can e.\,g.\ manage solely one
 %   or multiple pilots.
 
-%   For example, the PM has the flexibility to combine and schedule WUs,
-%   e.\,g.\ it can determine when a WU is run and what as well as how
+%   For example, the PM has the flexibility to combine and schedule \cus,
+%   e.\,g.\ it can determine when a \cu is run and what as well as how
 %   many resources it will receive.
 
 \end{compactitem}
@@ -574,8 +570,8 @@ An application kernel is the actual binary that gets executed.  The
 application utilizes a PJ framework to execute multiple instances of
 an application kernel (an ensemble) or alternatively instances of
 multiple different application kernels (a workflow).  To execute an
-application kernel, an application must define a WU specifying the
-application kernel as well as other parameters. This WU is then
+application kernel, an application must define a \cu specifying the
+application kernel as well as other parameters. This \cu is then
 submitted to the pilot-manager (as an entry point to the
 pilot-framework), where it transitions to an SU. The PM is then
 responsible for scheduling the SU onto a pilot and then onto a
@@ -626,7 +622,7 @@ description of P* model.
 %   types)}
 
 \textbf{Coordination:} The coordination characteristics describes how
-various elements of the P* Model, i.\,e.\ the PM, the pilot, the WUs
+various elements of the P* Model, i.\,e.\ the PM, the pilot, the \cu s
 and the SUs, interact. A common coordination pattern is master/worker
 (M/W): the PM represents the master process that controls a set of
 worker processes, the pilots. The point of decision making is the
@@ -679,12 +675,12 @@ resource requirements of the application (step~2). Each pilot is
 queued at the resource manager, which is responsible for starting the
 pilot (step~3). There can be variations of this flow: while in the
 described model, the application defines the required resources, the
-PM could also decide based on the submitted WU workload whether and
+PM could also decide based on the submitted \cu  workload whether and
 when it submits new pilots.
 
-The application can submit WUs to the PM at any time (step~4). A
-submitted WU becomes an SU, i.\,e.\ the PM is now in control of it. In
-the simplest case one WU corresponds to one SU; however, SUs can be
+The application can submit \cu s to the PM at any time (step~4). A
+submitted \cu  becomes an SU, i.\,e.\ the PM is now in control of it. In
+the simplest case one \cu  corresponds to one SU; however, SUs can be
 combined and aggregated to optimize throughputs and response
 times. Commonly, a hierarchical M/W model is used internally: the PM
 uses M/W to coordinate a set of pilots, the pilot itself functions as
@@ -706,11 +702,11 @@ frameworks}
 % consists of the following steps: The application specifies the
 % capabilities of the resources required (step 1).  \jhanote{Andre,
 %   Mark: Is Step 1 true? Couldn't we just say: application specifies
-%   the WU?} During the instantiation of a PJ and the assignment of
+%   the \cu ?} During the instantiation of a PJ and the assignment of
 % resources to the PJ, pilots are queued and started via the local
 % resource manager (step 1-4).
 % 
-% \jhanote{We should talk about ``API'' --- WU crossing P* API, ie
+% \jhanote{We should talk about ``API'' --- \cu  crossing P* API, ie
 %   controlled by Pilot-Manager, and then becoming an SU thereafter.
 %   Also talk about multi-level scheduling. Anything that focusses the
 %   reader's attention on an understanding that was not covered in brief
@@ -718,9 +714,9 @@ frameworks}
 % 
 % Commonly, the pilot-manager (PM) can be accessed via a set of command
 % line tools and/or an API via which an application can create and
-% submit WUs to the pilot-manager (step 5/6). A WU that is submitted
+% submit \cu s to the pilot-manager (step 5/6). A \cu  that is submitted
 % becomes a SU, i.\,e.\ the PM is now in control of it and schedules and
-% manages its execution. In the simplest case one WU corresponds to one
+% manages its execution. In the simplest case one \cu  corresponds to one
 % SU; however, SUs can be combined and aggregated to optimize
 % throughputs and response times.
 % 
@@ -732,8 +728,8 @@ frameworks}
 % or more SUs using M/W. \jhanote{Need some clarification: what is the
 %   worker/agent here? (i) Isn't it PJ Frameworks that use M-W
 %   coordination and not the PJ.  Also, in the framework, isn't the
-%   Manager the Master, and the Pilot-Job the Worker; What about WU/SU ?
-%   ie if WU/SU are the workers, what is the master?}  \alnote{refined}
+%   Manager the Master, and the Pilot-Job the Worker; What about \cu /SU ?
+%   ie if \cu /SU are the workers, what is the master?}  \alnote{refined}
 % Scheduling decisions can be conducted on each level. The delegation of
 % decision capabilities into lower levels, i.\,e.\ the pilot, can yield
 % to a more autonomic and adaptive behavior as well as a better
@@ -774,7 +770,7 @@ frameworks}
 %   application, while in late binding mode the decision is made by the
 %   PJ framework.}
 % \jhanote{Integrate: Note that that this can either be a simple
-%   grouping or a smart aggregation of WUs (e.\,g.\ two sets of
+%   grouping or a smart aggregation of \cu s (e.\,g.\ two sets of
 %   parameters merged into one).}
 
 \section{TROY: An API for the P*  Model\upp\upp}
@@ -782,7 +778,7 @@ frameworks}
 
 
 % \terminology{TROY (implementation), P* Model, TROY API, PJ
-%   implementation, BigJob, based on SAGA, PJ description, WU
+%   implementation, BigJob, based on SAGA, PJ description, \cu 
 %   description, TROY manager class, Condor Glide-In, DIANE, PJ-like
 %   API extension) } \alnote{Lead: MS} \alnote{Renaming section and
 %   subsections: TROY: A reference implementation of the P*}
@@ -921,11 +917,11 @@ wu = wus.submit(wud)
 % caption={\textbf{WorkUnit Submission:} Instantiation and Submission of a \texttt{WorkUnitDescription}.\label{lst:submission}}
 % }
 
-The \texttt{WorkUnitService} is responsible for managing the execution of WUs.
-Regardless of the state of the PJS, applications can submit WUs to a
+The \texttt{WorkUnitService} is responsible for managing the execution of \cu s.
+Regardless of the state of the PJS, applications can submit \cu s to a
 \texttt{WorkUnitService} at anytime (listing~\ref{lst:submission} and step 4 in
 figure~\ref{fig:figures_troy_flow}). Once the \texttt{WorkUnitService} becomes
-responsible for a WU, the WU transitions to an SU. SUs are internally processed
+responsible for a \cu, the \cu  transitions to an SU. SUs are internally processed
 (they e.\,g.\ can be aggregated) and are then forwarded to the
 \texttt{Scheduler} (step 5), which selects an appropriate pilot. Having chosen
 an appropriate resource, the SU is dispatched using the respective adaptor (step
@@ -1017,7 +1013,7 @@ can subscribe to state update notifications.
 		\includegraphics[width=0.47\textwidth]{figures/troy_flow.pdf}
 	\caption{\textbf{TROY Flow Diagram:} The functionality of TROY is exposed 
 	using two primary classes: The \texttt{PilotJobService} for the management 
-	of pilots, and the \texttt{WorkUnitService} for the management of WUs. The 
+	of pilots, and the \texttt{WorkUnitService} for the management of \cu s. The 
 	TROY runtime system processes application requests and forwards them via the 
 	respective adaptor to the PJ framework.
 	}
@@ -1036,7 +1032,7 @@ can subscribe to state update notifications.
 \hline
 \textbf{Pilot} &PJ framework\\
 \hline
-\textbf{WU} &WU\\
+\textbf{\cu } &\cu \\
 \hline
 \textbf{SU} &SU\\
 \hline
@@ -1048,14 +1044,14 @@ can subscribe to state update notifications.
 
 The TROY API classes and interactions are designed to reflect the P*
 elements and characteristics. Table~\ref{table:pstar_elements}
-summarizes the mapping of P* elements and TROY. As defined by P*, a WU
+summarizes the mapping of P* elements and TROY. As defined by P*, a \cu 
 represents a primary self-containing piece of work that is submitted
-to TROY. At the API boundary a WU transitions to an SU, which
+to TROY. At the API boundary a \cu  transitions to an SU, which
 functions as internal unit of scheduling.  The API follows
 object-oriented design principles and exposes the primary
 functionality of the Pilot-Manager using two classes: the
 \texttt{PilotJobService} for the management of pilots and the
-\texttt{WorkUnitService} for the management of WUs. Further, the
+\texttt{WorkUnitService} for the management of \cu s. Further, the
 framework utilizes a set of internal classes for implementing
 different P* characteristics, e.\,g.\ the \texttt{Scheduler} for
 scheduling and the adaptors implementations for providing the actual
@@ -1087,8 +1083,7 @@ PJ frameworks. In particular we focus on BigJob, DIANE and Condor-G.
 \alnote{Is this a place to to describe ``native'' PJs for different 
 infrastructures}
 
-\subsection{BigJob: A SAGA-based Pilot-Job Implementation for
-  TROY\upp\upp}
+\subsection{BigJob: A SAGA-based Pilot-Job Framework\upp\upp}
 \label{sec:bigjob_description}
 \terminology{BigJob (BJ) , BigJob-SAGA, BJ implementation,  BJ-SAGA, BJ flavors, Amazon EC2, Microsoft Azure,
  BJ with a Condor Glide-In based backend,  BigJob Manager, BigJob agent component, BigJob framework,
@@ -1121,11 +1116,10 @@ infrastructures}
 BigJob (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud} is a SAGA-based pilot-job
 implementation. BJ supports a wide range of application types, and is usable
 over a broad range of infrastructures, i.\,e.\ it is general-purpose and
-extensible. BJ is integrated into the TROY runtime environment via the described
-adaptor mechanism (see figure~\ref{fig:figures_distributed_pilot_job}). In
-addition there are specific BJ flavors for cloud resources such as Amazon EC2
-and Microsoft Azure that are capable of managing set of VMs, as well as a BJ
-with a Condor-G based backend. 
+extensible. In addition, there are specific BJ flavors for cloud resources such
+as Amazon EC2 and Microsoft Azure that are capable of managing set of VMs, as
+well as a BJ with a Condor-G based backend. \alnote{these flavors are primarily 
+defined by the SAGA adaptor mechanism.}
 
 \begin{figure}[t]
 	\upp\upp\upp\upp
@@ -1134,11 +1128,12 @@ with a Condor-G based backend.
 	\caption{\textbf{BigJob Architecture:} The core of the
           framework, the BigJob-Manager orchestrates a set of
           pilots. Pilots are started using the SAGA Job API. The
-          application submits WUs, the so-called sub-jobs via the
+          application submits CUs, the so-called sub-jobs via the
           BigJob-Manager. Communication between the BJ-Manager and
           BJ-Agent is done via a shared data space, the Advert
           Service. The BJ-Agent is responsible for managing and
           monitoring sub-jobs.}
+		\alnote{Make connection to P*}
 	\label{fig:figures_re_bigjob_interactions}
 	\upp\upp \upp
 \end{figure}
@@ -1146,7 +1141,7 @@ with a Condor-G based backend.
 
 Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the architecture of
 BJ. BJ utilizes a M/W coordination model: The BigJob-Manager is responsible for
-the orchestration of pilots, for the binding of WUs and for the scheduling of
+the orchestration of pilots, for the binding of \cu s and for the scheduling of
 SUs. For submission of the pilots, SAGA relies on the SAGA Job API, and thus can
 be used in conjunction with different SAGA adaptors, e.\,g.\ the Globus, the
 PBS, the Condor and the Amazon Web Service adaptor. Each pilot initializes a so
@@ -1160,7 +1155,7 @@ updates are similarly pushed back from the agent to the manager. Further, BJ
 provides a pluggable communication \& coordination layer and also supports
 alternative c\&c systems, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
 
-BJ currently uses a simple binding mechanism: each WU submitted to the BigJob
+BJ currently uses a simple binding mechanism: each \cu  submitted to the BigJob
 framework is mapped to one SU. Binding can take places at submission
 time (early binding) or delayed in case of multiple pilots (late binding). 
 For scheduling, a simple FIFO scheduler is used (see also
@@ -1180,7 +1175,7 @@ on the backend used. To support this feature on top of various BigJob
 implementations that are by default restricted to single resource use (e.\,g.\
 BJ), the concept of a BigJob pool is introduced. A BigJob pool consists of
 multiple BJs (each BigJob managing one particular resource). An extensible
-scheduler is used for dispatching WUs to one of the BJs of the pool (late
+scheduler is used for dispatching \cu s to one of the BJs of the pool (late
 binding). By default a FIFO scheduler is provided. Other backends (such as DIANE
 and Condor) natively support elasticity, but can nevertheless be combined into a
 BJ pool.
@@ -1196,11 +1191,11 @@ BJ pool.
   \hline
   Pilot-Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
   \hline
-  Pilot-Job &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
+  \pilot &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
   \hline
-  Work Unit (WU) &Task &Task &Job &Application Interface Function (Swift Script)\\
+  \computeunit  \ (CU) &Task &Task &Job &Application Interface Function (Swift Script)\\
   \hline
-  Scheduling Unit (SU) &Sub-Job &Task &Job &Job\\
+  \su \ (SU) &Sub-Job &Task &Job &Job\\
 % \hline
 % Dynamic Resources &no/yes &yes (AgentFactories)\\
 \hline
@@ -1240,11 +1235,11 @@ EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
 size of 1 core. BJ in contrast is designed for HPC systems such as TG,
 where a job usually allocates multiple nodes and cores. To address this issue
 a so-called multinode submitter script can be used: the scripts starts a
-defined number of worker agents on a certain resource. However, WUs will be
+defined number of worker agents on a certain resource. However, \cu s will be
 constrained to the specific number of cores managed by a worker agent. A
 flexible allocation of resource chunks as with BJ is not possible. By
-default a WU is mapped to a SU; application can however implement smarter
-allocation schemes, e.\,g.\ the clustering of multiple WUs into a SU.
+default a \cu  is mapped to a SU; application can however implement smarter
+allocation schemes, e.\,g.\ the clustering of multiple \cu s into a SU.
 
 %Scheduling
 DIANE includes a simple capability matcher and FIFO-based task scheduler.
@@ -1255,12 +1250,12 @@ applications can implement a custom application-level scheduler.
 
 %Other impl. related issues: FT and security
 DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the
-privileges of the respective user. Also, only WUs of this respective user can be
+privileges of the respective user. Also, only \cu s of this respective user can be
 executed by DIANE. DIANE supports various middleware security mechanisms
 (e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
 implementation of GSI on TCP-level is possible, but currently not yet
 implemented. Further, DIANE supports fault tolerance: basic error detection and
-propagation mechanisms are in place. Further, an automatic re-execution of WUs
+propagation mechanisms are in place. Further, an automatic re-execution of \cu s
 is possible.
 
 \upp
@@ -1279,11 +1274,11 @@ condor\_collector which collects resource information, the
 condor\_negotiator that does the matchmaking and the condor\_schedd
 that is responsible for managing the binding and scheduling
 process. Condor generally does not differentiate between workload,
-i.\,e.\ WU, and schedulable entity, i.\,e.\ SU. Both entities are
+i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
 referred to as job. However, it supports late binding, i.\,e.\
 resources a job is submitted to must generally not be available at
 submission time. The scheduler matches the capabilities required by a
-WU to the available resources. This process is referred to as
+\cu to the available resources. This process is referred to as
 matchmaking. Further, a priority-based scheduler is used. For
 communication between the identified elements Condor utilizes
 point-to-point messaging using a binary protocol on top of TCP.
@@ -1295,38 +1290,38 @@ systems (such as Kerberos) as well as grid authentication systems such
 as GIS. Communication traffic can be encrypted.
 
 
-% \upp
-% \subsection{SWIFT-Coaster\upp\upp}
-% 
-% SWIFT~\cite{Wilde2011} is a scripting language designed for expressing abstract
-% workflows and computations. The language provides among many things capabilities
-% for executing external application as well as the implicit management of data
-% flows between application tasks. For this purpose, SWIFT formalizes the way that
-% applications can define data-dependencies. Using so called mappers, these
-% dependencies can be easily extended to files or groups of files. The runtime
-% environment handles the allocation of resources and the spawning of the compute
-% tasks. Both data- and execution management capabilities are provided via
-% abstract interfaces. SWIFT supports e.\,g.\ Globus, Condor and PBS resources.
-% The pool of resources that is used for an application is statically defined in a
-% configuration file. While this configuration file can refer to highly dynamic
-% resources (such as OSG resources), there is no possibility to manage this
-% resource pool programmatically. By default a 1:1 mapping for WU and jobs is
-% used. However, SWIFT supports the grouping SUs as well as PJs. For the PJ
-% functionality the Coaster~\cite{coasters} framework is used. Coaster relies on a
-% master/worker coordination model; communication is implemented using GSI-secured
-% TCP sockets. SWIFT and Coaster supports various scheduling mechanisms, e.\,g.\ 
-% a FIFO and a load-aware scheduler. 
-% 
-% Further, SWIFT can be used in conjunction with Falkon~\cite{1362680}. Falkon
-% refers to pilots as the so called provisioner, which are created using the
-% Globus GRAM service. The provisioner spawns a set of executor processes on the
-% allocated resources, which are then responsible for managing the execution of
-% SUs. WUs are submitted via a so called dispatcher service. Similar to Coaster,
-% Falkon utilizes a M/W coordination model, i.\,e.\ the executors periodically
-% query the dispatcher for new SUs. Web services are used for communication.
+\upp
+\subsection{SWIFT-Coaster\upp\upp}
+
+SWIFT~\cite{Wilde2011} is a scripting language designed for expressing abstract
+workflows and computations. The language provides among many things capabilities
+for executing external application as well as the implicit management of data
+flows between application tasks. For this purpose, SWIFT formalizes the way that
+applications can define data-dependencies. Using so called mappers, these
+dependencies can be easily extended to files or groups of files. The runtime
+environment handles the allocation of resources and the spawning of the compute
+tasks. Both data- and execution management capabilities are provided via
+abstract interfaces. SWIFT supports e.\,g.\ Globus, Condor and PBS resources.
+The pool of resources that is used for an application is statically defined in a
+configuration file. While this configuration file can refer to highly dynamic
+resources (such as OSG resources), there is no possibility to manage this
+resource pool programmatically. By default a 1:1 mapping for \cu and jobs is
+used. However, SWIFT supports the grouping SUs as well as PJs. For the PJ
+functionality the Coaster~\cite{coasters} framework is used. Coaster relies on a
+master/worker coordination model; communication is implemented using GSI-secured
+TCP sockets. SWIFT and Coaster supports various scheduling mechanisms, e.\,g.\ 
+a FIFO and a load-aware scheduler. 
+
+Further, SWIFT can be used in conjunction with Falkon~\cite{1362680}. Falkon
+refers to pilots as the so called provisioner, which are created using the
+Globus GRAM service. The provisioner spawns a set of executor processes on the
+allocated resources, which are then responsible for managing the execution of
+SUs. \cu s are submitted via a so called dispatcher service. Similar to Coaster,
+Falkon utilizes a M/W coordination model, i.\,e.\ the executors periodically
+query the dispatcher for new SUs. Web services are used for communication.
 
 
-\subsubsection*{Discussion}
+\subsection{Discussion}
 
 
 
@@ -1400,7 +1395,7 @@ Binding &Early/Late &Late &Late &Late\\
 % MPI/Multinode Applications &yes &no (yes with custom implementation of ApplicationWorker)\\
 \hline
 Scheduling &FIFO, custom &FIFO, custom &Matchmaking, priority-based scheduler 
-&Load-aware scheduler, WU grouping\\
+&Load-aware scheduler, \cu  grouping\\
 \hline
 
 Security &Multiple (GSI, Advert DB Login) &Multiple (GSI) &Multiple (GSI, 
@@ -1462,24 +1457,24 @@ requested using the GRAM/Condor endpoint of the Renci gateway machine.
 % theDARE~\cite{dare-tg11-gateways} framework that has been built on top of 
 %TROY.
 
-The investigated workload comprises of four WUs. Each WU executes a BFAST
+The investigated workload comprises of four \cu s. Each \cu  executes a BFAST
 matching process, which is used to find potential sequence alignments. We run
 the experiment on four different setups: (i) TROY-BigJob/Globus only, (ii)
 TROY-BigJob/Condor only, (iii) TROY-DIANE only and (iv) TROY-BigJob and
 TROY-DIANE concurrently. The TROY Pilot Job Service is used to create pilots on
-the respective infrastructure(s). Each BFAST WU requires two cores; a total of
-four WUs requesting two cores each is specified and submitted to the Work Unit
+the respective infrastructure(s). Each BFAST \cu  requires two cores; a total of
+four \cu s requesting two cores each is specified and submitted to the Work Unit
 Service. 
-\alnote{Do we use 1 or 2 WUS in case iv? }   
-\smnote{2 WUs per node/backend in case iv }\alnote{I meant the number of WU 
+\alnote{Do we use 1 or 2 \cu S in case iv? }   
+\smnote{2 \cu s per node/backend in case iv }\alnote{I meant the number of \cu  
 Services?}
- In case (iv) on each backend two WUs are executed. 
- Each WU is associated with a set of input files which are pre-staged in 
+ In case (iv) on each backend two \cu s are executed. 
+ Each \cu  is associated with a set of input files which are pre-staged in 
  all cases except for case (ii) where the data is staged during the runtime on
  to the condor resources. After
-submission of the WU to the PJ manager, the TROY runtime system takes care of
-binding and scheduling the WUs to the pilots. The application can monitor the
-state of the PJs and WUs using the Work Unit Service of the TROY API.
+submission of the \cu  to the PJ manager, the TROY runtime system takes care of
+binding and scheduling the \cu s to the pilots. The application can monitor the
+state of the PJs and \cu s using the Work Unit Service of the TROY API.
 
 \begin{figure}[t]
 	\centering
@@ -1496,8 +1491,8 @@ state of the PJs and WUs using the Work Unit Service of the TROY API.
 
 Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In 
 addition to the runtime we measured the startup time, i.\,e.\ the time required 
-until the first WU changes its state to running. The overhead is defined as the 
-difference between the actual runtime of the BFAST WU and the overall runtime 
+until the first \cu  changes its state to running. The overhead is defined as the 
+difference between the actual runtime of the BFAST \cu  and the overall runtime 
 using TROY (not including the startup time).
 
 The runtime for TROY-DIANE is about 70\,sec longer than for TROY-BigJob. The 
@@ -1515,7 +1510,7 @@ each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
 50\,sec less than TROY-DIANE. Additionally, we also observed a runtime overhead
 of about 25\,sec for the TROY-DIANE scenario. This overhead is likely caused by
 the additional agents required. While BigJob utilizes one BJ-Agent on the 
-resource, DIANE currently requires the spawning of one worker agent per WU that 
+resource, DIANE currently requires the spawning of one worker agent per \cu  that 
 must be executed in parallel. While the TROY API marshals these differences, 
 i.\,e.\ while the API remains the same for both PJ frameworks, a light 
 performance overhead remains observable.
@@ -1535,7 +1530,7 @@ Finally scenario (iv) demonstrates that two PJ frameworks can be
 utilized concurrently using the TROY API and adaptor mechanism. The
 performance in this scenario is slightly better than in the DIANE only
 case, mainly due to the fact that only four DIANE worker agents need
-to be started. Also, only half of the WUs are executed on a DIANE node
+to be started. Also, only half of the \cu s are executed on a DIANE node
 and thus, show a longer runtime. While there are some limitations in
 the current TROY-DIANE implementation, the aim of this experiment is
 to emphasizes the possibilities that the TROY API provides to dynamic
@@ -1552,7 +1547,7 @@ of their computations.
 Each PJ implementation is associated with various degrees of freedom,
 in particular in the design of the communication \& coordination
 (c\&c) sub-system.  The primary barrier for performance and
-scalability is not the WU submission, but the internal coordination of
+scalability is not the \cu  submission, but the internal coordination of
 the elements of a P* implementation. There are many factors that
 influence the overall performance, e.\,g.\ the degree of distribution
 (local (LAN) vs. remote (WAN)), the communication pattern (1:n versus
@@ -1599,15 +1594,15 @@ notifications when a new SU arrives.
 We evaluate different BJ configurations and compare and contrast them
 with DIANE. For this purpose, we conducted several experiments on
 FutureGrid~\cite{fg}. To evaluate the overall performance and
-throughput, we execute a different number of WUs on Alamo and Sierra
+throughput, we execute a different number of \cu s on Alamo and Sierra
 utilizing up to 128 cores concurrently. Each experiment is repeated at
 least 10 times.
 
 % \jhanote{Need to motivate testing of c\&c sub-system better: There are
 %   many barriers to interoperability and performance. primary barrier to
-%   performance is not WU submission or SU scheduling to PM, but the
+%   performance is not \cu  submission or SU scheduling to PM, but the
 %   fundamental limitation of scalability of coordination -- with
-%   increasing number of WU/SU.  Establish tradeoff between distributed
+%   increasing number of \cu /SU.  Establish tradeoff between distributed
 %   vs local coordination. e.g., It is easy to get consistency but has
 %   overhead.  Easy to get performance but difficult to get
 %   consistency. Thus we opt for centralized / persistent point. But how
@@ -1631,7 +1626,7 @@ least 10 times.
 % Most pilot-jobs utilize the master-worker \jhanote{M-W for what?}
 % pattern commonly implemented on basis of a simple request/response
 % architecture, i.\,e.\ the \jwave{agent} sends a request for work
-% packages to the master, which replies with a WU. 
+% packages to the master, which replies with a \cu . 
 
 % \jhanote{Are we talking specific implementation, i.e., TROY? If so we
 %   should not say ``A'' manager but ``The Pilot-Manager''? Also the previous
@@ -1646,29 +1641,29 @@ least 10 times.
 \begin{figure}[htbp] \centering
 \includegraphics[width=0.49\textwidth]{perf/bigjob-varying-wus-alamo.pdf}
 \caption{\textbf{BigJob and DIANE Performance (1):} The 
-time-to-completion for $n$ WUs running \texttt{/bin/date} scales linearly
+time-to-completion for $n$ \cu s running \texttt{/bin/date} scales linearly
 in most cases, i.\,e.\ the coordination overhead imposed by the BJ is 
 minimal.\upp\upp}
 \label{fig:perf_bigjob-varying-wus} \end{figure}
 
 Figure~\ref{fig:perf_bigjob-varying-wus} illustrate the performance and
 scalability of the different BigJob configurations and DIANE with respect to the
-number of WUs. Clearly, the used c\&c sub-system has a great impact on the
-overall performance. The Redis backend shows the best performance for small WU
+number of \cu s. Clearly, the used c\&c sub-system has a great impact on the
+overall performance. The Redis backend shows the best performance for small \cu 
 counts. The difference between local and remote coordination is moderate (about
 20\,\%). While ZeroMQ is very fast and lightweight, it requires a careful
 implementation in particular concerning synchronization and throughput
 optimization. The overall performance is slightly worse than for Redis. The
 Advert Service currently has some limitations which will be discussed later.
 DIANE shows a higher startup overhead, which is particularly observable for
-smaller WU numbers. However, the runtime increases only slightly (about 10\,sec)
-when going from 64 to 2048 WUs. A reason for this behavior is that DIANE
-aggregates SUs: for 2048 WUs only a single task description is created, which
+smaller \cu  numbers. However, the runtime increases only slightly (about 10\,sec)
+when going from 64 to 2048 \cu s. A reason for this behavior is that DIANE
+aggregates SUs: for 2048 \cu s only a single task description is created, which
 the framework then efficiently distribute to its worker agents. BigJob in
-contrast maintains for each WU a separate description. 
+contrast maintains for each \cu  a separate description. 
 % At the investigated
 % scales, the single manager does not represent a bottleneck with respect to the
-% processable WU numbers. Further, the TROY manager introduces another 
+% processable \cu  numbers. Further, the TROY manager introduces another 
 % hierarchy-level which can further
 % enhance the overall scalability.
 
@@ -1689,7 +1684,7 @@ experiment, the Advert c\&c sub-system showed a significantly lower performance.
 \caption{\textbf{BigJob and DIANE Performance (2):}  The
 runtime of a constant workload of 4 \texttt{/bin/date} jobs 
 increases only slightly up to 128 cores. In particular, the Redis backend shows
-an almost linear scalability achieving a throughput of up to 4 WUs/sec. }
+an almost linear scalability achieving a throughput of up to 4 \cu s/sec. }
 \label{fig:perf_bigjob-varying-cores} 
 \upp\upp
 \end{figure}
@@ -1776,7 +1771,7 @@ be extended by the following elements:
 \end{compactenum}
  
 Note, each element can be mapped to an element in the P* Model by
-symmetry, e.\,g., a DU correspond to a WU in the original P* Model; 
+symmetry, e.\,g., a DU correspond to a \cu  in the original P* Model; 
 a PS is a placeholder reserving a certain amount of storage on a physical 
 resource and corresponds to a pilot in the P* Model.
 
@@ -1784,7 +1779,7 @@ resource and corresponds to a pilot in the P* Model.
 %   Framework} \alnote{ok}
 
 % A particular critical requirement for data-intensive application, is
-% the management of affinity between DUs and also between WUs and
+% the management of affinity between DUs and also between \cu s and
 % DUs. Thus, Pilot-Data introduces the PD container object for
 % expressing relationships between DUs. A PD corresponds to an SU in
 % the \jwave{PJ model}, i.\,e.\ it is used as scheduling unit for
@@ -1806,7 +1801,7 @@ e.\,g.\ utilizing the M/W model; the communication characteristic can
 be applied similarly. The scheduling characteristics must be extended
 to not only meet compute requirements, but also to support common data
 access patterns. The scheduling component particularly needs to
-consider affinities, i.\,e.\ user-defined relationships between WUs
+consider affinities, i.\,e.\ user-defined relationships between \cu s
 and/or DUs. Data-data affinities e.\,g.\ exist if different DUs must
 be present at the same compute element; data-compute affinities arise
 if data and compute must be co-located for a computation, but their
@@ -1999,9 +1994,9 @@ applications that involve multiple independent tasks.\alnote{just one sentence -
 
 % To perform the above experiments we built an application \smnote{this
 % application is DARE. do we need mention it here?} using TROY API to submit Bfast
-% WU's with different input files to different backend implementations. The WU's
+% \cu 's with different input files to different backend implementations. The \cu 's
 % are completely handled and submitted to different backends by TROY and the
-% co-ordination of WU's was made simple for the application. Further, applications
+% co-ordination of \cu 's was made simple for the application. Further, applications
 % can also continuously monitor status of remote agents and UOWs.
 
 % Further, it shows that both PJ implementations can be used
@@ -2039,7 +2034,7 @@ applications that involve multiple independent tasks.\alnote{just one sentence -
 
 
 % Further, TROY hides many of the complications with various pilot
-% jobs like multiple node backend agents, how WU's distribution to
+% jobs like multiple node backend agents, how \cu 's distribution to
 % various backends. Thus, this enables users of this API to
 % concentrate more on designing their applications instead worrying
 % about the various configurations of the pilot jobs.
