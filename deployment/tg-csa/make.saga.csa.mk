@@ -668,8 +668,6 @@ endif
 $(SC_BIGJOB_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
 	@echo "saga-client-bigjob        installing"
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
-	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
 	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS)     ; wget $(BJ_SETUPTOOLS_URL)     && $(TEST_ENV) sh $(BJ_SETUPTOOLS)
 	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS_GIT) ; wget $(BJ_SETUPTOOLS_GIT_URL) && \
@@ -679,7 +677,9 @@ ifndef CSA_SAGA_CHECK
 	@sed -i $(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
 endif
 
-# @cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(TEST_ENV) $(PYTHON_CHECK) setup.py install --prefix=$(SAGA_LOCATION)
+#	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
+#	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
+#	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(TEST_ENV) $(PYTHON_CHECK) setup.py install --prefix=$(SAGA_LOCATION)
 
 ########################################################################
 #
