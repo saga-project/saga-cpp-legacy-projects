@@ -340,13 +340,15 @@ if ( $do_exe )
     #              "       $path/csa/doc/README.saga-$version.$CPP.$host" .
     #              "       $path/saga/$version/$CPP/share/saga/config/python.m4" .
     #              "       $path/saga/$version/$CPP/lib/python*";
-    # my $exe    = "cd     $path/csa/ ; svn up";
     # my $exe    = "eval `grep \"  export\" $path/README.saga-1.6.*.$host` ; " .
     #              "python -c \"import saga ; print saga ; import bigjob ; print bigjob\"";
-      my $exe    = "rm -rv $path/src/saga-client-bigjob-*" .
-                   "       $path/saga/$version/$CPP/lib/python*/site-packages/* " .
-                   "       $path/external/python/2.7.1/$CPP/lib/python*/site-packages/*" .
-                   "       $path/saga/$version/$CPP/share/saga/config/python.m4" ;
+    # my $exe    = "rm -rv $path/src/saga-client-bigjob-*" .
+    #              "       $path/saga/$version/$CPP/lib/python*/site-packages/* " .
+    #              "       $path/external/python/2.7.1/$CPP/lib/python*/site-packages/*" .
+    #              "       $path/saga/$version/$CPP/share/saga/config/python.m4" ;
+      my $exe    = "rm -rv $path/csa/{doc,mod,test}/ ; " .
+                   "cd     $path/     ; test -d csa || svn co https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa csa ; " .
+                   "cd     $path/csa/ ; svn up";
 
       print "+-----------------+------------------------------------------+-------------------------------------+\n";
       printf "| %-15s | %-40s | %-35s |\n", $host, $fqhn, $path;
