@@ -66,6 +66,14 @@
 \newcommand{\note}[1]{}
 \fi
 
+\newcommand{\pilot}{Pilot}
+\newcommand{\cu}{Compute Unit}
+\newcommand{\cs}{Compute Service}
+\newcommand{\du}{Data Unit}
+\newcommand{\ds}{Data Service}
+\newcommand{\su}{Schedulable Unit}
+\newcommand{\condorg}{Condor-G/Glide-In}
+
 \lstdefinestyle{myListing}{
   frame=single,   
   backgroundcolor=\color{listinggray},  
@@ -487,7 +495,7 @@ functionality (e.\,g.\ Condor-G and DIANE).
 \begin{figure}[t]
     \centering\up
     \includegraphics[width=0.43\textwidth]{figures/pstar_model_single.pdf}
-    \caption{ \textbf{P* Model: Elements and Interactions:} The core
+    \caption{ \textbf{P* Model: Elements, Characteristics and Interactions:} The core
       of the model is the manager that is responsible for managing
       pilot-jobs and WUs. After a WU is submitted to the manager, it
       transitions to an SU, which is scheduled to a pilot by the
@@ -513,7 +521,7 @@ functionality (e.\,g.\ Condor-G and DIANE).
 
 \alnote{use pilot NOT pilot-job}
 \begin{compactitem}
-\item \textbf{Pilot:} The pilot is the
+\item \textbf{Pilot-Compute or Pilot:} The pilot is the
   entity that actually gets submitted and scheduled on a resource
   using the resource's RM system. The PJ provides application (user)
   level control and management of the set of allocated resources.
@@ -660,7 +668,9 @@ pilot-job framework.  These agents can be used to enforce, a set of
 affinities, etc.) and heuristics.
 
 
-{\it Putting it all together:} Figure~\ref{fig:figures_pstar}
+
+\subsection{Putting it all together} 
+Figure~\ref{fig:figures_pstar}
 illustrates the interactions between the elements of the P* model. In
 the first step the application specifies the capabilities of the
 resources required using a pilot-job description (step 1). The PM then
@@ -687,7 +697,8 @@ pilot also manages the subsequent execution of the SU (step~6).  Again
 there can be variations of this flow. PJ frameworks with decentralized
 decision making often utilize autonomic agents that accepts
 respectively pull SUs according to a set of defined policies.
-
+\alnote{mention that the above is a representation of the inner working of a PJ
+frameworks}
 
 % Figure~\ref{fig:figures_pstar}
 % illustrates the interactions between the elements of the P*
@@ -766,8 +777,9 @@ respectively pull SUs according to a set of defined policies.
 %   grouping or a smart aggregation of WUs (e.\,g.\ two sets of
 %   parameters merged into one).}
 
-\section{TROY: A Reference Implementation and API for the P*
-  Model\upp\upp}
+\section{TROY: An API for the P*  Model\upp\upp}
+\note{TROY: An API Supporting the P* Model}
+
 
 % \terminology{TROY (implementation), P* Model, TROY API, PJ
 %   implementation, BigJob, based on SAGA, PJ description, WU
@@ -787,11 +799,14 @@ respectively pull SUs according to a set of defined policies.
 % \amnote{I disagree with the term runtime environment, but that is
 %   probably not very important in the context of this paper.}
 
-TROY is an implementation of the P* Model
+TROY is an API that exposes the P* Model
 (\S\ref{sec:pilot-model}). It consists of the TROY
 API~\cite{troy_api}, a runtime system and a set of adaptors for
 various PJ frameworks (see figure~\ref{fig:figures_pstar_troy}). TROY
 is consistent with the SAGA~\cite{saga_url,saga_gfd90} API. 
+\alnote{elaborate on SAGA-based approach to interoperability: We use the the API 
+approach to interoperability => talk about approach not api}
+
 
 SAGA provides a simple, POSIX-style API to the most common grid
 functions at a sufficiently high-level of abstraction so as to be
@@ -809,41 +824,47 @@ underlying pilot-job frameworks. This architecture also enables the
 concurrent usage of multiple PJ frameworks.
 
 \begin{figure}[t]
-	\upp
-	\centering
-		\includegraphics[width=0.45\textwidth]{figures/TROY_arch.pdf}
-                \caption{\textbf{TROY -- An API and Runtime System for
-                    the P* Model:} TROY provides an API for managing
-                  PJs and PDs. BigJob and BigData are realizations of
-                  the actual PJ and PD functionality. BJ and BD rely
-                  on SAGA for implementation of the PJ/PD.\alnote{We
-                    are using the term Capability Provider and Adaptor
-                    interchangeably. Should we make fig 2 \& 3
-                    consistent? Also, we need to be consistent with
-                    this respect in our writing in sec III.}  }
-	\label{fig:figures_pstar_troy}
-	\upp\upp
+    \centering
+\upp
+    \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
+    \caption{\textbf{TROY and PJ frameworks:} TROY provides the
+      ability to utilize the native Pilot-Job capabilities of
+      different infrastructures, e.\,g.\ BigJob for TeraGrid/Cloud
+      resources, DIANE for EGI and Condor for OSG resources. It also
+      enables the concurrent usage of these infrastructures.
+	\upp\upp\upp}
+    \label{fig:figures_distributed_pilot_job}
 \end{figure}
 
+% \begin{figure}[t]
+% 	\upp
+% 	\centering
+% 		\includegraphics[width=0.45\textwidth]{figures/TROY_arch.pdf}
+%                 \caption{\textbf{TROY -- An API and Runtime System for
+%                     the P* Model:} TROY provides an API for managing
+%                   PJs and PDs. BigJob and BigData are realizations of
+%                   the actual PJ and PD functionality. BJ and BD rely
+%                   on SAGA for implementation of the PJ/PD.
+% 	\label{fig:figures_pstar_troy}
+% 	\upp\upp
+% \end{figure}
 
-Figure~\ref{fig:figures_troy_classes} displays the main classes of
-TROY. \alnote{remove Python implementation for now since it implies
-  that there might be another implementation. We should however
-  elaborate on why python}\jhanote{Do we? I think we should, but I
-  couldn't find it} Figure~\ref{fig:figures_troy_flow} shows the
-interactions between the TROY elements.  The TROY API decouples
-workload management and resource scheduling by exposing two separate
-services: The \texttt{PilotJobService} (PJS) and
-\texttt{WorkUnitService} (WUS). The PJS serves as factory for
-instantiating pilots. Also, the PJS can be used to query the PJS for
-currently active pilots. A \texttt{PilotJob} object is returned as
-result of the \texttt{create\_pilotjob()} method of the PJS (step
-1). As in SAGA, the instantiation of \texttt{PilotJob} object is done
-by using a \texttt{PilotJobDescription}. The description can be reused
-and has no state, while the \texttt{PilotJob} instance has state and
-is a reference for further usage. The actual creation of the PJ is
-done via the adaptor, which is responsible for calling the underlying
-PJ framework (step 2 and 3).
+Figure~\ref{fig:figures_troy_classes} displays the main classes of TROY.
+\alnote{remove Python implementation for now since it implies that there might
+be another implementation. We should however elaborate on why python}\jhanote{Do
+we? I think we should, but I couldn't find it}
+Figure~\ref{fig:figures_troy_flow} shows the interactions between the TROY
+elements. The TROY API decouples workload management and resource scheduling by
+exposing two separate services: The \texttt{PilotJobService} (PJS) and
+\texttt{WorkUnitService} (WUS). The PJS serves as factory for instantiating
+pilots. Also, the PJS can be used to query the PJS for currently active pilots.
+A \texttt{PilotJob} object is returned as result of the
+\texttt{create\_pilotjob()} method of the PJS (step 1). As in SAGA, the
+instantiation of \texttt{PilotJob} object is done by using a
+\texttt{PilotJobDescription}. The description can be reused and has no state,
+while the \texttt{PilotJob} instance has state and is a reference for further
+usage. The actual creation of the PJ is done via the adaptor, which is
+responsible for calling the underlying PJ framework (step 2 and 3).
 
 \lstset{
 language=Python,
@@ -1307,18 +1328,7 @@ as GIS. Communication traffic can be encrypted.
 
 \subsubsection*{Discussion}
 
-\begin{figure}[t]
-    \centering
-\upp
-    \includegraphics[width=0.48\textwidth]{figures/distributed_pilot_job.pdf}
-    \caption{\textbf{TROY and PJ frameworks:} TROY provides the
-      ability to utilize the native Pilot-Job capabilities of
-      different infrastructures, e.\,g.\ BigJob for TeraGrid/Cloud
-      resources, DIANE for EGI and Condor for OSG resources. It also
-      enables the concurrent usage of these infrastructures.
-	\upp\upp\upp}
-    \label{fig:figures_distributed_pilot_job}
-\end{figure}
+
 
 P* provides a theoretical framework for describing and understanding of PJ
 frameworks. Table~\ref{table:bigjob-saga-diane} summarizes how P* can be applied
