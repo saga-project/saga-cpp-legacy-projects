@@ -939,7 +939,10 @@ responsible for a \cu, the \cu  transitions to an SU. SUs are internally process
 \texttt{Scheduler} (step 5), which selects an appropriate pilot. Having chosen
 an appropriate resource, the SU is dispatched using the respective adaptor (step
 6 and 7). The PJ framework is responsible for the actual execution of the SU on
-a resource. Note that multiple levels of (hierarchical) scheduling can be
+a resource
+\note{OW says: Somewhat inconsistent. The 'framework' is earlier described as 
+the 'whole' thing. Isn't the 'adaptor' responsible for execution?}. 
+Note that multiple levels of (hierarchical) scheduling can be
 present: commonly a SU is scheduled inside of TROY runtime system as well as in
 the underlying PJ framework.
 
@@ -970,6 +973,8 @@ the underlying PJ framework.
 
 Each \texttt{WorkUnit} and the \texttt{PilotJob} object is associated with a
 state. The state model is based on the SAGA job state model~\cite{saga_gfd90}.
+\note{OW says: Why? IMHO the GFD.90 state model has some serious flaws, like
+the absence of a 'Waiting' state.} 
 Applications can query the state using the \texttt{get\_state()} method or they
 can subscribe to state update notifications.
 
@@ -1056,11 +1061,17 @@ can subscribe to state update notifications.
 \end{table}
 
 The TROY API classes and interactions are designed to reflect the P*
-elements and characteristics. Table~\ref{table:pstar_elements}
+elements and characteristics.
+\note{OW says: Why? See earlier note about the scope of TROY}
+Table~\ref{table:pstar_elements}
 summarizes the mapping of P* elements and TROY. As defined by P*, a \cu 
 represents a primary self-containing piece of work that is submitted
 to TROY. At the API boundary a \cu  transitions to an SU, which
-functions as internal unit of scheduling.  The API follows
+functions as internal unit of scheduling.
+\note{OW says: Does this really happen at the API boundary? Earlier, 
+the text says: 'Once the WUS becomes responsible for a CU, the CU
+transitions to a SU. This suggests that a CU lives beyon 'API level'.}
+The API follows
 object-oriented design principles and exposes the primary
 functionality of the Pilot-Manager using two classes: the
 \texttt{PilotJobService} for the management of pilots and the
@@ -1072,7 +1083,11 @@ PJ capabilities.
 
 TROY uses the M/W coordination model: The TROY runtime system
 functions as master for a set of PJ frameworks that are encapsulated
-within a TROY adaptor. Inside the PJ framework itself another
+within a TROY adaptor.
+\note{OW says: Maybe explain this: The TROY scheduler pushes SUs
+to the adaptors were they get translated into 'native' execution units,
+e.g., a DIANE job, a Condor glide-In, a Bigjob/SubJob}
+ Inside the PJ framework itself another
 coordination model can be used; most commonly this is also M/W. The
 TROY runtime system only utilizes local communication between the
 application, the runtime system and the adaptors. The PJ frameworks in
@@ -1154,12 +1169,16 @@ defined by the SAGA adaptor mechanism.}
 
 Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the architecture of
 BJ. BJ utilizes a M/W coordination model: The BigJob-Manager is responsible for
-the orchestration of pilots, for the binding of \cu s and for the scheduling of
-SUs. For submission of the pilots, SAGA relies on the SAGA Job API, and thus can
+the orchestration of pilots, for the binding of \cu s \note{OW says: binding to what?}
+and for the scheduling of
+SUs. For submission of the pilots, BigJob relies on the SAGA Job API, and thus can
 be used in conjunction with different SAGA adaptors, e.\,g.\ the Globus, the
-PBS, the Condor and the Amazon Web Service adaptor. Each pilot initializes a so
+PBS, the Condor and the Amazon Web Service adaptor. 
+\note{OW says: Better: relies on the job submission capabilites of SAGA, which include
+Globus, PBS, Condor, ...}
+Each pilot initializes a so
 called BJ-agent. The agent is responsible for gathering local information
-and for executing tasks (SUs) on its local resource. The SAGA Advert Service API
+and for executing tasks (SUs) on its local resource. The SAGA Advert Service
 is used for communication between manager and agent. The Advert Service (AS)
 exposes a shared data space that can be accessed by manager and agent, which use
 the AS to realize a push/pull communication pattern, i.\,e.\ the manager pushes
@@ -1192,6 +1211,9 @@ scheduler is used for dispatching \cu s to one of the BJs of the pool (late
 binding). By default a FIFO scheduler is provided. Other backends (such as DIANE
 and Condor) natively support elasticity, but can nevertheless be combined into a
 BJ pool.
+
+\note{OW says: Where is that magic BigJob-Pool and its scheduler? Is there an API for that? 
+That's also part of the capabilites provided by bigjob-server.}
 
 % \input{sectionIV_comments}
 \upp
@@ -1478,10 +1500,37 @@ BigJob configurations and DIANE. TROY-BigJob is used with the
 SAGA-Globus adaptor to access LONI~\cite{loni} resources and with
 SAGA-Condor adaptor to access OSG
 resources~\cite{1742-6596-78-1-012057}.  Further, we utilize
-TROY-DIANE on LONI. On LONI the Oliver machine and a total of 8 cores
+TROY-DIANE on LONI. On the LONI \textit{Oliver} cluster and a total of 8 cores
 distributed across 2 nodes is used, on OSG a single machine was
 requested using the GRAM/Condor endpoint of the Renci gateway machine.
 \alnote{Sharath please check}
+
+\note{OW says: That would be the case if we use Condor-G. The machines
+is belhaven-1.renci.org - a Globus/PBS cluster that accepts Condor jobs.\\
+So the OSG is a peculiar beast. My current understanding is, that it consits 
+of a bunch of HPC clusters with a Globus frontend. OSG uses an automated 
+Glide-in WMS service that starts glide-ins via Condor-G on these clusters.
+The glide-ins are aggregated and presented to the OSG (HTC) user as a 
+standard condor pool for HTC jobs. While using OSG through condor seems 
+to be a popular mode of operation, it is possible to access any of the 
+OSG-member clusters via Condor-G and through Globus directly. As far as I
+understand, this is the preferred mode for running HPC (multi-core) 
+applications.\\
+This raises two important questions: does it make sense it all to use
+BigJob with the OSG condor pool? We would end up with one BJ agent per
+condor job which represents one core, which would just add a lot of overhead and
+no benefits. Using OSG via Condor-G or even Globus would allow us to
+take advantage of larger reservations, e.g. one BJ agent that manages
+128 cores.\\
+While it would make sense for TROY to implement a native Condor 'backend'
+that doesn't use another layer of 'agents' and master/worker advert 
+mechanisms, I don't think that this makes sense for BigJob. Depending on 
+what we want to show, I propose that we use BigJob with Globus (we now that 
+it works) on OSG. While this doesn't show pilot job interoperabiltiy
+(which his hard to achieve without TROY anyways), it still shows cross-grid
+interoperability.}
+
+
 % To manage the genome sequencing workflow we use
 % theDARE~\cite{dare-tg11-gateways} framework that has been built on top of 
 %TROY.
