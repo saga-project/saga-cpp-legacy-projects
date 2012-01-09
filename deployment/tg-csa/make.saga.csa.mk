@@ -640,6 +640,9 @@ SC_BIGJOB_CHECK      = $(SAGA_LOCATION)/bin/test-bigjob
 BJ_SETUPTOOLS        = "setuptools-0.6c11-py2.7.egg"
 BJ_SETUPTOOLS_URL    = "http://pypi.python.org/packages/2.7/s/setuptools/$(BJ_SETUPTOOLS)"
 
+BJ_SETUPTOOLS_GIT    = "setuptools-git-0.4.2.tar.gz"
+BJ_SETUPTOOLS_GIT_URL= "http://pypi.python.org/packages/source/s/setuptools-git/$(BJ_SETUPTOOLS_GIT)"
+
 BIGJOB_EGGS          = $(shell ls -d $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg 2> /dev/null)
 BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut -f 1 -d '/' | rev)
 BIGJOB_VERSION       = $(shell echo $(BIGJOB_EGG)                        | rev | cut -f 2 -d '-' | rev)
@@ -651,6 +654,7 @@ SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EG
 # $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
 TEST_ENV                 = /usr/bin/env
+TEST_ENV                += PATH=$(PYTHON_LOCATION)/bin/:$(SAGA_LOCATION)/bin/:$$PATH
 TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
 TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH)
 
@@ -667,9 +671,13 @@ ifndef CSA_SAGA_CHECK
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) && $(SVNUP)                 $(CSA_SAGA_TGT) ; true
 	@cd $(SRCDIR) ; test -d $(CSA_SAGA_TGT) || $(SVNCO) $(CSA_SAGA_SRC) $(CSA_SAGA_TGT)
 	@rm -rf $(SC_BIGJOB_CHECK)
-	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(ENV) $(SAGA_ENV) make install
-	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS) ; wget $(BJ_SETUPTOOLS_URL) && sh $(BJ_SETUPTOOLS_URL)
-	@sed -i $(SAGA_LOCATION)/lib/python2.7/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
+	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS)     ; wget $(BJ_SETUPTOOLS_URL)     && $(TEST_ENV) sh $(BJ_SETUPTOOLS)
+	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS_GIT) ; wget $(BJ_SETUPTOOLS_GIT_URL) && \
+      tar zxvf $(BJ_SETUPTOOLS_GIT) && cd setuptools-git-0.4.2 && \
+      $(TEST_ENV) $(PYTHON_CHECK) setup.py install --prefix=$(SAGA_LOCATION)
+	# @cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(TEST_ENV) $(PYTHON_CHECK) setup.py install --prefix=$(SAGA_LOCATION)
+	@cd $(SRCDIR)/$(CSA_SAGA_TGT)/ ; $(TEST_ENV) $(PYTHON_LOCATION)/bin/easy_install bigjob --prefix=$(SAGA_LOCATION)
+	@sed -i $(SAGA_PYTHON_MODPATH)/easy-install.pth -e 's/^.*BigJob.*$$//g'
 endif
 
 
