@@ -153,17 +153,20 @@ $SVNCI .= " ci";
       $csa_packs {$tmp_version} = ();
       next LINE_P;
     }
-    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)\s*$/io )
+    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)(?:\s+(\S.*?))\s*$/io )
     {
-      my $tmp_module  = $1;
-      my $tmp_src     = $2;
+      my $tmp_mod  = $1;
+      my $tmp_src  = $2;
+      my $tmp_tgt  = $3 || "*";
+      my @tmp_tgts = split (/[\s,]+/, $tmp_tgt);
 
-      push ( @{$csa_packs{$tmp_version}{'modules'}}, {'name' => $tmp_module,
-                                                      'src'  => $tmp_src});
+      push ( @{$csa_packs{$tmp_version}{'modules'}}, {'name' => $tmp_mod,
+                                                      'src'  => $tmp_src, 
+                                                      'tgt' => \@tmp_tgts});
     }
     else
     {
-      warn "WARNING: Cannot parse csa package line '$tmp'\n";
+      die "WARNING: Cannot parse csa package line '$tmp'\n";
     }
   }
 
@@ -453,43 +456,26 @@ if ( $do_deploy )
       {
         my $mod_name = $entry->{'name'};
         my $mod_src  = $entry->{'src'};
+        my @mod_tgts = @{$entry->{'tgt'}};
 
-        print " -- build $mod_name ($version)\n";
+        print " -- build $mod_name ($version) (@mod_tgts)\n";
 
-        my $cmd = "$access $fqhn 'mkdir -p $path ; " .
-                                 "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
-                                 "$ENV CSA_HOST=$host                 " .
-                                 "     CSA_LOCATION=$path             " .
-                                 "     CSA_SAGA_VERSION=$version      " .
-                                 "     CSA_SAGA_SRC=\"$mod_src\"      " .
-                                 "     CSA_SAGA_TGT=$mod_name-$version" .
-                                 "     $force                         " .
-                                 "     make -C $path/csa/             " .
-                                 "          --no-print-directory      " .
-                                 "          -f make.saga.csa.mk       " .
-                                 "          $mod_name               ' " ;
-        if ( $show || $fake )
+        if ( ! grep (/\!$host/, @mod_tgts)    &&
+             ( grep (/\*/,      @mod_tgts) ||
+               grep (/$host/,   @mod_tgts) )  )
         {
-          print " -- $cmd\n";
-        }
-        
-        unless ( $fake )
-        {
-          if ( 0 != system ($cmd) )
-          {
-            print " -- error: cannot deploy $mod_name on $host\n";
-            exit -1 if $be_strict;
-          }
-        }
-
-        if ( $mod_name eq "documentation" )
-        {
-          my $cmd = "$access $fqhn ' cd $path/csa/                            && " .
-                                   " svn add doc/README.saga-$version.*.$host && " .
-                                   " svn add mod/module.saga-$version.*.$host && " .
-                                   " $SVNCI -m \"automated update\"              " .
-                                   "   doc/README.saga-$version.*.$host          " .
-                                   "   mod/module.saga-$version.*.$host       '  " ;
+          my $cmd = "$access $fqhn 'mkdir -p $path ; " .
+                                   "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
+                                   "$ENV CSA_HOST=$host                 " .
+                                   "     CSA_LOCATION=$path             " .
+                                   "     CSA_SAGA_VERSION=$version      " .
+                                   "     CSA_SAGA_SRC=\"$mod_src\"      " .
+                                   "     CSA_SAGA_TGT=$mod_name-$version" .
+                                   "     $force                         " .
+                                   "     make -C $path/csa/             " .
+                                   "          --no-print-directory      " .
+                                   "          -f make.saga.csa.mk       " .
+                                   "          $mod_name               ' " ;
           if ( $show || $fake )
           {
             print " -- $cmd\n";
@@ -499,12 +485,39 @@ if ( $do_deploy )
           {
             if ( 0 != system ($cmd) )
             {
-              print " -- error: cannot commit documentation\n";
+              print " -- error: cannot deploy $mod_name on $host\n";
               exit -1 if $be_strict;
             }
           }
+
+          if ( $mod_name eq "documentation" )
+          {
+            my $cmd = "$access $fqhn ' cd $path/csa/                            && " .
+                                     " svn add doc/README.saga-$version.*.$host && " .
+                                     " svn add mod/module.saga-$version.*.$host && " .
+                                     " $SVNCI -m \"automated update\"              " .
+                                     "   doc/README.saga-$version.*.$host          " .
+                                     "   mod/module.saga-$version.*.$host       '  " ;
+            if ( $show || $fake )
+            {
+              print " -- $cmd\n";
+            }
+            
+            unless ( $fake )
+            {
+              if ( 0 != system ($cmd) )
+              {
+                print " -- error: cannot commit documentation\n";
+                exit -1 if $be_strict;
+              }
+            }
+          }
+          print "\n";
         }
-        print "\n";
+        else
+        {
+          print "module $mod_name disabled on $host\n";
+        }
       }
     }
   }
