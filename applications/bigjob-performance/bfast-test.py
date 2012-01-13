@@ -1,4 +1,5 @@
 import saga
+import copy
 import os
 import time
 import sys
@@ -21,45 +22,46 @@ COORDINATION_URL = "redis://ILikeBigJob_wITH-REdIS@gw68.quarry.iu.teragrid.org:6
 
 
 BFAST_JOBS = {
-	    # "kraken":
-            #    { "lrms_url":"xt5torque://localhost/",
-            #      "bfast_exe":"bfast",
-            #      "bfast_ref_genome": "/lustre/scratch/aluckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
-            #      "bfast_reads": "/lustre/scratch/aluckow/bfast-small/reads/reads.1.fastq",              
-            #      "bfast_tmp_dir" : "/lustre/scratch/aluckow/bfast-small/matchtmp/", 
-            #      "bfast_matches_dir":"matches/",    
-	    #      "bfast_library_path": "/lib64",
-            #      "working_directory" : "/lustre/scratch/aluckow/bigjob/",     
-            #      "number_subjobs" : 2,
-            #      "number_nodes" : 12,  
-            #      "number_cores_per_node": 1 #no applicable to torque adaptor         
-            #     },
-	     "queenbee":
-                { "lrms_url":"pbs-ssh://luckow@queenbee.loni.org/",
+     "kraken":
+                { "lrms_url":"xt5torque://localhost/",
                   "bfast_exe":"bfast",
-                  "bfast_ref_genome": "/work/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
-                  "bfast_reads": "/work/luckow/bfast-small/reads/reads.1.fastq",
-                  "bfast_tmp_dir" : "/work/luckow/bfast-small/matchtmp/",
-                  "bfast_matches_dir":"matches/",
-                  "working_directory" : "/work/luckow/bigjob/",
-                  "number_subjobs" : 2,
-                  "number_nodes" : 1,
-                  "number_cores_per_node": 8
-                 },
- 	     "hotel":
-                { "lrms_url":"pbs-ssh://luckow@hotel.futuregrid.org",
-                  "bfast_exe":"bfast",
-                  "bfast_ref_genome": "/gpfs/scratch/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
-                  "bfast_reads": "/gpfs/scratch/luckow/bfast-small/reads/reads.1.fastq",
-                  "bfast_tmp_dir" : "/gpfs/scratch/luckow/bfast-small/matchtmp/",
-                  "bfast_matches_dir":"matches/",
-                  "working_directory" : "/gpfs/scratch/luckow/bigjob/",
-                  "number_subjobs" : 2,
-                  "number_nodes" : 1,
-                  "number_cores_per_node": 8 
-		}
-	    # ,
-	    # "sierra":
+                  "bfast_ref_genome": "/lustre/scratch/aluckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
+                  "bfast_reads": "/lustre/scratch/aluckow/bfast-small/reads/reads.1.fastq",              
+                  "bfast_tmp_dir" : "/lustre/scratch/aluckow/bfast-small/matchtmp/", 
+                  "bfast_matches_dir":"matches/",    
+                  "bfast_library_path": "/lib64",
+                  "working_directory" : "/lustre/scratch/aluckow/bigjob/",     
+                  "number_subjobs" : 1,
+                  "number_aprun_subjobs" : 2,
+                  "number_nodes" : 24,  
+                  "number_cores_per_node": 1 #no applicable to torque adaptor         
+                 }
+    # "queenbee":
+    #            { "lrms_url":"pbs-ssh://luckow@queenbee.loni.org/",
+    #              "bfast_exe":"bfast",
+    #              "bfast_ref_genome": "/work/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
+    #              "bfast_reads": "/work/luckow/bfast-small/reads/reads.1.fastq",
+    #              "bfast_tmp_dir" : "/work/luckow/bfast-small/matchtmp/",
+    #              "bfast_matches_dir":"matches/",
+    #              "working_directory" : "/work/luckow/bigjob/",
+    #              "number_subjobs" : 16,
+    #              "number_nodes" : 32,
+    #              "number_cores_per_node": 8
+    #             },
+    # "hotel":
+    #            { "lrms_url":"pbs-ssh://luckow@hotel.futuregrid.org",
+    #              "bfast_exe":"bfast",
+    #              "bfast_ref_genome": "/gpfs/scratch/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
+    #              "bfast_reads": "/gpfs/scratch/luckow/bfast-small/reads/reads.1.fastq",
+    #              "bfast_tmp_dir" : "/gpfs/scratch/luckow/bfast-small/matchtmp/",
+    #              "bfast_matches_dir":"matches/",
+    #              "working_directory" : "/gpfs/scratch/luckow/bigjob/",
+    #              "number_subjobs" : 24,
+    #              "number_nodes" : 48,
+    #              "number_cores_per_node": 8 
+    #    }
+    # ,
+    # "sierra":
             #    { "lrms_url":"pbs-ssh://luckow@sierra.futuregrid.org",
             #      "bfast_exe":"bfast",
             #      "bfast_ref_genome": "/N/scratch/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
@@ -73,7 +75,7 @@ BFAST_JOBS = {
             #    }
               }
 
-NUMBER_REPEATS=1
+NUMBER_REPEATS=10
 
 RESULT_DIR="results"
 RESULT_FILE_PREFIX="results/results-"
@@ -156,41 +158,77 @@ def load_test(bfast_jobs, run_id=0):
         resource = bfast_jobs[i]
         bj = resource["bigjob"]
         subjobs = resource["subjobs"]
-	for i in range(0, resource["number_subjobs"]):
-        	jd = saga.job.description()
-        	#jd.executable = "/bin/date"
-        	jd.executable = resource["bfast_exe"]
-        	jd.number_of_processes = "1"
-        	jd.spmd_variation = "single"
-        	jd.arguments = [""]
-        	jd.arguments = ["match",  
-        	                "-f",  resource["bfast_ref_genome"] , 
-        	                "-A 1",  
-        	                "-r",  resource["bfast_reads"],
-        	                "-n" ,"1" ,
-        	                "-T" , resource["bfast_tmp_dir"]
-        	                ]  
-		if resource.has_key("bfast_library_path"):
-			jd.environment=["LD_LIBRARY_PATH="+resource["bfast_library_path"]]
-        	 
-        	jd.output = "bfast-stdout.txt"
-        	jd.error = "bfast-stderr.txt"
+        if i == "kraken":
+            jd = saga.job.description()
+            #jd.executable = "/bin/date"
+            jd.executable = "time"
+            jd.number_of_processes = "1"
+            jd.spmd_variation = "single"
+            jd.arguments = [""]
+            jd.arguments = [resource["bfast_exe"], "match", 
+                            "-f",  resource["bfast_ref_genome"] ,
+                            "-A 1", 
+                            "-r",  resource["bfast_reads"],
+                            "-n" ,"1" ,
+                            "-T" , resource["bfast_tmp_dir"]
+                            ]  
+            
+            jd.environment=["NUMBER_SUBJOBS="+str(resource["number_aprun_subjobs"])]
+            jd.output = "bfast-stdout.txt"
+            jd.error = "bfast-stderr.txt"
 
-        	sj = subjob()
-        	sj.submit_job(bj.pilot_url, jd)
-        	
-        	total_number_of_jobs = total_number_of_jobs + 1
-        	
-        	subjobs.append(sj)
-        	jobs.append(sj)
-        	job_start_times[sj]=time.time()
-        	job_states[sj] = sj.get_state()
+            sj = subjob()
+            sj.submit_job(bj.pilot_url, jd)
+            
+            total_number_of_jobs = total_number_of_jobs + 1
+            
+            subjobs.append(sj)
+            jobs.append(sj)
+            job_start_times[sj]=time.time()
+            job_states[sj] = sj.get_state()
+        
+        else:
+            for i in range(0, resource["number_subjobs"]):
+                jd = saga.job.description()
+                #jd.executable = "/bin/date"
+                jd.executable = "time"
+                jd.number_of_processes = "2"
+                jd.spmd_variation = "single"
+                jd.arguments = [""]
+                jd.arguments = [resource["bfast_exe"], "match",  
+                                "-f",  resource["bfast_ref_genome"] , 
+                                "-A 1",  
+                                "-r",  resource["bfast_reads"],
+                                "-n" ,"1" ,
+                                "-T" , resource["bfast_tmp_dir"]
+                                ]  
+                if resource.has_key("bfast_library_path"):
+                    jd.environment=["LD_LIBRARY_PATH="+resource["bfast_library_path"]]
+
+                jd.output = "bfast-stdout.txt"
+                jd.error = "bfast-stderr.txt"
+
+                sj = subjob()
+                sj.submit_job(bj.pilot_url, jd)
+                
+                total_number_of_jobs = total_number_of_jobs + 1
+                
+                subjobs.append(sj)
+                jobs.append(sj)
+                job_start_times[sj]=time.time()
+                job_states[sj] = sj.get_state()
         
         all_running = get_bj_states(bfast_jobs, starttime)
 
     subjob_submission_time = time.time()-starttime
     
     # busy wait for completion
+    total_number_subjobs = 0
+    for i in bfast_jobs.keys():
+        resource = bfast_jobs[i]
+        number_sj = resource["number_subjobs"]
+        total_number_subjobs = total_number_subjobs + number_sj
+
     while 1:        
         all_running = get_bj_states(bfast_jobs, starttime)
         for i in bfast_jobs.keys():
@@ -217,7 +255,7 @@ def load_test(bfast_jobs, run_id=0):
                     
                 job_states[i]=state
             
-            if result_map.has_key("Done") and number_subjobs_in_bigjob == result_map["Done"] and resource.has_key("completion_time")==False:
+            if result_map.has_key("Done") and number_subjobs_in_bigjob == result_map["Done"]+result_map["Failed"] and resource.has_key("completion_time")==False:
                 bj_completion_time = time.time() - starttime
                 resource["completion_time"] = bj_completion_time
                 print "BJ: " + str(bj) + " Result: " + str(result_map) + " Time: " + str(bj_completion_time)
@@ -226,13 +264,17 @@ def load_test(bfast_jobs, run_id=0):
             
             
         # check whether all BJs are finished
-        finished_bj = 0
-        for i in bfast_jobs.keys():
-           resource = bfast_jobs[i]
-           if resource.has_key("completion_time"):
-               finished_bj = finished_bj + 1 
+        #finished_bj = 0
+        #for i in bfast_jobs.keys():
+        #   resource = bfast_jobs[i]
+        #   if resource.has_key("completion_time"):
+        #       finished_bj = finished_bj + 1 
 
-        if finished_bj == len(bfast_jobs.keys()):
+        #if finished_bj == len(bfast_jobs.keys()):
+        #    break
+    
+        print("%d/%d finished"%(finish_counter, total_number_subjobs)) 
+        if finish_counter == total_number_subjobs:
             break
 
         time.sleep(2)
@@ -280,7 +322,8 @@ if __name__ == "__main__":
     f = open(result_filename, "w")
     f.write("Run,BJ,#Nodes,#cores/node,#jobs,Queuing Time,BJ Runtime,Total Runtime,Coordination URL,LRMS URL")
     for i in range(0, NUMBER_REPEATS):
-        result = load_test(bfast_jobs=BFAST_JOBS, run_id=i)
+        jobs = copy.deepcopy(BFAST_JOBS)
+        result = load_test(bfast_jobs=jobs, run_id=i)
         f.write(result)
         f.write("\n")
         f.flush()
