@@ -673,7 +673,7 @@ ifndef CSA_SAGA_CHECK
 	@cd $(SRCDIR) ; rm -f $(BJ_SETUPTOOLS_GIT) ; wget $(BJ_SETUPTOOLS_GIT_URL) && \
       tar zxvf $(BJ_SETUPTOOLS_GIT) && cd setuptools-git-0.4.2 && \
       $(TEST_ENV) $(PYTHON_CHECK) setup.py install --prefix=$(SAGA_LOCATION)
-	@cd $(SRCDIR) ; $(TEST_ENV) $(PYTHON_LOCATION)/bin/easy_install --prefix=$(SAGA_LOCATION) bigjob
+	@cd $(SRCDIR) ; $(TEST_ENV) $(PYTHON_LOCATION)/bin/easy_install -U --prefix=$(SAGA_LOCATION) bigjob
 	@sed -i $(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/easy-install.pth -e 's/^.*BigJob.*$$//g'
 endif
 
