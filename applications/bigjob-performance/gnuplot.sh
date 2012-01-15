@@ -6,7 +6,7 @@
 
 #set term postscript eps enhanced linewidth 1.42 "Helvetica" 17 
 
-set terminal pdf color enhanced dashed
+set terminal pdf color enhanced dashed linewidth 4 font "Helvetica, 10"
 set palette gray
 
 #set encoding iso_8859_1
@@ -22,33 +22,55 @@ set xlabel ""
                  
 ##########################################################################
 # NAMD Runtimes    
-set output "results-processed/bigjob-varying-wus.pdf"       
+set output "results-processed/bigjob-varying-wus-alamo.pdf"       
 #set logscale x 2
 #set logscale x                                 
 set key
 set xtics autofreq
-set yrange [0:500] 
+set yrange [0:3300] 
 #set xrange [2:16]
-set xrange [62:2050]        
+set xrange [57:2200]        
 #set xtics (2,4,8,16)
 set logscale x 2
-set ylabel "Runtime (in sec)" # font "Helvetica, 17"
-set xlabel "Number of WUs"  #font "Helvetica,17" 
+set ylabel "Runtime (in sec)"  #font "Helvetica, 10"
+set xlabel "Number of WUs"  #font "Helvetica, 10" 
 
-plot "results-processed/data_file_redis" using 1:2 title "Redis (Remote)" with lp lt 8 linewidth 4,\
-     "results-processed/data_file_redis_local" using 1:2 title "Redis (Local)" with lp  lt 4 linewidth 4,\
-     "results-processed/data_file_zmq" using 1:2 title "ZMQ" with lp  lt 5 linewidth 4
-     
+set pointsize 2
+set key left
+
+plot "results-processed/data_wu_advert_alamo.txt" using 1:2 title "Advert" with lp ps 3,\
+	 "results-processed/data_wu_redis_alamo.txt" using 1:2 title "Redis (Remote)" with lp,\
+     "results-processed/data_wu_redis_local_alamo.txt" using 1:2 title "Redis (Local)" with lp ps 1,\
+     "results-processed/data_wu_zmq_alamo.txt" using 1:2 title "ZMQ" with lp,\
+	 "results-processed/data_wu_diane_s1.txt" using 1:2 title "DIANE" with lp ps 1
+
+set output "results-processed/bigjob-varying-wus-alamo-noadvert.pdf"   
+set yrange [0:500]   
+plot "results-processed/data_wu_redis_alamo.txt" using 1:2 title "Redis (Remote)" with lp,\
+     "results-processed/data_wu_redis_local_alamo.txt" using 1:2 title "Redis (Local)" with lp ps 1,\
+     "results-processed/data_wu_zmq_alamo.txt" using 1:2 title "ZMQ" with lp,\
+	 "results-processed/data_wu_diane_s1.txt" using 1:2 title "DIANE" with lp ps 1
+
       
-set output "results-processed/bigjob-varying-cores.pdf" 
+set output "results-processed/bigjob-varying-cores-alamo.pdf" 
 set xlabel "Number of Cores"  #font "Helvetica,17"      
 #set xlabel "Number of Replicas"  font "Helvetica,24"
 #set ylabel "Runtime (in min)"   font "Helvetica,24"
-set xrange [6:130]
+set yrange [0:800] 
+set xrange [7.5:140]
 #set logscale x 2 
 #set xtics (2,4,8,16,32)
 #set yrange [20:115] 
-plot "results-processed/data_file_cores_redis" using 1:2 title "Redis (Remote)" with lp lt 8 linewidth 4,\
-     "results-processed/data_file_cores_redis_local" using 1:2 title "Redis (Local)" with lp  lt 4 linewidth 4,\
-     "results-processed/data_file_cores_zmq" using 1:2 title "ZMQ" with lp  lt 5 linewidth 4
+plot "results-processed/data_cores_advert_alamo.txt" using 1:2 title "Advert" with lp ps 3,\
+     "results-processed/data_cores_redis_alamo.txt" using 1:2 title "Redis (Remote)" with lp,\
+     "results-processed/data_cores_redis_local_alamo.txt" using 1:2 title "Redis (Local)" with lp ps 1,\
+     "results-processed/data_cores_zmq_alamo.txt" using 1:2 title "ZMQ" with lp,\
+	 "results-processed/data_cores_diane_s1.txt" using 1:2 title "DIANE" with lp ps 1
 #     "repex-azure.txt" using 1:5 title "extra-large (8 cores)" with lp  lt 3 linewidth 4
+
+set output "results-processed/bigjob-varying-cores-alamo-noadvert.pdf" 
+set yrange [0:300] 
+plot "results-processed/data_cores_redis_alamo.txt" using 1:2 title "Redis (Remote)" with lp,\
+     "results-processed/data_cores_redis_local_alamo.txt" using 1:2 title "Redis (Local)" with lp ps 1,\
+     "results-processed/data_cores_zmq_alamo.txt" using 1:2 title "ZMQ" with lp,\
+	 "results-processed/data_cores_diane_s1.txt" using 1:2 title "DIANE" with lp ps 1
