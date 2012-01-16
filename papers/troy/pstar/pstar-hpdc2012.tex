@@ -182,11 +182,11 @@
 \fi
 
 \author{
-  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Sharath Maddineni$^{1}$, Andre Merzky$^{1}$, Ole Weidner$^{4,1}$, Shantenu Jha$^{3,1*}$\\
+  Andre Luckow$^{1}$, Mark Santcroos$^{2,1}$, Ole Weidner$^{4,1}$, Andre Merzky$^{1}$, Sharath Maddineni$^{1}$, Shantenu Jha$^{3,1*}$\\
   \small{\emph{$^{1}$Center for Computation \& Technology, Louisiana State University, USA}}\\
   \small{\emph{$^{2}$Bioinformatics Laboratory, Academic Medical Center, University of Amsterdam, The Netherlands}}\\
   \small{\emph{$^{3}$ Rutgers University, Piscataway, NJ 08854, USA}}\\
-  \small{\emph{$^{4}$ School of Informatics, University of Edinburgh, UK }}\\  
+  \small{\emph{$^{4}$ School of Informatics, University of Edinburgh, UK }}\\
   \small{\emph{$^{*}$Contact Author: \texttt{shantenu.jha@rutgers.edu}}}\\
   \up\up\up\up }
 
@@ -1261,28 +1261,46 @@ properties alphabetically or move characteristics up front.}
 % \amnote{I disagree with the term runtime environment, but that is
 %   probably not very important in the context of this paper.}
 
-In this section we present a Pilot-API that exposes the P* Model  
-(\S\ref{sec:pilot-model}) to an application.
+In this section we present a \jhanote{should it be ``a'' Pilot-API or
+  ``the'' Pilot-API? I think it should be ``the''?}  Pilot-API that
+exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
 %It consists of the TROY
 %API~\cite{troy_api}, a runtime system and a set of adaptors for
 %various PJ frameworks (see figure~\ref{fig:figures_pstar_troy}). 
-\note{OW says: Technically, an API can't have a runtime system.
-An API is an interface definition and doesn't contain any implementation aspects.
-IMHO a more accurate description would be: "TROY is a bridging library that can
-interface with existing pilot job systems. It exposes its functionality 
-through an API that resembles (exposes the components of) the P* model."}
-The Pilot-API is consistent with the SAGA~\cite{saga_url,ogf-gfd-90} API. 
-\alnote{elaborate on SAGA-based approach to interoperability: We use the the API 
-approach to interoperability => talk about approach not api}
+\note{OW says: Technically, an API can't have a runtime system.  An
+  API is an interface definition and doesn't contain any
+  implementation aspects.  IMHO a more accurate description would be:
+  "TROY is a bridging library that can interface with existing pilot
+  job systems. It exposes its functionality through an API that
+  resembles (exposes the components of) the P* model."} \jhanote{Ole
+  can you comment be removed now?}
 
 
-SAGA provides a simple, POSIX-style API to the most common grid
-functions at a sufficiently high-level of abstraction so as to be
-independent of the diverse and dynamic grid environments. The Pilot-API
-itself was designed to be similar to SAGA in appearance and
+\jhanote{Somewhere we need to define the different approaches to
+  interoperability. One is via the interface/API; the other is via
+  deeper integration. In the former the lowest common denominator
+  approach is employed. In the latter semantic differences are
+  addressed but at different levels. Andre M: Would this be a good
+  place to introduce ``leaky abstractions''?}  \alnote{elaborate on
+  SAGA-based approach to interoperability: We use the the API approach
+  to interoperability => talk about approach not api}\jhanote{ditto}
+
+The Pilot-API and is thus in spirit similar to the SAGA
+API~\cite{saga_url,ogf-gfd-90}.
+
+\jhanote{Please elaborate the following} It is also consistent with
+SAGA in that it can support the same underlying job-model...
+\jhanote{ not sure about the relevance of the following sentence:} The
+Pilot-API itself was designed to be similar to SAGA in appearance and
 philosophy: it re-uses many of the well defined and standardized
-semantics and syntax. A further design consideration of the Pilot-API was a
-minimal but complete API.
+semantics and syntax.
+
+\jhanote{place..} SAGA provides a simple, POSIX-style API to the most
+common grid functions at a sufficiently high-level of abstraction so
+as to be independent of the diverse and dynamic grid environments.
+
+A further design consideration of the Pilot-API was a minimal but
+complete API.
 
 \note{OW says: Minimal and complete is implicit, since the TROY API
 resembles P*, which claims to be minimal and complete. I think it would 
@@ -1327,21 +1345,27 @@ target 'audience' -- this is currently missing in the paper.}
 % \end{figure}
 
 % Figure~\ref{fig:figures_troy_classes} displays the main classes of TROY.
-\alnote{remove Python implementation for now since it implies that there might
-be another implementation. We should however elaborate on why python}\jhanote{Do
-we? I think we should, but I couldn't find it}
-Figure~\ref{fig:figures_troy_flow} shows the interactions between the P*
-elements. The Pilot-API decouples workload management and resource scheduling by
-exposing two separate services: The \texttt{PilotJobService} (PJS) and
-\texttt{WorkUnitService} (WUS). The PJS serves as a factory for instantiating
-pilots. Also, the PJS can be used to query the PJS for currently active pilots.
-A \texttt{PilotJob} object is returned as result of the
-\texttt{create\_pilotjob()} method of the PJS (step 1). As in SAGA, the
-instantiation of \texttt{PilotJob} object is done by using a
-\texttt{PilotJobDescription}. The description can be reused and has no state,
-while the \texttt{PilotJob} instance has state and is a reference for further
-usage. The actual creation of the PJ is done via the adaptor, which is
-responsible for calling the underlying PJ framework (step 2 and 3).
+% \alnote{remove Python implementation for now since it implies that
+%   there might be another implementation. We should however elaborate
+%   on why python}\jhanote{Do we? I think we should, but I couldn't find
+%   it} 
+
+Figure~\ref{fig:figures_troy_flow} shows the interactions between the
+P* elements. The Pilot-API decouples workload management and resource
+scheduling by exposing two separate services: The
+\texttt{PilotJobService} (PJS) and \texttt{WorkUnitService} (WUS). The
+PJS serves as a factory for instantiating pilots. Also, the PJS can be
+used to query the PJS for currently active pilots.  A
+\texttt{PilotJob} object is returned as result of the
+\texttt{create\_pilotjob()} method of the PJS (step 1).
+
+As in SAGA, the instantiation of \texttt{PilotJob} object is done by
+using a \texttt{PilotJobDescription}. The description can be reused
+and has no state, while the \texttt{PilotJob} instance has state and
+is a reference for further usage. \jhanote{Following sentence needs
+  attention as it is incorrect I think} The actual creation of the PJ
+is done via the adaptor, which is responsible for calling the
+underlying PJ framework (step 2 and 3).
 
 \lstset{
 language=Python,
