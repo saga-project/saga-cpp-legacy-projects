@@ -118,6 +118,8 @@ ifeq "$(SVN)" ""
  $(error Could not find svn binary)
 endif
 
+MYPATH     = "/bin/:/usr/bin/:$(GLOBUS_LOCATION)/bin:"$(shell dirname $(SED))
+
 ##########################################################################
 # #
 # # target dependencies
@@ -245,7 +247,7 @@ SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
 SAGA_ENV_LDPATH = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
-SAGA_ENV        = PATH=$(SAGA_ENV_PATH):$$PATH LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
+SAGA_ENV        = PATH=$(SAGA_ENV_PATH):$(MYPATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: boost
 boost:: base $(BOOST_CHECK)$(FORCE)
@@ -325,7 +327,7 @@ SAGA_ENV_BINS  += :$(SAGA_LOCATION)/bin/
 
 SAGA_ENV_LDPATH = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
 SAGA_ENV_PATH   = $(call nospace, $(foreach d,$(SAGA_ENV_BINS),:$(d)))
-SAGA_ENV        = PATH=$(SAGA_ENV_PATH):$$PATH LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
+SAGA_ENV        = PATH=$(SAGA_ENV_PATH):$(MYPATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 ifeq "$(CSA_HOST)" "abe"
   # boost assumes that all linux hosts know this define.  Well, abe does not.
@@ -357,7 +359,7 @@ SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/
 
 SAGA_ENV_LDPATH      = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
-SAGA_ENV             = PATH=$(SAGA_ENV_PATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
+SAGA_ENV             = PATH=$(SAGA_ENV_PATH):$(MYPATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: saga-binding-python
 saga-binding-python:: base $(SAGA_PYTHON_CHECK)$(FORCE)
@@ -654,7 +656,7 @@ SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EG
 # $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
 
 TEST_ENV                 = /usr/bin/env
-TEST_ENV                += PATH=$(PYTHON_LOCATION)/bin/:$(SAGA_LOCATION)/bin/:$$PATH
+TEST_ENV                += PATH=$(PYTHON_LOCATION)/bin/:$(SAGA_LOCATION)/bin/:$(MYPATH)
 TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
 TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH
 
