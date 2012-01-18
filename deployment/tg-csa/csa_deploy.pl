@@ -153,7 +153,7 @@ $SVNCI .= " ci";
       $csa_packs {$tmp_version} = ();
       next LINE_P;
     }
-    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)(?:\s+(\S.*?))\s*$/io )
+    elsif ( $tmp =~ /^\s*(\S+)\s+(\S+)(?:\s+(\S.*?))?\s*$/io )
     {
       my $tmp_mod  = $1;
       my $tmp_src  = $2;
