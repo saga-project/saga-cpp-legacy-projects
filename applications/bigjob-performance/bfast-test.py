@@ -22,20 +22,20 @@ COORDINATION_URL = "redis://cyder.cct.lsu.edu:2525"
 
 
 BFAST_JOBS = {
-     "kraken":
-                { "lrms_url":"xt5torque://localhost/",
-                  "bfast_exe":"bfast",
-                  "bfast_ref_genome": "/lustre/scratch/aluckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
-                  "bfast_reads": "/lustre/scratch/aluckow/bfast-small/reads/reads.1.fastq",              
-                  "bfast_tmp_dir" : "/lustre/scratch/aluckow/bfast-small/matchtmp/", 
-                  "bfast_matches_dir":"matches/",    
-                  "bfast_library_path": "/lib64",
-                  "working_directory" : "/lustre/scratch/aluckow/bigjob/",     
-                  "number_subjobs" : 1,
-                  "number_aprun_subjobs" : 32,
-                  "number_nodes" : 72,  
-                  "number_cores_per_node": 1 #no applicable to torque adaptor         
-                 }
+    # "kraken":
+    #            { "lrms_url":"xt5torque://localhost/",
+    #              "bfast_exe":"bfast",
+    #              "bfast_ref_genome": "/lustre/scratch/aluckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
+    #              "bfast_reads": "/lustre/scratch/aluckow/bfast-small/reads/reads.1.fastq",              
+    #              "bfast_tmp_dir" : "/lustre/scratch/aluckow/bfast-small/matchtmp/", 
+    #              "bfast_matches_dir":"matches/",    
+    #              "bfast_library_path": "/lib64",
+    #              "working_directory" : "/lustre/scratch/aluckow/bigjob/",     
+    #              "number_subjobs" : 1,
+    #              "number_aprun_subjobs" : 32,
+    #              "number_nodes" : 72,  
+    #              "number_cores_per_node": 1 #no applicable to torque adaptor         
+    #             }
     # "queenbee":
     #            { "lrms_url":"pbs-ssh://luckow@queenbee.loni.org/",
     #              "bfast_exe":"bfast",
@@ -73,6 +73,19 @@ BFAST_JOBS = {
     #              "number_nodes" : 32,
     #              "number_cores_per_node": 8
     #            }
+     "india":
+                { "lrms_url":"pbs-ssh://luckow@india.futuregrid.org",
+                  "bfast_exe":"/N/u/luckow/sw/bfast-0.7.0a/bin/bfast",
+                  "bfast_ref_genome": "/N/u/luckow/bfast-small/hg18chr21_10/alt_HuRef_chr21.fa",
+                  "bfast_reads": "/N/u/luckow/bfast-small/reads/reads.1.fastq",
+                  "bfast_tmp_dir" : "/N/u/luckow/bfast-small/matchtmp/",
+                  "bfast_matches_dir":"matches/",
+                  "working_directory" : "/N/u/luckow/bigjob/",
+                  "number_subjobs" : 4,
+                  "number_nodes" : 8,
+                  "number_cores_per_node": 8
+                }
+    
               }
 
 NUMBER_REPEATS=5
@@ -321,7 +334,7 @@ if __name__ == "__main__":
     d =datetime.datetime.now()
     result_filename = RESULT_FILE_PREFIX + d.strftime("%Y%m%d-%H%M%S") + ".csv"
     f = open(result_filename, "w")
-    f.write("Run,BJ,#Nodes,#cores/node,#jobs,Queuing Time,BJ Runtime,Total Runtime,Coordination URL,LRMS URL")
+    f.write("Run,BJ,#Nodes,#cores/node,#jobs,Queuing Time,BJ Runtime,Total Runtime,Coordination URL,LRMS URL\n")
     for i in range(0, NUMBER_REPEATS):
         jobs = copy.deepcopy(BFAST_JOBS)
         result = load_test(bfast_jobs=jobs, run_id=i)
