@@ -853,6 +853,98 @@ infrastructures}
   PJ-frameworks and showing how the individual PJ-frameworks map to
   the P* model, i.e., can be explained by the P* model}
 
+
+\upp
+\subsection{Condor-G/Glide-in\upp\upp}
+
+Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
+actually a complete Condor pool that is started using the Globus
+service of a resource. This mechanism is referred to as Condor
+Glide-In. Subsequently, jobs can be submitted to this Glide-In pool
+using the standard Condor tools and APIs. Condor utilizes a
+master/worker coordination model. The PJ manager is referred to as the
+Condor Central Manager. The functionality of the Central Manager is
+provided by several daemons: the condor\_master that is generally
+responsible for managing all daemons on a machine, the
+condor\_collector which collects resource information, the
+condor\_negotiator that does the matchmaking and the condor\_schedd
+that is responsible for managing the binding and scheduling
+process. Condor generally does not differentiate between workload,
+i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
+referred to as job. However, it supports late binding, i.\,e.\
+resources a job is submitted to must generally not be available at
+submission time. The scheduler matches the capabilities required by a
+\cu to the available resources. This process is referred to as
+matchmaking. Further, a priority-based scheduler is used. For
+communication between the identified elements Condor utilizes
+point-to-point messaging using a binary protocol on top of TCP.
+
+Different fault tolerance mechanisms, such as automatic retries, are
+supported.  Further, Condor supports different security mechanisms:
+for authentication it integrates both with local account management
+systems (such as Kerberos) as well as grid authentication systems such
+as GIS. Communication traffic can be encrypted.
+
+\noindent \textbf{PJ Exposure on Open Science Grid:} Describe 
+how PJs are hidden via Glide-In WMS.
+
+\upp
+\subsection{DIANE\upp\upp}
+
+% Coordination and Communication
+DIANE~\cite{Moscicki:908910} is a task coordination framework, which
+was originally designed for implementing master/worker applications,
+but also provides PJ functionality for job-style executions. DIANE
+utilizes a single hierarchy of worker agents as well as a PJ manager
+referred to as \texttt{RunMaster}.
+%Further, there is ongoing work on a multi-master extension.
+For the spawning of PJs a separate script, the so-called submitter script, is
+required. For the access to the physical resources the GANGA
+framework~\cite{Moscicki20092303} can be used.
+%GANGA provides a
+%unified interface for job submissions to various resource types, e.\,g.\ EGI
+%resources or TG resources via a SAGA backend.
+Once the worker agents are started they register themselves at the RunMaster.
+In contrast to BigJob, a worker agent generally manages only a single
+core and thus, by default is not able to run parallel applications (e.\,g.\
+based on MPI). BJ utilizes the BJ-Agent that is able manage a set of local
+resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
+of running parallel applications. For communication between the RunMaster and
+worker agents point-to-point messaging based on CORBA~\cite{OMG-CORBA303:2004}
+is used. CORBA is also used for file staging, which is not fully supported by
+BJ, yet.
+
+% Binding 
+DIANE is primarily designed with respect to HTC environments (such as
+EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
+size of 1 core. BJ in contrast is designed for HPC systems such as TG,
+where a job usually allocates multiple nodes and cores. To address this issue
+a so-called multinode submitter script can be used: the scripts starts a
+defined number of worker agents on a certain resource. However, \cus will be
+constrained to the specific number of cores managed by a worker agent. A
+flexible allocation of resource chunks as with BJ is not possible. By
+default a \cu  is mapped to a SU; application can however implement smarter
+allocation schemes, e.\,g.\ the clustering of multiple \cus into a SU.
+
+%Scheduling
+DIANE includes a simple capability matcher and FIFO-based task scheduler.
+Plugins for other workloads, e.\,g.\ DAGs or for data-intensive
+application, exist or are under development. The framework is extensible:
+applications can implement a custom application-level scheduler.
+
+
+%Other impl. related issues: FT and security
+DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the
+privileges of the respective user. Also, only \cus of this respective user can be
+executed by DIANE. DIANE supports various middleware security mechanisms
+(e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
+implementation of GSI on TCP-level is possible, but currently not yet
+implemented. Further, DIANE supports fault tolerance: basic error detection and
+propagation mechanisms are in place. Further, an automatic re-execution of \cus
+is possible.
+
+
+
 \subsection{BigJob: A SAGA-based Pilot-Job Framework\upp\upp}
 \label{sec:bigjob_description}
 %\terminology{BigJob (BJ) , BigJob-SAGA, BJ implementation, BJ-SAGA, BJ
@@ -955,11 +1047,11 @@ binding). By default a FIFO scheduler is provided. Other backends (such as DIANE
 and Condor) natively support elasticity, but can nevertheless be combined into a
 BJ pool.
 
-\note{OW says: Where is that magic BigJob-Pool and its scheduler? Is there an
-API for that? That's also part of the capabilities provided by
-bigjob-server.}\alnote{The BigJob pool is formerly known as ManyJob. In the
-bigjob/examples directory, there are multiple examples (e.g.
-example\_manyjob\_local.py) that show how multiple BJ can be used concurrently.}
+% \note{OW says: Where is that magic BigJob-Pool and its scheduler? Is there an
+% API for that? That's also part of the capabilities provided by
+% bigjob-server.}\alnote{The BigJob pool is formerly known as ManyJob. In the
+% bigjob/examples directory, there are multiple examples (e.g.
+% example\_manyjob\_local.py) that show how multiple BJ can be used concurrently.}
 
 % \input{sectionIV_comments}
 \upp
@@ -984,94 +1076,7 @@ example\_manyjob\_local.py) that show how multiple BJ can be used concurrently.}
 \caption{Table showing the mapping between the elements of the P* Model and different Pilot-Job Frameworks\upp\upp} \label{table:bigjob-saga-diane}
 \end{table*}
 
-\upp
-\subsection{DIANE\upp\upp}
 
-% Coordination and Communication
-DIANE~\cite{Moscicki:908910} is a task coordination framework, which
-was originally designed for implementing master/worker applications,
-but also provides PJ functionality for job-style executions. DIANE
-utilizes a single hierarchy of worker agents as well as a PJ manager
-referred to as \texttt{RunMaster}.
-%Further, there is ongoing work on a multi-master extension.
-For the spawning of PJs a separate script, the so-called submitter script, is
-required. For the access to the physical resources the GANGA
-framework~\cite{Moscicki20092303} can be used.
-%GANGA provides a
-%unified interface for job submissions to various resource types, e.\,g.\ EGI
-%resources or TG resources via a SAGA backend.
-Once the worker agents are started they register themselves at the RunMaster.
-In contrast to BigJob, a worker agent generally manages only a single
-core and thus, by default is not able to run parallel applications (e.\,g.\
-based on MPI). BJ utilizes the BJ-Agent that is able manage a set of local
-resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
-of running parallel applications. For communication between the RunMaster and
-worker agents point-to-point messaging based on CORBA~\cite{OMG-CORBA303:2004}
-is used. CORBA is also used for file staging, which is not fully supported by
-BJ, yet.
-
-% Binding 
-DIANE is primarily designed with respect to HTC environments (such as
-EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
-size of 1 core. BJ in contrast is designed for HPC systems such as TG,
-where a job usually allocates multiple nodes and cores. To address this issue
-a so-called multinode submitter script can be used: the scripts starts a
-defined number of worker agents on a certain resource. However, \cus will be
-constrained to the specific number of cores managed by a worker agent. A
-flexible allocation of resource chunks as with BJ is not possible. By
-default a \cu  is mapped to a SU; application can however implement smarter
-allocation schemes, e.\,g.\ the clustering of multiple \cus into a SU.
-
-%Scheduling
-DIANE includes a simple capability matcher and FIFO-based task scheduler.
-Plugins for other workloads, e.\,g.\ DAGs or for data-intensive
-application, exist or are under development. The framework is extensible:
-applications can implement a custom application-level scheduler.
-
-
-%Other impl. related issues: FT and security
-DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the
-privileges of the respective user. Also, only \cus of this respective user can be
-executed by DIANE. DIANE supports various middleware security mechanisms
-(e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
-implementation of GSI on TCP-level is possible, but currently not yet
-implemented. Further, DIANE supports fault tolerance: basic error detection and
-propagation mechanisms are in place. Further, an automatic re-execution of \cus
-is possible.
-
-\upp
-\subsection{Condor-G/Glide-in\upp\upp}
-
-Condor-G pioneered the Pilot-Job concept~\cite{condor-g}. The pilot is
-actually a complete Condor pool that is started using the Globus
-service of a resource. This mechanism is referred to as Condor
-Glide-In. Subsequently, jobs can be submitted to this Glide-In pool
-using the standard Condor tools and APIs. Condor utilizes a
-master/worker coordination model. The PJ manager is referred to as the
-Condor Central Manager. The functionality of the Central Manager is
-provided by several daemons: the condor\_master that is generally
-responsible for managing all daemons on a machine, the
-condor\_collector which collects resource information, the
-condor\_negotiator that does the matchmaking and the condor\_schedd
-that is responsible for managing the binding and scheduling
-process. Condor generally does not differentiate between workload,
-i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
-referred to as job. However, it supports late binding, i.\,e.\
-resources a job is submitted to must generally not be available at
-submission time. The scheduler matches the capabilities required by a
-\cu to the available resources. This process is referred to as
-matchmaking. Further, a priority-based scheduler is used. For
-communication between the identified elements Condor utilizes
-point-to-point messaging using a binary protocol on top of TCP.
-
-Different fault tolerance mechanisms, such as automatic retries, are
-supported.  Further, Condor supports different security mechanisms:
-for authentication it integrates both with local account management
-systems (such as Kerberos) as well as grid authentication systems such
-as GIS. Communication traffic can be encrypted.
-
-\noindent \textbf{PJ Exposure on Open Science Grid:} Describe 
-how PJs are hidden via Glide-In WMS.
 
 
 \upp
@@ -1127,21 +1132,21 @@ This validates (i) the P* abstractions and (ii) the extensibility of the P*
 model. \msnote{Hmm, this needs attention after TROY removal}
 
 
-\alnote{this paragraph can go into VII or V} \note{TROY provides a
-  unified API that can be used to expose various PJ frameworks
-  (e.\,g.\ BigJob, DIANE and Condor-G). Further, it enables the
-  concurrent usage of multiple PJ frameworks (see
-  figure~\ref{fig:figures_distributed_pilot_job}). The SAGA inspired
-  approach to TROY's API design --- its SAGA inspired adaptor-based
-  architecture, leverage the design experiences of SAGA, are appealing
-  to the pilot-job user community. Also, the chosen designs enables
-  the easy exchange of PJ implementations and the concurrent use of
-  multiple PJ frameworks. TROY thus functions as common access layer
-  for different PJ frameworks, providing interoperability and
-  portability of PJ applications. To some extent, the TROY API can be
-  considered to be a prototype of a PJ-like API extension to SAGA (see
-  Discussion \& future work, \S\ref{sec:discussion-future-work}).}
-
+% \note{TROY provides a
+%   unified API that can be used to expose various PJ frameworks
+%   (e.\,g.\ BigJob, DIANE and Condor-G). Further, it enables the
+%   concurrent usage of multiple PJ frameworks (see
+%   figure~\ref{fig:figures_distributed_pilot_job}). The SAGA inspired
+%   approach to TROY's API design --- its SAGA inspired adaptor-based
+%   architecture, leverage the design experiences of SAGA, are appealing
+%   to the pilot-job user community. Also, the chosen designs enables
+%   the easy exchange of PJ implementations and the concurrent use of
+%   multiple PJ frameworks. TROY thus functions as common access layer
+%   for different PJ frameworks, providing interoperability and
+%   portability of PJ applications. To some extent, the TROY API can be
+%   considered to be a prototype of a PJ-like API extension to SAGA (see
+%   Discussion \& future work, \S\ref{sec:discussion-future-work}).}
+% 
 
 
 % \jhanote{It should probably be Coasters -- which is their notion of a
@@ -1161,9 +1166,9 @@ model. \msnote{Hmm, this needs attention after TROY removal}
 %   service to the community, (ii) a strong intellectual addition to the
 %   paper by virtue of validation of the P*-model}
 
-\alnote{which are the minimal P* elements and characteristics we
-  should discuss here?}  \jhanote{Andre L: Is this still a valid/live
-  comment/question? If not, should we close}\alnote{can be closed.}
+% \alnote{which are the minimal P* elements and characteristics we
+%   should discuss here?}  \jhanote{Andre L: Is this still a valid/live
+%   comment/question? If not, should we close}\alnote{can be closed.}
 
 \begin{table*}[t]
 \centering
@@ -1226,10 +1231,10 @@ properties alphabetically or move characteristics up front.}
 
 %\section{An API for the P*  Model\upp\upp}
 \section{Pilot-API: Providing a uniform API to heterogeneous PJ Frameworks}
-\note{TROY: An API Supporting the P* Model} \alnote{Rename to P* API?
-  Define what the API exposes: == external facing interface to PJ
-  framework}
-
+% \note{TROY: An API Supporting the P* Model} \alnote{Rename to P* API?
+%   Define what the API exposes: == external facing interface to PJ
+%   framework}
+\alnote{remove SAGA from 4}
 \jhanote{Need to clearly state that this API can be used by
   applications that will use different PJ-frameworks that adher to the
   p* model}
@@ -1260,13 +1265,13 @@ exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
 %It consists of the TROY
 %API~\cite{troy_api}, a runtime system and a set of adaptors for
 %various PJ frameworks (see figure~\ref{fig:figures_pstar_troy}). 
-\note{OW says: Technically, an API can't have a runtime system.  An
-  API is an interface definition and doesn't contain any
-  implementation aspects.  IMHO a more accurate description would be:
-  "TROY is a bridging library that can interface with existing pilot
-  job systems. It exposes its functionality through an API that
-  resembles (exposes the components of) the P* model."} \jhanote{Ole
-  can you comment be removed now?}
+% \note{OW says: Technically, an API can't have a runtime system.  An
+%   API is an interface definition and doesn't contain any
+%   implementation aspects.  IMHO a more accurate description would be:
+%   "TROY is a bridging library that can interface with existing pilot
+%   job systems. It exposes its functionality through an API that
+%   resembles (exposes the components of) the P* model."} \jhanote{Ole
+%   can you comment be removed now?}
 
 
 \jhanote{Somewhere we need to define the different approaches to
@@ -1277,6 +1282,8 @@ exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
   place to introduce ``leaky abstractions''?}  \alnote{elaborate on
   SAGA-based approach to interoperability: We use the the API approach
   to interoperability => talk about approach not api}\jhanote{ditto}
+
+\note{1) provide expose model 2) api-level interoperability}
 
 The Pilot-API and is thus in spirit similar to the SAGA
 API~\cite{saga_url,ogf-gfd-90}.
@@ -1629,8 +1636,11 @@ sensibly be used in concertation.  \amnote{Someone please check the
   combination'.}\jhanote{Would `` collectively'' be a better
   description?}
 
-\subsection{Characterizing PJ Implementations\upp\upp}
+\subsection{Understanding Coordination in PJ Frameworks\upp\upp}
 \label{sec:pj_performance}
+\alnote{title?}
+\alnote{Explain why /bin/date!}
+
 Each PJ implementation is associated with various degrees of freedom,
 in particular in the design of the communication \& coordination
 (c\&c) sub-system.  The primary barrier for performance and
@@ -1803,7 +1813,7 @@ explains to significant performance gains.
 
 \upp
 
-\subsection{Understanding PJ Framework Interoperability\upp\upp}
+\subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
 
 To validate the abstractions developed, we conducted a series of
 experiments. We execute BFAST~\cite{bfast2009} -- a genome sequencing
@@ -1938,9 +1948,12 @@ and TG/XD resources, at large-scales hitherto unattainable.
 % e.\,g.\ to improve the time-to-completion and/or to scale the accuracy
 % of their computations.
 
+\subsection{Understanding PJ Framework Interoperability\upp\upp}
+
+
 \section{P* as a Model for Pilot-Data\upp\upp}
 \label{sec:pilot-data}
-
+\alnote{remote emphasis on dynamic execution}
 Dynamic execution is at least equally important for data-intensive
 applications: applications must cope with various challenging issues
 e.\,g.\ varying data sources (such as sensors and/or other application
