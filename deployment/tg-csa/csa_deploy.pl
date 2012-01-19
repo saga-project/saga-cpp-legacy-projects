@@ -8,27 +8,28 @@ BEGIN {
 }
 
 
-my $CSA_HOSTS = "./csa_hosts";
-my $CSA_PACK  = "./csa_packages";
-my $ENV       = `which env`;
-my $svn       = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
-my %csa_hosts = ();
-my %csa_packs = ();
-my @modules   = ();
-my @hosts     = ();
-my $version   = "trunk";
-my $do_exe    = 0;
-my $do_list   = 0;
-my $do_check  = 0;
-my $do_deploy = 0;
-my $be_strict = 0;
-my $do_force  = 0;
-my $force     = "";
-my $fake      = 0;
-my $show      = 0;
-my $do_remove = 0;
-my $svnuser   = `id -un`;
-my $svnpass   = "";
+my $CSA_HOSTS   = "./csa_hosts";
+my $CSA_PACK    = "./csa_packages";
+my $ENV         = `which env`;
+my $svn         = "https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa";
+my %csa_hosts   = ();
+my %csa_packs   = ();
+my @modules     = ();
+my @hosts       = ();
+my $def_version = "";
+my $version     = "";
+my $do_exe      = 0;
+my $do_list     = 0;
+my $do_check    = 0;
+my $do_deploy   = 0;
+my $be_strict   = 0;
+my $do_force    = 0;
+my $force       = "";
+my $fake        = 0;
+my $show        = 0;
+my $do_remove   = 0;
+my $svnuser     = `id -un`;
+my $svnpass     = "";
 
 chomp ($svnuser);
 chomp ($ENV);
@@ -50,7 +51,7 @@ while ( my $arg = shift )
   }
   elsif ( $arg =~ /^(-v|--version)$/io )
   {
-    $version = shift || "trunk";
+    $version = shift || "";
   }
   elsif ( $arg =~ /^(-t|--target|--targets|--targethosts)$/io )
   {
@@ -147,6 +148,11 @@ $SVNCI .= " ci";
     {
       # skip comment lines and empty lines
     }
+    elsif ( $tmp =~ /^\s*default\s*:\s*(\S+)\s*$/ )
+    {
+      $def_version = $1;
+      next LINE_P;
+    }
     elsif ( $tmp =~ /^\s*version\s*:\s*(\S+)\s*$/ )
     {
       $tmp_version = $1;
@@ -169,7 +175,16 @@ $SVNCI .= " ci";
       die "WARNING: Cannot parse csa package line '$tmp'\n";
     }
   }
+}
 
+
+# fall back to default version if needed
+{
+  if ( $version eq "" )
+  {
+    $version = $def_version;
+    print "no version specified - using default version: $version\n";
+  }
 
   if ( ! exists $csa_packs{$version} )
   {
