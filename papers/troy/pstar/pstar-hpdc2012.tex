@@ -997,7 +997,7 @@ the most common grid functions at a sufficiently high-level of abstraction so as
 to be independent of the diverse and dynamic grid environments.
 By relying on SAGA, BJ is able to run on Globus resources prevailing in HPC
 environments, as well as on Cloud resources (such as Amazon EC2 and FutureGrid)
-as well as Condor backends.
+and Condor backends.
 
 \jhanote{we'll have to unfortunately descripe saga briefly in order to
   make saga-based clear/obvious}\alnote{ok, moved a sentence from Pilot-API 
@@ -1007,46 +1007,40 @@ as well as Condor backends.
 	\upp\upp\upp\upp
 	\centering
 	\includegraphics[width=0.45\textwidth]{figures/re_bigjob_interactions.pdf}
-	\caption{\textbf{BigJob Architecture:} The core of the
-          framework, the BigJob-Manager orchestrates a set of
-          pilots. Pilots are started using the SAGA Job API. The
-          application submits CUs, the so-called sub-jobs via the
-          BigJob-Manager. Communication between the BJ-Manager and
-          BJ-Agent is done via a shared data space, the Advert
-          Service. The BJ-Agent is responsible for managing and
-          monitoring sub-jobs.}
-		\alnote{Make connection to P*}
+	\caption{\textbf{BigJob Architecture and Mapping to P*:} The BJ architecture 
+		resembles many elements of the P* model. The BigJob-Manager is the 
+		central Pilot-Manager, which 
+		orchestrates a set of pilots. Each pilot is represented by a decentral 
+		component referred to as the BigJob-Agent. Sub-job -- the \cus -- are 
+		submitted via the PM. \cus are mapped 1:1 to \sus.}
 	\label{fig:figures_re_bigjob_interactions}
 	\upp\upp \upp
 \end{figure}
 
 
 Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
-architecture of BJ \jhanote{and its mapping to P*?}. BJ utilizes a M/W
-coordination model: The BigJob-Manager is responsible for the
-orchestration of pilots, for the binding of \cus \note{OW says:
-  binding to what?}  and for the scheduling of SUs. For submission of
-the pilots, BigJob relies on the SAGA Job API, and thus can be used in
-conjunction with different SAGA adaptors, e.\,g.\ the Globus, the PBS,
-the Condor(-G) and the Amazon Web Service adaptor.  \note{OW says:
-  Better: relies on the job submission capabilites of SAGA, which
-  include Globus, PBS, Condor, ...}  Each pilot initializes a so
-called BJ-agent. The agent is responsible for gathering local
-information and for executing tasks (SUs) on its local resource. The
-SAGA Advert Service is used for communication between manager and
-agent. The Advert Service (AS) exposes a shared data space that can be
-accessed by manager and agent, which use the AS to realize a push/pull
-communication pattern, i.\,e.\ the manager pushes a SU to the AS while
-the agents periodically pull for new SUs. Results and state updates
-are similarly pushed back from the agent to the manager. Further, BJ
-provides a pluggable communication \& coordination layer and also
-supports alternative c\&c systems, e.\,g.\ Redis~\cite{redis} and
-ZeroMQ~\cite{zmq}.
+architecture of BJ and its mapping to P*. The architecture reflects all P* 
+elements: The BJ-Manager is the Pilot-Manager responsible for coordinating the 
+different components of the frameworks. The BigJob-Agent is the actual \pilot 
+that is submitted to a resource. \cus are referred to as sub-jobs. Internally \cus are mapped 1:1 to \sus.
 
-BJ currently uses a simple binding mechanism: each \cu  submitted to the BigJob
-framework is mapped to one SU. Binding can take places at submission
-time (early binding) or delayed in case of multiple pilots (late binding). 
-For scheduling, a simple FIFO scheduler is used (see also
+BJ implements the following characteristic: As coordination model the central
+M/W scheme is used: The BigJob-Manager is the central entity, which manages the
+actual \pilot, the BigJob-Agent. Each agent is responsible for gathering local
+information, for pulling sub-jobs from the manager, and for executing SUs on its
+local resource. The SAGA Advert Service is used for communication between
+manager and agent. The Advert Service (AS) exposes a shared data space that can
+be accessed by manager and agent, which use the AS to realize a push/pull
+communication pattern, i.\,e.\ the manager pushes a SU to the AS while the
+agents periodically pull for new SUs. Results and state updates are similarly
+pushed back from the agent to the manager. Further, BJ provides a pluggable
+communication \& coordination layer and also supports alternative c\&c systems,
+e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+
+BJ currently uses a simple scheduling mechanism based on an internal queue: each
+\cu submitted to the BigJob framework is mapped to a SU. Binding can take places
+at submission time (early binding) or delayed in case of multiple pilots (late
+binding). For scheduling, a simple FIFO queue is used (see also
 table~\ref{table:pilot-job-comparison}).
 
 
@@ -1054,7 +1048,6 @@ table~\ref{table:pilot-job-comparison}).
 % neither elasticity nor late binding.
 
 %paragraph on dynamic capabilities
-
 In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
 accelerate the time-to-completion or to provide resilience to resource failures
 and/or unexpected delays. The Pilot-API allows for dynamic resource
@@ -1064,9 +1057,10 @@ implementations that are by default restricted to single resource use (e.\,g.\
 BJ), the concept of a BigJob pool is introduced. A BigJob pool consists of
 multiple BJs (each BigJob managing one particular resource). An extensible
 scheduler is used for dispatching \cus to one of the BJs of the pool (late
-binding). By default a FIFO scheduler is provided. Other backends (such as DIANE
-and Condor) natively support elasticity, but can nevertheless be combined into a
-BJ pool.
+binding). By default a FIFO scheduler is used.
+%  Other backends (such as DIANE
+% and Condor) natively support elasticity, but can nevertheless be combined into 
+% a % BJ pool.
 
 % \note{OW says: Where is that magic BigJob-Pool and its scheduler? Is there an
 % API for that? That's also part of the capabilities provided by
@@ -1137,8 +1131,7 @@ query the dispatcher for new SUs. Web services are used for communication.
 \subsection{Discussion}
 
 
-
-P* provides a theoretical framework for describing and understanding of PJ
+P* provides a theoretical model for describing and understanding of PJ
 implementations. Table~\ref{table:bigjob-saga-diane} summarizes how P* can be applied
 to BigJob, DIANE and Condor-G/Glide-in. Further, we show that P* is not limited to the
 described PJ frameworks, but can also be used with other PJ frameworks, e.\,g.\
