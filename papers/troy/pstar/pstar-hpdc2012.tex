@@ -1621,11 +1621,13 @@ different PJ frameworks on production infrastructures.  Further, we
 investigate PJ framework interoperability by using multiple PJ
 frameworks concurrently using the Pilot-API.  
 
+\alnote{this paragraph is redundant to B and C? Alternative we can move
+stuff from there to here.}
 For purposes of validation, demonstration and performance
 measurements, we use the Pilot-API to marshall different PJ
 frameworks...\jhanote{Need a simple description of experiment
   configuration}.  The experiments are conducted on different
-production (XSEDE, EGI, OSG, LONI(?)) and research infrastructures
+production (XSEDE, EGI, OSG) and research infrastructures
 (FutureGrid).
 
 \jhanote{Need to provide details of the application} with BigJob The
@@ -1831,15 +1833,17 @@ explains to significant performance gains.
 
 \subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
 
-To validate the abstractions developed, we conducted a series of
-experiments. We execute BFAST~\cite{bfast2009} -- a genome sequencing
-application -- using different PJ frameworks: BigJob, DIANE, Condor-G
-and infrastructures: XSEDE, FutureGrid, EGI and OSG.  For each of the
-frameworks we provide an implementation of the Pilot-API. For the
-experiments we rely both on the native and Pilot-API. \jhanote{The
-  last sentence is confusing. Second last sentence needs to be
-  explained better and the two need to be reconciled}
 
+\subsubsection*{Production Infrastructure} To validate the abstractions
+developed, we conducted a series of experiments on production infrastructure. We
+execute BFAST~\cite{bfast2009} -- a genome sequencing application -- using
+different PJ frameworks, i.\,e.\ BigJob, DIANE and Condor, and infrastructures,
+i.\,e.\ XSEDE, FutureGrid, EGI and OSG. On XSEDE, we utilize Kraken, a 1.17 PF 
+machine with a total of 9,408 nodes and 112,896 cores; on FutureGrid we utilize 
+India, a 108 node cluster with 864 cores.
+
+\note{Add OSG, EGI details ...}
+ 
 \jhanote{Experimental Configuration = Infrastructure used, specific
   machine (on XSEDE and FG) and resources configuration + PJ Framework
   employed.}
@@ -1849,16 +1853,7 @@ experiments we rely both on the native and Pilot-API. \jhanote{The
   infrastructure used. That would enable us to keep Pilot-API/BigJob
   specific details separate from infrastructure details. E.g., say
   what is XSEDE? Say what is OSG? Thoughts?}
-
-
-The following PJ setup was used: BigJob is used with the SAGA-Torque adaptor to
-access Kraken on XSEDE~\cite{xsede} and with the PBS/SSH plugin to access the
-India machine on FutureGrid~\cite{fg}. For OSG we utilize a BJ implementation on
-top of the SAGA/Condor adaptor.\note{Refine: GlideWMS, ...}
-resources~\cite{1742-6596-78-1-012057}. Further, we utilize DIANE on EGI.
-\msnote{more on EGI later ...} On the XSEDE, Kraken is used with up to 512 cores
-concurrently.
-
+\alnote{good idea. started to restructure section}
 
 
 %\note{OW says: That would be the case if we use Condor-G. The machines
@@ -1891,20 +1886,41 @@ concurrently.
 % theDARE~\cite{dare-tg11-gateways} framework that has been built on
 % top of TROY.
 
+\subsubsection*{Experimental Configuration}
+
 The investigated workload comprises of 128 \cus. Each \cu executes a BFAST
-matching process, which is used to find potential sequence alignments. The scenario requires about 6\,GB input data: 1.7\,GB for the reference genome and index files and 5.4 GB read files (32 files a 1.68\,GB). We run
-the experiment on four different setups: (i) BigJob/XSEDE only, (ii) 
-BigJob/FutureGrid, (iii) BigJob/OSG only, (iv) DIANE/EGI only.
-The Pilot Job Service is used to create pilots on the respective
-infrastructure(s). Each BFAST \cu requires 1 core; In each case 128 \cus
-are defined and submitted to the Compute Unit Service. Depending on the 
-resource, a different number of cores can be reserved to each BFAST \cu, 
-e.\,g.\ on Kraken 4 cores are reserved for each \cu. Each \cu is associated 
-with a set of input files which is pre-staged in case (i) and (ii). For the 
-HTC infrastructures: EGI and OSG (case (iii) and (iv)), these file are 
-transferred before running each \cu. \alnote{Are the files staged once for 
-each \cu?} Having submitted the 128\,\cus, the benchmark application can 
-monitor the state using the Compute Unit Service of the Pilot-API.
+matching process, which is used to find potential sequence alignments. The
+scenario requires about 6\,GB input data: 1.7\,GB for the reference genome and
+index files and 5.4 GB read files (32 files a 1.68\,GB). We run the experiment
+on four different setups: (i) BigJob/XSEDE only, (ii) BigJob/FutureGrid, (iii)
+BigJob/OSG only, (iv) DIANE/EGI only. 
+
+
+To achieve interoperability, we developed a Pilot-API interface to all three PJ
+frameworks, i.\,e.\ BigJob, DIANE and Condor. The Pilot-API provides a unified
+way to access the different native PJ capabilities. For the experiments we rely
+both on the native PJ APIs, in particular the BJ API, and the 
+Pilot-API.\jhanote{The
+  last sentence is confusing. Second last sentence needs to be
+  explained better and the two need to be reconciled}
+The following PJ setup was used: BigJob is used with the SAGA-Torque adaptor to
+access Kraken on XSEDE~\cite{xsede} and with the PBS/SSH plugin to access the
+India machine on FutureGrid~\cite{fg}. For OSG we utilize a BJ implementation on
+top of the SAGA/Condor adaptor.\note{Refine: GlideWMS, ...}
+resources~\cite{1742-6596-78-1-012057}. Further, we utilize DIANE on EGI.
+\msnote{more on EGI later ...} On the XSEDE, Kraken is used with up to 512 cores
+concurrently.
+
+
+Each BFAST \cu requires 1 core; In each case 128 \cus are defined and submitted
+to the Compute Unit Service. Depending on the resource, a different number of
+cores can be reserved to each BFAST \cu, e.\,g.\ on Kraken 4 cores are reserved
+for each \cu. Each \cu is associated with a set of input files which is
+pre-staged in case (i) and (ii). For the HTC infrastructures: EGI and OSG (case
+(iii) and (iv)), these file are transferred before running each \cu. \alnote{Are
+the files staged once for each \cu?} Having submitted the 128\,\cus, the
+benchmark application can monitor the state using the Compute Unit Service of
+the Pilot-API.
 
 \begin{figure}[t]
 	\centering
@@ -2012,8 +2028,17 @@ on FutureGrid and EGI.
 	\label{fig:perf_interop_128-bfast-interop}
 \end{figure}
 
-Finally scenario (iv) \jhanote{should this scenario number be
-  different?} demonstrates that two PJ frameworks can be utilized
+Figure~\ref{fig:perf_interop_128-bfast-interop} shows the results of the
+interoperability tests. In both scenarios, one \pilot is submitted to each
+infrastructure. In scenario (i), one pilot is submitted to Kraken and one to
+India. Needless to say, the overall runtime is determined by the slower
+resources. Consistent with previous results the \pilot on India finished before
+the \pilot on Kraken.
+
+
+\jhanote{should this scenario number be
+  different?} \alnote{sorry, just moved this paragraph down from B}
+Finally, scenario (ii) demonstrates that two PJ frameworks can be utilized
 concurrently using the Pilot-API. The performance in this scenario is
 slightly better than in the DIANE only case, mainly due to the fact
 that only four DIANE worker agents need to be started. Also, only half
