@@ -913,16 +913,19 @@ framework~\cite{Moscicki20092303} can be used.
 %unified interface for job submissions to various resource types, e.\,g.\ EGI
 %resources or TG resources via a SAGA backend.
 Once the worker agents are started they register themselves at the RunMaster.
-In contrast to BigJob, a worker agent generally manages only a single
+For communication between the RunMaster and worker agents point-to-point
+messaging based on CORBA~\cite{OMG-CORBA303:2004} is used. CORBA is also used
+for file staging.
+
+\alnote{removed: In contrast to BigJob, a worker agent generally manages only a single
 core and thus, by default is not able to run parallel applications (e.\,g.\
 based on MPI). BJ utilizes the BJ-Agent that is able manage a set of local
 resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
-of running parallel applications. For communication between the RunMaster and
-worker agents point-to-point messaging based on CORBA~\cite{OMG-CORBA303:2004}
-is used. CORBA is also used for file staging, which is not fully supported by
-BJ, yet.
+of running parallel applications. }
+
 
 % Binding 
+\alnote{TODO: Remove comparisons to BJ}
 DIANE is primarily designed with respect to HTC environments (such as
 EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
 size of 1 core. BJ in contrast is designed for HPC systems such as TG,
@@ -942,14 +945,13 @@ applications can implement a custom application-level scheduler.
 
 
 %Other impl. related issues: FT and security
-DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the
-privileges of the respective user. Also, only \cus of this respective user can be
-executed by DIANE. DIANE supports various middleware security mechanisms
-(e.\,g.\ GSI, X509 authentication). For this purpose it relies on GANGA. The
-implementation of GSI on TCP-level is possible, but currently not yet
-implemented. Further, DIANE supports fault tolerance: basic error detection and
-propagation mechanisms are in place. Further, an automatic re-execution of \cus
-is possible.
+DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the privileges
+of the respective user. Also, only \cus of this respective user can be executed
+by DIANE. DIANE supports various middleware security mechanisms (e.\,g.\ GSI,
+X509 authentication). For this purpose it relies on GANGA. The implementation of
+GSI on TCP-level is possible, but currently not yet implemented. Further, DIANE
+supports fault tolerance: basic error detection and propagation mechanisms are
+in place. Further, an automatic re-execution of \cus is possible.
 
 
 
@@ -985,17 +987,21 @@ is possible.
 % General overview of BJ implementations & P* model
 %PJ implementations in TROY are called BigJob (BJ)~\cite{bigjob_web}.
 
-BigJob (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud} is a SAGA-based
-pilot-job implementation. BJ supports a wide range of application
-types, and is usable over a broad range of infrastructures, i.\,e.\ it
-is general-purpose and extensible. In addition, there are specific BJ
-flavors for cloud resources such as Amazon EC2 and Microsoft Azure
-that are capable of managing set of VMs, as well as a BJ with a
-Condor-G/Glide-in based backend. \alnote{these flavors are primarily
-  defined by the SAGA adaptor mechanism.}
+BigJob (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud} is a SAGA-based PJ
+framework. BJ has been designed to be general-purpose and extensible. While BJ
+has been originally built for HPC infrastructures, such as XSEDE and FutureGrid,
+it is generally also usable in other environments. This extensibility mainly
+arises from the usage of SAGA as a common API for accessing distributed
+resources. SAGA~\cite{saga_url,ogf-gfd-90} provides a simple, POSIX-style API to
+the most common grid functions at a sufficiently high-level of abstraction so as
+to be independent of the diverse and dynamic grid environments.
+By relying on SAGA, BJ is able to run on Globus resources prevailing in HPC
+environments, as well as on Cloud resources (such as Amazon EC2 and FutureGrid)
+as well as Condor backends.
 
 \jhanote{we'll have to unfortunately descripe saga briefly in order to
-  make saga-based clear/obvious}
+  make saga-based clear/obvious}\alnote{ok, moved a sentence from Pilot-API 
+  section up front.}
 
 \begin{figure}[t]
 	\upp\upp\upp\upp
@@ -1303,7 +1309,7 @@ exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
 \note{1) provide expose model 2) api-level interoperability}
 
 The Pilot-API and is thus in spirit similar to the SAGA
-API~\cite{saga_url,ogf-gfd-90}.
+API~\cite{saga_url}.
 
 \jhanote{Please elaborate the following} It is also consistent with
 SAGA in that it can support the same underlying job-model...
@@ -1312,9 +1318,9 @@ Pilot-API itself was designed to be similar to SAGA in appearance and
 philosophy: it re-uses many of the well defined and standardized
 semantics and syntax.
 
-\jhanote{place..} SAGA provides a simple, POSIX-style API to the most
-common grid functions at a sufficiently high-level of abstraction so
-as to be independent of the diverse and dynamic grid environments.
+% \jhanote{place..} SAGA provides a simple, POSIX-style API to the most
+% common grid functions at a sufficiently high-level of abstraction so
+% as to be independent of the diverse and dynamic grid environments.
 
 A further design consideration of the Pilot-API was a minimal but
 complete API.
@@ -2043,7 +2049,10 @@ separately for each sub-job
   (late-binding) issues or multi-stage dependencies, (iii) further
   optimizations}
 
-Addditionally, dynamic execution is at least equally important for
+
+
+
+Additionally, dynamic execution is at least equally important for
 data-intensive applications: applications must cope with various
 challenging issues e.\,g.\ varying data sources (such as sensors
 and/or other application components), fluctuating data rates,
