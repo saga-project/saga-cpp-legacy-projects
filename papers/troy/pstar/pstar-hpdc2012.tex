@@ -1825,18 +1825,17 @@ explains to significant performance gains.
 
 \subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
 
-To validate the abstractions developed, we conducted a series of
-experiments. We execute BFAST~\cite{bfast2009} -- a genome sequencing
-application -- using the Pilot-API in conjunction with different PJ frameworks
-and infrastructures. For this purpose we use the Pilot-API with various
-BigJob configurations and DIANE. BigJob is used with the
-SAGA-Globus adaptor to access LONI~\cite{loni} resources and with
-SAGA-Condor adaptor to access OSG
-resources~\cite{1742-6596-78-1-012057}.  Further, we utilize
-DIANE on EGI. \msnote{more on EGI later ...} On the LONI \textit{Oliver} cluster and a total of 8 cores
-distributed across 2 nodes is used, on OSG a single machine was
-requested using the GRAM/Condor endpoint of the Renci gateway machine.
-\alnote{Sharath please check}
+To validate the abstractions developed, we conducted a series of experiments.
+We execute BFAST~\cite{bfast2009} -- a genome sequencing application -- using
+the Pilot-API in conjunction with different PJ frameworks and infrastructures.
+For this purpose we use the Pilot-API with various BigJob configurations and
+DIANE. BigJob is used with the SAGA-Torque adaptor to access XSEDE~\cite{}
+resources and with the PBS/SSH plugin to access FutureGrid~\cite{} machines.
+SAGA-Condor adaptor to access OSG resources~\cite{1742-6596-78-1-012057}.
+Further, we utilize DIANE on EGI. \msnote{more on EGI later ...} On the XSEDE, 
+Kraken is used with up to 512 cores concurrently. 
+
+\note{On OSG ...}
 
 %\note{OW says: That would be the case if we use Condor-G. The machines
 %is belhaven-1.renci.org - a Globus/PBS cluster that accepts Condor jobs.\\
@@ -1868,67 +1867,59 @@ requested using the GRAM/Condor endpoint of the Renci gateway machine.
 % theDARE~\cite{dare-tg11-gateways} framework that has been built on
 % top of TROY.
 
-The investigated workload comprises of four \cus. Each \cu  executes a BFAST
+The investigated workload comprises of 128 \cus. Each \cu executes a BFAST
 matching process, which is used to find potential sequence alignments. We run
-the experiment on four different setups: (i) BigJob/Globus only, (ii)
-BigJob/Condor only, (iii) DIANE only and (iv) BigJob and
-DIANE concurrently. The Pilot Job Service is used to create pilots on
-the respective infrastructure(s). Each BFAST \cu  requires two cores; a total of
-four \cus requesting two cores each is specified and submitted to the Work Unit
-Service. 
-\alnote{Do we use 1 or 2 \cu S in case iv? }   
-\smnote{2 \cus per node/backend in case iv }\alnote{I meant the number of \cu  
-Services?}
- In case (iv) on each backend two \cus are executed. 
- Each \cu  is associated with a set of input files which are pre-staged in 
- all cases except for case (ii) where the data is staged during the runtime on
- to the condor resources. 
-% Talks about engine, might need to be changed to some sentence about the 
-% PJ frameworks
-% After submission of the \cu  to the PJ manager, the TROY runtime system 
-% takes care of binding and scheduling the \cus to the pilots.
-The application can monitor the state of the PJs and \cus using the Work Unit Service of the Pilot-API.
+the experiment on four different setups: (i) BigJob/XSEDE only, (ii) 
+BigJob/FutureGrid, (iii) BigJob/OSG only, (iv) DIANE/EGI only.
+The Pilot Job Service is used to create pilots on the respective
+infrastructure(s). Each BFAST \cu requires 1 core; In each case 128 \cus
+are defined and submitted to the Compute Unit Service. Depending on the 
+resource, a different number of cores can be reserved to each BFAST \cu, 
+e.\,g.\ on Kraken 4 cores are reserved for each \cu. Each \cu is associated 
+with a set of input files which is pre-staged in case (i) and (ii). For the 
+HTC infrastructures: EGI and OSG (case (iii) and (iv)), these file are 
+transferred before running each \cu. \alnote{Are the files staged once for 
+each \cu?} Having submitted the 128\,\cus, the benchmark application can 
+monitor the state using the Compute Unit Service of the Pilot-API.
 
 \begin{figure}[t]
 	\centering
-		\includegraphics[width=0.45\textwidth]{figures/NewTROYData.pdf}
-	\caption{\textbf{Pilot-job performance with BigJob/Globus,
-            BigJob/Condor and DIANE:} Running BFAST on a 4 node
-          cluster with a total of 16 cores. Each experiment is
-          repeated at least 3 times. The runtime for DIANE is higher
-          than for BJ mainly due to the higher startup time required
-          and some light runtime overhead caused by the additional
-          worker agents required on the resource. \jhanote{TROY needs
-            to be removed from this figure} \up\up}
+		\includegraphics[width=0.45\textwidth]{perf/interop/128-bfast-egi-fg-xsede-osg.pdf}
+	\caption{\textbf{PJ Framework Performance on XSEDE, FutureGrid, EGI and 
+	OSG:} Running 128 BFAST match tasks on 128 cores. Each experiment is
+          repeated at least 3 times. The runtime on EGI and OSG is higher
+          mainly caused by the longer queuing time. Additionally, both 
+		  infrastructure require the staging of all input files. 
+		\up\up}
 
 	\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In 
-addition to the runtime we measured the startup time, i.\,e.\ the time required 
-until the first \cu  changes its state to running. The overhead is defined as 
-the difference between the actual runtime of the BFAST \cu  and the overall 
-runtime using the Pilot-API (not including the startup time).
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
+addition to the runtime we measured the queuing time, i.\,e.\ the time
+required until the first \cu changes its state to running. The overhead is
+defined as the difference between the actual runtime of the BFAST \cu and the
+overall runtime using the Pilot-API (not including the queuing time).
 
-The runtime for DIANE is about 70\,sec longer than for BigJob. The 
-main contributor for this increased runtime is the deployment time required for
-DIANE. In a multi-node setup multiple work agents must be used (4 in this case).
-For each worker agent DIANE must be downloaded, installed and started
-separately. Further, in the used DIANE setup, the executable is staged. This is
-particularly different from the scenario investigated in
-section~\ref{sec:pj_performance}, in which no file staging is used. In total the
-setup of DIANE requires about 110\,sec of the overall 240\,sec runtime, i.\,e.\
-about 45\,\%. Further, each DIANE worker agent is queued as a separate job at
-the local resource manager -- this contributes to the higher deviation in the
-measured runtimes. Despite the fact that BigJob has been also installed with
-each run, it shows a significant lower startup time of 73\,sec, i.\,e.\ about
-50\,sec less than DIANE. Additionally, we also observed a runtime overhead
-of about 25\,sec for the DIANE scenario. This overhead is likely caused by
-the additional agents required. While BigJob utilizes one BJ-Agent on the 
-resource, DIANE currently requires the spawning of one worker agent per \cu  that 
-must be executed in parallel. While the Pilot-API marshals these differences, 
-i.\,e.\ while the API remains the same for both PJ frameworks, a light 
-performance overhead remains observable.
+The runtime for DIANE is about 70\,sec longer than for BigJob. The main
+contributor for this increased runtime is the deployment time required for
+DIANE. In a multi-node setup multiple work agents must be used (4 in this
+case). For each worker agent DIANE must be downloaded, installed and started
+separately. Further, in the used DIANE setup, the executable is staged. This
+is particularly different from the scenario investigated in
+section~\ref{sec:pj_performance}, in which no file staging is used. In total
+the setup of DIANE requires about 110\,sec of the overall 240\,sec runtime,
+i.\,e.\ about 45\,\%. Further, each DIANE worker agent is queued as a separate
+job at the local resource manager -- this contributes to the higher deviation
+in the measured runtimes. Despite the fact that BigJob has been also installed
+with each run, it shows a significant lower startup time of 73\,sec, i.\,e.\
+about 50\,sec less than DIANE. Additionally, we also observed a runtime
+overhead of about 25\,sec for the DIANE scenario. This overhead is likely
+caused by the additional agents required. While BigJob utilizes one BJ-Agent
+on the resource, DIANE currently requires the spawning of one worker agent per
+\cu that must be executed in parallel. While the Pilot-API marshals these
+differences, i.\,e.\ while the API remains the same for both PJ frameworks, a
+light performance overhead remains observable.
 
 The run with BigJob Condor shows the best performance of all scenarios. This
 can mainly be attributed to the better performance of the OSG resource, which is
@@ -1959,6 +1950,17 @@ and TG/XD resources, at large-scales hitherto unattainable.
 % of their computations.
 
 \subsection{Understanding PJ Framework Interoperability\upp\upp}
+
+We define two kinds of interoperability: (i) SAGA-based interoperability, 
+i.\,e.\ the usage of BJ in conjunction with different SAGA adaptors and 
+infrastructures and (ii) PJ framework interoperability, i.\,e.\ the usage of 
+different PJ frameworks via the Pilot-API. For scenario (i) we run BigJob 
+concurrently on FutureGrid and XSEDE and for scenario (ii) we concurrently run 
+BigJob and DIANE on FutureGrid and EGI.
+
+
+
+
 
 
 \section{P* as a Model for Pilot-Data\upp\upp}
@@ -2015,7 +2017,8 @@ or more SUs.
 \item The \textbf{Pilot-Manager (PM)} is the same as in the compute model and
 implements the different characteristics of the P* model. It is responsible for
 managing \dus and \sus. Data is submitted to the framework via the PM. The PM
-which is responsible for mapping \dus to \sus and for conducting decision regarding resource assignments. \sus are placed on physical resources via the \pilot.
+which is responsible for mapping \dus to \sus and for conducting decision 
+regarding resource assignments. \sus are placed on physical resources via the \pilot.
 	
 \end{compactenum}
  
