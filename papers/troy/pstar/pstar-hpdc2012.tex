@@ -1260,15 +1260,34 @@ In the previous two sections we presented successively the P* Model
 and existing Pilot-Job frameworks. Before we present the Pilot-API --
 which enables applications to uniformly make use of (heterogeneous)
 Pilot-Job frameworks that adhere to the P* Model, we will motivate the
-need for the Pilot-API.
+need for such an API.
 
 \subsection{Motivation} 
 
-\jhanote{This section should cover threee points: (i) analogy to
-  workflow systems, (ii) different ways to interoperability -- API
-  (SAGA approach) is one, deeper semantic harmonization is the other,
-  (iii) in spite of limitation of API approach - leaky abstractions,
-  it is still useful, and in particular here..}
+% 1) similar to workflows
+% 2) system level vs. app level interop
+% 3) leaky abstractions
+
+% \jhanote{This section should cover threee points: (i) analogy to
+%   workflow systems, (ii) different ways to interoperability -- API
+%   (SAGA approach) is one, deeper semantic harmonization is the other,
+%   (iii) in spite of limitation of API approach - leaky abstractions,
+%   it is still useful, and in particular here..}
+
+
+There exist two ways toward system interoperation: (i) deep
+integration of systems (system level interoperability), and (ii)
+abstract interfaces (application level interoperability).  (i)
+requires a certain level of semantic harmonization between the
+systems, and is (in principle and technically) hard to achieve
+post-facto, even if the respective systems inherently implement the
+same abstract model (here: the P* Model).  While (ii) -- an abstract
+interface (here: abstract PilotJob API) -- is a semantically weaker
+approach than (i), it does allow for interoperability with minimal
+(application level) effort~\cite{saga_bigjob_condor_cloud,saga_gin}.
+We thus introduce the Pilot-API, as abstract interface to
+systems implementing the P* Model.
+
 
 % The Pilot-API itself was designed to be similar to SAGA in appearance
 % and philosophy: it re-uses many of the well defined and standardized
@@ -1283,74 +1302,77 @@ need for the Pilot-API.
 % part to handle the resource management and another part to deal with
 % workload management.
 
-The status of the current workflow systems and enactment
-engines~\cite{nsf-workflow,1196459} provides a motivating example for
-the Pilot-API and P* Model. Had a high-level API to support {\it
-  common and basic} functionality, such as distributed job submission
-and distributed file movement/management, 
-been available
-%around in the early stages when uptake of workflows was on the rise,
-it is very likely that many/most workflow engines would have utilized
-it (or parts thereof), instead of proprietary solutions. The impact of
-such an API on the workflow world can be seen through the consequences
-of its absence: in spite of significant effort, workflow
-interoperability at multiple levels -- application, tools, enactment
-engines and components remains difficult if not infeasible.
-Significant effort has been invested towards workflow interoperability
-at these different levels -- if nothing else, providing post-facto
-justification of its importance.
+The current state of workflow systems~\cite{nsf-workflow,1196459}
+provides an explicit motivating example for the P* Model and the
+Pilot-API:
+%
+Workflow capabilities and engines are typically tied to specific tools
+and infrastructure (e.\,g.\ DAGMan-Condor) and require the adaption of
+the application to the workflow engine as opposed to the other way
+around. Even though many workflow systems exist (with significant
+duplicated effort), they provide limited means for extensibility and
+interoperability.  
 
-Additionally, workflow capabilities and engines are typically tied to
-specific tools and infrastructure (e.\,g.\ DAGMan-Condor) and require
-the adaption of the application/usage modes to the workflow engine as
-opposed to the other way around. Even though many workflow systems
-exist, with a significant amount of duplicated effort across all
-systems, yet with limited returns on extensibility and
-interoperability.  An analysis of the situation points to many
-reasons; we are not naive enough to suggest that it is only due to the
-lack of an agreed-upon ``API'', but we assert that an important
-contributing fact is the lack of a community agreement on a basic API
-and the absence of the right abstractions upon which to construct
-workflows.
+An analysis of the situation points to many reasons; we are not naive
+enough to suggest that it is only due a single factor, but we assert
+that an important contributing fact is the lack of an early community
+agreement on the right abstractions upon which to construct workflows.
+Had those interface abstractions been available, it seems very likely
+that many/most workflow engines would have utilized them (or parts
+thereof), instead of proprietary solutions.  That would not
+immediately allow workflow implementations to interoperate, but would
+make the semantic mapping between them significantly simpler, thus
+supporting the very notion of interoperation.
 
-The Pilot-API in conjunction with the P* Model aims to ameliorate a
-similar situation in the world of pilot-jobs. % Its serves as building
-% blocks for further applications and tools. 
+The impact of missing interface abstractions on the workflow world can
+be seen through the consequences of their absence: in spite of
+significant effort, workflow interoperability at multiple levels --
+application, tools, enactment engines and components, remains difficult
+if not infeasible.  Significant effort has been invested towards
+workflow interoperability at these different levels -- if nothing
+else, providing post-facto justification of its importance\footnote{To
+be fair: we are not sure if a generic model and/or a  generic workflow
+API are achievable {\it on a useful level} -- we think, nevertherless,
+that our discussion is valid.}
 
-While no single solution can address gaps at all levels, or for the
-entire spectrum of applications, the Pilot-API expose/provides
-effective abstractions that can hide the environmental complexity,
-supplement the incompleteness and lack-of-extensibility of many tools
-used, and generalize customized run-time solutions for a broad range
-of applications.
+The Pilot API in conjunction with the P* Model aims to ameliorate a
+similar situation in the world of pilot-jobs.  While no single
+solution can address gaps at all levels, or for the entire spectrum of
+applications, the Pilot-API expose/provides effective abstractions
+that can hide the environmental complexity, supplement the
+incompleteness and lack-of-extensibility of many tools used, and
+generalize customized run-time solutions for a broad range of
+applications.
 
-The Pilot-API is thus in spirit similar to the SAGA
-API~\cite{saga_url}.
-
-\jhanote{Somewhere we need to define the different approaches to
-  interoperability. One is via the interface/API; the other is via
-  deeper integration. In the former the lowest common denominator
-  approach is employed. In the latter semantic differences are
-  addressed but at different levels} \alnote{elaborate on
-  SAGA-based approach to interoperability: We use the the API approach
-  to interoperability => talk about approach not api}\jhanote{ditto}
-
-\note{1) provide expose model 2) api-level interoperability}
+% \jhanote{Somewhere we need to define the different approaches to
+%   interoperability. One is via the interface/API; the other is via
+%   deeper integration. In the former the lowest common denominator
+%   approach is employed. In the latter semantic differences are
+%   addressed but at different levels} \alnote{elaborate on
+%   SAGA-based approach to interoperability: We use the the API approach
+%   to interoperability => talk about approach not api}\jhanote{ditto}
+% 
+% \note{1) provide expose model 2) api-level interoperability}
 
 % \jhanote{Please elaborate the following} It is also consistent with
 % SAGA in that it can support the same underlying job-model...
 % \jhanote{ not sure about the relevance of the following sentence:}
 
 
+It is difficult to balance the level of abstraction for API's designed
+to work on a multiple systems: defining the API as the 'smallest
+common denominator' is often too simplifying and misses large numbers
+of 'edge' use cases; defining the API as the 'greatest common factor'
+clutters the API with non-portable semantics, each only used by few
+use cases, thus making the API too complex~\cite{leaky_abstractions}.  The
+Pilot-API is in spirit similar to the SAGA API~\cite{saga_url}, in
+that it uses the Pareto Principle as a guideline for a balanced
+abstraction level.
+
 \jhanote{Andre: This does not read well at all. Needs major rewrite}
-Reasons are complex and can't be simplified; but amongst others, it
-seems difficult to balance the WF abstraction layer, to avoid (a) the
-abstraction being too simplifying, and thus not supporting a large
-number of 'edge' use cases ('smallest common denominator'), and (b)
-the abstraction being too complex, and cluttered with semantics only
-useful for a small percentage of use cases ('greatest common factor').
-Given the proliferation of pilot-jobs, and additional sophistication
-that can be built upon them, there exist similar risks.
+\amnote{better?}\amnote{Yes, 'Pareto Principle' is just a fancy name
+for '80:20 rule'!}
+
 
 
 % MS: commented out the next session as it talks about the runtime system
