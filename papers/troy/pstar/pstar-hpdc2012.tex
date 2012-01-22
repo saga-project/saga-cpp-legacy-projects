@@ -335,7 +335,7 @@ development, deployment and execution stages of scientific
 applications~\cite{dpagrid2009}.  Even where meaningful abstractions
 exist, the challenges of providing these abstractions in an
 extensible, interoperable, reliable and scalable manner are
-formiddable.  
+formidable.  
 
 There remains scope for improvement in the availability of reusable
 and extensible tools and implementations of abstractions that can
@@ -1213,7 +1213,7 @@ exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
 
 
 %It consists of the TROY
-%API~\cite{troy_api}, a runtime system and a set of adaptors for
+%API~\cite{pilot_api}, a runtime system and a set of adaptors for
 %various PJ frameworks (see figure~\ref{fig:figures_pstar_troy}). 
 % \note{OW says: Technically, an API can't have a runtime system.  An
 %   API is an interface definition and doesn't contain any
@@ -1768,7 +1768,7 @@ performance gains.
 \upp
 
 \subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
-
+\label{sec:fg-xsede-osg-egi}
 
 \subsubsection*{Production Infrastructure} To validate the abstractions
 developed, we conducted a series of experiments on production infrastructure. We
@@ -1826,7 +1826,7 @@ India, a 108 node cluster with 864 cores.
 
 The investigated workload comprises of 128 \cus. Each \cu executes a BFAST
 matching process, which is used to find potential sequence alignments. The
-scenario requires about 6\,GB input data: 1.7\,GB for the reference genome and
+scenario requires about 7\,GB input data: 1.7\,GB for the reference genome and
 index files and 5.4 GB read files (32 files a 1.68\,GB). We run the experiment
 on four different setups: (i) BigJob/XSEDE only, (ii) BigJob/FutureGrid, (iii)
 BigJob/OSG only, (iv) DIANE/EGI only. 
@@ -2003,15 +2003,34 @@ separately for each sub-job
   (late-binding) issues or multi-stage dependencies, (iii) further
   optimizations}
 
+Many scientific applications have immense data requirements, which are projected
+to increase dramatically in the near future~\cite{hey2009}. The small genome
+sequencing application scenario presented above e.\,g.\ operates on a input data
+set of $>7$\,GB. While Pilot-Jobs efficiently support late-binding of
+\computeunits and resources, the management of data in distributed systems
+remains a challenge due to various reasons: (i) The placement of data is often
+decoupled from the placement of compute units and pilots, i.\,e.\ the
+application must often manually stage in and out its data using simple scripts.
+(ii) Heterogeneity, e.\,g.\ with respect to storage, filesystem types and paths,
+often prohibits or at least complicates late binding decisions. (iii)
+Higher-level abstraction that allow applications to specify their data
+dependencies on an abstract, logical level (rather than on file basis) are not
+available. (iv) Due to lack of a common treatment for
+compute and data, optimizations of data/compute placements are often not
+possible. For example, in scenario (iii) and (iv) presented in
+section~\ref{sec:fg-xsede-osg-egi}, even though the 50\,\% of the input data set
+is shared for all \cus, the complete data is staged for each \cu.
 
+In addition, applications must cope with various other challenging, data-related 
+issues, e.\,g.\ varying data sources (such as sensors and/or other
+application components), fluctuating data rates, transfer failures,
+optimizations for different queries, data-/compute co-location etc. While these 
+issues can be in principal handled in a application-specific way, the usage of
+higher-level abstractions, such as a common \pilot-based abstraction for compute 
+and data is preferable.
 
-
-Additionally, dynamic execution is at least equally important for
-data-intensive applications: applications must cope with various
-challenging issues e.\,g.\ varying data sources (such as sensors
-and/or other application components), fluctuating data rates,
-optimizations for different queries, data-/compute co-location etc.
-Thus, having defined the P* model, we explore its extension to data.
+% Thus, having
+% defined the P* model, we explore its extension to data.
 
 This will motivate an analogous abstraction that we call
 \emph{\pilotdata (PD)}. \jwave{PD provides late-binding capabilities
@@ -2101,15 +2120,15 @@ made by the scheduler based on defined policies, affinities \& dynamic
 resource information.
 
 
-\subsubsection*{Pilot-API for Data} \jhanote{provide link/url}
-Analogous to the Pilot API for Compute, the Data API defines the
-\texttt{PilotDataService} entity as an abstraction for creating and
+\subsubsection*{Pilot-API for Data} 
+Analogous to the Pilot API for Compute, the Pilot Data API~\cite{pilot_api} 
+defines the \texttt{PilotDataService} entity as an abstraction for creating and
 managing pools of storage. A \texttt{PilotStore} represents the actual
 physical storage space. The \texttt{ComputeDataService} entity
 functions as an application-level scheduler, which accepts both
 \texttt{ComputeUnits} and \texttt{DataUnits}. It resolves necessary
 dependencies (e.g. data/data or data/computer affinities), and is
-responsible for managing the execution of the Data and Compute Units.
+responsible for managing the execution of \dus and \cus.
 
 
 
