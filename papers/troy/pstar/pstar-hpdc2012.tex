@@ -1100,9 +1100,6 @@ query the dispatcher for new SUs. Web services are used for communication.
 
 \subsection{Discussion}
 
-\alnote{Is this a place to to describe ``native'' PJs for different 
-infrastructures}
-
 P* provides an abstract model for describing and understanding PJ
 frameworks. Table~\ref{table:bigjob-saga-diane} summarizes how P* can
 be applied to BigJob, DIANE, Condor-G/Glide-in and Swift/Coaster. While each of 
@@ -1116,7 +1113,7 @@ Each of the presented PJ frameworks is native with respect to a certain
 infrastructure. Native infrastructure refers to the infrastructure for which a
 PJ framework has been primarily developed for and on which infrastructures it is
 mainly used; that does not mean, however, that these frameworks do not work on
-other infrastructures. \condorg is native PJ framework of Condor and thus, the
+other infrastructures. \condorg is native PJ framework of Condor and the
 Open Science Grid. Both BigJob and Swift have been developed for traditional
 US cyberinfrastructures, such as XSEDE. DIANE is native to EGI e-infrastructure.
 
@@ -1625,7 +1622,6 @@ collective usages of these frameworks.
 
 \subsection{Understanding Coordination in PJ Frameworks\upp\upp}
 \label{sec:pj_performance}
-\alnote{Explain why /bin/date!}
 
 Each PJ implementation is associated with various degrees of freedom,
 in particular in the design of the communication \& coordination
@@ -1917,7 +1913,7 @@ well as pilot-internal waiting times.
 
 % BFAST PERFORMANcE
 Generally, the performance of BFAST is
-heavily dependent on the available IO. Both the index and read files (6\,GB in
+heavily dependent on the available IO. Both the index and read files (7\,GB in
 this scenario) need to be loaded into memory. Both resources deploy a shared
 filesystem: Lustre in case of Kraken and NFS in the case of India. Since the
 file system is a shared filesystem, the performance of BFAST particularly 
@@ -1990,14 +1986,18 @@ We define two kinds of interoperability: (i) SAGA-based
 interoperability, i.\,e.\ the usage of BJ in conjunction with
 different SAGA adaptors and infrastructures and (ii) PJ framework
 interoperability, i.\,e.\ the usage of different PJ frameworks via the
-Pilot-API. For scenario (i) we run BigJob concurrently on FutureGrid
-and XSEDE and for scenario (ii) we concurrently run BigJob and DIANE
-on FutureGrid and EGI.
+Pilot-API. For scenario (i) we run BigJob concurrently on FutureGrid::India
+and XSEDE::Kraken and for scenario (ii) we concurrently run BigJob and DIANE
+on FutureGrid::India and EGI. For both scenarios, we run 64\,\cus on each 
+infrastructures, i.\,e.\ in total 128\,\cus.
 
 \begin{figure}[htbp]
 	\centering
 	\includegraphics[width=0.45\textwidth]{perf/interop/128-bfast-interop.pdf}
-	\caption{PJ Framework Interoperability}
+	\caption{\textbf{PJ Framework Interoperability:} Runtime of 128 BFAST \cus 
+	on different infrastructures. \cus are equally distributed across the two 
+	infrastructures. In particular, slower resources, such as Kraken can benefit 
+	from offloading \cus to faster infrastructures.}
 	\label{fig:perf_interop_128-bfast-interop}
 \end{figure}
 
@@ -2005,26 +2005,33 @@ on FutureGrid and EGI.
 Figure~\ref{fig:perf_interop_128-bfast-interop} shows the results of the
 interoperability tests. In both scenarios, one \pilot is submitted to each
 infrastructure. In scenario (i), one pilot is submitted to Kraken and one to
-India. Needless to say, the overall runtime is determined by the slower
-resources. Consistent with previous results the \pilot on India finished before
-the \pilot on Kraken.
-
+India. Files are pre-staged before the run. Needless to say, the overall runtime
+is determined by the slower resources. Consistent with previous results the
+\pilot on India finished before the \pilot on Kraken. The runtime of this
+scenario improved about 6\,\% compared to a Kraken only run. This can mainly be
+attributed to the usage of the faster India resource. However, the runtime of
+the scenario is also about 20\,\% slower than running on India only.
 
 %\jhanote{should this scenario number be different?} \alnote{sorry,
-%  just moved this paragraph down from B} Finally, scenario (ii)
-demonstrates that two PJ frameworks can be utilized concurrently using
-the Pilot-API. The performance in this scenario is slightly better
-than in the DIANE only case, mainly due to the fact that only four
-DIANE worker agents need to be started. Also, only half of the \cus
-are executed on a DIANE node and thus, show a longer runtime. While
-there are some limitations in the current DIANE implementation, the
-aim of this experiment is to emphasizes the possibilities that the
-Pilot-API provides to dynamic applications. The Pilot-API enables
-applications to utilize a dynamic resource pool consisting of
-resources of different infrastructures, e.\,g.\ EGI and TG/XD
-resources, at large-scales hitherto unattainable.
+%  just moved this paragraph down from B} 
 
+Finally, scenario (ii) (right bar in
+figure~\ref{fig:perf_interop_128-bfast-interop}) demonstrates that two PJ
+frameworks can be utilized concurrently using the Pilot-API. Files are
+pre-staged for FutureGrid; they need to be staged for the DIANE/EGI \cus. The
+performance in this scenario is significantly better than in the DIANE only case
+for 128\,\cus (see section~\ref{sec:fg-xsede-osg-egi}), mainly due to the fact
+the overhead induced by file staging is only applicable to half of the \cus.
+However, it must also be noted that the performance of the BJ \pilot is about
+30\,\% worse for the EGI/FG run compared to the XSEDE/FG run. This can be mainly
+attributed to the distributed coordination necessary in a high latency
+environment. All communication is conducted via a Redis instance deployed on FG.
+In scenario (ii) the BJ manager is deployed on EGI; thus, for each \cu several
+cross-atlantic roundtrips are necessary.
 
+In summary, the Pilot-API enables applications to utilize a dynamic
+resource pool consisting of resources of different infrastructures, e.\,g.\ EGI
+and FutureGrid, but also XSEDE resources, at large-scales hitherto unattainable.
 
 
 
