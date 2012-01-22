@@ -1204,13 +1204,13 @@ properties alphabetically or move characteristics up front.}
 
 \upp
 
-%\section{An API for the P*  Model\upp\upp}
-\section{Pilot-API:  A Uniform API to Heterogeneous PJ Frameworks}
+%
+%%%%%%%%%%%%%%%%% SECTION IV - Pilot-API %%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
 
-% \note{TROY: An API Supporting the P* Model} \alnote{Rename to P* API?
-%   Define what the API exposes: == external facing interface to PJ
-%   framework}
- 
+%\section{An API for the P*  Model\upp\upp}
+\section{Pilot-API: A Uniform API to Heterogeneous PJ Frameworks}
+
 % \alnote{swap 3 and 4? Add mapping of API to PJ framework to API section}
 
 % \terminology{TROY (implementation), P* Model, TROY API, PJ
@@ -1219,37 +1219,11 @@ properties alphabetically or move characteristics up front.}
 %   API extension) } \alnote{Lead: MS} \alnote{Renaming section and
 %   subsections: TROY: A reference implementation of the P*}
 
-%Pilot-Abstraction for Dynamic Execution 
-
-% \jhanote{Mark to put in a para about how the API implements different
-%  Pilot-Jobs} \msnote{In hindsight not sure why it was at this place,
-%  and what you expected but here is an attempt:}
-
-% \jhanote{Need to define and motivate TROY better, i.e. TROY: BigJob +
-%   BigData etc.}
-
-% \amnote{I disagree with the term runtime environment, but that is
-%   probably not very important in the context of this paper.}
-
-In this section we present the  Pilot-API that
-exposes the P* Model (\S\ref{sec:pilot-model}) to an application.
-
-\alnote{remove SAGA from 4} \jhanote{Need to clearly state that this
-  API can be used by applications that will use different
-  PJ-frameworks that adher to the p* model}
-
-
-%It consists of the TROY
-%API~\cite{pilot_api}, a runtime system and a set of adaptors for
-%various PJ frameworks (see figure~\ref{fig:figures_pstar_troy}). 
-% \note{OW says: Technically, an API can't have a runtime system.  An
-%   API is an interface definition and doesn't contain any
-%   implementation aspects.  IMHO a more accurate description would be:
-%   "TROY is a bridging library that can interface with existing pilot
-%   job systems. It exposes its functionality through an API that
-%   resembles (exposes the components of) the P* model."} \jhanote{Ole
-%   can you comment be removed now?}
-
+In the previous two sections we presented successively the P* Model and
+existing Pilot-Job frameworks. 
+In this section we present the Pilot-API, which enables applications to
+uniformly make use of (heterogeneous) Pilot-Job frameworks that adhere to the
+P* Model.
 
 \jhanote{Somewhere we need to define the different approaches to
   interoperability. One is via the interface/API; the other is via
@@ -1276,15 +1250,9 @@ semantics and syntax.
 % common grid functions at a sufficiently high-level of abstraction so
 % as to be independent of the diverse and dynamic grid environments.
 
-A further design consideration of the Pilot-API was a minimal but
-complete API.
-
-\note{OW says: Minimal and complete is implicit, since the TROY API
-resembles P*, which claims to be minimal and complete. I think it would 
-be more important to discuss *why* we expose the P* model components one to one
-on API level and not, e.g., provide a higher level of abstraction.
-This should be discussed along with the scope of TROY and its
-target 'audience' -- this is currently missing in the paper.}
+The primary design decision for the Pilot-API is its dual nature, one part to
+handle the resource management and another part to deal with workload
+management.
 
 
 The status of the current workflow systems and enactment
@@ -1372,28 +1340,19 @@ that can be built upon them, there exist similar risks.
 % 	\upp\upp
 % \end{figure}
 
-% Figure~\ref{fig:figures_troy_classes} displays the main classes of TROY.
-% \alnote{remove Python implementation for now since it implies that
-%   there might be another implementation. We should however elaborate
-%   on why python}\jhanote{Do we? I think we should, but I couldn't find
-%   it} 
-
 Figure~\ref{fig:figures_troy_flow} shows the interactions between the
 P* elements. The Pilot-API decouples workload management and resource
 scheduling by exposing two separate services: The
-\texttt{PilotJobService} (PJS) and \texttt{WorkUnitService} (WUS). The
-PJS serves as a factory for instantiating pilots. Also, the PJS can be
+\texttt{PilotService} (PS) and \texttt{ComputeUnitService} (CUS). The
+PS serves as a factory for instantiating pilots. Also, the PS can be
 used to query the PJS for currently active pilots.  A
-\texttt{PilotJob} object is returned as result of the
-\texttt{create\_pilotjob()} method of the PJS (step 1).
+\texttt{Pilot} object is returned as result of the
+\texttt{create\_pilot()} method of the PS (step 1).
 
-As in SAGA, the instantiation of \texttt{PilotJob} object is done by
-using a \texttt{PilotJobDescription}. The description can be reused
-and has no state, while the \texttt{PilotJob} instance has state and
-is a reference for further usage. \jhanote{Following sentence needs
-  attention as it is incorrect I think} The actual creation of the PJ
-is done via the adaptor, which is responsible for calling the
-underlying PJ framework (step 2 and 3).
+As in SAGA, the instantiation of \texttt{Pilot} object is done by
+using a \texttt{PilotDescription}. The description can be reused
+and has no state, while the \texttt{Pilot} instance has state and
+is a reference for further usage.
 
 \lstset{
 language=Python,
@@ -1404,46 +1363,45 @@ basicstyle=\scriptsize\ttfamily
 }
 
 \noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{PilotJob Creation:} Instantiation of a Pilot Job Service using a Pilot Job Description.}, label={lst:pjs_creation}]
-pjs = PilotJobService()
-pj_desc = PilotJobDescription()
-pj_desc.total_core_count = 8
-pj = pjs.create_pilotjob('gram://queenbee', 
-                          pj_desc, 'bigjob')
+\begin{lstlisting}[caption={\textbf{Pilot Creation:} Instantiation of a Pilot Service using a Pilot Description.}, label={lst:ps_creation}]
+ps = PilotService()
+p_desc = PilotDescription()
+p_desc.total_core_count = 8
+pj = ps.create_pilot('gram://queenbee', 
+                          p_desc, 'bigjob')
 \end{lstlisting}
 \end{minipage}
 
-The \texttt{PilotJob} object represents a pilot instance and allows the 
+The \texttt{Pilot} object represents a pilot instance and allows the 
 application to interact with a pilot, e.\,g.\ to query its state or to cancel 
-it. The process of PJ creation is depicted in step 1-3 of 
-figure~\ref{fig:figures_troy_flow} and in listing~\ref{lst:pjs_creation}.
+it. The process of Pilot creation is depicted in step 1-3 of 
+figure~\ref{fig:figures_troy_flow} and in listing~\ref{lst:ps_creation}.
 
-Listing~\ref{lst:wus_creation} shows the creation of a \texttt{WorkUnitService}.
-Having instantiated a \texttt{WorkUnitService} object, PJS objects can be added
-and removed at any time. This enables applications to respond to dynamic
+Listing~\ref{lst:cus_creation} shows the creation of a
+\texttt{ComputeUnitService}.
+Having instantiated a \texttt{ComputeUnitService} object, PS objects can be
+added and removed at any time. This enables applications to respond to dynamic
 resource requirements at runtime, i.\,e.\ if peak demands arise an application
 can request additional resources; if resources are not required anymore, they
 can be released.
 
-\alnote{We need to align these terms with the new P* nomenclature.}
 \noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{WorkUnitService Creation:} Instantiation of 
-	a \texttt{WorkUnitService} using a reference to the 
-	\texttt{PilotJobService}.}, 
-	label={lst:wus_creation}]
-wus = WorkUnitService()
-wus.add(pjs)
+\begin{lstlisting}[caption={\textbf{ComputeUnitService Creation:} Instantiation
+of a \texttt{ComputeUnitService} using a reference to the
+\texttt{PilotService}.}, label={lst:cus_creation}]
+cus = ComputeUnitService()
+cus.add(pjs)
 \end{lstlisting}
 \end{minipage}
 
 \noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{WorkUnit Submission:} Instantiation and 
-	submission of a \texttt{WorkUnitDescription}.}, label={lst:submission}] 
-wud = WorkUnitDescription()
-wud.executable = '/bin/bfast'
-wud.arguments = ['match', '-t4', '/data/file1']
-wud.total_core_count = 4
-wu = wus.submit(wud)
+\begin{lstlisting}[caption={\textbf{ComputeUnit Submission:} Instantiation and 
+	submission of a \texttt{ComputeUnitDescription}.}, label={lst:submission}] 
+cud = ComputeUnitDescription()
+cud.executable = '/bin/bfast'
+cud.arguments = ['match', '-t4', '/data/file1']
+cud.total_core_count = 4
+cu = cus.submit(cud)
 \end{lstlisting}
 \end{minipage}
 
@@ -1451,24 +1409,19 @@ wu = wus.submit(wud)
 % caption={\textbf{WorkUnit Submission:} Instantiation and Submission of a \texttt{WorkUnitDescription}.\label{lst:submission}}
 % }
 
-The \texttt{WorkUnitService} is responsible for managing the execution of \cus.
-Regardless of the state of the PJS, applications can submit \cus to a
-\texttt{WorkUnitService} at anytime (listing~\ref{lst:submission} and step 4 in
-figure~\ref{fig:figures_troy_flow}). Once the \texttt{WorkUnitService} becomes
+The \texttt{ComputeUnitService} is responsible for managing the execution of \cus.
+Regardless of the state of the PS, applications can submit \cus to a
+\texttt{ComputeUnitService} at anytime (listing~\ref{lst:submission} and step 4 in
+figure~\ref{fig:figures_troy_flow}). Once the \texttt{ComputeUnitService} becomes
 responsible for a \cu, the \cu  transitions to an SU. SUs are internally processed
 (they e.\,g.\ can be aggregated) and are then forwarded to the
 \texttt{Scheduler} (step 5), which selects an appropriate pilot. Having chosen
 an appropriate resource, the SU is dispatched using the respective adaptor (step
 6 and 7). The PJ framework is responsible for the actual execution of the SU on
 a resource
-\note{OW says: Somewhat inconsistent. The 'framework' is earlier described as 
-the 'whole' thing. Isn't the 'adaptor' responsible for execution?}. 
 Note that multiple levels of (hierarchical) scheduling can be
 present, commonly a SU is scheduled inside a PJ framework and the model allows
 it to be present in multiple layers.
-
-
-
 
 
 
@@ -1492,7 +1445,7 @@ it to be present in multiple layers.
 % Additionally, the underlying PJ framework can conduct its own scheduling.
 
 
-Each \texttt{WorkUnit} and the \texttt{PilotJob} object is associated with a
+Each \texttt{ComputeUnit} and the \texttt{Pilot} object is associated with a
 state. The state model is based on the SAGA job state
 model~\cite{ogf-gfd-90}.
 \note{OW says: Why? IMHO the GFD.90 state model has some serious flaws, like
@@ -1500,67 +1453,28 @@ the absence of a 'Waiting' state.}
 Applications can query the state using the \texttt{get\_state()} method or they
 can subscribe to state update notifications.
 
-%\begin{figure}[t] \centering
-%	\includegraphics[width=0.47\textwidth]{figures/troy_classes.pdf} \caption{\textbf{TROY
-%	Class Diagram:} The classes used in the TROY
-%	implementation. Classes that are not exposed to the
-%	application are depicted grey. The cardinality is shown
-%	between classes.  } \alnote{should we rename scheduler to
-%	engine? Would be consistent w/ figure 2 and reflect that there
-%	is more than scheduling (e.g. adaptor
-%	loading...)}  \label{fig:figures_troy_classes} \end{figure}
+Semantics:
+An application can have any number of PilotServices or ComputeUnit Services.
+Multiple PilotServices can be associated to a ComputeUnitService, and a
+PilotService can be associated to multiple ComputeUnitServices. A
+ComputeUnitService can manage multiple ComputeUnits, but a ComputeUnit can only
+be managed by one ComputeUnitService. So can a PilotService manage
+multiple Pilots, but can a Pilot only be managed by one PilotService.
 
-% \alnote{not sure whether the next is much of help...}  Also shown in
-% figure~\ref{fig:figures_troy_classes}, are the cardinalities of the
-% classes. An application can have any number of Pilot Job Services or
-% Work Unit Services. Multiple Pilot Job Services can be associated to
-% a Work Unit Service, and a Pilot Job Service can be associated to
-% multiple Work Unit Services. A Work Unit Service can manage multiple
-% Work Units, but a Work Unit can only be managed by one Work Unit
-% Service. So can a Work Unit Service manage multiple pilot-jobs, but
-% can a pilot-job only be managed by one Pilot Job Service.
-
-% \alnote{TODO fix next paragraph}
-% Although there is no one-to-one mapping of elements of the P* model to
-% classes, the implementation does offer the expressiveness that the P* model aims
-% at. The elements that do map one-to-one are the Work Unit and the Scheduling
-% Unit. The process of resource assignment (step 1-3 in
-% figure~\ref{fig:figures_pstar}) is covered by Pilot Job Service (PJS), and the 
-% workload management (step 4-6) is covered by the Work Unit Service (WUS). The 
-% Pilot-Manager is represented by the PJS, WUS and Scheduler classes. 
-% TROY itself does not contain an actual PJ realization. PJ frameworks providing 
-% the respective pilot-job capabilities are integrated via the TROY Adaptor 
-% interface (see figures~\ref{fig:figures_pstar_troy} 
-% and~\ref{fig:figures_distributed_pilot_job}).
-
-
-
-
-
-%TROY supports different usage modes 
-%\alnote{remove usage modes} i) it provides a unified API to various PJ 
-%frameworks (e.\,g.\ BigJob, DIANE and Condor-G), and ii) it enables the 
-%concurrent usage of multiple PJ implementations. 
-% Further, we show in section~\ref{sec:bigdata} how TROY is
-% extended to support dynamic data and affinity-based scheduling.
-
+The Pilot-API supports different usage modes i) it provides a unified API to
+various PJ frameworks (e.\,g.\ BigJob, DIANE and Condor-G), and ii) it enables
+the concurrent usage of multiple PJ implementations. 
 
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/troy_flow.pdf}
 	\caption{\textbf{Control Flow Pilot-API and PJ Frameworks:} The functionality    of pilot-jobs are exposed 
-	using two primary classes: The \texttt{PilotJobService} for the management 
-	of pilots, and the \texttt{WorkUnitService} for the management of \cus.
+	using two primary classes: The \texttt{PilotService} for the management 
+	of pilots, and the \texttt{ComputeUnitService} for the management of \cus.
     \alnote{figure needs attention.}
 	}
 	\label{fig:figures_troy_flow}
 \end{figure}
-% \begin{figure}[htbp]
-% 	\centering
-% 		\includegraphics[width=0.45\textwidth]{figures/troy.pdf}
-% 	\caption{TROY Overview}
-% 	\label{fig:figures_troy}
-% \end{figure}
 
 \begin{table}[t]
 	\centering
@@ -1572,7 +1486,7 @@ can subscribe to state update notifications.
 \hline
 \textbf{SU} &SU\\
 \hline
-\textbf{Pilot-Manager} & Pilot Job Service/Work Unit Service\\
+\textbf{Pilot-Manager} & PilotService/ComputeUnitService\\
 \hline
 \end{tabular}
 \caption{Mapping of P* and the Pilot-API\upp\upp}\label{table:pstar_elements}
@@ -1580,39 +1494,18 @@ can subscribe to state update notifications.
 
 The Pilot-API classes and interactions are designed to reflect the P*
 elements and characteristics.
-\note{OW says: Why? See earlier note about the scope of TROY}
-Table~\ref{table:pstar_elements}
-summarizes the mapping of P* elements and the Pilot-API. As defined by P*, a \cu 
-represents a primary self-containing piece of work that is submitted
-through the Pilot-API. At the API boundary a \cu  transitions to an SU, which
-functions as internal unit of scheduling.
-\note{OW says: Does this really happen at the API boundary? Earlier, 
-the text says: 'Once the WUS becomes responsible for a CU, the CU
-transitions to a SU. This suggests that a CU lives beyond 'API level'.}
-The API follows
-object-oriented design principles and exposes the primary
+Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and the
+Pilot-API. As defined by P*, a \cu represents a primary self-containing piece
+of work that is submitted through the Pilot-API. 
+At the API boundary a \cu transitions to a SU, which functions as internal unit
+of scheduling.
+The API follows object-oriented design principles and exposes the primary
 functionality of the Pilot-Manager using two classes: the
-\texttt{PilotJobService} for the management of pilots and the
-\texttt{WorkUnitService} for the management of \cus. Further, the
-framework utilizes a set of internal classes for implementing
-different P* characteristics, e.\,g.\ the \texttt{Scheduler} for
-scheduling and the adaptors implementations for providing the actual
-PJ capabilities.
-
-% MS: This is runtime system  text again
-% TROY uses the M/W coordination model: The TROY runtime system
-% functions as master for a set of PJ frameworks that are encapsulated
-% within a TROY adaptor.
-% \note{OW says: Maybe explain this: The TROY scheduler pushes SUs
-% to the adaptors were they get translated into 'native' execution units,
-% e.g., a DIANE job, a Condor glide-In, a Bigjob/SubJob}
-
-% Inside the PJ framework itself another
-% coordination model can be used; most commonly this is also M/W. The
-% TROY runtime system only utilizes local communication between the
-% application, the runtime system and the adaptors. The PJ frameworks in
-% turn, can rely on their own communication \& coordination (c\&c)
-% model.
+\texttt{PilotService} for the management of pilots and the
+\texttt{ComputeUnitService} for the management of \cus. 
+Further, the framework utilizes a set of internal classes for implementing
+different P* characteristics, e.\,g.\ the \texttt{Scheduler} for scheduling and
+the adaptors implementations for providing the actual PJ capabilities.
 
 
 \section{Experiments and Results\upp\upp}
