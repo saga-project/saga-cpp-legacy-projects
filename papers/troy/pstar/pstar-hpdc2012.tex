@@ -1609,26 +1609,29 @@ the adaptors implementations for providing the actual PJ capabilities.
 % (ii) that the TROY API can be used stand alone with both BigJob and
 % DIANE concurrently.
 
-\jhanote{MS: The experiment section needs tighter and more focussed
-  writing in general}
+In this section we analyze the performance and scalability of
+different PJ frameworks.  However, it is important to note that our
+experiments do not try to identify the ``best'' or ``fastest'' PJ
+framework, as this is dependent on different factors,
+e.\,g.\ particularly the infrastructure used.  The experiments are
+conducted on different production (XSEDE, EGI, OSG) and research
+infrastructures (FutureGrid). 
 
-In this section we analyze the performance and scalability of different PJ
-frameworks. The experiments are conducted on different production (XSEDE, EGI,
-OSG) and research infrastructures (FutureGrid). In
-section~\ref{sec:pj_performance} we investigate the performance and scalability
-of BigJob and DIANE executing a simple shell command. In
-section~\ref{sec:fg-xsede-osg-egi} we show that the execution of {\it real
-application workloads} -- in this case a genome sequencing application --
-on production infrastructure is a strength of our approach and capabilities.
-Further, we demonstrate PJ framework interoperability by using multiple PJ
-frameworks concurrently on multiple production infrastructures using the
-Pilot-API.
+As discussed in \S3, the investigated PJ frameworks can be mapped to
+the P* model, which enables the collective usages of these frameworks
+via the Pilot-API.  In section~\ref{sec:pj_performance} we investigate
+the performance and scalability of coordination in BigJob and DIANE
+executing thousands of tasks but with zero workload. \jhanote{Andre L,
+  please check} In section~\ref{sec:fg-xsede-osg-egi} we show that the
+effectiveness of our approach (Pilot-API/P* Model) by executing {\it
+  real application workloads} -- in this case a genome sequencing
+application -- on multiple distinct production infrastructure.
+Further, we demonstrate PJ framework interoperability by using
+multiple PJ frameworks concurrently on multiple production
+infrastructures using the Pilot-API.
 
-It should be noted that our experiments do not try to identify the ``best'' or
-``fastest'' PJ framework, as this is dependent on different factors, e.\,g.\
-particularly the used infrastructure. As established early, the investigated PJ
-frameworks can be mapped to the P* model and the Pilot-API, which enables the
-collective usages of these frameworks.
+
+
 
 % \jhanote{Need a simple description of experiment   configuration}.
 % \alnote{Is it ok to just describe the configuration on high-level in the 
@@ -1851,26 +1854,21 @@ on XSEDE, FutureGrid, EGI and OSG.
 On XSEDE, we utilize Kraken, a 1.17 PF Cary XT5 system with a total of 9,408 nodes and 112,896 cores that are controlled by a Torque scheduler; on FutureGrid we utilize India, a 108 node HPC cluster with 864 cores that are controlled by PBS.
 
 On OSG, we have access to a Condor pool via the \textit{Engage} VO.
-The Condor pool is controlled by Glide-In WMS, a software system built on
-top of Condor-G/Glide-In which can automatically increase or decrease the 
-number of active Glide-Ins (\pilots) that are available to the pool based
-on the current and expected number of jobs in the pool.
-While the average number of active Glide-Ins  is around 20,000, more than 
-40,000 Glide-Ins can be active and available for job execution during peak load.
-
+The Condor pool is controlled by Glide-In WMS, a software system built
+on top of Condor-G/Glide-In which can automatically increase or
+decrease the number of active Glide-Ins (\pilots) that are available
+to the pool based on the current and expected number of jobs in the
+pool.  While the average number of active Glide-Ins is around 20,000,
+more than 40,000 Glide-Ins can be active and available for job
+execution during peak load.
 
 \note{Add EGI details ...}
  
-\jhanote{Experimental Configuration = Infrastructure used, specific
-  machine (on XSEDE and FG) and resources configuration + PJ Framework
-  employed.}
-
-
-\jhanote{I would even introduce a sub-subsection on production
-  infrastructure used. That would enable us to keep Pilot-API/BigJob
-  specific details separate from infrastructure details. E.g., say
-  what is XSEDE? Say what is OSG? Thoughts?}
-\alnote{good idea. started to restructure section}
+%\jhanote{I would even introduce a sub-subsection on production
+%  infrastructure used. That would enable us to keep Pilot-API/BigJob
+%  specific details separate from infrastructure details. E.g., say
+%  what is XSEDE? Say what is OSG? Thoughts?}  \alnote{good
+%  idea. started to restructure section}
 
 
 %\note{OW says: That would be the case if we use Condor-G. The machines
@@ -1905,26 +1903,43 @@ While the average number of active Glide-Ins  is around 20,000, more than
 
 \subsubsection*{Experimental Configuration}
 
-The investigated workload comprises of 128 \cus. Each \cu executes a BFAST
-matching process, which is used to find potential sequence alignments. The
-scenario requires about 7\,GB input data: 1.7\,GB for the reference genome and
-index files and 5.4 GB read files (32 files, 1.68\,GB each). We run the experiment
-on four different setups: (i) BigJob/XSEDE only, (ii) BigJob/FutureGrid, (iii)
-BigJob/OSG only, (iv) DIANE/EGI only. 
-\onote{Not quite sure why i,iii,iv say 'only' and 'ii' doesn't. what about interop
-configurations?}
-To achieve interoperability, we have developed a Pilot-API to interface with all
-three PJ frameworks, i.\,e.\ BigJob, DIANE and Condor. The Pilot-API
-provides a unified way to access the different native PJ capabilities. 
+%\jhanote{Experimental Configuration = Infrastructure used, specific
+%  machine (on XSEDE and FG) and resources configuration + PJ Framework
+%  employed.}
+
+We define the experimental configurations as a comprised
+of: the production infrastructure used, specific machine/resource 
+configuration and the PJ framework employed.
+
+The investigated workload comprises of 128 \cus. Each \cu executes a
+BFAST matching process, which is used to find potential sequence
+alignments. The scenario requires about 7\,GB input data: 1.7\,GB for
+the reference genome and index files and 5.4 GB read files (32 files,
+1.68\,GB each). We run the experiment on four different setups: (i)
+BigJob/XSEDE, (ii) BigJob/FutureGrid, (iii) BigJob/OSG, (iv)
+DIANE/EGI.  The Pilot-API provides a unified way to access the
+different native PJ capabilities for all three PJ frameworks, i.\,e.\
+BigJob, DIANE and Condor.
+
+
+% .  \onote{Not quite sure why i,iii,iv say 'only' and 'ii'
+%   doesn't. what about interop configurations?}
+
+% To achieve interoperability, we have developed a Pilot-API to
+% interface with all three PJ frameworks, i.\,e.\ BigJob, DIANE and
+% Condor. The Pilot-API provides a unified way to access the different
+% native PJ capabilities.
+
 % For the experiments we rely both on the native PJ APIs, in
 % particular the BJ API, and the Pilot-API.
-The following PJ setup was used:
-BigJob is used with the SAGA-Torque adaptor to access Kraken on
-XSEDE~\cite{xsede} and with the PBS/SSH plugin to access the \textit{India}
-cluster on FutureGrid~\cite{fg}. For OSG~\cite{1742-6596-78-1-012057} we utilize a BJ
-implementation on top of the SAGA-Condor adaptor that interfaces directly 
-with OSG's dynamic GlideIn-WMS resource pool. 
-Further, we utilize DIANE on EGI.  \msnote{more on EGI later ...} On the XSEDE,
+
+The following PJ setup was used: BigJob is used with the SAGA-Torque
+adaptor to access Kraken on XSEDE~\cite{xsede} and with the PBS/SSH
+plugin to access the \textit{India} cluster on
+FutureGrid~\cite{fg}. For OSG~\cite{1742-6596-78-1-012057} we utilize
+a BJ implementation on top of the SAGA-Condor adaptor that interfaces
+directly with OSG's dynamic GlideIn-WMS resource pool.  Further, we
+utilize DIANE on EGI.  \msnote{more on EGI later ...} On the XSEDE,
 Kraken is used with up to 512 cores concurrently.
 
 
