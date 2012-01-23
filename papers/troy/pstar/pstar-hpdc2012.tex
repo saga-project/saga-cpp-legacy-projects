@@ -1467,11 +1467,11 @@ principle as a guideline for a balanced abstraction level.
 \subsection{Understanding the Pilot-API}
 \up
 
-\alnote{I thought the agreement was to go with PilotComputeService and 
-PilotComputeDescription?}
 \alnote{We don't establish that the BJ API is semantically equivalent to the 
 Pilot-API.}
-The Pilot-API supports two different usage modes i) it provides a unified API to
+The Pilot-API
+\footnote{We use Python syntax for describing the Pilot-API.}
+supports two different usage modes i) it provides a unified API to
 various PJ frameworks (e.\,g.\ BigJob , DIANE and Condor-G/Glide-in), and ii)
 it enables the concurrent usage of multiple PJ implementations.
 
@@ -1479,31 +1479,29 @@ The Pilot-API classes and interactions are designed to reflect the P*
 elements and characteristics.
 % Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and the
 % Pilot-API.
+The API exposes the primary functionality of the Pilot-Manager using two
+classes: the \texttt{PilotComputeService} for the management of pilots
+and the \texttt{ComputeUnitService} for the management of \cus. 
 As defined by P*, a \cu represents a primary self-containing piece of work that
 is submitted through the Pilot-API. 
-At the API boundary a \cu transitions to a SU, which functions as internal unit
-of scheduling.
-
-The API follows object-oriented design principles and exposes the primary
-functionality of the Pilot-Manager using two classes: the \texttt{PilotService}
-for the management of pilots and the \texttt{ComputeUnitService} for the
-management of \cus. 
+%At the API boundary a \cu transitions to a SU, which functions as internal unit
+%of scheduling.
 
 Figure~\ref{fig:figures_pilot_api_flow} shows the interactions between the
-P* elements. The Pilot-API\footnote{We use Python syntax for describing
-the Pilot-API.}
-decouples workload management and resource
-scheduling by exposing two separate services: The
-\texttt{PilotService} (PS) and \texttt{ComputeUnitService} (CUS). The
-PS serves as a factory for instantiating pilots. Also, the PS can be
-used to query the PS for currently active pilots.  A
-\texttt{Pilot} object is returned as result of the
-\texttt{create\_pilot()} method of the PS (step 1).
-
-Analogous to job creation in SAGA, the instantiation of the \texttt{Pilot}
-object is done by using a \texttt{PilotDescription}. The description can be
-reused and has no state, while the \texttt{Pilot} instance has state and is a
-reference for further usage.
+P* elements.
+The Pilot-API decouples workload management and resource scheduling by exposing
+two separate services: The \texttt{PilotComputeService} and
+\texttt{ComputeUnitService}. 
+The \texttt{PilotComputeService} serves as a factory for instantiating pilots. 
+Also, the \texttt{PilotComputeService} can be used to query for currently
+active \texttt{PilotCompute} instances.
+A \texttt{PilotCompute} object is returned as result of the
+\texttt{create\_pilot()} method of the \texttt{PilotComputeService} (step 1).
+Analogous to job creation in SAGA, the instantiation of the
+\texttt{PilotCompute} object is done by using a
+\texttt{PilotComputeDescription}. The description can be reused and has no
+state, while the \texttt{PilotCompute} instance has state and is a reference
+for further usage.
 
 \lstset{
 language=Python,
@@ -1514,34 +1512,35 @@ basicstyle=\scriptsize\ttfamily
 }
 
 \noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{Pilot Creation:} Instantiation of a Pilot Service using a Pilot Description.}, label={lst:ps_creation}]
-ps = PilotService()
-p_desc = PilotDescription()
-p_desc.total_core_count = 8
-p = ps.create_pilot('gram://queenbee', 
-                          p_desc, 'bigjob')
+\begin{lstlisting}[caption={\textbf{Pilot Creation:} Instantiation of a Pilot Service using a Pilot Compute Description.}, label={lst:pcs_creation}]
+pcs = PilotComputeService()
+pc_desc = PilotComputeDescription()
+pc_desc.total_core_count = 8
+pc = pcs.create_pilot('gram://queenbee', 
+                          pc_desc, 'bigjob')
 \end{lstlisting}
 \upp
 \end{minipage}
 
-The \texttt{Pilot} object represents a pilot instance and allows the 
+The \texttt{PilotCompute} object represents a pilot instance and allows the 
 application to interact with a pilot, e.\,g.\ to query its state or to cancel 
-it. The process of Pilot creation is depicted in step 1-2 of 
-figure~\ref{fig:figures_pilot_api_flow} and in listing~\ref{lst:ps_creation}.
+it. The process of \texttt{PilotCompute} creation is depicted in step 1-2 of 
+figure~\ref{fig:figures_pilot_api_flow} and in listing~\ref{lst:pcs_creation}.
 
-Listing~\ref{lst:cus_creation} shows the creation of a CUS.
-Having instantiated a \texttt{ComputeUnitService} object, PS objects can be
-added and removed at any time. This enables applications to respond to dynamic
-resource requirements at runtime, i.\,e.\ if peak demands arise an application
-can request additional resources; if resources are not required anymore, they
-can be released.
+Listing~\ref{lst:cus_creation} shows the creation of a
+\texttt{ComputeUnitService}.
+Having created a \texttt{ComputeUnitService} instance,
+\texttt{PilotComputeService} instances can be added and removed at any time.
+This enables applications to respond to dynamic resource requirements at
+runtime, i.\,e.\ if peak demands arise an application can request additional
+resources; if resources are not required anymore, they can be released.
 
 \noindent\begin{minipage}{0.47 \textwidth}
 \begin{lstlisting}[caption={\textbf{ComputeUnitService Creation:} Instantiation
 of a \texttt{ComputeUnitService} using a reference to the
-\texttt{PilotService}.}, label={lst:cus_creation}]
+\texttt{PilotComputeService}.}, label={lst:cus_creation}]
 cus = ComputeUnitService()
-cus.add(ps)
+cus.add(pcs)
 \end{lstlisting}
 \upp
 \end{minipage}
@@ -1564,7 +1563,7 @@ cu = cus.submit(cud)
 
 The \texttt{ComputeUnitService} is responsible for managing the execution of
 \cus.
-Regardless of the state of the PS, applications can submit \cus to a
+Regardless of the state of the \texttt{PilotComputeService}, applications can submit \cus to a
 \texttt{ComputeUnitService} at anytime (listing~\ref{lst:submission} and step 3
 in figure~\ref{fig:figures_pilot_api_flow}). 
 Once the \texttt{ComputeUnitService} becomes responsible for a \cu, the \cu
@@ -1598,17 +1597,22 @@ in multiple layers.
 % Additionally, the underlying PJ framework can conduct its own scheduling.
 
 
-Each \texttt{ComputeUnit} and the \texttt{Pilot} object is associated with a
-state. The state model is based on the SAGA job state model~\cite{ogf-gfd-90}.
+Each \texttt{ComputeUnit} and the \texttt{PilotCompute} object is associated
+with a state.
+The state model is based on the SAGA job state model~\cite{ogf-gfd-90}.
 Applications can query the state using the \texttt{get\_state()} method or they
 can subscribe to state update notifications.
 
-Finally, an application can have any number of \ps or ComputeUnit
-Services.  Multiple PilotServices can be associated to a ComputeUnitService,
-and a PilotService can be associated to multiple ComputeUnitServices. A
-ComputeUnitService can manage multiple ComputeUnits, but a ComputeUnit can only
-be managed by one ComputeUnitService. So can a PilotService manage multiple
-Pilots, but can a Pilot only be managed by one PilotService.
+Finally, an application can have any number of \ps or
+\texttt{ComputeUnitService} instances.
+Multiple \texttt{PilotComputeService} instances can be associated to a
+\texttt{ComputeUnitService}, and a PilotComputeService can be associated to
+multiple \texttt{ComputeUnitService} instances.
+A \texttt{ComputeUnitService} can manage multiple \texttt{ComputeUnit}
+instances, but a \texttt{ComputeUnit} can only be managed by one
+\texttt{ComputeUnitService}.
+So can a \texttt{PilotComputeService} manage
+multiple \texttt{PilotCompute}, but can a \texttt{PilotCompute} only be managed by one \texttt{PilotComputeService}.
 
 
 \begin{figure}[t]
@@ -1616,7 +1620,7 @@ Pilots, but can a Pilot only be managed by one PilotService.
   \upp
 		\includegraphics[width=0.47\textwidth]{figures/pilot-api-flow.pdf}
 	\caption{\textbf{Control Flow Pilot-API and PJ Frameworks:} The functionality    of pilot-jobs are exposed 
-	using two primary classes: The \texttt{PilotService} for the management 
+	using two primary classes: The \texttt{PilotComputeService} for the management 
 	of pilots, and the \texttt{ComputeUnitService} for the management of \cus.
     \alnote{figure needs attention.}
     \up
@@ -1634,7 +1638,7 @@ Pilots, but can a Pilot only be managed by one PilotService.
 %\hline
 %\textbf{SU} &SU\\
 %\hline
-%\textbf{Pilot-Manager} & PilotService/ComputeUnitService\\
+%\textbf{Pilot-Manager} & PilotComputeService/ComputeUnitService\\
 %\hline
 %\end{tabular}
 %\caption{Mapping of P* and the Pilot-API\up
