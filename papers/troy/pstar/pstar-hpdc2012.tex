@@ -1650,24 +1650,22 @@ Pilots, but can a Pilot only be managed by one PilotService.
 \up
 
 In this section we analyze the performance and scalability of
-different PJ frameworks. It is important to note that our experiments
-do not try to identify the ``best'' or ``fastest'' PJ framework, as
+different PJ frameworks.  It is important to note that our experiments
+do not try to identify the ``fastest'' PJ framework, as
 this is dependent on different factors, e.\,g.\ particularly the
 infrastructure used -- the experiments are conducted on different
 production (XSEDE, EGI, OSG) and research (FutureGrid) infrastructures. 
 
-As discussed in section \ref{sec:pilot-job-frameworks}, the investigated PJ frameworks can be mapped to
-the P* model, which enables their collective usages via the Pilot-API.
-In section~\ref{sec:pj_performance} we investigate the performance and
-scalability of coordination in BigJob and DIANE, executing thousands
-of tasks but with zero workload. \jhanote{Andre L, please check} In
-section~\ref{sec:fg-xsede-osg-egi} we show the effectiveness of our
-approach (Pilot-API/P* Model) by executing {\it real application
-workloads} -- in this case a genome alignment tool -- on
-multiple distinct production infrastructures.  Further, we demonstrate
-interoperability by using multiple PJ frameworks concurrently on
-multiple infrastructures using the Pilot-API -- see
-section~\ref{sec:experiment-interop}.
+As discussed in \S\ref{sec:pilot-job-frameworks}, the investigated PJ frameworks
+can be mapped to the P* model, which enables their collective usages via the
+Pilot-API. In section~\ref{sec:pj_performance} we investigate the performance
+and scalability of coordination in BigJob and DIANE, executing thousands of
+tasks but with zero workload. In section~\ref{sec:fg-xsede-osg-egi} we show the
+effectiveness of our approach (Pilot-API/P* Model) by executing {\it real
+application workloads} -- in this case a genome alignment tool -- on multiple
+distinct production infrastructures. Further, we demonstrate interoperability by
+using multiple PJ frameworks concurrently on multiple infrastructures using the
+Pilot-API -- see section~\ref{sec:experiment-interop}.
 
 
 
@@ -1716,10 +1714,10 @@ influence the overall performance, e.\,g.\ the degree of distribution
 n:n) and the communication frequency. In the following we investigate
 the impact of different \cc related factors on the overall
 performance and scalability of PJ systems.  We evaluate different
-BigJob \cc configurations, and compare and contrast them with DIANE.
+BigJob configurations, and compare and contrast them with DIANE.
 
 BigJob's \cc was originally based on a shared, centralized data space, 
-the SAGA Advert Service~\cite{saga_advert}.  The
+the SAGA Advert Service (AS)~\cite{saga_advert}.  The
 communication between all components is done via this shared data
 space, which decouples BJ-Manager and BJ-Agent and allows both
 entities to operate at their own pace, optimizing the overall
@@ -1731,12 +1729,11 @@ data space is not carefully designed and operated.
 
 BigJob also provides two alternative c\&c sub-systems:
 Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
-key/value store, which can be deployed locally, or in a distributed,
-fault tolerant way. Redis is used in a similar way as the Advert
-database, i.\,e.\ all communication between BJ-Agent and BJ-Manager is
+key/value store. Redis is used in a similar way as the AS, i.\,e.\ all 
+communication between BJ-Agent and BJ-Manager is
 channeled through it. In contrast, the ZeroMQ sub-system utilizes a
-client-server architecture, which is similar to the CORBA-based \cc
-sub-system of DIANE -- in this architecture, the PM maintains the
+client-server architecture, which is similar to the CORBA-based approach 
+of DIANE -- in this architecture, the PM maintains the
 overall state. Clients connect to the PM to request new SUs or to
 report state updates. An advantage of this architecture is that it
 does not require a separate infrastructure deployment for the \cc
@@ -1752,23 +1749,14 @@ sub-system.
 Both the data space and the client-server \cc sub-systems can be
 combined with a publish/subscribe mechanism, i.\,e.\ instead of
 polling, an agent can receive notifications when a new SU arrives.
-\amnote{AL: please check the tex-comments in the paragraph above.}
-\alnote{We don't need this sentence, but generally, e.g. in  all cases in V-B
-a cluster-internal communication mechanism is sufficient.}
 
 For our \cc evaluation, we conducted several experiments on
-FutureGrid~\cite{fg}. To evaluate overall performance, throughput and
-scalability, we executed a different number of very short running
-(i.\,e. zero workload) \cus on Alamo and Sierra, executing up to 128\,\cus on
-1 core each concurrently.  This enables us to focus on the overhead induced
+FutureGrid~\cite{fg}. We executed a different number of very short running
+(i.\,e. zero workload) \cus on Alamo and Sierra, running up to 128\,\cus 
+concurrently.  This enables us to focus on the overhead induced
 by the PJ framework and the \cc subsystem. Each experiment is
 repeated at least 10 times.
 
-\amnote{'128 cores concurrently' - for each cus?  Because, the graphs
-go up to 2048 cores.  Also, how would the number of cores/cus
-influence the \cc?  It should not, as communication is per cus, not
-per CPU core?}\alnote{refined. 128 cores refers to the size of the 
-pilot and thus, concurrent \cus.}
 
 % \jhanote{Need to motivate testing of c\&c sub-system better: There are
 %   many barriers to interoperability and performance. primary barrier to
@@ -1817,37 +1805,29 @@ pilot and thus, concurrent \cus.}
  \up\up
  \caption{\textbf{BigJob and DIANE Performance (1):} The 
   runtime increases linearly with the number of \cus in most cases. 
-  The overhead per \cu imposed by the Advert backend is generally 
-  higher than for 
-  other \cc backend. The runtime of the DIANE \cus only increases moderately 
-  mainly due to the aggregation of the \cus.
-  \amnote{only the DIANE graph is linear, AFAICS}\alnote{this is an logarithmic
-  scale. The increase is more linear than exponential. DIANE the overhead is 
-  almost constant (since no file staging etc.)}
-  \up}
+  The overhead per \cu imposed by the AS is generally 
+  higher than for other backends. The runtime of the DIANE \cus only increases 
+  moderately mainly due to the aggregation of the \cus.
+  \upp}
  \label{fig:perf_bigjob-varying-wus} 
 \end{figure}
 
 Figure~\ref{fig:perf_bigjob-varying-wus} illustrates the performance
-and scalability of different BigJob configurations and DIANE with
+and scalability of different BJ configurations and DIANE with
 respect to the number of \cus. Clearly, the \cc sub-system has a great
 impact on the overall performance: the Redis backend shows the best
-performance for small \cu counts. \amnote{That is very hard /
-impossible to see in the graph!} \alnote{please see the noadvert graphs in the 
-perf dir. However, I opted for including the advert in the graph and describe 
-details in the text.} The difference between local and
+performance for small \cu counts. The difference between local and
 remote coordination is moderate (about 20\,\%). While ZeroMQ is very
 fast and lightweight, it requires a careful implementation, in
 particular concerning synchronization and throughput optimization. The
 overall performance is slightly worse than for Redis. The Advert
 Service currently has some limitations which will be discussed later.
 DIANE shows a higher startup overhead, which is particularly
-observable for smaller \cu  numbers. \amnote{again, hard to see in
-graph!} \alnote{see above} However, the runtime increases only slightly (about 
-10\,sec) when going from 64 to 2048 \cus. One reason is that DIANE aggregates
-SUs: for 2048 \cus only a single task description is created, which the
-framework efficiently distributes to its agents. BigJob in contrast maintains a
-separate description for each \cu.
+observable for smaller \cu  numbers. However, the runtime increases only 
+slightly (about 10\,sec) when going from 64 to 2048 \cus. One reason is that 
+DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
+which the framework efficiently distributes to its agents. BigJob in contrast 
+maintains a separate description for each \cu.
 % At the investigated scales, the single manager does not represent a
 % bottleneck with respect to the processable \cu  numbers. Further,
 % the TROY manager introduces another hierarchy-level which can
@@ -1855,20 +1835,17 @@ separate description for each \cu.
 
 Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
 scalability with respect to the number of cores per pilot. For this purpose, we
-execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus. \amnote{cores of
-what? per pilot, per cus?} \alnote{refined} In particular, the Redis (Local) 
-configuration show an almost linear scalability up to 128 cores. The Redis (Remote) setup again
-imposes some overhead (about 14\,\%). ZeroMQ performs very well with lower core
-counts; with larger core counts the runtimes increase, indicating a potential
-scalability bottleneck. DIANE shows, in particular for lower core counts, a
-longer runtime, again due to the higher startup overhead. With higher core
-counts DIANE behaves similar to BigJob/ZeroMQ, showing a greater increase of the
-overall runtime. This increase can likely be attributed to the single central
-manager in the client-server architecture. As in the last experiment, the Advert
-\cc sub-system showed a significantly lower performance. \amnote{the text above
-does not explain the 'constant workload of 4 cus' -- what does that mean?
-Whenever one cus of the is done, a new one is submitted? Or are there just 4 cus
-with long runtimes? I am not really sure what exactly is measured here...}\alnote{refined}
+execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus. In particular, the
+Redis (Local) configuration show an almost linear scalability up to 128 cores.
+The Redis (Remote) setup again imposes some overhead (about 14\,\%). ZeroMQ
+performs very well with lower core counts; with larger core counts the runtimes
+increase, indicating a potential scalability bottleneck. DIANE shows, in
+particular for lower core counts, a longer runtime, again due to the higher
+startup overhead. With higher core counts DIANE behaves similar to
+BigJob/ZeroMQ, showing a greater increase of the overall runtime. This increase
+can likely be attributed to the single central manager in the client-server
+architecture. As in the last experiment, the Advert \cc sub-system showed a
+significantly lower performance.
 
 \begin{figure}[htbp] 
  \centering
@@ -1886,11 +1863,11 @@ with long runtimes? I am not really sure what exactly is measured here...}\alnot
  \up
 \end{figure}
 
-The Advert Service implementation currently shows some performance
+The AS implementation currently shows some performance
 limitations, mainly caused by the prototypical nature of its
 implementation.  Further, it must be noted that the Advert Service was
 deployed remotely (mainly due to deployment constraints). Even so, the
-discrepancy between Advert Service and Redis (Remote), which has been
+discrepancy between AS and Redis (Remote), which has been
 deployed on the same remote network, is significant. A reason for that
 is the used remote access protocol, which is basically the native
 remote PostgreSQL database protocol, which is not optimized for WAN
@@ -1914,6 +1891,7 @@ Infrastructure}
 \label{sec:fg-xsede-osg-egi}
 \up
 
+
 \subsubsection*{Production Infrastructure} To validate the developed
 abstractions, we conducted a series of experiments on various
 production infrastructure. We executed BFAST~\cite{bfast2009} -- a
@@ -1928,13 +1906,13 @@ PFlop Cray XT5 / 9,408 nodes / 112,896 cores / Torque) and QueenBee
 India (Linux Cluster / 108 nodes / 864 cores / PBS); European Grid
 Initiative (EGI): Resource federation of 364,500 cores.;
 OSG: Condor pool (via the \textit{Engage} VO, Glide-In WMS,
-20,000 Glide-Ins\footnote{Glide-In WMS is a software system built on
-top of Condor-G/Glide-in which can, based on the current and expected
+20,000 Glide-Ins).\footnote{Glide-In WMS is a software system built on
+top of Condor-G/Glide-In, which can, based on the current and expected
 number of jobs in the pool,  automatically increase or decrease the
 number of active Glide-Ins (\pilots) available to the pool.  While the
 average number of active Glide-Ins on OSG is around 20,000, more than
 40,000 Glide-Ins can be active and available for job execution during
-peak load.}.
+peak load.}
 
  
 %\jhanote{I would even introduce a sub-subsection on production
@@ -1987,18 +1965,16 @@ configuration, and the utilized PJ framework.
 %TROY, and implementation of the Pilot-API, and add a forward
 %reference?  Otherwise, how can we motivate that this is validating the
 %API?}
-
-The investigated workload consists of of 128 \cus. Each \cu executes a
-BFAST matching process, which is used to find potential DNA sequence
-alignments. The scenario requires about 7\,GB input data: 1.7\,GB for
-the reference genome and index files, and 5.4 GB \textit{short read} 
-files, generated by a DNA sequencing machine (32 files,
-1.68\,GB each). We run the experiment on four different
-configurations: (i) BigJob+Pilot-API/XSEDE, (ii) BigJob+Pilot-API/FutureGrid, 
-(iii) Condor+Pilot-API/OSG, (iv) DIANE+Pilot-API/EGI. 
-As discussed in section~\ref{sec:pilot-api}, the Pilot-API provides a 
-unified way to access the different native PJ capabilities for all
-three PJ frameworks, i.\,e.\ BigJob, DIANE and Condor. 
+The investigated workload consists of of 128 \cus. Each \cu executes a BFAST
+matching process, which is used to find potential DNA sequence alignments. The
+scenario requires about 7\,GB input data: 1.7\,GB for the reference genome and
+index files, and 5.4 GB \textit{short read} files, generated by a DNA sequencing
+machine (32 files, 1.68\,GB each). We run the experiment on four different
+configurations: (B.i) BigJob/XSEDE, (B.ii) BigJob/FutureGrid, (B.iii) 
+Condor/OSG, (B.iv) DIANE/EGI. As discussed in \S\ref{sec:pilot-api}, the 
+Pilot-API provides a unified way for accessing these infrastructures using the 
+native PJ capabilities for all three PJ frameworks, i.\,e.\ BigJob, DIANE and 
+Condor.
 
 
 % .  \onote{Not quite sure why i,iii,iv say 'only' and 'ii'
@@ -2012,23 +1988,23 @@ three PJ frameworks, i.\,e.\ BigJob, DIANE and Condor.
 % For the experiments we rely both on the native PJ APIs, in
 % particular the BJ API, and the Pilot-API.
 
-BigJob uses its PBS/SSH plugin to access India/FutureGrid, and the
+For BJ we use the PBS/SSH plugin to access India/FutureGrid, and the
 SAGA-Torque adaptor to access Kraken/XSEDE. For OSG, we utilize SAGA
 (wrapped in the Pilot-API) and the SAGA-Condor adaptor to interface 
-directly with OSG's dynamic GlideIn-WMS resource pool.  Further, we 
-utilize DIANE with GANGA on EGI.
+directly with OSG's dynamic Glide-In-WMS resource pool.  Further, we 
+utilize DIANE on EGI. %\msnote{more on EGI later ...} 
 %On the XSEDE, Kraken is used with up to 512 cores concurrently.
 %\amnote{why is the corecount mentioned for Kraken, and not the others?}
 
-In each scenario, 128 \cus are defined and submitted to the Compute Unit
-Service. Each BFAST \cu requires 1 core; depending on the resource and resource
-assignment policy a different number of cores maybe assigned for each BFAST \cu,
-e.\,g.\ on Kraken 4 cores are reserved for each \cu to provide sufficient IO and
-memory. Each \cu is associated with a set of input files which is pre-staged in
-configuration (i) and (ii). For the HTC infrastructures EGI and OSG
-(configurations (iii) and (iv)), these file are transferred by the DIANE
-respectively Condor before running
-each \cu. \jhanote{how does his different from pre-staging?}\alnote{refined. The 
+In total, 128\,\cus are defined and submitted to the
+\texttt{ComputeUnitService}. Each BFAST \cu requires 1 core; depending on the
+resource a different number of cores maybe
+assigned for each BFAST \cu, e.\,g.\ on Kraken 4 cores are reserved for each \cu
+to provide sufficient IO and memory. Each \cu is associated with a set of input
+files which is pre-staged in configuration (B.i) and (B.ii). For the HTC
+infrastructures EGI and OSG (configurations (B.iii) and (B.iv)), these file are
+transferred by DIANE respectively Condor before running each \cu.
+\jhanote{how does his different from pre-staging?}\alnote{refined. The
 difference is whether the middleware or the app needs to do it.}
 
 % Having submitted the 128\,\cus, the benchmark application can use
@@ -2036,8 +2012,8 @@ difference is whether the middleware or the app needs to do it.}
 % state.  
 % AM: the above is not relevant here -- only interesting in the API
 % description section
-\amnote{I don't understand: "Each BFAST \cu requires 1 core", but "on
-Kraken 4 cores are reserved for each \cu"???}\jhanote{fixed}\alnote{refined}
+% \amnote{I don't understand: "Each BFAST \cu requires 1 core", but "on
+% Kraken 4 cores are reserved for each \cu"???}\jhanote{fixed}\alnote{refined}
 
 \begin{figure}[t]
  \centering
@@ -2052,42 +2028,37 @@ Kraken 4 cores are reserved for each \cu"???}\jhanote{fixed}\alnote{refined}
 
 %\jhanote{need to be consistent with case vs scenario}
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
-experiments. In addition to the runtime we measured the queuing time
-(time until \cu state changes to 'Running'), the time to transfer
-input files, and the actual runtime of the BFAST \cu. The queue time
-include both pilot-external, i.\,e.\ queuing system (PBS, Torque, Condor)
-waiting times, as well as pilot-internal waiting times.
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
+addition to the runtime $T_r$ we measured the queuing time $T_q$, the time to
+transfer input files $T_s$, and the actual runtime of the BFAST \cu $T_c$. $T_q$ 
+includes both pilot-external, i.\,e.\ queuing system (PBS, Torque,
+Condor) waiting times, as well as pilot-internal waiting times.
 
 % BFAST PERFORMANcE
 Generally, the performance of BFAST is heavily dependent on the
 available I/O bandwidth. Both the index and read files (7\,GB in this
-scenario) need to be loaded into memory. Both Kraken and India use
+scenario) need to be loaded into memory.  Kraken and India use
 shared network filesystems (Lustre for Kraken, NFS for India), which
-are shared by all jobs running on these machines -- the collective
+are utilized by all jobs running on these machines -- the collective
 performance of multiple BFAST \cu thus degrades significantly on
 larger machines, such as Kraken, where a potentially large number of
 jobs access the filesystem concurrently (the runtime on Kraken is
 about 30\,\% slower than on India).  On EGI and OSG, the BFAST \cu
 performs best: on OSG about two times faster than on Kraken. This can
-mainly be attributed to the use of local disc storage on EGI and OSG
-resources.
+mainly be attributed to the use of local storage.
 
 % Queuing Time
-Another interesting factor is the queueing time. In scenario (i) and
-(ii), the observed queueing times have been very low, and are mainly
-attributed to the BJ internal queue, i.\,e.\ for queuing the sub-jobs
-to a BJ agent. In the EGI/DIANE scenario (iii), the queuing time is
-dominated by the launch of the 128 worker agents -- each of these
-agents needs to be submitted and started via the gLite WMS; on each node, a
-DIANE worker agent must be downloaded, installed and started.  In
-total, each \cu was required to queue about 50\, min (in comparison to
-9\,min for BJ on India/FG).  Thus, even if file staging is not
-considered, the scenario executes about 2.3 times slower on EGI
-(DIANE) than on FutureGrid (BJ).  The unpredictable queuing time also
-contributes to the higher deviation in the measured runtimes. On OSG,
-the queuing time is on average 12 minutes, comparable to the queuing
-time on XSEDE. 
+Another factor is $T_q$. In B.i and B.ii, $T_q$ is very
+low and mainly caused by BJ internal sub-job queueing. In B.iii, $T_q$ is 
+primarily caused by the launch of the 128 worker agents -- each of these agents
+needs to be submitted and started via the WMS; on each node, a DIANE worker
+agent must be downloaded, installed and started. In total, $T_q$ for each \cu
+was $~$50\,min (in cmp. $T_q$ for BJ on India was $~$9\,min). Thus, even if 
+$T_s$ is not considered, $T_r$ is $~$2.3 times longer on EGI
+(DIANE) than on FutureGrid (BJ). The unpredictability of $T_q$ also contributes
+to the higher deviation in $T_r$. On OSG, $T_q$ is $~$12 minutes, comparable to 
+the queuing time on XSEDE.
+
 
 % File Staging
 In the scenarios (i) and (ii), no file staging is used. On EGI and OSG
@@ -2287,8 +2258,6 @@ be extended by the following elements:
   managing \dus and \sus. Data is submitted to the framework via the PM. The PM
   which is responsible for mapping \dus to \sus and for conducting decision 
   regarding resource assignments. \sus are placed on physical resources via the \pilot.
-	
-% \end{compactenum}
  
 Note, each element can be mapped to an element in the P* Model by
 symmetry, e.\,g., a DU correspond to a \cu  in the original P* Model; 
