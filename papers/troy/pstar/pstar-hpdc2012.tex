@@ -1494,7 +1494,7 @@ for the management of pilots and the \texttt{ComputeUnitService} for the
 management of \cus. 
 
 Figure~\ref{fig:figures_pilot_api_flow} shows the interactions between the
-P* elements. The Pilot-API \footnote{We use Python syntax for describing
+P* elements. The Pilot-API\footnote{We use Python syntax for describing
 the Pilot-API.}
 decouples workload management and resource
 scheduling by exposing two separate services: The
@@ -1525,6 +1525,7 @@ p_desc.total_core_count = 8
 p = ps.create_pilot('gram://queenbee', 
                           p_desc, 'bigjob')
 \end{lstlisting}
+\upp
 \end{minipage}
 
 The \texttt{Pilot} object represents a pilot instance and allows the 
@@ -1546,6 +1547,7 @@ of a \texttt{ComputeUnitService} using a reference to the
 cus = ComputeUnitService()
 cus.add(ps)
 \end{lstlisting}
+\upp
 \end{minipage}
 
 \noindent\begin{minipage}{0.47 \textwidth}
@@ -1557,6 +1559,7 @@ cud.arguments = ['match', '-t4', '/data/file1']
 cud.total_core_count = 4
 cu = cus.submit(cud)
 \end{lstlisting}
+\upp
 \end{minipage}
 
 % \lstset{
@@ -1700,7 +1703,7 @@ Pilot-API -- see section~\ref{sec:experiment-interop}.
 %   description?}
 
 \up
-\subsection{Understanding Coordination in PJ Frameworks}
+\subsection{Coordination in PJ Frameworks}
 \label{sec:pj_performance}
 \up
 
@@ -1808,7 +1811,7 @@ repeated at least 10 times.
   The overhead per \cu imposed by the AS is generally 
   higher than for other backends. The runtime of the DIANE \cus only increases 
   moderately mainly due to the aggregation of the \cus.
-  \upp}
+  \up\upp}
  \label{fig:perf_bigjob-varying-wus} 
 \end{figure}
 
@@ -1858,9 +1861,8 @@ significantly lower performance.
   increases only moderately, the client-server-based implementations BJ-ZMQ and 
   DIANE show particularly a steep increase when going from 64 to 128 cores. The 
   Advert backend is currently unoptimized and shows a significant slowdown.
-  }
+  \up}
  \label{fig:perf_bigjob-varying-cores} 
- \up
 \end{figure}
 
 The AS implementation currently shows some performance
@@ -1886,13 +1888,13 @@ contrast, data is stored in memory for Redis and ZeroMQ, which
 partially explains the significant performance gains.
 
 \up
-\subsection{Characterizing PJ Frameworks on Production
-Infrastructure}
+\subsection{Characterizing PJ Frameworks on DCI}
 \label{sec:fg-xsede-osg-egi}
 \up
 
+\subsubsection*{Production Infrastructure} 
 
-\subsubsection*{Production Infrastructure} To validate the developed
+To validate the developed
 abstractions, we conducted a series of experiments on various
 production infrastructure. We executed BFAST~\cite{bfast2009} -- a
 genome alignment tool -- using three different PJ frameworks
@@ -2028,6 +2030,8 @@ difference is whether the middleware or the app needs to do it.}
 
 %\jhanote{need to be consistent with case vs scenario}
 
+\subsubsection*{Experimental Results}
+
 Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
 addition to the runtime $T_r$ we measured the queuing time $T_q$, the time to
 transfer input files $T_s$, and the actual runtime of the BFAST \cu $T_c$. $T_q$ 
@@ -2103,8 +2107,10 @@ would give a factor of 2}\alnote{The runtime compared to the Kraken runtime.}
 % e.\,g.\ to improve the time-to-completion and/or to scale the accuracy
 % of their computations.
 
-\subsection{Understanding PJ Framework Interoperability\up}
+\up
+\subsection{PJ Framework Interoperability}
 \label{sec:experiment-interop}
+\up
 
 We define three interoperability configurations: (C.i) SAGA-based
 interoperability, i.\,e.\ the usage of BJ in conjunction with different SAGA
@@ -2117,12 +2123,14 @@ application described in \S\ref{sec:fg-xsede-osg-egi} with 64\,\cus on each
 infrastructure, i.\,e.\ in total 128\,\cus.
 
 \begin{figure}[htbp]
+  \up
 	\centering
 	\includegraphics[width=0.45\textwidth]{perf/interop/128-bfast-interop.pdf}
 	\caption{\textbf{PJ Framework Interoperability:} Runtime of 128 BFAST \cus 
 	on different infrastructures. \cus are equally distributed across the two 
 	infrastructures. In particular, slower resources, such as Kraken can benefit 
-	from offloading \cus to faster infrastructures.}
+	from offloading \cus to faster infrastructures.
+  \up}
 	\label{fig:perf_interop_128-bfast-interop}
 \end{figure}
 
@@ -2166,9 +2174,11 @@ several cross-atlantic roundtrips are necessary.  \jhanote{Don't
   unattainable.}
 
 
-
-\section{P* as a Model for Pilot-Data\up}
+\up
+\section{P* as a Model for Pilot-Data}
 \label{sec:pilot-data}
+\up
+
 % \alnote{remove emphasis on dynamic execution} \jhanote{Motivation for
 %   P* model for data: (i) Distributed data placement not done
 %   effectively or scalably; (ii) unable to handle dynamic
@@ -2255,7 +2265,7 @@ be extended by the following elements:
   managing \dus and \sus. Data is submitted to the framework via the PM. The PM
   which is responsible for mapping \dus to \sus and for conducting decision 
   regarding resource assignments. \sus are placed on physical resources via the \pilot.
- 
+
 Note, each element can be mapped to an element in the P* Model by
 symmetry, e.\,g., a DU correspond to a \cu  in the original P* Model; 
 a PD is a placeholder reserving a certain amount of storage on a physical 
@@ -2298,6 +2308,7 @@ affinities \& dynamic resource information.
 
 
 \subsubsection*{Pilot-API for Data} 
+
 Analogous to the Pilot-API for Compute, the Pilot Data API~\cite{pilot_api} 
 defines the \texttt{PilotDataService} entity as an abstraction for creating and
 managing pools of storage. A \texttt{PilotData} instance represents the actual
@@ -2324,8 +2335,10 @@ responsible for managing the execution of \dus and \cus.
 % implementations, we expect that both the PJ and PD model converge in
 % the future.
 
-\section{Discussion and Future Work \up}
+\up
+\section{Discussion and Future Work}
 \label{sec:discussion-future-work}
+\up
 
 % The P* model was used to demonstrate
 % We established PJ and PD as abstractions for supporting dynamic
@@ -2428,7 +2441,9 @@ multiple production infrastructures.
 % abstractions, but just this is not enough in our view.
 
 \up
-\section*{Acknowledgements\up}
+\section*{Acknowledgements}
+\up
+
 \footnotesize{This work is funded by NSF CHE-1125332 (Cyber-enabled
   Discovery and Innovation), HPCOPS NSF-OCI 0710874 award, NSF-ExTENCI
   (OCI-1007115) and NIH Grant Number P20RR016456 from the NIH National
@@ -2447,10 +2462,14 @@ multiple production infrastructures.
   award TG-MCB090174 (Jha) and BiG Grid.  This document was developed with
   support from the National Science Foundation (NSF) under Grant No. 0910812
   to Indiana University for ``FutureGrid: An Experimental, High-Performance
-  Grid Test-bed''.}  \up
+  Grid Test-bed''.}  
+
+\up
+  
 %\bibliographystyle{plain}
 \bibliographystyle{IEEEtran}
 \bibliography{pilotjob,saga,saga-related}
+
 \end{document}
 
 
