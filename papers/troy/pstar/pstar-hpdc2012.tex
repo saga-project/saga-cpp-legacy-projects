@@ -959,7 +959,6 @@ agents periodically pull for new SUs. Results and state updates are similarly
 pushed back from the agent to the manager. Further, BJ provides a pluggable
 communication \& coordination layer and also supports other \cc systems besides 
 the AS, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
-\msnote{The relation between AS and the other pluggables is not clear}
 
 BJ currently uses a simple scheduling mechanism based on an internal queue: each
 \cu submitted to the BigJob framework is mapped to a SU. Binding can take place
@@ -1572,12 +1571,7 @@ in multiple layers.
 
 
 Each \texttt{ComputeUnit} and the \texttt{Pilot} object is associated with a
-state. The state model is based on the SAGA job state
-model~\cite{ogf-gfd-90}.
-\note{OW says: Why? IMHO the GFD.90 state model has some serious flaws, like
-the absence of a 'Waiting' state.} \amnote{What is a waiting state?
-Who is the waiting on what?}
-\msnote{I would actually prefer to model it after the BES state model, in practice that is what I do in TROY.}
+state. The state model is based on the SAGA job state model~\cite{ogf-gfd-90}.
 Applications can query the state using the \texttt{get\_state()} method or they
 can subscribe to state update notifications.
 
@@ -1624,13 +1618,13 @@ Pilots, but can a Pilot only be managed by one PilotService.
 \label{sec:exp_res}
 
 In this section we analyze the performance and scalability of
-different PJ frameworks.  \msnote{Do we?} It is important to note that our experiments
+different PJ frameworks. It is important to note that our experiments
 do not try to identify the ``best'' or ``fastest'' PJ framework, as
 this is dependent on different factors, e.\,g.\ particularly the
 infrastructure used -- the experiments are conducted on different
 production (XSEDE, EGI, OSG) and research (FutureGrid) infrastructures. 
 
-As discussed in \msnote{section?} \ref{sec:pilot-job-frameworks}, the investigated PJ frameworks can be mapped to
+As discussed in section \ref{sec:pilot-job-frameworks}, the investigated PJ frameworks can be mapped to
 the P* model, which enables their collective usages via the Pilot-API.
 In section~\ref{sec:pj_performance} we investigate the performance and
 scalability of coordination in BigJob and DIANE, executing thousands
@@ -1881,9 +1875,6 @@ partially explains the significant performance gains.
 \subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
 \label{sec:fg-xsede-osg-egi}
 
-\msnote{FG is not production infra}\jhanote{it is classified as
-  ``production research'' infrastructure! go figure..!!}
-
 \subsubsection*{Production Infrastructure} To validate the developed
 abstractions, we conducted a series of experiments on various
 production infrastructure. We executed BFAST~\cite{bfast2009} -- a
@@ -1986,7 +1977,7 @@ BigJob uses its PBS/SSH plugin to access India/FutureGrid, and the
 SAGA-Torque adaptor to access Kraken/XSEDE. For OSG, we utilize SAGA
 (wrapped in the Pilot-API) and the SAGA-Condor adaptor to interface 
 directly with OSG's dynamic GlideIn-WMS resource pool.  Further, we 
-utilize DIANE on EGI. \msnote{more on EGI later ...} 
+utilize DIANE with GANGA on EGI.
 %On the XSEDE, Kraken is used with up to 512 cores concurrently.
 %\amnote{why is the corecount mentioned for Kraken, and not the others?}
 
@@ -2049,7 +2040,7 @@ Another interesting factor is the queueing time. In scenario (i) and
 attributed to the BJ internal queue, i.\,e.\ for queuing the sub-jobs
 to a BJ agent. In the EGI/DIANE scenario (iii), the queuing time is
 dominated by the launch of the 128 worker agents -- each of these
-agents needs to be submitted and started via the WMS; on each node, a
+agents needs to be submitted and started via the gLite WMS; on each node, a
 DIANE worker agent must be downloaded, installed and started.  In
 total, each \cu was required to queue about 50\, min (in comparison to
 9\,min for BJ on India/FG).  Thus, even if file staging is not
