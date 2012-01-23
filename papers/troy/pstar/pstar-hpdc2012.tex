@@ -819,9 +819,9 @@ Condor-G/Glide-in~\cite{condor-g}
 DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
 PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
 Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
-MyCluster~\cite{1652061} to name a few. The aim of this section is to
+MyCluster~\cite{1652061}. The aim of this section is to
 show that our P* Model can be used to explain/understand some of these
-PJ frameworks. In particular we focus on BigJob, DIANE and Condor-G/Glide-in.
+PJ frameworks. In particular we focus on Condor-G/Glide-in, BigJob and DIANE. 
 
 
 %\jhanote{The aim of this section is to provide a conceptual validation
@@ -852,7 +852,7 @@ that is responsible for managing the binding and scheduling
 process. Condor generally does not differentiate between workload,
 i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
 referred to as job. However, it supports late binding, i.\,e.\
-resources a job is submitted to must generally not be available at
+resources a job is eventually submitted to are not required to be available at
 submission time. The scheduler matches the capabilities required by a
 \cu to the available resources. This process is referred to as
 matchmaking. Further, a priority-based scheduler is used. For
@@ -952,9 +952,10 @@ agents periodically pull for new SUs. Results and state updates are similarly
 pushed back from the agent to the manager. Further, BJ provides a pluggable
 communication \& coordination layer and also supports alternative c\&c systems,
 e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+\msnote{The relation between AS and the other pluggables is not clear}
 
 BJ currently uses a simple scheduling mechanism based on an internal queue: each
-\cu submitted to the BigJob framework is mapped to a SU. Binding can take places
+\cu submitted to the BigJob framework is mapped to a SU. Binding can take place
 at submission time (early binding) or delayed in case of multiple \pilots (late
 binding). For scheduling, a simple FIFO queue is used (see also
 table~\ref{table:pilot-job-comparison}).
@@ -970,7 +971,7 @@ and/or unexpected delays. BigJob allows dynamic resource
 additions/removals as well as late binding. The support of this feature depends
 on the backend used. To support this feature on top of various BigJob
 implementations that are by default restricted to single resource use (e.\,g.\
-BJ), the concept of a BigJob pool is introduced. A BigJob pool consists of
+BJ\msnote{Huh?}), the concept of a BigJob pool is introduced. A BigJob pool consists of
 multiple BJs (each BigJob managing one particular resource). An extensible
 scheduler is used for dispatching \cus to one of the BJs of the pool (late
 binding). By default a FIFO scheduler is used.
@@ -1005,24 +1006,16 @@ For communication between the RunMaster and worker agents point-to-point
 messaging based on CORBA~\cite{OMG-CORBA303:2004} is used. CORBA is also used
 for file staging.
 
-\alnote{removed: In contrast to BigJob, a worker agent generally manages only a single
-core and thus, by default is not able to run parallel applications (e.\,g.\
-based on MPI). BJ utilizes the BJ-Agent that is able manage a set of local
-resources (e.\,g.\ a certain number of nodes and cores) and thus, is capable
-of running parallel applications. }
-
-
 % Binding 
-\alnote{TODO: Remove comparisons to BJ}
 DIANE is primarily designed with respect to HTC environments (such as
 EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
-size of 1 core. BJ in contrast is designed for HPC systems such as TG,
-where a job usually allocates multiple nodes and cores. To address this issue
-a so-called multinode submitter script can be used: the scripts starts a
-defined number of worker agents on a certain resource. However, \cus will be
-constrained to the specific number of cores managed by a worker agent. A
-flexible allocation of resource chunks as with BJ is not possible. By
-default a \cu  is mapped to a SU; application can however implement smarter
+size of 1 core.
+To use DIANE on HPC environments, a so-called multinode submitter script can be
+used: the scripts starts a defined number of worker agents on a certain
+resource.
+However, \cus will be constrained to the specific number of cores
+managed by a worker agent.
+By default a \cu  is mapped to a SU; application can however implement smarter
 allocation schemes, e.\,g.\ the clustering of multiple \cus into a SU.
 
 %Scheduling
@@ -1036,10 +1029,10 @@ applications can implement a custom application-level scheduler.
 DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the privileges
 of the respective user. Also, only \cus of this respective user can be executed
 by DIANE. DIANE supports various middleware security mechanisms (e.\,g.\ GSI,
-X509 authentication). For this purpose it relies on GANGA. The implementation of
-GSI on TCP-level is possible, but currently not yet implemented. Further, DIANE
-supports fault tolerance: basic error detection and propagation mechanisms are
-in place. Further, an automatic re-execution of \cus is possible.
+X509 authentication). For this purpose it relies on GANGA.
+Further, DIANE supports fault tolerance: basic error detection and propagation
+mechanisms are in place. Further, an automatic re-execution of \cus is
+possible.
 
 
 
