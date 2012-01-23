@@ -1855,27 +1855,26 @@ partially explains the significant performance gains.
 \subsection{Characterizing PJ Frameworks on Production Infrastructure\upp\upp}
 \label{sec:fg-xsede-osg-egi}
 
-\subsubsection*{Production Infrastructure} To validate the abstractions
-developed, we conducted a series of experiments on various production
-infrastructure. We execute BFAST~\cite{bfast2009} -- a genome sequencing
-application -- using three different PJ frameworks, BigJob, DIANE and Condor,
-on XSEDE, FutureGrid, EGI and OSG.
+\subsubsection*{Production Infrastructure} To validate the developed
+abstractions, we conducted a series of experiments on various
+production infrastructure. We executed BFAST~\cite{bfast2009} -- a
+genome sequencing application -- using three different PJ frameworks
+(BigJob, DIANE and Condor) on XSEDE~\cite{xsede},
+FutureGrid~\cite{fg}, EGI~\cite{egi} and
+OSG~\cite{1742-6596-78-1-012057}.
 
-On XSEDE, we utilize Kraken, a 1.17 PF Cary XT5 system with a total of 9,408
-nodes and 112,896 cores that are controlled by a Torque scheduler; on FutureGrid
-we utilize India, a 108 node HPC cluster with 864 cores that are controlled by
-PBS.
+Specifically, we utilized the following resources: XSEDE: Kraken (1.17
+PFlop Cray XT5 / 9,408 nodes / 112,896 cores / Torque); FutureGrid:
+India (Linux Cluster / 108 nodes / 864 cores / PBS); \note{EGI
+details}; OSG: Condor pool (via the \textit{Engage} VO, Glide-In WMS,
+20,000 Glide-Ins\footnote{Glide-IN WMS is a software system built on
+top of Condor-G/Glide-In which can, based on the current and expected
+number of jobs in the pool,  automatically increase or decrease the
+number of active Glide-Ins (\pilots) available to the pool.  While the
+average number of active Glide-Ins on OSG is around 20,000, more than
+40,000 Glide-Ins can be active and available for job execution during
+peak load.}.
 
-On OSG, we have access to a Condor pool via the \textit{Engage} VO.
-The Condor pool is controlled by Glide-In WMS, a software system built
-on top of Condor-G/Glide-In which can automatically increase or
-decrease the number of active Glide-Ins (\pilots) that are available
-to the pool based on the current and expected number of jobs in the
-pool.  While the average number of active Glide-Ins is around 20,000,
-more than 40,000 Glide-Ins can be active and available for job
-execution during peak load.
-
-\note{Add EGI details ...}
  
 %\jhanote{I would even introduce a sub-subsection on production
 %  infrastructure used. That would enable us to keep Pilot-API/BigJob
@@ -1920,19 +1919,27 @@ execution during peak load.
 %  machine (on XSEDE and FG) and resources configuration + PJ Framework
 %  employed.}
 
-We define the experimental configurations as a comprised
-of: the production infrastructure used, specific machine/resource 
-configuration and the PJ framework employed.
+We define an experimental configurations as a set comprised of: the
+production infrastructure used, the specific machine/resource
+configuration, and the utilized PJ framework.
+\amnote{should mention here that the PJ frameworks are utilized via
+TROY, and implementation of the Pilot-API, and add a forward
+reference?  Otherwise, how can we motivate that this is validating the
+API?}
 
-The investigated workload comprises of 128 \cus. Each \cu executes a
-BFAST matching process, which is used to find potential sequence
+The investigated workload consts of of 128 \cus. Each \cu executes a
+BFAST matching process, which is used to find potential DNA sequence
 alignments. The scenario requires about 7\,GB input data: 1.7\,GB for
-the reference genome and index files and 5.4 GB read files (32 files,
-1.68\,GB each). We run the experiment on four different setups: (i)
-BigJob/XSEDE, (ii) BigJob/FutureGrid, (iii) BigJob/OSG, (iv)
-DIANE/EGI.  The Pilot-API provides a unified way to access the
-different native PJ capabilities for all three PJ frameworks, i.\,e.\
-BigJob, DIANE and Condor.
+the reference genome and index files, and 5.4 GB read files (32 files,
+1.68\,GB each). We run the experiment on four different
+configurations: (i) BigJob/XSEDE, (ii) BigJob/FutureGrid, (iii)
+BigJob/OSG, (iv) DIANE/EGI.  The Pilot-API provides a unified way to
+access the different native PJ capabilities for all three PJ
+frameworks, i.\,e.\ BigJob, DIANE and Condor.  \amnote{what are 'read
+files'?}\amnote{ I know this has been discussed, but anyway: we say
+that the pilot API allows access to BJ, Diance and Condor, but the
+isted configurations do not mention Condor.  This needs to be
+clarified right here...}
 
 
 % .  \onote{Not quite sure why i,iii,iv say 'only' and 'ii'
@@ -1946,86 +1953,93 @@ BigJob, DIANE and Condor.
 % For the experiments we rely both on the native PJ APIs, in
 % particular the BJ API, and the Pilot-API.
 
-The following PJ setup was used: BigJob is used with the SAGA-Torque
-adaptor to access Kraken on XSEDE~\cite{xsede} and with the PBS/SSH
-plugin to access the \textit{India} cluster on
-FutureGrid~\cite{fg}. For OSG~\cite{1742-6596-78-1-012057} we utilize
-a BJ implementation on top of the SAGA-Condor adaptor that interfaces
-directly with OSG's dynamic GlideIn-WMS resource pool.  Further, we
-utilize DIANE on EGI.  \msnote{more on EGI later ...} On the XSEDE,
-Kraken is used with up to 512 cores concurrently.
+BigJob uses its PBS/SSH plugin to access India/FutureGrid, and the
+SAGA-Torque adaptor to access Kraken/XSEDE. For OSG, BJ utilizes the
+SAGA-Condor adaptor that interfaces directly to OSG's dynamic
+GlideIn-WMS resource pool.  Further, we utilize DIANE on EGI.
+\msnote{more on EGI later ...} On the XSEDE, Kraken is used with up to
+512 cores concurrently.\amnote{why is the corecount mentioned for
+Kraken, and not the others?}
 
-
-Each BFAST \cu requires 1 core; In each scenario 128 \cus are defined and
-submitted to the Compute Unit Service. Depending on the resource, a
-different number of cores can be reserved to each BFAST \cu,
-e.\,g.\ on Kraken 4 cores are reserved for each \cu. Each \cu is
-associated with a set of input files which is pre-staged in scenario (i)
-and (ii). For the HTC infrastructures: EGI and OSG (scenario (iii) and
-(iv)), these file are transferred before running each \cu. 
-Having submitted the 128\,\cus,
-the benchmark application can monitor the state using the Compute Unit
-Service of the Pilot-API.
+Each BFAST \cu requires 1 core; In each scenario, 128 \cus are defined
+and submitted to the Compute Unit Service. Depending on the resource,
+a different number of cores can be reserved to each BFAST \cu, e.\,g.\
+on Kraken 4 cores are reserved for each \cu. Each \cu is associated
+with a set of input files which is pre-staged in scenario (i) and
+(ii). For the HTC infrastructures: EGI and OSG (scenario (iii) and
+(iv)), these file are transferred before running each \cu.  
+% Having submitted the 128\,\cus, the benchmark application can use
+% the Compute Unit Service of the Pilot-API to monitor the \cu's
+% state.  
+% AM: the above is not relevant here -- only interesting in the API
+% description section
+\amnote{I don't understand: "Each BFAST \cu requires 1 core", but "on
+Kraken 4 cores are reserved for each \cu"???}\amnote{(i), (ii) etc.
+are not defined above -- needs fixing.}
 
 \begin{figure}[t]
-	\centering
-\includegraphics[width=0.45\textwidth]{perf/interop/128-bfast-egi-fg-xsede-osg.pdf}
-\caption{\textbf{PJ Framework Performance on XSEDE, FutureGrid, EGI and 
-OSG:} Running 128 BFAST match tasks on 128 cores. Each experiment is
-          repeated at least 3 times. The runtime on EGI and OSG is higher
-          mainly caused by the longer queuing and staging time. Additionally, 
-		  both 
-		  infrastructure require the staging of all input files. 
-		\up\up}
-
+ \centering
+ \includegraphics[width=0.45\textwidth]{perf/interop/128-bfast-egi-fg-xsede-osg.pdf}
+ \caption{\textbf{PJ Framework Performance on XSEDE, FutureGrid, EGI and 
+  OSG:} Running 128 BFAST match tasks on 128 cores. Each experiment is
+  repeated at least 3 times. The longer runtimes on EGI and OSG are
+  mainly caused by the longer queuing times. Additionally, 
+	both infrastructure require the staging of all input files.  \up\up}
 	\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
 %\jhanote{need to be consistent with case vs scenario}
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
-addition to the runtime we measured the queuing time, i.\,e.\ the time 
-required until a \cu changes its state to running, the time necessary to 
-transfer the input files, and the actual runtime of the BFAST \cu. The queue 
-time include both pilot-external, i.\,e.\ waiting times at the RM system, as 
-well as pilot-internal waiting times.
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
+experiments. In addition to the runtime we measured the queuing time
+(time until \cu state changes to 'Running'), the time to transfer
+input files, and the actual runtime of the BFAST \cu. The queue time
+include both pilot-external, i.\,e.\ waiting times at the RM system,
+as well as pilot-internal waiting times.
 
 % BFAST PERFORMANcE
-Generally, the performance of BFAST is
-heavily dependent on the available I/O bandwidth. Both the index and read files (7\,GB in
-this scenario) need to be loaded into memory. Both, Kraken and India use a shared 
-network filesystem: Lustre in case of Kraken and NFS in the case of India. Since the
-filesystems are shared by all jobs running on these machines, the performance of BFAST particularly degrades on larger machines, such as Kraken, where a potentially large
-number of jobs access the filesystem concurrently. Thus, the runtime on Kraken is 
-about 30\,\% slower than on India.
-On EGI and OSG, the BFAST match \cu performs the best: on OSG about two 
-times faster than on Kraken. This can mainly be attributed to the use of local disc
-storage for jobs on EGI and OSG resources.
+Generally, the performance of BFAST is heavily dependent on the
+available I/O bandwidth. Both the index and read files (7\,GB in this
+scenario) need to be loaded into memory. Both Kraken and India use
+shared network filesystems (Lustre for Kraken, NFS for India), which
+are shared by all jobs running on these machines -- the performance of
+BFAST thus particularly degrades on larger machines, such as Kraken,
+where a potentially large number of jobs access the filesystem
+concurrently (the runtime on Kraken is about 30\,\% slower than on
+India).  On EGI and OSG, the BFAST \cu performs best: on OSG about two
+times faster than on Kraken. This can mainly be attributed to the use
+of local disc storage on EGI and OSG resources.
 
 % Queuing Time
-Another important factor is the queueing time. In scenario (i) and (ii), the
-queueing times at the time of the experiments have been very low. The main part
-of the queuing time is attributed to the BJ internal queue, i.\,e.\ for queuing
-the sub-jobs to a BJ agent. In the EGI/DIANE scenario (iii), the queuing time is
-mainly attributed to the launch of the 128 worker agents. Each of these agents
-needs to be submitted and started via the WMS. On each node a DIANE worker agent
-must be downloaded, installed and started separately. In total, each \cu was
-required to queue about 50\, minutes in comparison to 9\,minutes queuing time
-for BJ on India (FG). Thus, even if the file staging time is not considered, the
-scenario executes about 2.3 times slower on EGI (DIANE) than on FutureGrid (FG).
-The unpredictable queuing time also contributes to the higher deviation in the
-measured runtimes. On OSG the queuing time is in average 12 minutes, which is
-comparable the queuing time on XSEDE. 
+Another interesting factor is the queueing time. In scenario (i) and
+(ii), the observed queueing times have been very low, and are mainly
+attributed to the BJ internal queue, i.\,e.\ for queuing the sub-jobs
+to a BJ agent. In the EGI/DIANE scenario (iii), the queuing time is
+dominated by the launch of the 128 worker agents -- each of these
+agents needs to be submitted and started via the WMS; on each node, a
+DIANE worker agent must be downloaded, installed and started.  In
+total, each \cu was required to queue about 50\, min (in comparison to
+9\,min for BJ on India/FG).  Thus, even if file staging is not
+considered, the scenario executes about 2.3 times slower on EGI
+(DIANE) than on FutureGrid (BJ).  The unpredictable queuing time also
+contributes to the higher deviation in the measured runtimes. On OSG,
+the queuing time is on average 12 minutes, comparable to the queuing
+time on XSEDE. 
 
 % File Staging
-In the scenarios (i) and (ii) no file staging is used. On EGI and OSG resources,
-however, no shared filesystem is available; thus, files needs to be transferred
-to the executing system. For each \cu, the reference genome, the index files
-and one read file need to be staged (3.38\,GB). More than 50\,\% of the runtime
-is required for staging the input files. Thus, the runtime on these two
-infrastructures is about 4-5 times longer than on Kraken and India. If file
-staging is not considered, OSG shows the best performance of all scenarios
+In the scenarios (i) and (ii), no file staging is used. On EGI and OSG
+resources, however, no shared filesystem is available; thus, files
+need to be transferred to the executing system. For each \cu, the
+reference genome, the index files and one read file need to be staged
+(3.38\,GB) -- which consumes more than 50\,\% of the overall runtime.
+Thus, the runtime on these two infrastructures is
+about 4-5 times longer than on Kraken and India. If file staging is
+not considered, OSG shows the best performance of all scenarios
 (i)-(iv).
+\amnote{The amounts of data differ from what was stated earlier.}
+\amnote{The runtime should not be 4 to 5 times longer because of
+staging, if staging consumes 50\% of it -- that would give a factor of
+2}
 
 
 
