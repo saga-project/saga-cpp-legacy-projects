@@ -344,7 +344,7 @@ $\backslash$ref.}
 %There remains scope for improvement in the availability of reusable
 %and extensible tools and implementations of abstractions that can
 
-\up\upp
+\up\up
 \section{Introduction and Overview} 
 \up
 
@@ -490,10 +490,10 @@ potentially consistent treatment of data and compute suggests
 symmetrical compute and data elements in the P* model; thus we refer
 to this model as the P* model ("P-star").
 
-The impact and validation of this paper lies partly in the practical
-implications of our work, as \pilotjobs-Jobs are used on every major
-national and international distributed CI, including NSF XSEDE,
-NSF/DOE Open Science Grid, EU EGI amongst others to support hundreds
+The impact and validation of this paper lie partly in its practical
+implications, as \pilotjobs-Jobs are used on every major
+national and international distributed CI, including NSF/XSEDE,
+NSF/DOE Open Science Grid, EU EGI and others, to support hundreds
 and thousands of tasks daily.
 
 %  which is also partly motivated by
@@ -592,8 +592,9 @@ DIANE).
 
 %\alnote{use pilot NOT pilot-job}
 \noindent$\bullet$ \textbf{\pilot \ (Pilot-Compute):} The \pilot is the
-  entity that actually gets submitted and scheduled on a resource
-  using the resource's RM system. The PJ provides application (user)
+  entity that actually gets submitted and scheduled on a resource.
+% via the resource's RM system. 
+  The PJ provides application (user)
   level control and management of the set of allocated resources.
 
   % and is responsible for the execution of \alwave{SUs/tasks}
@@ -611,9 +612,9 @@ DIANE).
   of resource associated with a \cu.
 
 \noindent$\bullet$ \textbf{Scheduling Unit (SU):} SUs are the units of 
-  scheduling used internal to the P* model, i.e., an SU is not known by or
-  visible to an application. Once a \cu has been
-  passed into the control of the \pilotjob framework, it is assigned
+  scheduling, internal to the P* model, i.e., it is not known by or
+  visible to an application. Once a \cu is
+  under the control of the \pilotjob framework, it is assigned
   to an SU.
   % An SU is created after the submission of
   %   a \cu, i.\,e.\ once a \cu \ has been passed into the control of the
@@ -998,6 +999,32 @@ one of the BJs of the pool (late binding). By default a FIFO scheduler is used.
 % bigjob/examples directory, there are multiple examples (e.g.
 % example\_manyjob\_local.py) that show how multiple BJ can be used concurrently.}
 
+% \input{sectionIV_comments}
+\begin{table*}[t]
+ \up
+ \centering
+ \begin{tabular}{|p{2.5cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
+  \hline
+  \textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/Glide-in} &\textbf{Swift/Coaster}  \\
+  \hline
+  Pilot-Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
+  \hline
+  \pilot &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
+  \hline
+  \computeunit  \ (CU) &Task &Task &Job &Application Interface Function (Swift Script)\\
+  \hline
+  \su \ (SU) &Sub-Job &Task &Job &Job\\
+% \hline
+% Dynamic Resources &no/yes &yes (AgentFactories)\\
+ \hline
+ \end{tabular}
+ \caption{\textbf{Mapping P* elements and PJ Frameworks:} While each PJ framework maintains its own vocabulary, each of the P* elements can be mapped to one (or more) components of the different PJ frameworks.
+ \up} 
+ \label{table:bigjob-saga-diane}
+\end{table*}
+
+
+
 \up
 \subsection{DIANE}
 \up
@@ -1005,8 +1032,8 @@ one of the BJs of the pool (late binding). By default a FIFO scheduler is used.
 % Coordination and Communication
 DIANE~\cite{Moscicki:908910} is a task coordination framework, which
 was originally designed for implementing master/worker applications,
-but also provides PJ functionality for job-style executions. DIANE
-utilizes a single hierarchy of worker agents as well as a PJ manager
+but also provides PJ functionality for job-style executions. it
+utilizes a single hierarchy of worker agents and a PJ manager
 referred to as \texttt{RunMaster}.
 %Further, there is ongoing work on a multi-master extension.
 For the spawning of PJs a separate script, the so-called submitter script, is
@@ -1040,41 +1067,15 @@ applications can implement a custom application-level scheduler.
 
 
 %Other impl. related issues: FT and security
-DIANE is as BJ a single-user PJ, i.\,e.\ each PJ is executed with the privileges
-of the respective user. Also, only \cus of this respective user can be executed
+DIANE is, like BJ, a single-user PJ, i.\,e.\ each PJ is executed with the privileges
+of the respective user. Also, only \cus of this respective user are executed
 by DIANE. DIANE supports various middleware security mechanisms (e.\,g.\ GSI,
-X509 authentication). For this purpose it relies on GANGA.
+X509). For this purpose it relies on GANGA.
 Further, DIANE supports fault tolerance: basic error detection and propagation
 mechanisms are in place. Further, an automatic re-execution of \cus is
 possible.
 
 
-
-
-
-% \input{sectionIV_comments}
-\begin{table*}[t]
- \up
- \centering
- \begin{tabular}{|p{2.5cm}|p{3cm}|p{3cm}|p{3cm}|p{3cm}|}
-  \hline
-  \textbf{P* Element} &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/Glide-in} &\textbf{Swift/Coaster}  \\
-  \hline
-  Pilot-Manager &BigJob Manager & RunMaster & condor\_master, condor\_collector, condor\_negotiator, condor\_schedd &Coaster Service\\ 
-  \hline
-  \pilot &BigJob Agent  & Worker Agent &condor\_master, condor\_startd &Coaster Worker\\
-  \hline
-  \computeunit  \ (CU) &Task &Task &Job &Application Interface Function (Swift Script)\\
-  \hline
-  \su \ (SU) &Sub-Job &Task &Job &Job\\
-% \hline
-% Dynamic Resources &no/yes &yes (AgentFactories)\\
- \hline
- \end{tabular}
- \caption{\textbf{Mapping P* elements and PJ Frameworks:} While each PJ framework maintains its own vocabulary, each of the P* elements can be mapped to one (or more) components of the different PJ frameworks.
- \up} 
- \label{table:bigjob-saga-diane}
-\end{table*}
 
 
 
@@ -1084,8 +1085,8 @@ possible.
 \up
 
 Swift~\cite{Wilde2011} is a scripting language designed for expressing
-abstract workflows and computations. The language provides among many
-things capabilities for executing external applications as well as the
+abstract workflows and computations. The language provides, amongst many other
+things, capabilities for executing external applications, as well as the
 implicit management of data flows between application tasks. 
 % For this
 % purpose, Swift formalizes the way that applications can define
@@ -1101,12 +1102,12 @@ Swift supports e.\,g.\ Globus, Condor and PBS resources.
 % While this configuration file can refer to highly dynamic resources (such as OSG
 % resources), there is no possibility to manage this resource pool
 % programmatically. 
-By default a 1:1 mapping for \cus and \sus is used. However,
-Swift supports the grouping SUs as well as PJs. For the PJ functionality the
-Coaster~\cite{coasters} framework is used. Coaster relies on a master/worker
+By default, Swift uses a 1:1 mapping for \cus and \sus. However,
+Swift supports the grouping of SUs as well as PJs. For the PJ functionality, Swift uses the
+Coaster~\cite{coasters} framework. Coaster relies on a master/worker
 coordination model; communication is implemented using GSI-secured TCP sockets.
-Swift and Coaster supports various scheduling mechanisms, e.\,g.\ a FIFO and a
-load-aware scheduler. Further, Swift can be used in conjunction with 
+Swift and Coaster support various scheduling mechanisms, e.\,g.\ a FIFO and a
+load-aware scheduler. Additionally, Swift can be used in conjunction with 
 Falkon~\cite{1362680}, which also provides \pilot-like functionality.
 
 % Falkon
@@ -1117,7 +1118,7 @@ Falkon~\cite{1362680}, which also provides \pilot-like functionality.
 % Falkon utilizes a M/W coordination model, i.\,e.\ the executors periodically
 % query the dispatcher for new SUs. Web services are used for communication.
 
-\up
+\upp
 \subsection{Discussion}
 \up
 
@@ -1352,19 +1353,19 @@ effort~\cite{saga_bigjob_condor_cloud,saga_gin}.
 % way around. 
 
 The current state of workflow systems~\cite{nsf-workflow,1196459}
-provides a motivating example for the P* Model and the Pilot-API.
-Even though many WF systems exist (with significant duplicated
+provides a motivating example for the P* Model and the Pilot-API:
+even though many WF systems exist (with significant duplicated
 effort), they provide limited means for extensibility and
 interoperability.  We are not naive enough to suggest a single reason,
 but assert that one important contributing fact is the lack of the
 right interface abstractions upon which to construct workflow systems;
 had those been available, many/most WF engines would have likely
 utilized them (or parts thereof), instead of proprietary solutions.
-
+%
 % That would not immediately allow WF implementations to interoperate,
 % but would make semantic mapping between them significantly simpler,
 % thus supporting the very notion of interoperation.
- 
+%
 Significant effort has been invested towards WF interoperability at
 different levels -- if nothing else, providing post-facto
 justification of its importance. The impact of missing interface
@@ -1456,8 +1457,7 @@ principle as a guideline for a balanced abstraction level.
 
 \alnote{We don't establish that the BJ API is semantically equivalent to the 
 Pilot-API.}
-The Pilot-API
-\footnote{We use Python syntax for describing the Pilot-API.}
+The Pilot-API\footnote{We use Python syntax for describing the Pilot-API.}
 supports two different usage modes i) it provides a unified API to
 various PJ frameworks (e.\,g.\ BigJob , DIANE and Condor-G/Glide-in), and ii)
 it enables the concurrent usage of multiple PJ implementations.
