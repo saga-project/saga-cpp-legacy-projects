@@ -1467,9 +1467,10 @@ principle as a guideline for a balanced abstraction level.
 
 \alnote{We don't establish that the BJ API is semantically equivalent to the 
 Pilot-API.}
+
 The Pilot-API\footnote{We use Python syntax for describing the Pilot-API.}
-supports two different usage modes i) it provides a unified API to
-various PJ frameworks (e.\,g.\ BigJob , DIANE and Condor-G/Glide-in), and ii)
+supports two different usage modes (i) it provides a unified API to
+various PJ frameworks (e.\,g.\ BigJob , DIANE and Condor-G/Glide-in), and (ii)
 it enables the concurrent usage of multiple PJ implementations.
 
 The Pilot-API classes and interactions are designed to reflect the P*
@@ -1477,8 +1478,8 @@ elements and characteristics.
 % Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and the
 % Pilot-API.
 The API exposes the primary functionality of the Pilot-Manager using two
-classes: the \texttt{PilotComputeService} for the management of pilots
-and the \texttt{ComputeUnitService} for the management of \cus. 
+classes: the \texttt{Pilot\-Compute\-Service} for the management of pilots
+and the \texttt{Compute\-Unit\-Service} for the management of \cus. 
 As defined by P*, a \cu represents a primary self-containing piece of work that
 is submitted through the Pilot-API. 
 %At the API boundary a \cu transitions to a SU, which functions as internal unit
@@ -1487,17 +1488,17 @@ is submitted through the Pilot-API.
 Figure~\ref{fig:figures_pilot_api_flow} shows the interactions between the
 P* elements.
 The Pilot-API decouples workload management and resource scheduling by exposing
-two separate services: The \texttt{PilotComputeService} and
-\texttt{ComputeUnitService}. 
-The \texttt{PilotComputeService} serves as a factory for instantiating pilots. 
-Also, the \texttt{PilotComputeService} can be used to query for currently
-active \texttt{PilotCompute} instances.
-A \texttt{PilotCompute} instance is returned as result of the
-\texttt{create\_pilot()} method of the \texttt{PilotComputeService} (step 1).
+two separate services: The \texttt{Pilot\-Compute\-Service} and
+\texttt{Compute\-Unit\-Service}. 
+The \texttt{Pilot\-Compute\-Service} serves as a factory for instantiating pilots. 
+Also, the \texttt{Pilot\-Compute\-Service} can be used to query for currently
+active \texttt{Pilot\-Compute} instan\-ces.
+A \texttt{Pilot\-Compute} instance is returned as result of the
+\texttt{create\_pilot()} method of the \texttt{Pi\-lot\-Compute\-Service} (step 1).
 Analogous to job creation in SAGA, the instantiation of the
-\texttt{PilotCompute} instance is done by using a
-\texttt{PilotComputeDescription}. The description can be reused and has no
-state, while the \texttt{PilotCompute} instance has state and is a reference
+\texttt{Pilot\-Compute} instance is done by using a
+\texttt{Pilot\-ComputeDescription}. The description can be reused and has no
+state, while the \texttt{Pilot\-Compute} instance has state and is a reference
 for further usage.
 
 \lstset{
@@ -1519,18 +1520,18 @@ pc = pcs.create_pilot('gram://queenbee',
 \upp
 \end{minipage}
 
-The \texttt{PilotCompute} object represents a pilot instance and allows the 
-application to interact with a pilot, e.\,g.\ to query its state or to cancel 
-it. The process of \texttt{PilotCompute} creation is depicted in step 1-2 of 
+The \texttt{Pilot\-Compute} object represents a pilot instance and allows the 
+application to interact with it, e.\,g.\ to query its state or to cancel 
+it. The process of \texttt{Pilot\-Compute} creation is depicted in step 1-2 of 
 figure~\ref{fig:figures_pilot_api_flow} and in listing~\ref{lst:pcs_creation}.
 
-Listing~\ref{lst:cus_creation} shows the creation of a
-\texttt{ComputeUnitService}.
-Having created a \texttt{ComputeUnitService} instance,
-\texttt{PilotComputeService} instances can be added and removed at any time.
-This enables applications to respond to dynamic resource requirements at
-runtime, i.\,e.\ if peak demands arise an application can request additional
-resources; if resources are not required anymore, they can be released.
+Listing~\ref{lst:cus_creation} shows the creation of
+a \texttt{Compute\-Unit\-Service}.  Having created
+a \texttt{Compute\-Unit\-Service} instance, \texttt{Pilot\-Compute\-Service}
+instances can be added and removed at any time.  This enables applications to
+respond to dynamic resource requirements at runtime, i.\,e.\ additional
+resources can be requested on peak demands, and can be released if they are no
+longer required.
 
 \noindent\begin{minipage}{0.47 \textwidth}
 \begin{lstlisting}[caption={\textbf{ComputeUnitService Creation:} Instantiation
@@ -1558,12 +1559,12 @@ cu = cus.submit(cud)
 % caption={\textbf{WorkUnit Submission:} Instantiation and Submission of a \texttt{WorkUnitDescription}.\label{lst:submission}}
 % }
 
-The \texttt{ComputeUnitService} is responsible for managing the execution of
+The \texttt{Compute\-Unit\-Service} is responsible for managing the execution of
 \cus.
-Regardless of the state of the \texttt{PilotComputeService}, applications can submit \cus to a
-\texttt{ComputeUnitService} at anytime (listing~\ref{lst:submission} and step 3
+Regardless of the state of the \texttt{Pilot\-Compute\-Service}, applications can submit \cus to a
+\texttt{Compute\-Unit\-Service} at anytime (listing~\ref{lst:submission} and step 3
 in figure~\ref{fig:figures_pilot_api_flow}). 
-Once the \texttt{ComputeUnitService} becomes responsible for a \cu, the \cu
+Once the \texttt{Compute\-Unit\-Service} becomes responsible for a \cu, the \cu
 transitions to an SU.
 SUs are internally processed (e.\,g.\ they can be aggregated) and are then scheduled to the Pilot-Job Framework (step 4). 
 The PJ framework is responsible for the actual execution of the SU on a
@@ -1594,22 +1595,23 @@ in multiple layers.
 % Additionally, the underlying PJ framework can conduct its own scheduling.
 
 
-Each \texttt{ComputeUnit} and the \texttt{PilotCompute} object is associated
+Each \texttt{Compute\-Unit} and the \texttt{Pilot\-Compute} object is associated
 with a state.
 The state model is based on the SAGA job state model~\cite{ogf-gfd-90}.
 Applications can query the state using the \texttt{get\_state()} method or they
 can subscribe to state update notifications.
 
-Finally, an application can have any number of \texttt{PilotComputeService} or
-\texttt{ComputeUnitService} instances.
-Multiple \texttt{PilotComputeService} instances can be associated to a
-\texttt{ComputeUnitService}, and a \texttt{PilotComputeService} can be associated to
-multiple \texttt{ComputeUnitService} instances.
-A \texttt{ComputeUnitService} can manage multiple \texttt{ComputeUnit}
-instances, but a \texttt{ComputeUnit} can only be managed by one
-\texttt{ComputeUnitService}.
-So can a \texttt{PilotComputeService} manage
-multiple \texttt{PilotCompute}, but can a \texttt{PilotCompute} only be managed by one \texttt{PilotComputeService}.
+Finally, an application can have any number of \texttt{Pilot\-Compute\-Service} or
+\texttt{Compute\-Unit\-Service} instances.
+Multiple \texttt{Pilot\-Compute\-Service} instances can be associated to a
+\texttt{Compute\-Unit\-Service}, and a \texttt{Pilot\-Compute\-Service} can be associated to
+multiple \texttt{Compute\-Unit\-Service} instances.
+A \texttt{Compute\-Unit\-Service} can manage multiple \texttt{Compute\-Unit}
+instances, but a \texttt{Compute\-Unit} can only be managed by one
+\texttt{Compute\-Unit\-Service}.
+So can a \texttt{Pilot\-Compute\-Service} manage
+multiple \texttt{Pilot\-Compute}, but can a \texttt{Pilot\-Compute} only be
+managed by one \texttt{Pilot\-Compute\-Service}.
 
 
 \begin{figure}[t]
@@ -1617,8 +1619,8 @@ multiple \texttt{PilotCompute}, but can a \texttt{PilotCompute} only be managed 
   \upp
 		\includegraphics[width=0.47\textwidth]{figures/pilot-api-flow.pdf}
 	\caption{\textbf{Control Flow Pilot-API and PJ Frameworks:} The functionality    of pilot-jobs are exposed 
-	using two primary classes: The \texttt{PilotComputeService} for the management 
-	of pilots, and the \texttt{ComputeUnitService} for the management of \cus.
+	using two primary classes: The \texttt{Pilot\-Compute\-Service} for the management 
+	of pilots, and the \texttt{Compute\-Unit\-Service} for the management of \cus.
     \alnote{figure needs attention.}
     \up
 	}
@@ -1808,7 +1810,7 @@ repeated at least 10 times.
   The overhead per \cu imposed by the AS is generally 
   higher than for other backends. The runtime of the DIANE \cus only increases 
   moderately mainly due to the aggregation of the \cus.
-  \up\upp}
+  \up}
  \label{fig:perf_bigjob-varying-wus} 
 \end{figure}
 
@@ -1996,7 +1998,7 @@ utilize DIANE on EGI. %\msnote{more on EGI later ...}
 %\amnote{why is the corecount mentioned for Kraken, and not the others?}
 
 In total, 128\,\cus are defined and submitted to the
-\texttt{ComputeUnitService}. Each BFAST \cu requires 1 core; depending on the
+\texttt{Compute\-Unit\-Service}. Each BFAST \cu requires 1 core; depending on the
 resource a different number of cores maybe
 assigned for each BFAST \cu, e.\,g.\ on Kraken 4 cores are reserved for each \cu
 to provide sufficient IO and memory. Each \cu is associated with a set of input
@@ -2315,7 +2317,7 @@ defines the \texttt{PilotDataService} entity as an abstraction for creating and
 managing pools of storage. A \texttt{PilotData} instance represents the actual
 physical storage space. The \texttt{ComputeDataService} entity
 functions as an application-level scheduler, which accepts both
-\texttt{ComputeUnits} and \texttt{DataUnits}. It resolves necessary
+\texttt{Compute\-Units} and \texttt{DataUnits}. It resolves necessary
 dependencies (e.g. data/data or data/computer affinities), and is
 responsible for managing the execution of \dus and \cus.
 
