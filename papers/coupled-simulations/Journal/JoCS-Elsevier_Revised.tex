@@ -665,7 +665,36 @@ The continuum velocity and the mean microscopic velocity from MD over the contro
 
 One of the standard issues in obtaining coupled continuum to particle-based (MD) solutions is the fact that the particle-based (MD) solutions have noise, inherent because of limited size of particle ensemble averages and time-sampling limitations. This noise, if not kept under check, is passed on to the continuum solution yielding unphysical results. According to the mathematical expressions in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the macroscopic velocity is inversely proportional to the square root of spatial layer size and temporal sampling duration. For example, reducing the macroscopic velocity by half requires either 4 times larger system domain or 4 times longer sampling to maintain the same order of accuracy. 
 
-Sampling duration with interval, the size of sampling layer and its location are coupling parameters which define the scale and pattern of this noise. The layer size and sampling duration collectively work for reducing the noise, by increasing the number of particles participating in sampling process spatially and temporally. The layer size can be infinite along the periodic direction, while it is confined along the non-periodic direction to secure the sufficient space for pure CFD and MD domains. The sampling interval is denoted as the time increment between each information exchange. The frequent information exchange in the hybrid boundary zone is desired for the accuracy of the time-variant flow solution. This interval acts as the upper bound of sampling duration. The location of the sampling layer also influences the size of fluctuations. It has been noted that the sampling layer shall be placed sufficiently far from the solid obstacle to avoid the effect of strong interaction between fluid and solid particles~\cite{Nie,Yen}.
+Four important coupling parameters determine the scale and pattern of
+the sampling noise: The size of sampling layer and its location in space,
+sampling duration with interval in time.
+The layer size denotes the volume of a virtual box in which spatial sampling
+takes place. The layer location is the perpendicular distance of the sampling
+layer from the solid obstacle. The sampling duration ${\Delta}t$ is denoted as
+the time length over which spatially-sampled instantaneous solutions are
+accumulated. The sampling interval ${\Delta}{t_s}$ is defined as the time
+increment between each hybrid solution exchange. 
+The layer size and sampling duration collevtively contribute to
+the suppression of sampling noise by increasing the number of sampled
+particles in space or time.
+%%%%%
+%The layer size is free to be stretched
+%along the periodic direction, while it is confined along the non-periodic
+%direction to secure the sufficient space for pure CFD and MD domains.
+%On the other hand, stretching the computational domain along the periodic
+%direction results in the increase of computational cost.
+The layer size is free to be stretched along the periodic direction,
+while it results in excessive computational cost. Incresing the layer size
+along the non-periodic direction is relatively constrained to secure
+the sufficient space for pure CFD and MD domains.
+%%%%%
+The scale of sampling duration is bound by the sampling interval, which is
+desired to be short for accurately describing the temporal variation of 
+flow evolution in the unsteady flow field.
+The location of the sampling layer also influences the size of fluctuations.
+It has been noted that the sampling layer shall be placed sufficiently
+far from the solid obstacle to avoid the effect of strong interaction
+between fluid and solid particles~\cite{Nie,Yen}.
 
 We reference to the determination of coupling parameters in previous studies~\cite{Nie,Yen,Liu,Hadjicon1,Hadjicon2,Werder,Flekkoy,Delgado1,Time_Mechanism} and intuitively design these parameters considering our application targets. We start from determining the location of the sampling layer according to other previous suggestions, e.g., at least 10$\sigma$ above the bottom wall in the nano-scale liquid argon system. The height of the sampling layer on the non-periodic direction is designed in a way that the sum of pure MD and hybrid regions does not exceed the half of the fluid system. For our deterministic transient/periodic applications, the sampling interval is roughly set to be within 1\% of the transition time or 10\% of the period. The sampling duration is designed the same as the sampling interval.
 
@@ -771,28 +800,74 @@ We also apply the replica sampling approach~\cite{REMD} to supplement the indivi
 \label{sec:numerical_temporal}
 
 
-Synchronized and sequential coupling strategies~\cite{Time_Mechanism} are conventionally used temporal coupling schemes, which are depicted in Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes exchange their hybrid boundary conditions at each sampling interval (denoted by ${\Delta}t$) and independently evolve to the next exchange time. In contrast, in sequential coupling, temporal evolution of each solver hakes place one-by-one. The synchronized coupling approach is recommended in view of parallel efficiency. In sequential approach, prossessors statically assigned to one task is idling when another code is evolving to the next communication exchange point.
-%: The dynamic resource handling during runtime is necessary for reducing the idling.
-On the other hand, the sequential approach is expected to provide the more accurate solution due to the implicity of the hybrid boundary condition in the following domain (the CFD region in Fig.~\ref{Hybrid_Timescale1}). Unfortunately, both strategies contain the time-lagging phenomenon in the CFD boundary condition because molecular dynamic properties averaged over the backward sampling duration (from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) represent the CFD boundary condition at that instance ($n{\Delta}t$). Extrapolation from previous MD solutions is necessary to reduce this time lagging effect.
+Synchronized and sequential coupling strategies~\cite{Time_Mechanism} are
+conventional temporal coupling schemes, which are depicted in
+Fig.~\ref{Hybrid_Timescale1}. In synchronized coupling, CFD and MD codes
+exchange their hybrid boundary conditions at the same physical time step
+and individually evolve by a sampling interval. In constrast, temporal
+evolution of each solver takes place one-by-one in sequential coupling,
+in a fashion that MD solver advances to the CFD solver by a sampling interval.
+
+The synchronized coupling approach is recommended in view of parallel efficiency.
+As can be noticed in the procedure of the sequential approach in
+Fig.~\ref{Hybrid_Timescale1}-\subref{sequential_couple},
+prossessors statically assigned to individual task cannot avoid idling
+while another code is evolving to the next communication point.
+It necessitates the integration of distinct codes to a single MPI executable
+or the switching of allocated resource to the active task during runtime.
+On the other hand, the synchronized approach introduces the unfavorable
+time-lagging phenomenon on CFD boundary condition. As observed in
+Fig.~\ref{Hybrid_Timescale1}-\subref{synchro_couple}, molecular dynamic
+properties averaged over the backward sampling duration
+(from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) represent the CFD
+boundary condition at that instance ($n{\Delta}t$).
+
+Wang and He~\cite{Wang} proposed extrapolating hybrid boundary conditions
+to resolve the temporal delays in synchronized coupling approach, as seen in
+Fig.~\ref{Hybrid_Timescale1}-\subref{synchro_mod}. In their approach,
+molecular dynamic time axis is shifted forward by half of the sampling interval
+${\Delta}t_{s}$ to get rid of the time-lagging event in CFD boundary condition.
+Also, MD hybrid boundary condition is imposed by the extrapolated CFD solution
+in time. The benefit of this approach is that, in principle,
+time-lagging effect completely diminishes regardless of the sampling duration.
+Thus, the sampling duration can be set as much as the sampling interval.
+However, the accuracy of the extrapolated solution is still debatable.
+In this scheduling, two \textit{previous} CFD solutions
+at $n{\Delta}t$ and $(n-1){\Delta}t$ are extrapolated to predict the
+\textit{expected} MD hybrid boundary conditions
+from $n{\Delta}t+0.5{\Delta}t_{s}$ to $(n+1){\Delta}t+0.5{\Delta}t_{s}$.
+Except when the velocity gradient is linear in time, the extrapolated property
+is prone to provide the incorrect value from the start. The only way to reduce
+this extrapolation error is to reduce the sampling duration, which is
+contradictory to the condition for reducing the statistical error.
+
 
 %\begin{figure}[htbp]
 \begin{figure}
 \centering
-\subfloat[Synchronized Coupling]{\label{synchro_couple}\includegraphics[width=0.8\linewidth]{Synchro_Coupling.pdf}}
-\subfloat[Sequential Coupling]{\label{sequential_couple}\includegraphics[width=0.8\linewidth]{Sequential_Coupling.pdf}}
+\subfloat[Sequential Coupling]{\label{sequential_couple}
+\includegraphics[width=0.7\linewidth]{Sequential_Coupling.pdf}}
+\subfloat[Synchronized Coupling]{\label{synchro_couple}
+\includegraphics[width=0.7\linewidth]{Synchro_Coupling.pdf}}
+\subfloat[Synchronized Coupling with Extrapolation~\cite{Wang}]{\label{synchro_mod}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org.pdf}}
 %\includegraphics[width=0.8\linewidth]{Synchro_Coupling.pdf}
 %\includegraphics[width=0.8\linewidth]{Sequential_Coupling.pdf}
 \vskip-0.2cm
-\caption{\small {\bf Conventional time evolution mechanisms of a hybrid CFD-MD approach.} 
+\caption[]{\small {\bf Conventional time evolution mechanisms of a hybrid CFD-MD approach.} 
 CFD and MD codes are scheduled to conduct data exchange in the overlapping 
-region at every $\Delta{t}$ sampling interval. CFD solution at $n{\Delta}t$ 
-is directly applied as the boundary condition for MD simulation and 
-backward time-averaged molecular dynamic properties over $\Delta{t_{S}}$ 
-sampling durations are imposed as CFD boundary conditions. 
+region at every $\Delta{t}$ sampling interval.
+\subref{sequential_couple} In the sequential way, one code first evolves 
+to the next communication point and the other code follows. One code stays
+idle while another code evolves.
 \subref{synchro_couple} In synchronized coupling strategy, both codes 
 communicate at the same time level and evolve to next exchange time level.
-\subref{sequential_couple} In the sequential way, one code first evolves 
-to the next communication point and the other code follows.}
+CFD solution at $n{\Delta}t$ is directly applied as the boundary condition
+for MD simulation and backward time-averaged molecular dynamic properties
+over $\Delta{t_{S}}$ sampling durations are imposed as CFD boundary conditions. 
+\subref{synchro_mod} MD time axis is shifted forward by half of sampling
+duration and extrapolation is employed on MD boundary condition to avoid
+time-delay patterns.}
 %\caption{\small {\bf Conventional time evolution mechanisms of a hybrid CFD-MD approach.} CFD and MD codes are scheduled to conduct data exchange in the overlapping region at every $\Delta{t}$ sampling interval. CFD solution at $n{\Delta}t$ is directly applied as the boundary condition for MD simulation and backward time-averaged molecular dynamic properties over $\Delta{t_{S}}$ sampling durations are imposed as CFD boundary conditions. (1) Synchronized Coupling: Both codes communicate at the same time level and independently iterate to next exchange point. (2) Sequential Coupling: From the same time level, one solver advances to the next communication point and impose implicit boundary condition to its counterpart.}
 \label{Hybrid_Timescale1}
 \end{figure}
@@ -801,51 +876,88 @@ to the next communication point and the other code follows.}
 %Time-lagging phenomenon in CFD boundary region is observed in both strategies, because averaged molecular dynamic properties over backward sampling duration (from $n{\Delta}t-{\Delta}t_{s}$ to $n{\Delta}t$) are used to impose the CFD boundary condition at that instance ($n{\Delta}t$). Thus, the extrapolation from previous MD solutions is necessary to eliminate the time-lagging by half of sampling duration (${\Delta}t_{S}/{2}$) in the CFD boundary zone which is accumulated at every sampling interval.
 %As is presented in Fig.~\ref{Hybrid_Timescale2}-(0), Wang and He~\cite{Wang} proposed shifting the time axis of one domain by half of the sampling interval to eliminate this lagging effect. After both codes evolve by a sampling interval, the instantaneous CFD solution at $n{\Delta}t$ is communicated with averaged MD solution from $(n-1/2){\Delta}t$ to $(n+1/2){\Delta}t$. Two previous solutions from the counterpart are extrapolated to impose hybrid boundary conditions. The benefit of imposing extrapolated boundary condition is that the sampling duration can be designed as long as the sampling interval (${\Delta}t_{s}={\Delta}t$). However, the accuracy of extrapolated solution is worth to debate. In this scheduling, two \textit{previous} CFD solutions at $(n-1){\Delta}t$ and $n{\Delta}t$ are extrapolated to produce MD boundary conditions from $(n+1/2){\Delta}t$ to $(n+3/2){\Delta}t$. Except the velocity gradient is linear in time space, extrapolated properties fail to predict correct values throughout the simulation interval (from$(n+1/2){\Delta}t$ to $(n+3/2){\Delta}t$). The only way to reduce this extrapolation error is to reduce the sampling interval, which is contradictory to the condition for reducing the statistical error.
 
-Wang and He~\cite{Wang} proposed shifting molecular dynamic sampling time to the forward by half of the sampling interval ${\Delta}t_{s}$ to get rid of the time-lagging event. Also, two previous solutions from the counterpart are extrapolated to provide the hybrid boundary condition at each time instance. The benefit of this approach is that, in principle, time-lagging effect completely diminishes regardless of the size of sampling duration. Thus, the sampling duration can be set to its upper bound, i.e., the sampling interval. However, the accuracy of the extrapolated solution is still debatable. In this scheduling, two \textit{previous} solutions from one domain are extrapolated to predict the ''expected'' hybrid boundary condition in its counterpart. Except when the velocity gradient is linear in time, the extrapolated properties fail to predict correct values. The only way to reduce this extrapolation error is to reduce the sampling interval, which is contradictory to the condition for reducing the statistical error.
-
-
-\begin{figure}
-\centering
-\subfloat[Baseline Formulation]{\label{PredCorr_Org}
-\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org.pdf}}
-\subfloat[Extrapolated Hybrid Boundary Conditions]{\label{PredCorr_Extra}
-\includegraphics[width=0.7\linewidth]{Prediction_Correction_Extra_Simple.pdf}}
-\subfloat[Implicit MD Boundary Condition]{\label{PredCorr_Inter}
-\includegraphics[width=0.7\linewidth]{Prediction_Correction_Inter_Simple.pdf}}
-\subfloat[Interpolated Hybrid Boundary Conditions]{\label{PredCorr_Both}
-\includegraphics[width=0.7\linewidth]{Prediction_Correction_Both_Simple.pdf}}
-%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org.pdf}
-%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Extra_Simple.pdf}
-%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Inter_Simple.pdf}
-%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Both_Simple.pdf}
-\caption{\small {\bf A prediction-correction approach with extrapolated / interpolated hybrid boundary conditions.} 
-Applying extrapolation/interpolation enables increasing sampling duration 
-as much as the sampling interval.
-\subref{PredCorr_Org} 
-By default, 
-Default Formulation;
-%CFD code experiences extrapolated hybrid BC from the current MD solution, while MD code imposes the extrapolation from previous solutions by half of the sampling interval.
-The hybrid BC in MD code is extrapolated from previous solutions.
-% by half of the sampling interval.
-(1) Extrapolated Boundary; CFD code runs the prediction step by $0.5{\Delta}t$. MD code imposes the hybrid BC by the extrapolation from the current value. (2) Interpolated MD Boundary; CFD code runs the prediction step by $1.5{\Delta}t$. MD code imposes interpolated hybrid BC. (3) Interpolated Hybrid Boundary Conditions; Time axis of CFD domain shifts back by 1 sampling interval and the prediction step is set $2.5{\Delta}t$. CFD and MD domains impose interpolated hybrid BC.}
-\label{Hybrid_Timescale2}
-\end{figure}
-
 
 % The basic pattern of our approach is the same as the synchronized coupling. Main difference is, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and restarts the computation to the next communication point of $t+{\Delta}t$. Thus, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that time-lagging problem is resolved without numerical treatments and additional computational overhead is acceptable because usually computational cost in MD simulation is dominant for a coupled simulation.
 %A new scheme named ''prediction-correction approach'' is also depicted in Fig.~\ref{Hybrid_Timescale2}. The main difference from the default model is that CFD code iterates additional  time steps after the code evolved to the next data exchange time. For example, in Fig.~\ref{Hybrid_Timescale2}-(1), CFD code additionally evolves by the half of sampling interval after the code approached to $n{\Delta}t$. CFD code sends these predicted properties at $(n+1/2){\Delta}t$ to the MD site and receives averaged molecular properties around $n{\Delta}t$. CFD code loads its previous flow profile at $n{\Delta}t$ and runs the actual simulation to next communication point at $(n+1){\Delta}t$. Clear benefit of current approach is that both solvers extrapolate their boundary conditions from \textit{current} solutions (either exact solution or predicted values) instead of using \textit{previous} history. This eliminates the sensitivity of extrapolated solution according to the size of sampling interval in previous model, which enables increasing the sampling interval.
 
-To overcome this extrapolation error, a ''prediction-correction approach'' is designed, as presented in Fig.~\ref{Hybrid_Timescale2}. The main difference from Wang and He~\cite{Wang} is that the CFD code iterates additional time steps after it evolves to the next data exchange time. For example, in Fig.~\ref{Hybrid_Timescale2}-(1), the CFD code additionally evolves by half of sampling interval after it approaches $n{\Delta}t$. The CFD code sends these predicted properties at $(n+1/2){\Delta}t$ to the MD site and receives the centrally-sampled solution around $n{\Delta}t$. The CFD code loads its previous flow profile at $n{\Delta}t$ and runs the actual simulation to the next communication point at $(n+1){\Delta}t$. A clear benefit of the current approach is that both solvers extrapolate their boundary conditions from \textit{current} solutions instead of relying on \textit{previous} history. This advantage eliminates the sensitivity of the extrapolated solution to the size of the sampling interval in the previous model, which enables the increase of the sampling interval.
+A ''prediction-correction approach'' is designed to reduce this 
+extrapolation error by introducing the \textit{predicted} solution at
+later time instance, as presented in Fig.~\ref{Hybrid_Timescale2}.
+The prediction-correction approach numerically provides non-delayed hybrid
+boundary conditions, like Wang and He's formulation. Thus, the sampling
+duration is designed as long as the sampling interval.
+The main difference from Wang and He's approach is that the CFD code
+iterates additional time intervals after it reaches the next communication point.
+For example, in Fig.~\ref{Hybrid_Timescale2}-\subref{predcorr_extra},
+the CFD code additionally evolves by half of sampling interval after
+it approaches $n{\Delta}t$. The CFD code sends these predicted properties
+at $n{\Delta}t + 0.5{\Delta}{t_s}$ to the MD site and receives the
+centrally-sampled molecular dynamic solution around $n{\Delta}t$.
+The CFD code rolls back to its previous flow profile at $n{\Delta}t$ and
+applies the recieved molecular dynamic solution to advance to the next
+communication point.
+A clear benefit of the current approach is that both solvers extrapolate
+their boundary conditions from \textit{current} solutions instead of
+relying on \textit{previous} history. This advantage eliminates the
+sensitivity of the extrapolated solution to the size of the sampling duration,
+which enables the increase of the sampling duration to the sufficient level.
 
 %This approach is further refined to increase the accuracy of the hybrid boundary condition by increasing prediction time scale. In Fig.~\ref{Hybrid_Timescale2}-(2), the prediction time scale is increased by one more sampling interval. While MD solver evolves for one sampling interval, CFD code iterates to the next communication point of MD time space. This enables MD boundary condition being interpolated by predicted CFD profiles. Figure ~\ref{Hybrid_Timescale2}-(3) demonstrates the imposition of interpolated boundary conditions on both domains. In this formulation, CFD time space is shifted backward by one sampling interval and prediction step is scheduled to be $(5/2){\Delta}t$.
 
-This approach is further refined to increase the accuracy of the hybrid boundary condition by increasing the prediction time scale. In Fig.~\ref{Hybrid_Timescale2}-(2), the prediction time scale is increased by one more sampling intervals. While the MD solver evolves for one sampling interval, the CFD code iterates to the next communication point of MD time and space. This enables the interpolation of the MD boundary condition by the predicted CFD profiles. Figure ~\ref{Hybrid_Timescale2}-(3) demonstrates the imposition of interpolated boundary conditions on both domains. In this formulation, CFD time and space is shifted backward by one sampling interval and the prediction step is scheduled as $(5/2){\Delta}t$.
+The increase of the prediction time scale further increases the accuracy
+of the hybrid boundary condition.
+In Fig.~\ref{Hybrid_Timescale2}-\subref{predcorr_inter}, the prediction
+time scale is increased by one more sampling intervals. While the MD
+solver evolves for one sampling interval
+from $(n-1){\Delta}t + 0.5{\Delta}{t_s}$ to $n{\Delta}t + 0.5{\Delta}{t_s}$,
+the CFD code runs the actual evolution from $(n-1){\Delta}t$ to $n{\Delta}t$
+and adds the predictive evolution for ${\Delta}t + 0.5{\Delta}{t_s}$ time
+interval. Predicted CFD solution at $(n+1){\Delta}t + 0.5{\Delta}{t_s}$
+is applied as the interpolated hybrid boundary condition when MD solver
+evolve
+from $n{\Delta}t + 0.5{\Delta}{t_s}$ to $(n+1){\Delta}t + 0.5{\Delta}{t_s}$.
+Figure ~\ref{Hybrid_Timescale2}-\subref{predcorr_both} demonstrates the
+imposition of implicit boundary conditions on both domains. In this formulation,
+CFD time is shifted backward by one sampling interval and the prediction step
+is scheduled as $2{\Delta}t + 0.5{\Delta}{t_s}$.
 
 
 %A new approach named `prediction-correction strategy' is depicted in Fig.~\ref{Hybrid_Timescale2}. After the data exchange at $t$, MD advances to the next communication point by extrapolating two previous boundary conditions at $t-\Delta t$ and $t$. On the other hand, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and evolves to $t+{\Delta}t$ by imposing extrapolated boundary condition from data at $t-\Delta t - {\Delta}t_{S}/{2}$ and $t-{\Delta}t_{S}/{2}$, which makes the difference from the original strategy. In this approach, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that both solvers are provided with the ``exact" boundary condition once in every sampling interval, compared to the original formulation in which boundary condition had to be extrapolated ``everytime" or the quasi-steady assumption had to be satisfied. As the exact boundary condition is provided at every sampling interval, sampling duration can be increased as long as sampling interval, which will reduce statistical error. Furthermore, with longer prediction setting as seen at Fig.~\ref{Hybrid_Timescale2}-b) and c), more accurate boundary condition can be imposed by simulating over longer prediction time.
 
 
-The current numerical approach provides more accurate time-variant solution by decreasing or eliminating the unfavorable overshoot/undershoot phenomena in extrapolations. Nevertheless, an additional computational cost is inevitable for the CFD simulation. Thus, the computational cost on CFD is required to be quite smaller than that of MD simulation.
+\begin{figure}
+\centering
+\subfloat[Extrapolated Hybrid Boundary Conditions]{\label{predcorr_extra}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Extra_Simple.pdf}}
+\subfloat[Implicit MD Boundary Condition]{\label{predcorr_inter}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Inter_Simple.pdf}}
+\subfloat[Interpolated Hybrid Boundary Conditions]{\label{predcorr_both}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Both_Simple.pdf}}
+%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org.pdf}
+%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Extra_Simple.pdf}
+%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Inter_Simple.pdf}
+%\includegraphics[width=0.7\linewidth]{Prediction_Correction_Both_Simple.pdf}
+\caption[]{\small {\bf A prediction-correction approach with extrapolated / interpolated hybrid boundary conditions.} 
+%Applying extrapolation/interpolation enables increasing sampling duration 
+%as much as the sampling interval.
+\subref{predcorr_extra} CFD code runs the prediction step by $0.5{\Delta}{t_s}$.
+CFD and MD hybrid boundary conditions are extrapolated properties from the
+current solution.
+\subref{predcorr_inter} CFD code runs the prediction step by
+${\Delta}t + 0.5{\Delta}{t_s}$.
+Hybrid MD boundary conditions are interpolated from predicted CFD solutions.
+\subref{predcorr_both} Time axis of CFD domain shifts backward by 1 sampling
+interval and the prediction step is set $2{\Delta}t + 0.5{\Delta}{t_s}$.
+Both CFD and MD boundary conditions become implicit.}
+\label{Hybrid_Timescale2}
+\end{figure}
+
+
+The current numerical approach provides more accurate time-variant solution
+by decreasing or eliminating the unfavorable overshoot/undershoot phenomena
+in extrapolations. Nevertheless, an additional computational cost is inevitable
+for the CFD simulation. Thus, the current approach is applicable to the problems
+in which computational cost on CFD is quite smaller than that of MD simulation.
 
 
 
@@ -1286,11 +1398,26 @@ A transient Couette flow is simulated to verify the accuracy of the current fram
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol1.pdf}
+%\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol1.pdf}
+\subfloat[Pure CFD and MD Results]{\label{cfd_md_couette}
+\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol1.pdf}}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol2.pdf}
+%\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol2.pdf}
+\subfloat[Hybrid CFD-MD Solution]{\label{hybrid_couette}
+\includegraphics[width=0.6\linewidth]{Flat_Plate_Sol2.pdf}}
 \vskip-0.2cm
-\caption{\small {\bf A time-accurate Couette flow profile.} The evolution of velocity field along the vertical direction is presented. CFD solution is the instantaneous profile at specified time and MD solution is spatially averaged over 2 $\sigma$ in height and temporally averaged for 1 sampling durations (=10$\tau$). (Left) Pure CFD solution is exactly the same as analytic solution. MD solution shows the same flow pattern as analytic solution, though some fluctuation is observed. This verifies that CFD and MD represents the same flow physics. (Right) The steady result by hybrid approach produces the same numerical result as analytic solution, though the slight time-lagging in the hybrid boundary is observed during the evolution.}
+\caption[]{\small {\bf A time-accurate Couette flow profile.}
+The evolution of velocity field along the vertical direction is presented.
+CFD solution is the instantaneous profile at specified time and MD solution
+is spatially averaged over 2 $\sigma$ in height and temporally averaged
+for 1 sampling durations (=10$\tau$).
+\subref{cfd_md_couette} Pure CFD solution is exactly the same as
+analytic solution. MD solution shows the same flow pattern as analytic solution,
+though some fluctuation is observed. This verifies that CFD and MD represents
+the same flow physics.
+\subref{hybrid_couette} The steady result by a hybrid approach produces
+the same numerical result as analytic solution, though the slight
+time-lagging in the hybrid boundary is observed during the evolution.}
 \label{Flat_Plate_Sol}
 \end{figure}
 
@@ -1321,11 +1448,17 @@ Fig.~\ref{multiple_couette} presents the Couette flow profiles at different numb
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Couette_025_Samp4.pdf}
+\subfloat[Sampling of 4 Replicas]{\label{couette_slow_4}
+\includegraphics[width=0.6\linewidth]{Couette_025_Samp4.pdf}}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Couette_025_Samp16.pdf}
+\subfloat[Sampling of 16 Replicas]{\label{couette_slow_16}
+\includegraphics[width=0.6\linewidth]{Couette_025_Samp16.pdf}}
 \vskip-0.2cm
-\caption{\small {\bf A Couette flow profile with the upper plate velocity of 0.25 $\sigma/\tau$.} The noisy solution when 4 individual simulations are averaged (left) is resolved by sampling 16 independent runs (right). Red lines denote the solution at 20 $\tau$; Green, blue and black lines are solutions at 100, 200 and 1500 $\tau$, respectively.}
+\caption[]{\small {\bf A Couette flow profile with the upper plate velocity of 0.25 $\sigma/\tau$.}
+The noisy solution when 4 individual simulations are averaged is resolved
+by sampling 16 independent runs. Red lines denote the solution at 20 $\tau$;
+Green, blue and black lines are solutions at 100, 200 and 1500 $\tau$,
+respectively.}
 \label{multiple_couette}
 \end{figure}
 
@@ -1333,7 +1466,10 @@ Fig.~\ref{multiple_couette} presents the Couette flow profiles at different numb
 \centering
 \includegraphics[width=0.6\linewidth]{Couette_025_Temporal_Multiset.pdf}
 \vskip-0.2cm
-\caption{\small {\bf The variation of continuum velocity in the middle of the overlapping region.} Velocity changes at various sampling runs are compared with the analytic solution. In case 16 simulations are averaged, the noise is about 5 $\%$ compared to the analytic solution.}
+\caption{\small {\bf The variation of continuum velocity in the middle of the overlapping region.}
+Velocity changes at various replica samples are compared with the analytic
+solution. In case 16 simulations are averaged, the noise is about 5 $\%$
+compared to the analytic solution.}
 \label{multiple_couette_temporal}
 \end{figure}
 
@@ -1344,16 +1480,18 @@ We compared the solution by multiple replica sampling with the solution in the i
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Couette_025_Scale16.pdf}
+\subfloat[A Single Run at 16 Times Larger Domain]{\label{hybrid_scale16}
+\includegraphics[width=0.6\linewidth]{Couette_025_Scale16.pdf}}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Couette_025_Temporal_Multiset_VS_Scaleup.pdf}
+\subfloat[Temporal Variation of Velocity between Replica Sampling and System Increase]{\label{hybrid_history}
+\includegraphics[width=0.6\linewidth]{Couette_025_Temporal_Multiset_VS_Scaleup.pdf}}
 \vskip-0.2cm
-\caption{\small {\bf (Left) A Couette flow profile in increased system size.} 
+\caption[]{\small \subref{hybrid_scale16} {\bf A Couette flow profile in increased system size.} 
 Accurate flow profile can be obtained by increasing the system size 
 16 times larger when the velocity is reduced to 1/4. Red lines denote 
 the solution at 20 $\tau$; Green, blue and black lines are solutions 
 at 100, 200 and 1500 $\tau$, respectively. 
-{\bf (Right) The variation of the velocity in the middle of 
+\subref{hybrid_scale16} {\bf The variation of the velocity in the middle of 
 the overlapping region.} Solutions by multiple replica sampling 
 and increasing the system contain the similar strength of the noise 
 in the solution, which is around 5 $\%$ of analytic velocity profile. 
@@ -1372,18 +1510,38 @@ The flow field converges to a specific profile in a transient flow physics, so t
 % in 10$^{-8}$ meter system.
 
 
-Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and hybrid simulations. The left figure shows that the velocity profiles at each time instance are roughly the same between the pure CFD and hybrid simulations in magnitude. This indicates that the hybrid simulation approach is also applicable to time-varying flow simulations. Meanwhile, the temporal variation of the horizontal velocity in the middle of the hybrid region expresses that the noise in the hybrid solution is not negligible considering the difference between continuum and hybrid velocities. We claim that this noisy solution is caused by the combination of the sampling error and an inaccurate temporal coupling scheme. In order to determine the effect of the temporal coupling scheme, we applied multiple replica sampling over sufficient number of independent experiments and compared solutions from different temporal coupling schemes.
+Figure~\ref{Stokes_Sol} shows the oscillatory velocity profile by pure CFD and
+hybrid simulations. Figure~\ref{Stokes_Sol}-\subref{vel_stokes} shows that
+the velocity profiles at each time instance are roughly the same between
+the pure CFD and hybrid simulations in magnitude. This indicates that
+the hybrid simulation approach is also applicable to time-varying flow
+simulations. Meanwhile, the temporal variation of the horizontal velocity
+in the middle of the hybrid region expresses that the noise in the hybrid
+solution is not negligible considering the difference between continuum and
+hybrid velocities. We claim that this noisy solution is caused by the
+combination of the sampling error and an inaccurate temporal coupling scheme.
+In order to determine the effect of the temporal coupling scheme, we applied
+multiple replica sampling over sufficient number of independent experiments
+and compared solutions from different temporal coupling schemes.
 
 %In detail, fluctuation in MD domain is not so strong in hybrid region. Though minor time-lagging profile is seen from MD solution, this does not change the global flow profile dominantly because the driving force in this simulation is the oscillating velocity from CFD domain.
 
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Stokes_Sol_Profile.pdf}
+\subfloat[Velocity Profile of an Oscillating Boundary Problem]{\label{vel_stokes}
+\includegraphics[width=0.6\linewidth]{Stokes_Sol_Profile.pdf}}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Stokes_Temporal_Profile.pdf}
+\subfloat[Temporal Variation of Velocity in the Middle of Hybrid Region]{\label{vel_stokes_history}
+\includegraphics[width=0.6\linewidth]{Stokes_Temporal_Profile.pdf}}
 \vskip-0.2cm
-\caption{\small {\bf A time-accurate flow profile of an oscillating boundary problem.} (Left) Velocity profiles by pure CFD and hybrid simulations at specified time instances. Difference between hybrid and pure CFD solutions in hybrid region shrinks in the continuum domain. Noise from the MD simulation does not affect the global velocity profile a lot, because the driving force in this simulation is the oscillating velocity from CFD domain. (Right) Temporal variation of the velocity in the middle of hybrid layer. History of the velocity field reveals that the hybrid solution contains much noise in this experiment.}
+\caption[]{\small {\bf A time-accurate flow profile of an oscillating boundary problem.}
+\subref{vel_stokes} Difference between hybrid and pure CFD solutions in
+hybrid region shrinks in the continuum domain. Noise from the MD simulation
+does not affect the global velocity profile a lot, because the driving force
+in this simulation is the oscillating velocity from CFD domain.
+\subref{vel_stokes_history} History of the velocity field reveals that the
+hybrid solution contains much noise in this experiment.}
 \label{Stokes_Sol}
 \end{figure}
 
@@ -1396,11 +1554,20 @@ We compared velocity history profiles from different temporal coupling schemes. 
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.6\linewidth]{Stokes_Org_Multi.pdf}
+\subfloat[Velocity History at Conventional Synchronized Approach]{\label{stokes_org}
+\includegraphics[width=0.6\linewidth]{Stokes_Org_Multi.pdf}}
 \hskip 1cm
-\includegraphics[width=0.6\linewidth]{Stokes_Both_Multi.pdf}
+\subfloat[Velocity History at Prediction-Correction Approach]{\label{stokes_both}
+\includegraphics[width=0.6\linewidth]{Stokes_Both_Multi.pdf}}
 \vskip-0.2cm
-\caption{\small {\bf The temporal variation of the velocity in the middle of an overlapping region.} (Left) With conventional model, large overshoot/undershoot phenomena are observed on the peak points: the statistical noise around 0.01 $\sigma/\tau$ is nearly 20 $\%$ of continuum velocity. The time-lagging effect is also captured. (Right) Overshoot/undershoot phenomena in the conventional approach is almost resolved by applying the prediction-correction approach. The interpolated hybrid boundary conditions are imposed on CFD and MD domains.}
+\caption[]{\small {\bf The temporal variation of the velocity in the middle of an overlapping region.}
+\subref{stokes_org} With conventional synchronized coupling model,
+large overshoot/undershoot phenomena are observed on the peak points:
+the statistical noise around 0.01 $\sigma/\tau$ is nearly 20 $\%$ of the
+continuum velocity in that location. The time-lagging effect is also captured.
+\subref{stokes_both} Overshoot/undershoot phenomena in the conventional
+approach is almost resolved by applying the prediction-correction approach.
+The interpolated hybrid boundary conditions are imposed on CFD and MD domains.}
 \label{Temporal1}
 \end{figure}
 
@@ -1413,14 +1580,25 @@ The plots shown in Fig.~\ref{Temporal2} quantify the scale of inaccuracy accordi
 %\begin{figure}[ht]
 \begin{figure}
 \centering
-\includegraphics[width=0.45\linewidth]{Stokes_Org_Diff.pdf}
+\subfloat[Conventional Synchronized Coupling with Extrapolation]{\label{stokes_org_diff}
+\includegraphics[width=0.4\linewidth]{Stokes_Org_Diff.pdf}}
 \hskip 1cm
-\includegraphics[width=0.45\linewidth]{Stokes_Exp_Diff.pdf}
+\subfloat[Prediction-Correction with Extrapolation]{\label{stokes_exp_diff}
+\includegraphics[width=0.4\linewidth]{Stokes_Exp_Diff.pdf}}
 \vskip-0.2cm
-\includegraphics[width=0.45\linewidth]{Stokes_Imp_Diff.pdf}
+\subfloat[Prediction-Correction with Interpolation on MD Boundary]{\label{stokes_imp_diff}
+\includegraphics[width=0.4\linewidth]{Stokes_Imp_Diff.pdf}}
 \hskip 1cm
-\includegraphics[width=0.45\linewidth]{Stokes_Both_Diff.pdf}
-\caption{\small {\bf The reduction of unsteady error by a prediction-correction approach.} Figures show the velocity difference between pure CFD and hybrid solutions in the middle of hybrid layer. Plotted data include the conventional extrapolation model and 3 different types of prediction-correction approaches, which are corrected extrapolation model, interpolated boundary model on MD domain and interpolated boundary condition on both domains. The velocity difference in the conventional model ranges from -0.017 to 0.015. This error reduces to be within -0.007 and 0.009 in refined model.}
+\subfloat[Prediction-Correction with Interpolation on Both Domains]{\label{stokes_both_diff}
+\includegraphics[width=0.4\linewidth]{Stokes_Both_Diff.pdf}}
+\caption[]{\small {\bf The reduction of unsteady error by a prediction-correction approach.}
+Figures show the velocity difference between pure CFD and hybrid solutions
+in the middle of hybrid layer. Plotted data include the conventional
+extrapolation model and 3 different types of prediction-correction approaches,
+which are corrected extrapolation model, interpolated boundary model on MD
+domain and interpolated boundary condition on both domains. The velocity
+difference in the conventional model ranges from -0.017 to 0.015.
+This error reduces to -0.007 and 0.009 at the prediction-correction model.}
 \label{Temporal2}
 \end{figure}
 
@@ -1613,24 +1791,27 @@ All measured times are in seconds and 5 distinct experiments are averaged.}
 
 The validity of a LB can be discussed in terms of the change of processor distribution between sub-jobs throughout the simulation. For the result of the 256 cores (=16 nodes) simulation in Fig.~\ref{Fig:LBSmall}, both CFD and MD subtasks were assigned with 8 nodes initially. From the next simulation loops, the processor distribution converged to 3 to 13 nodes between CFD and MD, respectively. This ratio was maintained throughout the simulation. CFD and MD computation times changed from 260 to 1235 seconds at the initial loop to 705 to 850 seconds after load balancing. Simulation runtimes were measured to be about 35 seconds longer than the slower simulation (MD simulation) per each simulation loop, which is the overhead by the initialization , I/O (input/output) and communication between coupled applications.
 
+
 %%%%% FIGURE %%%%%
 \begin{figure}
-%\vspace{-1em}
 \centering
-\includegraphics[width=0.3\linewidth]{256_Node.jpg}
-%\linebreak
-\includegraphics[width=0.3\linewidth]{256_Time.jpg}
-\caption{\small {\bf Change of resource distribution and computation time
-between CFD and MD sub-jobs using 256 cores (=16 nodes).} A LB detects
-the distribution of 3 -- 13 nodes to CFD and MD sub-jobs as the optimal solution. In view of
- simulation runtime, 1270 seconds for the initial simulation loop reduces to
-885 seconds after load-balancing is achieved. Note that each node
-(which contains 16 cores in the current system) is dedicated to a single
-application. Triangle and circle symbols denote averaged values from CFD
-and MD sub-jobs. Dashed lines are solutions from the individual experiment.
+\subfloat[Resource Allocation during the Load Balancing Loops]{\label{256_node}
+\includegraphics[width=0.4\linewidth]{256_Node.jpg}}
+\hskip 1cm
+\subfloat[Simulation Time during the Load Balancing Loops]{\label{256_time}
+\includegraphics[width=0.4\linewidth]{256_Time.jpg}}
+\vskip-0.2cm
+\caption[]{\small {\bf Change of resource distribution and computation time
+between CFD and MD sub-jobs using 256 cores (=16 nodes).}
+A LB detects the distribution of 3 -- 13 nodes to CFD and MD sub-jobs as
+the optimal solution. In view of simulation runtime, 1270 seconds for the
+initial simulation loop reduces to 885 seconds after load-balancing is achieved.
+Note that each node (which contains 16 cores in the current system) is
+dedicated to a single application. Triangle and circle symbols denote
+averaged values from CFD and MD sub-jobs. Dashed lines are solutions
+from the individual experiment.
 }
 \label{Fig:LBSmall}
-\vspace{-1em}
 \end{figure}
 %%%%% FIGURE %%%%%
 
@@ -1638,14 +1819,17 @@ and MD sub-jobs. Dashed lines are solutions from the individual experiment.
 
 The result for the case of computation time evolution in 512 cores (=32 nodes) is presented in Fig.~\ref{Fig:LBLarge}. Compared with the above experiment, which uses smaller cores, the load-balancing solution showed a noisier pattern. In detail, an LB failed to find the optimal solution at the first simulation loop, and the node allocation after load balancing fluctuated between 3 -- 29 and 4 -- 28 nodes in each application, which was caused by two reasons. First, the individual code has poor scalability. The initial simulation time for CFD and MD applications measured around 230 and 780 seconds, and the LB proposed a node distribution from 16 -- 16 to 8 -- 24. However, the computation time at the next simulation loop was measured to be 275 and 680 seconds, respectively. Therefore, the LB has to search for the optimal solution one more time. Load balancing functions that are incorporated in schedulers cannot avoid this iterative searching, since they have to manage black-box applications without getting any information to estimate the problem size. Another reason for the fluctuation is the momentary overhead in the computing system. In our experiment, when 28 nodes are used, MD simulation times vary from 610 seconds to 880 seconds, depending on the magnitude of the internal overhead. This variation indicates the necessity of an LB as a self-correcting tool in response to the instability of the system.
 
+
 % %%%%% FIGURE %%%%%
 \begin{figure}
-%\vspace{-1em}
 \centering
-\includegraphics[width=0.3\linewidth]{512_Node.jpg}
-%\linebreak
-\includegraphics[width=0.3\linewidth]{512_Time.jpg}
-\caption{\small {\bf Change of resource distribution between 
+\subfloat[Resource Allocation during the Load Balancing Loops]{\label{512_node}
+\includegraphics[width=0.4\linewidth]{512_Node.jpg}}
+\hskip 1cm
+\subfloat[Simulation Time during the Load Balancing Loops]{\label{512_time}
+\includegraphics[width=0.4\linewidth]{512_Time.jpg}}
+\vskip-0.2cm
+\caption[]{\small {\bf Change of resource distribution between 
 CFD and MD sub-jobs and resultant computation time using 512 cores (=32 nodes).}
 A LB solution fluctuates between 3 -- 29 and 4 -- 28 nodes assigned to
 CFD and MD sub-jobs, because of temporary internal overhead of a system.
@@ -1655,7 +1839,6 @@ application codes for this problem set.
 The same caption is used as in Fig.~\ref{Fig:LBSmall}.
 }
 \label{Fig:LBLarge}
-\vspace{-1em}
 \end{figure}
 %%%%% FIGURE %%%%%
 
