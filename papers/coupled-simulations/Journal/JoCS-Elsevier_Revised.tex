@@ -416,7 +416,7 @@ explanation of overlapping region is indicated by the right figure.
 \end{figure}
 %%%%% FIGURE %%%%%
 
-This overlap region is designed sufficiently large to contain five individual layers of sufficient width for the purpose of their existence. The widths of these layers are of course problem dependent. Their roles in the hybrid region are as follows. One layer (the bottom one in Fig. 1-left) provides information from the particle (MD) domain to the continuum one (denoted as ''MDtoCFD''. A second layer (the third one from the bottom in Fig. 1-left) provides information from the continuum domain to the particle one (denoted as ''CFDtoMD''. A third layer (the top one in Fig. 1-left) applies a fictitious external force which prevents particles from escaping from the hybrid domain. These three ''active'' layers are separated by buffer layers, which are placed so as to ensure smooth transitions and that there is no direct correlation between the ''active'' layers. Properties (e.g. velocity) of particles spatially located in the MDtoCFD layer are ensemble-averaged over all the particles in the layer and also averaged over a finite time (''sampling duration''). The average value is communicated to the continuum solver periodically with a fixed period (''sampling interval'').
+This overlap region is designed sufficiently large to contain five individual layers of sufficient width for the purpose of their existence. The widths of these layers are of course problem dependent. Their roles in the hybrid region are as follows. One layer (the bottom one in Fig. 1-left) provides information from the particle (MD) domain to the continuum one (denoted as ''MDtoCFD''. A second layer (the third one from the bottom in Fig. 1-left) provides information from the continuum domain to the particle one (denoted as ''CFDtoMD''. A third layer (the top one in Fig. 1-left) applies a fictitious external force which prevents particles from escaping from the hybrid domain. These three ''active'' layers are separated by buffer layers, which are placed so as to ensure smooth transitions and that there is no direct correlation between the ''active'' layers. Properties (e.g. velocity) of particles spatially located in the MDtoCFD layer are ensemble-averaged over all the particles in the layer and also averaged over a finite time. The average value is communicated to the continuum solver periodically with a fixed period.
 
 The height of each layer is the same as the CFD cell height and averaged conservative properties in two consecutive layers are passed to continuum domain to be directly imposed as the viscous boundary condition on the Navier-Stokes solver with collocated data structure. The CFDtoMD layer imposes the instantaneous values of properties, velocity in this case, resulting from the continuum solver. This is done via and appropriate constraint to the MD particle-based conservation of momentum on every single particle (constrained dynamics) in the CFDtoMD layer. Thus, particles in this layer are constrained to attain the macroscopic flow property (velocity in this case) on average, while preserving their degree-of-freedom of translational motion. In the uppermost layer, a fictitious external force is exerted on particles to prevent them from escaping the particle domain. This force function is designed to be short-range so as not to be strong enough to influence the motion of the particles past the buffer layer in the CFDtoMD domain. The force stiffens as the particles approach the location where the force becomes infinite in a way that minimizes reflections while preventing the particles from drifting out of the particle domain. The buffer layers existing in between each ''active'' layer are set up to be wider than the interaction length scale of the particles (cutoff radius), in order to prevent direct interaction between particles in neighboring ''active'' layers.
 %\\}
@@ -670,9 +670,9 @@ the sampling noise: The size of sampling layer and its location in space,
 sampling duration with interval in time.
 The layer size denotes the volume of a virtual box in which spatial sampling
 takes place. The layer location is the perpendicular distance of the sampling
-layer from the solid obstacle. The sampling duration ${\Delta}t$ is denoted as
+layer from the solid obstacle. The sampling duration ${\Delta}{t_s}$ is denoted as
 the time length over which spatially-sampled instantaneous solutions are
-accumulated. The sampling interval ${\Delta}{t_s}$ is defined as the time
+accumulated. The sampling interval ${\Delta}t$ is defined as the time
 increment between each hybrid solution exchange. 
 The layer size and sampling duration collevtively contribute to
 the suppression of sampling noise by increasing the number of sampled
@@ -826,7 +826,7 @@ Wang and He~\cite{Wang} proposed extrapolating hybrid boundary conditions
 to resolve the temporal delays in synchronized coupling approach, as seen in
 Fig.~\ref{Hybrid_Timescale1}-\subref{synchro_mod}. In their approach,
 molecular dynamic time axis is shifted forward by half of the sampling interval
-${\Delta}t_{s}$ to get rid of the time-lagging event in CFD boundary condition.
+${\Delta}t$ to get rid of the time-lagging event in CFD boundary condition.
 Also, MD hybrid boundary condition is imposed by the extrapolated CFD solution
 in time. The benefit of this approach is that, in principle,
 time-lagging effect completely diminishes regardless of the sampling duration.
@@ -835,39 +835,42 @@ However, the accuracy of the extrapolated solution is still debatable.
 In this scheduling, two \textit{previous} CFD solutions
 at $n{\Delta}t$ and $(n-1){\Delta}t$ are extrapolated to predict the
 \textit{expected} MD hybrid boundary conditions
-from $n{\Delta}t+0.5{\Delta}t_{s}$ to $(n+1){\Delta}t+0.5{\Delta}t_{s}$.
-Except when the velocity gradient is linear in time, the extrapolated property
-is prone to provide the incorrect value from the start. The only way to reduce
-this extrapolation error is to reduce the sampling duration, which is
-contradictory to the condition for reducing the statistical error.
+from $(n+\frac{1}{2}){\Delta}t$ to $(n+\frac{3}{2}){\Delta}t$.
+The extrapolated property is prone to be incorrect from the start
+except when the velocity variation is linear in time. In such cases, shortening the sampling
+interval ${\Delta}t$ is a way of reducing this extrapolation error. It, in turn, results in
+the short sampling duration, which is unfavorable for reducing the statistical error.
 
 
 %\begin{figure}[htbp]
 \begin{figure}
 \centering
 \subfloat[Sequential Coupling]{\label{sequential_couple}
-\includegraphics[width=0.7\linewidth]{Sequential_Coupling.pdf}}
+\includegraphics[width=0.7\linewidth]{Sequential_Coupling_Simple.pdf}}
 \subfloat[Synchronized Coupling]{\label{synchro_couple}
-\includegraphics[width=0.7\linewidth]{Synchro_Coupling.pdf}}
+\includegraphics[width=0.7\linewidth]{Synchro_Coupling_Simple.pdf}}
 \subfloat[Synchronized Coupling with Extrapolation~\cite{Wang}]{\label{synchro_mod}
-\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org.pdf}}
+\includegraphics[width=0.7\linewidth]{Prediction_Correction_Org_Simple.pdf}}
 %\includegraphics[width=0.8\linewidth]{Synchro_Coupling.pdf}
 %\includegraphics[width=0.8\linewidth]{Sequential_Coupling.pdf}
 \vskip-0.2cm
 \caption[]{\small {\bf Conventional time evolution mechanisms of a hybrid CFD-MD approach.} 
 CFD and MD codes are scheduled to conduct data exchange in the overlapping 
 region at every $\Delta{t}$ sampling interval.
-\subref{sequential_couple} In the sequential way, one code first evolves 
-to the next communication point and the other code follows. One code stays
-idle while another code evolves.
-\subref{synchro_couple} In synchronized coupling strategy, both codes 
-communicate at the same time level and evolve to next exchange time level.
-CFD solution at $n{\Delta}t$ is directly applied as the boundary condition
-for MD simulation and backward time-averaged molecular dynamic properties
-over $\Delta{t_{S}}$ sampling durations are imposed as CFD boundary conditions. 
-\subref{synchro_mod} MD time axis is shifted forward by half of sampling
-duration and extrapolation is employed on MD boundary condition to avoid
-time-delay patterns.}
+\subref{sequential_couple} MD code first advances to the next communication
+point ($n{\Delta}t$) and passes the centrally-sampled data around
+$(n-1){\Delta}t$ to CFD solver so that CFD solver evolves to the $n{\Delta}t$.
+One code stays idle while another code evolves.
+\subref{synchro_couple} Both codes individually evolve to the communication
+point ($n{\Delta}t$) and exchange individual solution.
+CFD passes the instantaneous solution at $n{\Delta}t$ while
+the backward time-averaged molecular dynamic sample is imposed as the
+CFD boundary condition at that time.
+\subref{synchro_mod} MD code approaches $(n+\frac{1}{2}){\Delta}t$ while
+CFD solver evolves from $(n-1){\Delta}t$ to $n{\Delta}t$. Centrally-sampled MD solution
+around $n{\Delta}t$ is supplied as the CFD boundary condition
+from $n{\Delta}t$ to $(n+1){\Delta}t$. CFD solution at $n{\Delta}t$ is extrapolated
+for the MD boundary condition from $(n+\frac{1}{2}){\Delta}t$ to $(n+\frac{3}{2}){\Delta}t$.}
 %\caption{\small {\bf Conventional time evolution mechanisms of a hybrid CFD-MD approach.} CFD and MD codes are scheduled to conduct data exchange in the overlapping region at every $\Delta{t}$ sampling interval. CFD solution at $n{\Delta}t$ is directly applied as the boundary condition for MD simulation and backward time-averaged molecular dynamic properties over $\Delta{t_{S}}$ sampling durations are imposed as CFD boundary conditions. (1) Synchronized Coupling: Both codes communicate at the same time level and independently iterate to next exchange point. (2) Sequential Coupling: From the same time level, one solver advances to the next communication point and impose implicit boundary condition to its counterpart.}
 \label{Hybrid_Timescale1}
 \end{figure}
@@ -881,7 +884,7 @@ time-delay patterns.}
 %A new scheme named ''prediction-correction approach'' is also depicted in Fig.~\ref{Hybrid_Timescale2}. The main difference from the default model is that CFD code iterates additional  time steps after the code evolved to the next data exchange time. For example, in Fig.~\ref{Hybrid_Timescale2}-(1), CFD code additionally evolves by the half of sampling interval after the code approached to $n{\Delta}t$. CFD code sends these predicted properties at $(n+1/2){\Delta}t$ to the MD site and receives averaged molecular properties around $n{\Delta}t$. CFD code loads its previous flow profile at $n{\Delta}t$ and runs the actual simulation to next communication point at $(n+1){\Delta}t$. Clear benefit of current approach is that both solvers extrapolate their boundary conditions from \textit{current} solutions (either exact solution or predicted values) instead of using \textit{previous} history. This eliminates the sensitivity of extrapolated solution according to the size of sampling interval in previous model, which enables increasing the sampling interval.
 
 A ''prediction-correction approach'' is designed to reduce this 
-extrapolation error by introducing the \textit{predicted} solution at
+extrapolation error by introducing the \textit{predicted} continuum solution at
 later time instance, as presented in Fig.~\ref{Hybrid_Timescale2}.
 The prediction-correction approach numerically provides non-delayed hybrid
 boundary conditions, like Wang and He's formulation. Thus, the sampling
@@ -889,12 +892,12 @@ duration is designed as long as the sampling interval.
 The main difference from Wang and He's approach is that the CFD code
 iterates additional time intervals after it reaches the next communication point.
 For example, in Fig.~\ref{Hybrid_Timescale2}-\subref{predcorr_extra},
-the CFD code additionally evolves by half of sampling interval after
+the CFD code additionally evolves by half of sampling duration after
 it approaches $n{\Delta}t$. The CFD code sends these predicted properties
-at $n{\Delta}t + 0.5{\Delta}{t_s}$ to the MD site and receives the
+at $n{\Delta}t + \frac{1}{2}{\Delta}{t_s}$ to the MD site and receives the
 centrally-sampled molecular dynamic solution around $n{\Delta}t$.
 The CFD code rolls back to its previous flow profile at $n{\Delta}t$ and
-applies the recieved molecular dynamic solution to advance to the next
+applies the received molecular dynamic solution to advance to the next
 communication point.
 A clear benefit of the current approach is that both solvers extrapolate
 their boundary conditions from \textit{current} solutions instead of
@@ -909,17 +912,16 @@ of the hybrid boundary condition.
 In Fig.~\ref{Hybrid_Timescale2}-\subref{predcorr_inter}, the prediction
 time scale is increased by one more sampling intervals. While the MD
 solver evolves for one sampling interval
-from $(n-1){\Delta}t + 0.5{\Delta}{t_s}$ to $n{\Delta}t + 0.5{\Delta}{t_s}$,
+from $(n-1){\Delta}t + \frac{1}{2}{\Delta}{t_s}$ to $n{\Delta}t + \frac{1}{2}{\Delta}{t_s}$,
 the CFD code runs the actual evolution from $(n-1){\Delta}t$ to $n{\Delta}t$
-and adds the predictive evolution for ${\Delta}t + 0.5{\Delta}{t_s}$ time
-interval. Predicted CFD solution at $(n+1){\Delta}t + 0.5{\Delta}{t_s}$
-is applied as the interpolated hybrid boundary condition when MD solver
-evolve
-from $n{\Delta}t + 0.5{\Delta}{t_s}$ to $(n+1){\Delta}t + 0.5{\Delta}{t_s}$.
+and adds the predictive evolution for ${\Delta}t + \frac{1}{2}{\Delta}{t_s}$ time
+interval. Predicted CFD solution at $(n+1){\Delta}t + \frac{1}{2}{\Delta}{t_s}$
+is provided for the interpolated hybrid boundary condition on MD solver.
+from $n{\Delta}t + \frac{1}{2}{\Delta}{t_s}$ to $(n+1){\Delta}t + \frac{1}{2}{\Delta}{t_s}$.
 Figure ~\ref{Hybrid_Timescale2}-\subref{predcorr_both} demonstrates the
 imposition of implicit boundary conditions on both domains. In this formulation,
 CFD time is shifted backward by one sampling interval and the prediction step
-is scheduled as $2{\Delta}t + 0.5{\Delta}{t_s}$.
+is scheduled as $2{\Delta}t + \frac{1}{2}{\Delta}{t_s}$.
 
 
 %A new approach named `prediction-correction strategy' is depicted in Fig.~\ref{Hybrid_Timescale2}. After the data exchange at $t$, MD advances to the next communication point by extrapolating two previous boundary conditions at $t-\Delta t$ and $t$. On the other hand, CFD code loads the previous solution at $t-{\Delta}t_{S}/{2}$ after communicating with MD code at $t$ and evolves to $t+{\Delta}t$ by imposing extrapolated boundary condition from data at $t-\Delta t - {\Delta}t_{S}/{2}$ and $t-{\Delta}t_{S}/{2}$, which makes the difference from the original strategy. In this approach, time interval between $t - {\Delta}t_{S}/{2}$ and $t$ gets to be solved twice: first in prediction step and second in correction step. Clear benefit of current approach is that both solvers are provided with the ``exact" boundary condition once in every sampling interval, compared to the original formulation in which boundary condition had to be extrapolated ``everytime" or the quasi-steady assumption had to be satisfied. As the exact boundary condition is provided at every sampling interval, sampling duration can be increased as long as sampling interval, which will reduce statistical error. Furthermore, with longer prediction setting as seen at Fig.~\ref{Hybrid_Timescale2}-b) and c), more accurate boundary condition can be imposed by simulating over longer prediction time.
@@ -929,7 +931,7 @@ is scheduled as $2{\Delta}t + 0.5{\Delta}{t_s}$.
 \centering
 \subfloat[Extrapolated Hybrid Boundary Conditions]{\label{predcorr_extra}
 \includegraphics[width=0.7\linewidth]{Prediction_Correction_Extra_Simple.pdf}}
-\subfloat[Implicit MD Boundary Condition]{\label{predcorr_inter}
+\subfloat[Interpolated MD Boundary Condition]{\label{predcorr_inter}
 \includegraphics[width=0.7\linewidth]{Prediction_Correction_Inter_Simple.pdf}}
 \subfloat[Interpolated Hybrid Boundary Conditions]{\label{predcorr_both}
 \includegraphics[width=0.7\linewidth]{Prediction_Correction_Both_Simple.pdf}}
@@ -940,15 +942,21 @@ is scheduled as $2{\Delta}t + 0.5{\Delta}{t_s}$.
 \caption[]{\small {\bf A prediction-correction approach with extrapolated / interpolated hybrid boundary conditions.} 
 %Applying extrapolation/interpolation enables increasing sampling duration 
 %as much as the sampling interval.
-\subref{predcorr_extra} CFD code runs the prediction step by $0.5{\Delta}{t_s}$.
-CFD and MD hybrid boundary conditions are extrapolated properties from the
-current solution.
-\subref{predcorr_inter} CFD code runs the prediction step by
-${\Delta}t + 0.5{\Delta}{t_s}$.
-Hybrid MD boundary conditions are interpolated from predicted CFD solutions.
+\subref{predcorr_extra} While MD code evolves for one sampling interval from
+$(n-1){\Delta}t + \frac{1}{2}{\Delta}{t_s}$, CFD solver runs the actual evolution
+from $(n-1){\Delta}t$ to $n{\Delta}t$ and adds the the prediction step
+for $\frac{1}{2}{\Delta}{t_s}$. MD code gets the \textit{predicted} continuum hybrid solution
+at $n{\Delta}t + \frac{1}{2}{\Delta}{t_s}$ while CFD solver receives the
+centrally-sampled MD data around $n{\Delta}t$. Both codes extrapolate received solutions
+for imposing hybrid boundary conditions for the next evolution loop.
+\subref{predcorr_inter} The prediction step in CFD solver is increased to
+${\Delta}t + \frac{1}{2}{\Delta}{t_s}$. MD code interpolates two \textit{predicted}
+CFD solutions at $n{\Delta}t + \frac{1}{2}{\Delta}{t_s}$ and
+$(n+1){\Delta}t + \frac{1}{2}{\Delta}{t_s}$ for the hybrid boundary conditions
+when the code evolves over the same interval.
 \subref{predcorr_both} Time axis of CFD domain shifts backward by 1 sampling
 interval and the prediction step is set $2{\Delta}t + 0.5{\Delta}{t_s}$.
-Both CFD and MD boundary conditions become implicit.}
+Hybrid boundary conditions at both solvers are acquired through the interpolation.}
 \label{Hybrid_Timescale2}
 \end{figure}
 
