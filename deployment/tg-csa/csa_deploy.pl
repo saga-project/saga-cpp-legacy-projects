@@ -510,6 +510,7 @@ if ( $do_deploy )
           my $cmd = "$access $fqhn 'mkdir -p $path ; " .
                                    "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
                                    "$ENV CSA_HOST=$host                 " .
+                                   "     CSA_ESA=$esa                   " .
                                    "     CSA_LOCATION=$path             " .
                                    "     CSA_SAGA_VERSION=$version      " .
                                    "     CSA_SAGA_SRC=\"$mod_src\"      " .
@@ -534,12 +535,12 @@ if ( $do_deploy )
 
           if ( $mod_name eq "documentation" )
           {
-            my $cmd = "$access $fqhn ' cd $path/csa/                            && " .
-                                     " svn add doc/README.saga-$version.*.$host && " .
-                                     " svn add mod/module.saga-$version.*.$host && " .
-                                     " $SVNCI -m \"automated update\"              " .
-                                     "   doc/README.saga-$version.*.$host          " .
-                                     "   mod/module.saga-$version.*.$host       '  " ;
+            my $cmd = "$access $fqhn ' cd $path/csa/                                && " .
+                                     " svn add doc/README.saga-$version.*.$host$esa && " .
+                                     " svn add mod/module.saga-$version.*.$host$esa && " .
+                                     " $SVNCI -m \"automated update\"                  " .
+                                     "   doc/README.saga-$version.*.$host$esa          " .
+                                     "   mod/module.saga-$version.*.$host$esa'         " ;
             if ( $show || $fake )
             {
               print " -- $cmd\n";
@@ -596,6 +597,7 @@ if ( $do_check )
         my $cmd = "$access $fqhn 'mkdir -p $path ; " .
                   "cd $path && test -d csa && (cd csa && svn up) || svn co $svn csa; ". 
                   "$ENV CSA_HOST=$host                 " .
+                  "     CSA_ESA=$esa                   " .
                   "     CSA_LOCATION=$path             " .
                   "     CSA_SAGA_VERSION=$version      " .
                   "     CSA_SAGA_CHECK=yes             " .
@@ -619,10 +621,10 @@ if ( $do_check )
       }
 
       {
-        my $cmd = "$access $fqhn ' cd $path/csa/                           && " .
-                                 " svn add test/test.saga-$version.*.$host && " .
-                                 " $SVNCI -m \"automated update\"             " .
-                                 "    test/test.saga-$version.*.$host      '  " ;
+        my $cmd = "$access $fqhn ' cd $path/csa/                               && " .
+                                 " svn add test/test.saga-$version.*.$host$esa && " .
+                                 " $SVNCI -m \"automated update\"                 " .
+                                 "    test/test.saga-$version.*.$host$esa'        " ;
         if ( $show || $fake )
         {
           print " -- $cmd\n";

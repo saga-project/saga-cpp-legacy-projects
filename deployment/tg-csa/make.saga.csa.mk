@@ -19,6 +19,7 @@ endif
 # get rid of symlinks in CSA_LOCATION
 CSA_TMP_LOCATION  = $(shell cd $(CSA_LOCATION) && pwd -P)
 CSA_LOCATION     := $(CSA_TMP_LOCATION)
+ESA               = $(CSA_ESA)
 
 
 # never ever build parallel
@@ -690,9 +691,9 @@ endif
 # create some basic documentation about the installed software packages
 #
 CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(ESA)
 CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
-CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(ESA)
 
 .PHONY: documentation
 documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE) permissions
