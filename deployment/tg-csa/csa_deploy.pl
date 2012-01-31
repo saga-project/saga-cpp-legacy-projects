@@ -21,6 +21,7 @@ my $do_list     = 0;
 my $do_check    = 0;
 my $do_deploy   = 0;
 my $experiment  = 0;
+my $esa         = "";
 my $do_force    = 0;
 my $force       = "";
 my $fake        = 0;
@@ -77,10 +78,10 @@ while ( my $arg = shift )
   {
     $show = 1;
   }
-  elsif ( $arg =~ /^(-e|--exp|--experimental)$/io )
+  elsif ( $arg =~ /^(-e|--exp|--esa|--experimental)$/io )
   {
     $experiment = 1;
-    $csa        = "esa";
+    $esa        = ".esa";
   }
   elsif ( $arg =~ /^(-f|--force)$/io )
   {
