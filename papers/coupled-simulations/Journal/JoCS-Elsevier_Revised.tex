@@ -359,7 +359,7 @@ In addition we extend our investigation into the moderate-speed flow regime (flo
 
 In terms of computational science, our study introduces a novel approach to coupled multi-physics simulations by utilizing the virtually unified simulation package, called "Pilot-Job". We argue that using the Pilot-Job approach has distinct advantages, such as: (i) elimination of the need for a co-scheduler while preserving performance, and (ii) enables dynamic resource allocation, which in turn is important for load-balancing across coupled simulations. 
 
-The paper is organized as follows. In Section~\ref{sec:numerical} we give a brief description of the fundamental equations describing the CFD and MD formulations as well as details of the hybrid CFD-MD coupling scheme and its implementation. Technical details related to the implementation of an efficient CFD-MD simulation framework are presented in Section~\ref{sec:computational}. In Section~\ref{sec:accuracy}, we present the solutions to the two prototype problems (impulsively started Couette flow and oscillating boundary Stokes problem) obtained with our hybrid methodology. The performance and the optimization issues related to the solutions of the two test problems are described in Section~\ref{sec:performance}. Recommendation for future work and conclusions are presented in Sections~\ref{sec:futureworks} and~\ref{sec:conclusion}.
+The paper is organized as follows. In Section~\ref{sec:numerical} we give a brief description of the fundamental equations describing the CFD and MD formulations as well as details of the hybrid CFD-MD coupling scheme and its implementation. Technical details related to the implementation of an efficient CFD-MD simulation framework are presented in Section~\ref{sec:computational}. In Section~\ref{sec:accuracy}, we present the solutions to the two prototype problems (impulsively started Couette flow and oscillating boundary Stokes problem) obtained with our hybrid methodology. The performance and the optimization issues related to the solutions of the two test problems are described in Section~\ref{sec:performance}. Conclusion and future works are presented in Section~\ref{sec:conclusion}.
 
 
 % ===== Former Version =====
@@ -1888,38 +1888,63 @@ Two things remained for open discussion: 1) how to effectively measure the actua
 
 
 %-------------------------------------------------------------------------
-\section{Next Step: Further Investigations}
-\label{sec:futureworks}
-
-Numerical simulations in Sec.~\ref{sec:accuracy} demonstrates that the determination of coupling parameters along with the supplementary use of multiple replica sampling is very important for the accurate hybrid simulations. Unfortunately, coupling conditions have been rather intuitively determined according to the flow physics of the target problem, and existing mathematical expressions in statistical error~\cite{Hadjicon3,Time_Mechanism} unfortunately does not consider the variation of sampling noise depending on the geometric configuration. Sampling noise expression should be refined to investigate the interaction with solid obstacles.
-
-Unsteady flow simulation in Sec.~\ref{sec:accuracy_oscillation} verifies that the prediction-correction approach provides more accurate solution than conventional temporal coupling scheme. The new approach is especially powerful in resolving the unfavorable overshoot/undershoot phenomena. On the other hand, the slight time-lagging effectis still existent in the prediction-correction approach. We expect that this phenomenon can be resolved by applying a higher-order extrapolation/interpolation for hybrid boundary conditions.
-
-%The unstable solution at Fig.~\ref{Couette_Noisy} represents the result of Couette flow simulation with 0.1 $\sigma / \tau$ upper plate velocity in O(100) nanometer system. The diverging solution is intuitively natural, according to the statistical noise measurement in Table~\ref{table:MD_Vel0_L}: the amount of statistical error is 25 percent of the steady-state velocity in MDtoCFD layer. For the worse, the signal-to-noise ratio is even larger at early stage. Thus the strong initial instability makes it harder for the solver to reach the steady-state solution. Increasing the sampling duration to 1000 $\tau$ did not help; increasing the height of layers implies the abandonment of hybrid method's merit over pure MD method.
-%Clearly, this is one of the most important issues to make the family of hybrid methods a powerful tool which describes the detailed phenomena between solid obstacles and surrounding fluids more accurately. So far, two possible ways are observed at the first glance. First, setting the initial MD condition the same as steady-state CFD profile and starting hybrid simulation will, at least, alleviate the influence of noise at early stage. However, time-accurate unsteady solution can not be gained by this approach. Second, \skonote{check the clear term of zeta at Nie's formulation!} increasing $\zeta$ looks helpful in alleviating the noise in system level. However, this is worried whether excessive suppress of particles' vibration results in the breakup of fluid physics, i.e., breakup of energy conservation. A thorough investigation on the characteristics of statistical noise and design of numerical algorithm for acquiring the accurate solution without numerical damping are highly required.
-
-%%\begin{figure}[ht!]
-%\begin{figure}
-%\centering
-%\includegraphics[width=0.6\linewidth]{Couette_Noisy.pdf}
-%\vskip-0.2cm
-%\caption{\small {\bf Unstable solution at low shear rate.} Velocity of the upper plate is 0.1 $\sigma / \tau$ and all other conditions are identical to the Couette flow simulation in large domain. The solution diverges at early stage, since the statistical error is very large compared to the hydrodynamic velocity.}
-%\label{Stokes_Sol}
-%\end{figure}
-
-
-
-%-------------------------------------------------------------------------
 \section{Conclusions}
 \label{sec:conclusion}
 
-Accurate and efficient multi-scale flow simulations by a hybrid CFD-MD simulation framework have been presented in this paper. Hybrid schemes and file-based hybrid interfaces are incorporated in a highly-reliable LAMMPS molecular dynamics package and a verified in-house incompressible CFD code. They are virtually integrated as a single BigJob framework.
+Accurate and efficient multi-scale flow simulations by a hybrid CFD-MD
+simulation framework have been presented in this paper.
+Hybrid schemes and file-based hybrid interfaces are incorporated
+in highly-reliable in-house CFD code and LAMMPS molecular dynamics package.
+They are virtually integrated under a single BigJob abstraction.
 
-Numerical issues which harm the accuracy of a hybrid solution have been explored. First, sampling multiple independent replicas has been introduced to refine the sampling noise of an individual solution and to explore to the low-speed flow regimes. This approach is superior to simulating a single large-scale problem set which is technically bound by computing capacity. The application to a Couette flow simulation in O(10) m/s velocity field is the first successful report of a moderate-speed flow simulation using a hybrid CFD-MD approach.
-Also, a prediction-correction approach has been designed for the accurate unsteady simulation. This approach acquires better solution by enabling the imposition of interpolated hybrid boundary conditions. The application to the oscillating boundary problem expresses that the current approach diminishes the overshoot/undershoot phenomena in the conventional methods.
-We emphasize that these numerical investigations ease the challenge to the hybrid simulation and broaden the application area.
+The transient Couette flow simulation in O(10) m/s velocity field reports
+%the noise-free hybrid solution under the non-artificial velocity condition.
+the applicabilty of a hybrid simulation methodology to
+the non-artificial velocity flow simulation.
+It has been accomplished by the delicate determination of
+coupling parameters and the multiple replica sampling approach.
+Multiple replica sampling refines the statistical error
+of an individual solution which is significant for the low-speed flow simulation.
+This approach is superior to simulating a single large-scale problem set
+in terms of effective scheduling under common batch queue systems, thus
+it eases the hybrid simulation on most high-performance computing systems.
+%The transient Couette flow simulation in O(10) m/s velocity field
+%is the first successful report of a moderate-speed flow simulation
+%using a hybrid CFD-MD approach.
+Yet, coupling parameters have been rather intuitively determined
+according to previous studies and the flow physics, because of
+the impossibility to predict the strength of sampling noise
+induced by the solid-liquid interaction.
+Detailed research is necessary to quantify the variation of
+statistical error according to the geometric configuration
+and the interaction with solid obstacle 
 
-Along with numerical issues, computational issues for the efficient coupled simulations have been also discussed. We introduced a BigJob framework which provides the co-scheduling capability among logically separated sub-tasks. A simple load-balancing function is also implemented on a BigJob framework, to achieve the load-balancing among those distributed-yet-coupled codes. From numerical experiments, we evaluate that a BigJob is very powerful in reducing the waiting time of the coupled simulation. Also, a simple load-balancing function employed in a BigJob is effective in reducing the simulation runtime. We value that our computational experiments contribute on how to efficiently conduct coupled simulations. Our design concept and the BigJob abstraction can be applied to the similar distributed multi-scale framework development.
+The application to the oscillating boundary problem presents
+the time-accurate flow profile without the numerical overshoot/undershoot
+phenomena. A prediction-correction temporal coupling scheme
+contributes to eliminating this unphysical behavior by imposing
+interpolated properties on hybrid boundaries. We emphasize that
+the prediction-correction scheme capacitates the accurate
+usteady flow simulation.
+On the other hand, the time-lagging effect on conventional temporal
+schemes has not been fully resolved by the prediction-correction scheme.
+We expect that this numerical error can be resolved by applying
+a higher-order interpolation scheme for hybrid boundary conditions.
+
+Along with numerical issues, computational issues for the efficient
+coupled simulations have been also discussed. We introduced a BigJob
+abstraction which provides the co-scheduling capability among
+logically separated sub-tasks. A simple load-balancing function
+is also incorporated in a BigJob to achieve the load-balancing among
+those distributed-yet-coupled codes. From numerical experiments,
+we evaluate that a BigJob is effective in reducing the waiting time
+on many supercomputers whose queueing policies encourage high capability
+simulations. Also, the load-balancing function contributes to reducing
+the simulation runtime by efficiently distributing allocated resources
+to sub-tasks. We value that our computational experiments illustrates
+how to efficiently conduct coupled simulations. Our design concept and
+the BigJob abstraction can be applied to the similar distributed
+multi-scale simulations.
 
 \section*{Acknowledgements}
 This work is part of the Cybertools (http://cybertools .loni.org)
