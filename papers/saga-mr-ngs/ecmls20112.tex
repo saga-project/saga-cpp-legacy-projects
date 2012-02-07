@@ -126,14 +126,13 @@
 \maketitle
 \begin{abstract} 
 
-Computational challenges with data intensive computing associated with high-throughput DNA sequencing technologies such as Next-Generation Sequencing platforms are recently of great interests in bioinformatics, computational biology, and biocomputing in general.  The novel challenges associated with are rather complicated because that an integrative solution leveraging algorithmic advances, computational implementations, and infrastructure developments altogether is required for a biologist with sequencing data sets in his/her hand.  
 
-In response to such challenges, in this work, we present the development of a Next-Generation Sequencing reads alignment tool using PilotJob (PJ)-based SAGA-MapReduce.  Our implementation of the MapReduce programming model is based on the development of SAGA-MapReduce, a MapReduce implementation using SAGA (www.saga-project.org) with the Pilot Job capability, and collectively resulting in the dynamic application which represents applications executed in distributed resources via effective and dynamic task and data management.  With a specific example, in this work we demonstrate how Pilot Job-based MapReduce has a capability for executing a task of NGS data analysis effectively with recognizing aspects associated with algorithms, implementations, and infrastructure.
-
-The target task is the combination of reads alignment and duplicate removal, with which we examine the characteristics and the performance of the developed tool specifically in distributed computing environments.  The discussions including the potential of this approach for a broad range of NGS data analytics are presented.  Also, we compare our implementation with other approaches that implemented conventional MapReduce with Hadoop.
 
  
 \end{abstract}
+We present our investigation on the use of MapReduce programming model for Next-Generatiion Sequencing (NGS) data analysis.  Our approach is to utilize our recent development of Pilot-Job (PJ)-based SAGA-MapReduce framework. As a first demonstration, the target task is the combination of reads alignment and duplicate removal, with which we examine the characteristics and the performance of the developed frameworks in the context of NGS data analytics and specifically in distributed computing environments.   We compare our implementation with other conventional approaches that implemented MapReduce with Hadoop.  The discussions including the potential of our approach for a broad range of NGS data analytics are also presented. 
+
+
 
 \category{D.1.3}{Software}{Concurrent Programming}{ Distributed
   programming/parallel programming} \category{J.3}{Computer
@@ -155,9 +154,13 @@ The target task is the combination of reads alignment and duplicate removal, wit
 % S gene of Bovine Corona Viral Genome} % NOT required for Proceedings
 
 \section{INTRODUCTION} 
+Computational methods for data intensive computing associated with high-throughput DNA sequencing technologies such as Next-Generation Sequencing platforms are recently of great interests from areas of bioinformatics, computational biology, and biocomputing in general.  The novel challenges waiting for their solutions are complex and somewhat intriguing because the need of an integrative solution leveraging algorithmic advances, computational implementations, and infrastructure developments altogether is so apparent for biologists who have sequencing data sets in his/her hand but available solutions are limited yet.  
 
+In response to such challenges, in this work, we present the development of a Next-Generation Sequencing reads alignment tool using PilotJob (PJ)-based SAGA-MapReduce.  Our implementation of the MapReduce programming model is based on the development of SAGA-MapReduce, a MapReduce implementation using SAGA (www.saga-project.org) with the Pilot Job capability, and collectively resulting in the dynamic application which represents applications executed in distributed resources via effective and dynamic task and data management.  With a specific example, in this work we demonstrate how Pilot Job-based MapReduce has a capability for executing a task of NGS data analysis effectively with recognizing aspects associated with algorithms, implementations, and infrastructure.
 
-The paper is organized as follows. In the following section, we introduce our Pilot-Job-based SAGA-MapReduce along with scientific motivations for computational challenges for Next-Generation Sequencing data pipelines.  More details on the implementation and characteristics of PJ-based SAGA-MapReduce are presented in the next section.  Performance measurements are presented, after that, in particular comparing our results with SEAL which takes a distinctively different approach for the same read alignment-duplicate removal task.  Finally, we will discuss our approach in the context of NGS data analytics challenges and the significance of MapReduce for parallel/concurrent implementation for such challenges and conclude the paper.
+The target task is the combination of reads alignment and duplicate removal, with which we examine the characteristics and the performance of the developed tool specifically in distributed computing environments.  The discussions including the potential of this approach for a broad range of NGS data analytics are presented.  Also, we compare our implementation with other approaches that implemented conventional MapReduce with Hadoop.
+
+The paper is organized as follows. In the following section, we introduce our Pilot-Job-based SAGA-MapReduce along with scientific motivations for computational challenges for Next-Generation Sequencing data pipelines.  More details on the implementation and characteristics of PJ-based SAGA-MapReduce are presented in the next section.  Performance measurements are presented, after that, in particular comparing our results with SEQAL which takes a distinctively different approach for the same read alignment-duplicate removal task.  Finally, we will discuss our approach in the context of NGS data analytics challenges and the significance of MapReduce for parallel/concurrent implementation for such challenges and conclude the paper.
 
 
 \section{SAGA-MapReduce for Next-Generation Sequencing Reads Alignment : Background}
@@ -170,7 +173,16 @@ Hadoop/Normal MR cannot be scaled to multiple clusters( unless and until cluster
 \section{Pilot Job-based SAGA-MapReduce}
 
 \subsection{Implementation}
+In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PJ-based SAGA-MapReduce for reads alignment and duplicate removal tasks is shown.  In brief, the target tasks are carried out with this order. 1.SAGA-MapReduce launches Map tasks on N clusters using Pilot-Job 2. After the Map stage, SAGA-MapReduce exchanges Intermediate data between clusters using Pilot-Data  3. SAGA-MapReduce launches Reduce tasks on N clusters using Pilot-Job.
 
+
+\begin{figure}
+ \centering
+\includegraphics[scale=0.45]{figures/align-dup.pdf} 
+
+\caption{\small Overall architecture}
+  \label{fig:arch-pj-saga-mr} 
+\end{figure}
 
 
 \subsection{Characteristics}
@@ -186,36 +198,66 @@ There are unique features that differentiate our approach from others, which cou
  
  
 
-
-
-
- \begin{table}
- \small
- \begin{tabular}{|c|c|c|c|c|} 
+\begin{center}
+\begin{table*}[ht]
+{\small
+\hfill{}
+\begin{tabular}{|l|l|c|c|c|c|c|c|}
+\hline
+  & \textbf{SAGA-MapReduce} & \textbf{SEQAL} & \textbf{Crossbow} & \textbf{CloudBurst} & \textbf{GATK} \\ \hline
+%\cline{3-9}
  \hline 
-   &  SAGA- & SEAL & Crossbow & CloudBurst \\ 
-   & MapReduce &  &  \\\hline
- Key  & PilotJob   &  Hardoop  &  Hardoop & Hardoop \\ 
- Aspect &   & (HDFS)  &  (HDFS) & (HDFS) \\ \hline
-Target & Alignment/ & Alignment/ & Alignment/ & Alignment \\
- Tasks       & Multiple & Duplicate & SNP & \\ 
-        & Analyses &  Removal & &  \\ \hline  
-Distri-  & Fully   & Hard  & Hard & Hard \\
-buted   & interoperable &  &   & \\ 
-Resources &  &  &  & \\ \hline
+ 
+ Key  & PilotJob   &  Hadoop  &  Hadoop & Hadoop & \\ 
+ Aspect &   & (HDFS)  &  (HDFS) & (HDFS) & \\ \hline
+Target & Alignment/ & Alignment/ & Alignment/ & Alignment & \\
+ Tasks       & Multiple & Duplicate & SNP & & \\ 
+        & Analyses &  Removal & &  & \\ \hline  
+Distributed  & Fully   & Hard  & Hard & Hard  &\\
+Resources   & interoperable &  &   &  &\\  &  &  &  &  & \\ \hline
 
-Strength & 1. Multiple  &  &  &  \\ 
-& Resource &  &  &  \\
-&  2. Decoupling & &  &  \\ 
-& of Map/Reduce &  &  &  \\ \hline
-Weakness &  & 1. HDFS & 1. HDFS & 1. HDFS \\ \hline
+Strength & 1. Multiple  &  &  &  & \\ 
+& Resource &  &  & &  \\
+&  2. Decoupling & &  & & \\ 
+& of Map/Reduce &  &  &  & \\ \hline
+Weakness &  & 1. HDFS & 1. HDFS & 1. HDFS   &\\ \hline
 
 \hline
-\end{tabular}
-\caption{Comparison of MapReduce Implementations utilized for Next-Generation Sequencing Tools}
-  
-  \label{table:mr-comparison} 
-\end{table}
+\end{tabular}}
+\hfill{}
+\caption{Comparison of Next-Generation Sequencing (NGS) tools implemented with MapRedue}
+ \label{table:mr-comparison}
+\end{table*}
+\end{center}
+
+
+% \begin{table}
+% \small
+% \begin{tabular}{|c|c|c|c|c|} 
+% \hline 
+%   &  SAGA- & SEQAL & Crossbow & CloudBurst \\ 
+%   & MapReduce &  &  \\\hline
+% Key  & PilotJob   &  Hadoop  &  Hadoop & Hadoop \\ 
+% Aspect &   & (HDFS)  &  (HDFS) & (HDFS) \\ \hline
+%Target & Alignment/ & Alignment/ & Alignment/ & Alignment \\
+% Tasks       & Multiple & Duplicate & SNP & \\ 
+%        & Analyses &  Removal & &  \\ \hline  
+%Distri-  & Fully   & Hard  & Hard & Hard \\
+%buted   & interoperable &  &   & \\ 
+%Resources &  &  &  & \\ \hline
+%
+%Strength & 1. Multiple  &  &  &  \\ 
+%& Resource &  &  &  \\
+%&  2. Decoupling & &  &  \\ 
+%& of Map/Reduce &  &  &  \\ \hline
+%Weakness &  & 1. HDFS & 1. HDFS & 1. HDFS \\ \hline
+%
+%\hline
+%\end{tabular}
+%\caption{Comparison of Next-Generation Sequencing (NGS) tools implemented with MapRedue}
+%  
+%  \label{table:mr-comparison} 
+%\end{table}
 
 
 
