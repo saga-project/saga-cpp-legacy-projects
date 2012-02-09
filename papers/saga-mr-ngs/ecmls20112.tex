@@ -271,6 +271,34 @@ Weakness &  & 1. HDFS Limitations & 1. HDFS Limitations & 1. HDFS Limitations  &
 
 
 \section{Performance}
+\pmnote{ In this section we compare Hadoop based SEQAL application with Pilot based SAGA MapReduce. 
+Experiment setup:
+Used futuregrid machines - sierra, hotel.
+
+Hadoop SEQAL experiment setup:
+The inpt is prq format. which is hadoop mr step .. it is also a part of seal application. this converts either qseq/fastq to prq format. the replication factor is set  to 1. since PMR doesn;t use any replication.. to make comparision more meaningful.
+number of nodes = 4 nodes. and maximum map & reduce tasks can be 2. if tasks increaed more than 2 lead to memory problems.. [ refer to reference paper].. so total 8 workers used.
+chunk size used is 128MB, which is default block size. which is nearly 	292763 sequences, i.e Each map task need to process 292 763.
+The reduce phase starts after map phase is completed. 
+
+Problems faced with using seqal.. the /tmp directory on each node is used to store data  by hadoop.. but /tmp is limited and tasks failed due to memory problem. so a parallel file system is needed in case of multiple nodes... or /tmp/ data directory should point to different disks.. 
+
+Data setup:
+  all data is present on a single cluster to process. we cant scale hadoop to multiple clusters..
+  tts is calculated = time to transfer data to local cluster from remote cluster + SEQAL execution time 
+ 
+PMR setup..
+   Half the data is placed on sierra cluster. remainig half on hotel. 
+   number of workers = 8. ( each node 2 workers )
+   Input is in fastq format. customized chunking logic is used. the user can define the chunker script and provide as an input to the pMR framwork.
+   chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
+
+tts = max( map on sierra, map on hotel)+max( time tansfer from sierra->hotel, time transfer from hotel->sierra)+max(reduce on sierra, reduce on hotel)..
+
+Graph -> x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
+experiments repeated thrice..
+}
+   
 
 
 \begin{figure}
