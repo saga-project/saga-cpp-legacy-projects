@@ -50,7 +50,7 @@
 %Format\titlenote{(Does NOT produce the permission block, copyright information nor page numbering). For use with ACM\_PROC\_ARTICLE-SP.CLS. Supported by ACM.}}
 
 \newif\ifdraft
-%\drafttrue                                                                                                   
+\drafttrue                                                                                                   
 
 \ifdraft
 % \newcommand{\reviewer}[1]{ {\textcolor{blue}    { ***Reviewer:     #1 }}}
@@ -270,36 +270,29 @@ Weakness &  & 1. HDFS Limitations & 1. HDFS Limitations & 1. HDFS Limitations  &
 \end{figure}
 
 
-\section{Performance}
-\pmnote{ In this section we compare Hadoop based SEQAL application with Pilot based SAGA MapReduce. 
-Experiment setup:
-Used futuregrid machines - sierra, hotel.
+\section{Comparison to Hadoop-based SEQAL}
 
-Hadoop SEQAL experiment setup:
-The inpt is prq format. which is hadoop mr step .. it is also a part of seal application. this converts either qseq/fastq to prq format. the replication factor is set  to 1. since PMR doesn;t use any replication.. to make comparision more meaningful.
-number of nodes = 4 nodes. and maximum map & reduce tasks can be 2. if tasks increaed more than 2 lead to memory problems.. [ refer to reference paper].. so total 8 workers used.
-chunk size used is 128MB, which is default block size. which is nearly 	292763 sequences, i.e Each map task need to process 292 763.
-The reduce phase starts after map phase is completed. 
+In this section we compare Hadoop-based SEQAL application with Pilot-based SAGA-MapReduce. 
+For the comparison, two futuregrid machines, sierra and hotel were used.
 
-Problems faced with using seqal.. the /tmp directory on each node is used to store data  by hadoop.. but /tmp is limited and tasks failed due to memory problem. so a parallel file system is needed in case of multiple nodes... or /tmp/ data directory should point to different disks.. 
+Hadoop SEQAL experiment setup is as follows.  The input file format is prq.  As a part of SEAL, which is a software package containing SEQAL application, file conversion between qseq/fastq and prq format is possible.  The replication factor is set  to 1.\jkimnote{what is replication fator?}  PMR doesn't use any replication.
 
-Data setup:
-  all data is present on a single cluster to process. we cant scale hadoop to multiple clusters..
-  tts is calculated = time to transfer data to local cluster from remote cluster + SEQAL execution time 
+To make the comparision more meaningful, we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
+The chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads.
+The reduce phase starts after all map phase tasks are completed. 
+
+We found problems faced with using SEQAL; the tmp directory on each node is used to store data  by hadoop, but tmp is limited and tasks failed due to memory problem.  So a parallel file system is needed in case of multiple nodes, or tmp data directory should point to different disks.
+
+Data setup is as follows. All data is present on a single cluster to process. we can't scale hadoop to multiple clusters.
+We calculated the time-to-solution (tts) as the combination of the time for transferring data to A cluster from B cluster (when A and B are used) and SEQAL execution time. 
  
-PMR setup..
-   Half the data is placed on sierra cluster. remainig half on hotel. 
-   number of workers = 8. ( each node 2 workers )
-   Input is in fastq format. customized chunking logic is used. the user can define the chunker script and provide as an input to the pMR framwork.
-   chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
-
-tts = max( map on sierra, map on hotel)+max( time tansfer from sierra->hotel, time transfer from hotel->sierra)+max(reduce on sierra, reduce on hotel)..
-
-Graph -> x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
-experiments repeated thrice..
-}
-   
-
+PMR setup is as follows.  Initially the half of the data is placed on sierra. whereas the remaining half is on hotel. The number of workers is 8 and each individual node of the four nodes (two nodes per each cluster) has 2 workers
+   Input is in fastq format. An In-house script is used for the chunking step. The user can define the chunker script and provide as an input to the pMR framwork.  
+ 
+   \pmnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
+tts = max( map on sierra, map on hotel)+max( time tansfer from sierra to hotel, time transfer from hotel to sierra)+max(reduce on sierra, reduce on hotel)..
+Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
+experiments repeated thrice.. }
 
 \begin{figure}
  \centering
