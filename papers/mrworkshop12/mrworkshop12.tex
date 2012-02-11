@@ -28,6 +28,31 @@
 
 \documentclass{acm_proc_article-sp}
 
+\usepackage{xspace}
+
+\newcommand{\pilot}{Pilot\xspace}
+\newcommand{\pilots}{Pilots\xspace}
+\newcommand{\pilotjob}{Pilot-Job\xspace}
+\newcommand{\pilotjobs}{Pilot-Jobs\xspace}
+\newcommand{\computeunit}{Compute Unit\xspace}
+\newcommand{\computeunits}{Compute Units\xspace}
+\newcommand{\cu}{CU\xspace}
+\newcommand{\cus}{CUs\xspace}
+\newcommand{\cs}{Compute Service\xspace}
+\newcommand{\css}{Compute Services\xspace}
+\newcommand{\pcs}{Pilot Compute Service\xspace}
+\newcommand{\dataunit}{Data Unit\xspace}
+\newcommand{\dataunits}{Data Unit\xspace}
+\newcommand{\du}{DU\xspace}
+\newcommand{\dus}{DUs\xspace}
+\newcommand{\pilotdata}{Pilot-Data\xspace}
+\newcommand{\pd}{PD\xspace}
+\newcommand{\pds}{Pilot Data Service\xspace}
+\newcommand{\pdss}{Pilot Data Services\xspace}
+\newcommand{\su}{SU\xspace}
+\newcommand{\sus}{SUs\xspace}
+\newcommand{\schedulableunit}{Schedulable Unit\xspace}
+\newcommand{\schedulableunits}{Schedulable Units\xspace}
 \begin{document}
 
 \title{An extensible Pilot-based SAGA MapReduce}
@@ -175,7 +200,8 @@ compute, data and relationships between them (affinities)~\cite{pstar-2012}.
 MapReduce is an effective programming model for processing large datasets and
 can be easily scaled across multiple clusters, involves execution of map
 compute tasks, shuffling and moving the intermediate data to the reduce task
-for successful execution. Most MapReduce implementations however, tied to
+for successful execution~\cite{Dean:2004:MSD:1251254.1251264}. Most MapReduce 
+implementations however, are tied to
 specific infrastructure and are limited to a single cluster. When the source
 data and computing platform distributed widely, the most efficient
 architecture for processing data over the entire data set becomes non-trivial.
@@ -195,32 +221,106 @@ abstractions for managing the map and reduce tasks and intermediate shuffle
 data between them.
 
 
-In section II we talk about background-- Pilot API, Pilot-Job, Pilot-Data, saga, SAGA previous implementation of MapReduce, Genome sequencing MapReduce application. In section III, we discuss how Pilot abstractions, Pilot-Job and Pilot-Data used to implement the architecture of MapReduce.,. In section IV we discuss about the experiments.
+In section II we talk about background-- Pilot API, Pilot-Job, Pilot-Data,
+saga, SAGA previous implementation of MapReduce, Genome sequencing MapReduce
+application. In section III, we discuss how Pilot abstractions, Pilot-Job and
+Pilot-Data used to implement the architecture of MapReduce.,. In section IV we
+discuss about the experiments.
 
 \section{Related Work}
 
 Hadoop
 
+Sphere
+
 Twister/Iterative Map Reduce~\cite{Ekanayake:2010:TRI:1851476.1851593}
 
 Dryad
 
+Twitter Storm
 
 \section{Pilot Compute and Pilot Data}
-\subsection{Pilot Compute}
-\subsection{Pilot Data}
-\subsection{Pilot API}
+
+Pilot-Jobs support effective distributed resource utilization, and are arguably one of the most widely-used distributed computing abstractions. 
+
+\subsection{Pilot Abstractions for Compute and Data}
+
+The abstraction of a {\emph Pilot-Job} generalizes the reoccurring concept of
+utilizing a placeholder job as a container for a set of compute tasks;
+instances of that placeholder job are commonly referred to as Pilot-Jobs or
+pilots. The PJ provides applications (user) level control and management of
+the set of allocated resources. Analogous to \pilotjobs, {\emph Pilot-Data}
+provides late-binding capabilities for data by separating the allocation of
+physical storage and application-level data units~\cite{pstar-2012}.
+
+The Pilot-API exposes the core functionalities of a \pilot framework via a
+unified interface providing a common API that can be used across multiple PJ
+frameworks. The API provides three core classes: the
+\texttt{PilotComputeService} for the management of Pilot-Jobs,
+\texttt{PilotDataService} for the management of Pilot-Data and the
+\texttt{ComputeDataService} for the management of \texttt{ComputeUnits} (CUs)
+and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
+of work, while a DU represents a logical set for data~\cite{pstar-2012}.
+
+\subsection{BigData: A Pilot-Data Implementation}
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/bigdata.pdf}
+	\caption{BigData Architecture and Interactions}
+	\label{fig:figures_bigdata}
+\end{figure}
+
+BigData (BD) is the SAGA-based prototype of the Pilot-Data abstraction.
+BigData is based on BigJob~\cite{bigjob_web} -- a SAGA-based Pilot-Job
+implementation. Figure~\ref{fig:figures_bigdata} gives an overview of the
+architecture. The system consists similarly to BigJob of two components: the
+BD-Manager and the BD-Agents deployed on the physical resources. The
+coordination scheme used is again M/W with some intelligence that is located
+de-centrally at the BD-Agent. As communication mechanism the SAGA Advert
+Service is used, in a similar push/pull mode as for BJ.
+
+The BD-Manager is responsible for (i) meta-data management, i.\,e.\ it
+keeps track of the pilot stores that a pilot data object is associated
+with, (ii) for scheduling data movements and data replications (taking
+into account the application requirements defined via affinities), and
+(iii) for managing data movements activities. For this purpose, it can rely
+on external service, e.\,g.\ Globus Online for data transfer management.  
+Similar to BigJob, an agent on each resource is used to manage the physical 
+storage on a resource.  
+
+A particular critical requirement for data-intensive application, is
+the management of affinity between CUs and also between DUs and
+DUs. The BD scheduler supports preliminary affinity-aware
+scheduling: both BigJob and BigData are tightly integrated to
+efficiently support compute- and data-related aspects of dynamic
+execution.
+
 
 \section{PyMapReduce -- A Pilot-based MapReduce Implementation}
-\subsection{SAGA previous implementation of MapReduce}
+
+\subsection{Previous SAGA-based MapReduce Implementations}
+
+
+
+\subsection{Architecture of Pilot-based SAGA MapReduce}
+
+\begin{figure}[htbp]
+	\centering
+	\includegraphics[width=0.4\textwidth]{figures/mapreduce-pilotdata.pdf}
+	\caption{\textbf{Pilot-based MapReduce:} Each pilot (both compute and data 
+	pilot) can be associated with an affinity label. The BigData and BigJob 
+	Manager will ensure that CUs and DUs are placed with respect to these 
+	requirements.}
+	\label{fig:figures_mapreduce-pilotdata}
+\end{figure}
+
 \subsection{Genome sequencing duplicate read removal}
 
-\subsection{Architecture of Pilot based SAGA MapReduce}
 
-\section{Experimentation}
+\section{Experiments and Results}
 
 1. Local PMR vs Hadoop MR using canonical word count application.
- its not a performance comparison. because Hadoop uses HDFS which places the tasks close to the data. But, it shows PMR follows the same trend in different configurations, jsut as hadoop
+ its not a performance comparison. because Hadoop uses HDFS which places the tasks close to the data. But, it shows PMR follows the same trend in different configurations, just as hadoop
      - experiment configurations
          - varying workers
          - varying reduces,
