@@ -29,6 +29,25 @@
 \documentclass{acm_proc_article-sp}
 
 \usepackage{xspace}
+\usepackage{color}
+\newif\ifdraft
+\drafttrue
+
+\ifdraft
+\newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
+\newcommand{\pnote}[1]{ {\textcolor{brown} { ***pradeep: #1 }}}
+\newcommand{\note}[1]{ {\textcolor{magenta} { ***Note: #1 }}}
+\else
+\newcommand{\terminology}[1]{}
+\newcommand{\alnote}[1]{}
+\newcommand{\pnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\newcommand{\note}[1]{}
+\fi
+
+
 
 \newcommand{\pilot}{Pilot\xspace}
 \newcommand{\pilots}{Pilots\xspace}
@@ -150,7 +169,8 @@ distributed infrastructure and depending on the type of workload aggregation,
 overheads like huge data transfers or additional computation to combine
 results are involved [weissmanns]. Most MapReduce implementations however,
 tied to specific infrastructure. In this paper, we describe the design and
-implementation of Pilot API based SAGA MapReduce(PMR), which is infrastructure
+implementation of Pilot API based SAGA MapReduce (PMR), which is 
+infrastructure
 independent and extensible to multiple clusters. We validate and characterize
 PMR by benchmarking it with Hadoop MapReduce using canonical word count
 application. We present a PMR workflow to post-process data produced by deep
@@ -158,7 +178,7 @@ sequencing machines at widely distributed geographic locations. The workflow
 takes the output of the sequencing machines, performs short read mapping using
 BWA aligner, and removes duplicate reads. Our experiments show that it
 provides a significantly improved throughput as it scaled to multiple
-clusters, over traditional distributed MapReduce[weissmanns].
+clusters, over traditional distributed MapReduce~\cite{weissman-mr-11}.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -173,10 +193,25 @@ Alignment, BWA, Human Genome, MapReduce, Distributed Computing, Simple API for
 Grid Applications (SAGA)}% NOT required for Proceedings
 
 \section{Introduction}
-Modern computers provide high processing power and can still provide more,
-according to Moore's Law [?]. But processing huge amount of data on a single
-machine is not feasible since the data is distributed across multiple data
-center locations. So, we need to go distributed to solve problem at the
+
+There are various challenges associated with data at extreme scales: which
+have become a critical factor in many sciences disciplines, e.\,g.\ in the
+areas of fusion energy (ITER), bioinformatics (metagenomics), climate (Earth
+System Grid), and astronomy
+(LSST)~\cite{Berriman:2011:AAS:2039359.2047483,Jha:2011fk}. The volumes of
+data produced by these scientific applications are increasing rapidly driven
+by advancing technologies (e.\,g.\ increasing compute capacity and higher
+resolution sensors) and decreasing costs for computation, data acquisition and
+storage~\cite{hey2009}.
+
+But, processing huge amounts of data is a challenging tasks.
+MapReduce~\cite{Dean:2004:MSD:1251254.1251264} as originally developed by
+Google aims to address the big data problem by providing an easy-to-use
+abstraction for parallel data processing. However, in many cases data is
+highly distributed. While existing MapReduce perform very well on single
+machines, they show severe limitations in highly distributed scenarios.
+
+So, we need to go distributed to solve problem at the
 forefront of science, engineering, medicine \& social networking. There are
 numerous scientific applications that either currently utilize, or need to
 utilize data and resources distributed over vast heterogeneous infrastructures
@@ -296,13 +331,26 @@ efficiently support compute- and data-related aspects of dynamic
 execution.
 
 
-\section{PyMapReduce -- A Pilot-based MapReduce Implementation}
+\section{PilotMapReduce -- A Pilot-based MapReduce Implementation}
+\alnote{TODO: Pradeep}
+
 
 \subsection{Previous SAGA-based MapReduce Implementations}
 
-
+In~\cite{Sehgal:2011:UAI:1945091.1945329} we investigated the scale-out of an 
+MapReduce application on different infrastructures. The utilization of Pilot 
+abstractions has several advantages: (i) compute and data pilots allow an 
+efficient decoupling of resource allocation and usage, i.\,e.\ the Map Reduce 
+master can efficiently schedule compute units containing mapper and reduce 
+tasks; (ii) the co-location of data and compute units descriptively defined 
+and are automatically handled by Pilot framework; This enables the 
+applications to easily trade-off data transfers and available compute 
+capacities.
 
 \subsection{Architecture of Pilot-based SAGA MapReduce}
+
+Figure~\ref{fig:figures_mapreduce-pilotdata} shows the architecture of the 
+Pilot-based MapReduce framework. PilotMR utilizes Compute Pilots for managing the execution of mapper and reduce tasks, and Data Pilots for managing the flow of data, i.\,e.\ for transferring the input data to the compute tasks and for transferring the intermediate results between mapper and reduce tasks.
 
 \begin{figure}[htbp]
 	\centering
@@ -314,11 +362,34 @@ execution.
 	\label{fig:figures_mapreduce-pilotdata}
 \end{figure}
 
+Flow of an MapReduce application (assumption input data is pre-staged?):
+\begin{enumerate}
+	\item Start \pilotjobs on all resource.
+	\item Execute \texttt{chunk} script via pilot
+	\item Execute \texttt{mapper} tasks via pilots
+	\item Move output data via Pilot Data
+	\item Execute \texttt{reduce} tasks via pilots 
+\end{enumerate}
+
+Role of Pilot Data
+
 \subsection{Genome sequencing duplicate read removal}
 
+High-throughput genome sequencing techniques provided by Next Generation
+Sequencing (NGS) platforms are changing biological sciences and biomedical
+research. In this section we show how PilotMR can be used for a sequence
+alignment application scenario.
+
+\subsection{Discussion}
+
+Contrast to Hadoop:
+Pilot-MapReduce provides more flexibility and building block, e.g. flexible 
+usage of sorting, more fine-grained control of data transfers etc.
 
 \section{Experiments and Results}
 
+
+\subsection{Pilot MapReduce vs. Non-Pilot MapReduce}
 1. Local PMR vs Hadoop MR using canonical word count application.
  its not a performance comparison. because Hadoop uses HDFS which places the tasks close to the data. But, it shows PMR follows the same trend in different configurations, just as hadoop
      - experiment configurations
@@ -332,15 +403,17 @@ execution.
      - Hadoop tts calculation -involves time to load data into hdfs, map and reduce phase.
      - PMR tts calculation - chunk time, map and reduce phase times. ( local data movement is negligible < 1sec)
 
+\subsection{Distributed MapReduce}
+
 2. distributed PMR vs weissmann's implementation of  DMR using GS duplicate read removal application.
 
 Weissmanns paper doesn't talk about low workload scheme applications where reduce output is still significantly large.. ( it talks about zero, high, balooning ).. so we have a model for these type of applications.
 
 why weissmanns DMR is choosed?? LMR involves huge amount of initial data transfer. GMR need global filesystem across clusters, which is difficult to have, and latencies issues in moving files. So, DMR is a potential choice over LMR and GMR. 
 
-DMR outperforms PMR if pilot-data doesn't transfer intermeidate data concurrently. At the same time, if the concurrency  is not tuned properly, it might cause bandwidth problems.
+DMR outperforms PMR if pilot-data doesn't transfer intermediate data concurrently. At the same time, if the concurrency  is not tuned properly, it might cause bandwidth problems.
 
------- So a experiment section needed to fine tune the concurrency between machines.. Again it depends on bandwidth and the machiens use. need to perform experiments.
+------ So a experiment section needed to fine tune the concurrency between machines.. Again it depends on bandwidth and the machines use. need to perform experiments.
 
 Infrastructure used - India, hotel, sierra futuregrid machines.. hotel is the fastest and sierra is slowest.
 
@@ -351,10 +424,13 @@ PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of 
 
 --- experiments done for local PMR on each individual cluster.. once time taken to trasnfer intermediate data between machines is obtained.. then tts for PMR can be caluculated and compared to DMR.
 
+\subsection{Pilot MapReduce and Hadoop}
 
 
 \section{Conclusions and Future Work}
 
+
+Extending BigData: Access data through BigData abstraction.
 
 
 
