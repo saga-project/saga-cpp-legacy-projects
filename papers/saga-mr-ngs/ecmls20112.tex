@@ -69,7 +69,7 @@
  \newcommand{\fix}[1]{}                                                                                     
 \fi
 
-\title{Next-Generation Sequencing Reads Alignment using SAGA-MapReduce}
+\title{Next-Generation Sequencing Reads Alignment Using SAGA-MapReduce}
 
 \numberofauthors{3} %  in this sample file, there are a *total*
 % of EIGHT authors. SIX appear on the 'first-page' (for formatting
@@ -163,16 +163,40 @@ The target task is the combination of reads alignment and duplicate removal, wit
 The paper is organized as follows. In the following section, we introduce our Pilot-Job-based SAGA-MapReduce along with scientific motivations for computational challenges for Next-Generation Sequencing data pipelines.  More details on the implementation and characteristics of PJ-based SAGA-MapReduce are presented in the next section.  Performance measurements are presented, after that, in particular comparing our results with SEQAL which takes a distinctively different approach for the same read alignment-duplicate removal task.  Finally, we will discuss our approach in the context of NGS data analytics challenges and the significance of MapReduce for parallel/concurrent implementation for such challenges and conclude the paper.
 
 
-\section{SAGA-MapReduce for Next-Generation Sequencing Reads Alignment : Background}
+\section{Materials and Methods}
+\subsection{SAGA-MapReduce for Next-Generation Sequencing Reads Alignment : Background}
 
 
 \pmnote{PJ based mapreduce involves advert coordination- whereas HDFS filesytem involves TCP/IP layer for communication between data nodes; and job nodes use RPC to communicate between each other.
 Hadoop/Normal MR cannot be scaled to multiple clusters( unless and until clusters have some common global filesystem, which is rare and involves latnecy issues)PMR can be scaled to mulitple clusters and no need of having common filesystem.}
 
+In this section we compare Hadoop-based SEQAL application with Pilot-based SAGA-MapReduce. 
+For the comparison, two futuregrid machines, sierra and hotel were used.
 
-\section{Pilot Job-based SAGA-MapReduce}
+Hadoop SEQAL experiment setup is as follows.  The input file format is prq.  As a part of SEAL, which is a software package containing SEQAL application, file conversion between qseq/fastq and prq format is possible.  The replication factor is set  to 1.\jkimnote{what is replication fator?}   \pmnote{An application can specify the number of replicas of a file that should be maintained by HDFS. The number of copies of a file is called the replication factor of that file}  PMR doesn't use any replication.
 
-\subsection{Implementation}
+To make the comparision more meaningful, we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
+The chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads.
+The reduce phase starts after all map phase tasks are completed. 
+
+We found problems faced with using SEQAL; the tmp directory on each node is used to store data  by hadoop, but tmp is limited and tasks failed due to memory problem.  So a parallel file system is needed in case of multiple nodes, or tmp data directory should point to different disks.
+
+Data setup is as follows. All data is present on a single cluster to process. we can't scale hadoop to multiple clusters.
+We calculated the time-to-solution (tts) as the combination of the time for transferring data to A cluster from B cluster (when A and B are used) and SEQAL execution time. 
+ 
+PMR setup is as follows.  Initially the half of the data is placed on sierra. whereas the remaining half is on hotel. The number of workers is 8 and each individual node of the four nodes (two nodes per each cluster) has 2 workers
+   Input is in fastq format. An In-house script is used for the chunking step. The user can define the chunker script and provide as an input to the pMR framwork.  
+ 
+   \pmnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
+tts = max( map on sierra, map on hotel)+max( time tansfer from sierra to hotel, time transfer from hotel to sierra)+max(reduce on sierra, reduce on hotel)..
+Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
+experiments repeated thrice.. }
+
+
+
+\section{Results}
+
+\subsection{Pilot Model-driven SAGA-MapReduce for NGS data analysis: Implementation}
 In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PJ-based SAGA-MapReduce for reads alignment and duplicate removal tasks is shown.  In brief, the target tasks are carried out with this order. 1.SAGA-MapReduce launches Map tasks on N clusters using Pilot-Job 2. After the Map stage, SAGA-MapReduce exchanges Intermediate data between clusters using Pilot-Data  3. SAGA-MapReduce launches Reduce tasks on N clusters using Pilot-Job.
 
 
@@ -185,7 +209,7 @@ In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PJ-based SAGA-Map
 \end{figure}
 
 
-\subsection{Characteristics}
+\subsection{Pilot Model-driven SAGA-MapReduce for NGS data analysis : Reads Alignment and Duplicate Removal}
 
 There are unique features that differentiate our approach from others, which could be beneficial for developing cyberinfrastructure for NGS data analytics and downstream analysis.  
 \begin{enumerate}
@@ -270,29 +294,8 @@ Weakness &  & 1. HDFS Limitations & 1. HDFS Limitations & 1. HDFS Limitations  &
 \end{figure}
 
 
-\section{Comparison to Hadoop-based SEQAL}
+\subsection{Comparison to Hadoop-based SEQAL}
 
-In this section we compare Hadoop-based SEQAL application with Pilot-based SAGA-MapReduce. 
-For the comparison, two futuregrid machines, sierra and hotel were used.
-
-Hadoop SEQAL experiment setup is as follows.  The input file format is prq.  As a part of SEAL, which is a software package containing SEQAL application, file conversion between qseq/fastq and prq format is possible.  The replication factor is set  to 1.\jkimnote{what is replication fator?}   \pmnote{An application can specify the number of replicas of a file that should be maintained by HDFS. The number of copies of a file is called the replication factor of that file}  PMR doesn't use any replication.
-
-To make the comparision more meaningful, we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
-The chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads.
-The reduce phase starts after all map phase tasks are completed. 
-
-We found problems faced with using SEQAL; the tmp directory on each node is used to store data  by hadoop, but tmp is limited and tasks failed due to memory problem.  So a parallel file system is needed in case of multiple nodes, or tmp data directory should point to different disks.
-
-Data setup is as follows. All data is present on a single cluster to process. we can't scale hadoop to multiple clusters.
-We calculated the time-to-solution (tts) as the combination of the time for transferring data to A cluster from B cluster (when A and B are used) and SEQAL execution time. 
- 
-PMR setup is as follows.  Initially the half of the data is placed on sierra. whereas the remaining half is on hotel. The number of workers is 8 and each individual node of the four nodes (two nodes per each cluster) has 2 workers
-   Input is in fastq format. An In-house script is used for the chunking step. The user can define the chunker script and provide as an input to the pMR framwork.  
- 
-   \pmnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
-tts = max( map on sierra, map on hotel)+max( time tansfer from sierra to hotel, time transfer from hotel to sierra)+max(reduce on sierra, reduce on hotel)..
-Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
-experiments repeated thrice.. }
 
 \begin{figure}
  \centering
@@ -315,7 +318,7 @@ The reduce phase is average of 8.85% of reduce phase of seqal  ( it involves sor
 
 
 
-\section{Conclusion and Future Work}
+\section{Concluding Remarks}
 
 
 % \begin{table}
