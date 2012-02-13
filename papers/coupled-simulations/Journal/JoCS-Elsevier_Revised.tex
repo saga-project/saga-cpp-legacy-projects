@@ -276,16 +276,17 @@ The current in-house continuum hydrodynamics code solves the unsteady incompress
 \end{eqnarray}
 \vskip-.6cm
 \begin{eqnarray}
-\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {\partial p} {\partial {x}_{i}} + \nu \frac {{\partial}^2 {u}_{i}} {{\partial} {x}_{j} \partial {x}_{j}} \nonumber
+\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {1} {\rho} \frac {\partial p} {\partial {x}_{i}} + \nu \frac {{\partial}^2 {u}_{i}} {{\partial} {x}_{j} \partial {x}_{j}} \nonumber
+\label{eq:NS}
 \end{eqnarray}
-where $\nu$ is the kinematic viscosity.
+where $\nu$ is the kinematic viscosity, ${u}_{i}$ denotes the velocity vector, \textit{p} and $\rho$ expresses pressure and density.
 
-In this work, the pseudo-compressibility method~\cite{PseudoCompressibility} is adopted to form a hyperbolic system of equations which can be marched in pseudo-time.
-A time derivative of pressure is added to the continuity equation resulting in
+In this work, the pseudo-compressibility method~\cite{PseudoCompressibility} is adopted to form a hyperbolic system of equations which can be marched in pseudo-time. In this method, an artificial pressure \textit{P} is introduced as $p/\rho$ and the continuity equation is re-written to solve a time derivative of this artificial pressure,
 
 \vspace{-.2em}
 \begin{eqnarray}
-\frac{\partial (p/\rho)}{\partial \tau} = - \beta \frac{\partial {u}_{i}}{\partial {x}_{i}}
+\frac{\partial (P)}{\partial t} = - \beta \frac{\partial {u}_{i}}{\partial {x}_{i}}
+\label{eq:Pseudo}
 \end{eqnarray}
 where $\beta$ denotes a pseudo-compressibility parameter, currently set up to 2.5.
 
@@ -344,7 +345,25 @@ hybrid equations to impose the macroscopic information on microscopic domain and
 
 The CFD code employs the data structure of the overset mesh technique~\cite{Chimera}  to ease the handling of the coupling parameters. In other words, the entire fluid domain is generated because the CFD mesh system and pure MD region is turned off as the ''hole'' cell in the terminology of the overset technique. Likewise, MD to CFD and CFD to MD boundary cells are declared ''fringe'' and ''donor'' cells, respectively. The labor of mesh regeneration due to the change in coupling parameters (the position and depth of the hybrid layers) disappears with the overset data structure.
 
-Both codes are equipped with the information exchange routine, which consists of one file sender and one file receiver. These file interfaces are scheduled to turn on every sampling interval. The instantaneous properties in the donor cells of the continuum domain are transferred to the MD site and referenced when the constrained Lagrangian dynamics equation is applied. The averaged molecular properties are sent to the CFD domain, and they are used as the boundary conditions of the fringe cells. All exchanged properties are written in the MD unit: thus, the CFD code is equipped with a velocity unit conversion function and an equation of state, which changes the pressure solution from the CFD site to the equivalent density property in the MD domain.
+File-based communicator is employed in both codes. It stores ''donor'' properties on a sender file, monitors the generation of the receiver file from each counterpart and reads the ''fringe'' information. This file interface is scheduled to turn on every sampling interval. The continuum properties are applied to update the constrained Lagrangian dynamics equation in MD solver. The averaged molecular properties are directly imposed as the hybrid CFD boundary conditions. CFD code also takes care of the unit conversion between these distinct codes.
+In view of velocity, the CFD solution (non-dimensionalized by the characteristic velocity, e.g., the flat plate velocity in the Couette flow) is converted to the non-dimensional MD unit (molecular characteristic length $\sigma$ divided by the characteristic time $\tau$) before storing the ''donor'' information and vice versa asfer receiving the MD solution.
+Regarding the density conversion, we address the relation between the artifical compressibility and the density by comparing Eq.~\ref{eq:Pseudo} and the original mass conservation equation: 
+
+\vspace{-.2em}
+\begin{eqnarray}
+\frac{\partial (P)}{\partial t} = \beta \frac{1}{\rho} \frac{\partial \rho}{\partial t}
+\label{eq:DensityConversion}
+\end{eqnarray}
+
+After discretization, we find the 
+
+\textit{P} is introduced as $p/\rho$ and the 
+
+\label{eq:Pseudo}
+
+
+
+
 
 In addition to the file interface, additional equations of motion are employed on the MD code to describe accurately the influence of macroscopic flow variation on the particle domain. First, external force should be imposed to prevent the particles from leaving the control domain; the force is applied in the normal direction of the uppermost MD layer. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as
 
