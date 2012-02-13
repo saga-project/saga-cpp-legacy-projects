@@ -276,19 +276,19 @@ The current in-house continuum hydrodynamics code solves the unsteady incompress
 \end{eqnarray}
 \vskip-.6cm
 \begin{eqnarray}
-\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {1} {\rho} \frac {\partial p} {\partial {x}_{i}} + \nu \frac {{\partial}^2 {u}_{i}} {{\partial} {x}_{j} \partial {x}_{j}} \nonumber
+\frac{\partial {u}_{i}}{\partial t} + \frac {\partial} {\partial {x}_{j}} ({u}_{i}{u}_{j}) = -\frac {1} {\rho} \frac {\partial p} {\partial {x}_{i}} + \nu \frac {{\partial}^2 {u}_{i}} {{\partial} {{x}_{j}}^2}
 \label{eq:NS}
 \end{eqnarray}
-where $\nu$ is the kinematic viscosity, ${u}_{i}$ denotes the velocity vector, \textit{p} and $\rho$ expresses pressure and density.
+where $\nu$ is the kinematic viscosity, ${u}_{i}$ denotes the velocity vector, and \textit{p} and $\rho$ expresses pressure and density, respectively.
 
 In this work, the pseudo-compressibility method~\cite{PseudoCompressibility} is adopted to form a hyperbolic system of equations which can be marched in pseudo-time. In this method, an artificial pressure \textit{P} is introduced as $p/\rho$ and the continuity equation is re-written to solve a time derivative of this artificial pressure,
 
 \vspace{-.2em}
-\begin{eqnarray}
-\frac{\partial (P)}{\partial t} = - \beta \frac{\partial {u}_{i}}{\partial {x}_{i}}
-\label{eq:Pseudo}
-\end{eqnarray}
-where $\beta$ denotes a pseudo-compressibility parameter, currently set up to 2.5.
+\begin{equation}
+\frac{\partial P}{\partial t} = - a^2 \frac{\partial {u}_{i}}{\partial {x}_{i}}
+ \label{eq:Pseudo}
+\end{equation}
+where \textit{a} denotes a pseudo-compressibility parameter, currently set up to 3.
 
 For time-accurate unsteady simulation, a dual time stepping method is adopted and it is combined with the LU-SGS (Lower-Upper Symmetric Gauss-Seidel) scheme~\cite{LU-SGS} for the implicit time integration. The inviscid fluxes are upwind-differenced using Osher's flux-difference splitting scheme~\cite{Osher}. For higher-order spatial accuracy, the MUSCL (Monotone Upstream-centered Schemes for Conservation Laws)~\cite{MUSCL} approach is used on an inviscid flux calculation. Viscous fluxes are calculated using conventional second-order central differencing.
 
@@ -346,26 +346,34 @@ hybrid equations to impose the macroscopic information on microscopic domain and
 The CFD code employs the data structure of the overset mesh technique~\cite{Chimera}  to ease the handling of the coupling parameters. In other words, the entire fluid domain is generated because the CFD mesh system and pure MD region is turned off as the ''hole'' cell in the terminology of the overset technique. Likewise, MD to CFD and CFD to MD boundary cells are declared ''fringe'' and ''donor'' cells, respectively. The labor of mesh regeneration due to the change in coupling parameters (the position and depth of the hybrid layers) disappears with the overset data structure.
 
 File-based communicator is employed in both codes. It stores ''donor'' properties on a sender file, monitors the generation of the receiver file from each counterpart and reads the ''fringe'' information. This file interface is scheduled to turn on every sampling interval. The continuum properties are applied to update the constrained Lagrangian dynamics equation in MD solver. The averaged molecular properties are directly imposed as the hybrid CFD boundary conditions. CFD code also takes care of the unit conversion between these distinct codes.
-In view of velocity, the CFD solution (non-dimensionalized by the characteristic velocity, e.g., the flat plate velocity in the Couette flow) is converted to the non-dimensional MD unit (molecular characteristic length $\sigma$ divided by the characteristic time $\tau$) before storing the ''donor'' information and vice versa asfer receiving the MD solution.
-Regarding the density conversion, we address the relation between the artifical compressibility and the density by comparing Eq.~\ref{eq:Pseudo} and the original mass conservation equation: 
+In view of velocity, the CFD solution (non-dimensionalized by the characteristic velocity, e.g., the flat plate velocity in the Couette flow) is converted to the non-dimensional MD unit (molecular characteristic length $\sigma$ divided by the molecular characteristic time $\tau$) before storing the ''donor'' information and vice versa asfer receiving the MD solution.
+Regarding the density conversion, we address the relation between the artifical compressibility from CFD and the particle number density from MD by comparing Eq.~\ref{eq:Pseudo} and the original mass conservation equation: 
 
 \vspace{-.2em}
-\begin{eqnarray}
-\frac{\partial (P)}{\partial t} = \beta \frac{1}{\rho} \frac{\partial \rho}{\partial t}
+\begin{equation}
+\frac{\partial P}{\partial t} = a^2 \frac{1}{\rho} \frac{\partial \rho}{\partial t}
 \label{eq:DensityConversion}
-\end{eqnarray}
+\end{equation}
 
-After discretization, we find the 
+After discretization, we obtain the particle number density in the hybrid CFDtoMD layer as,
 
-\textit{P} is introduced as $p/\rho$ and the 
+\vspace{-.2em}
+\begin{equation}
+{\rho}_{CM} = \frac {{\rho}_{0}}{1- ({{P}_{CM}-{P}_{0}})/{{a}^{2}}}
+\label{eq:NumberDensityCFDtoMD}
+\end{equation}
+where the subscript \textit{0} denotes initial conditions and subscript \textit{CM} expresses the properties at the CFDtoMD layer.
 
-\label{eq:Pseudo}
+Likewise, artificial pressure at the hybrid MDtoCFD layer (denoted as the subscript \textit{MC}) is computed from the particle number density as:
+
+\vspace{-.2em}
+\begin{equation}
+{P}_{MC} = {P}_{0} + {a}^{2} (1- \frac{{\rho}_{0}}{{\rho}_{MC}})
+\label{eq:ArtificialPressureMDtoCFD}
+\end{equation}
 
 
-
-
-
-In addition to the file interface, additional equations of motion are employed on the MD code to describe accurately the influence of macroscopic flow variation on the particle domain. First, external force should be imposed to prevent the particles from leaving the control domain; the force is applied in the normal direction of the uppermost MD layer. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as
+In addition to the file interface, additional constraint equations are employed on the MD code to describe accurately the influence of macroscopic flow variation on the particle domain. First, a fictitious external force should be imposed to prevent the particles from leaving the control domain; the force is applied in the normal direction of the uppermost MD layer. A cost-effective classical external force model by Nie {\it{et al.}}~\cite{Nie} is employed as
 
 
 \vspace{-.2em}
@@ -377,25 +385,25 @@ In addition to the file interface, additional equations of motion are employed o
 where  $\it p_{a}$ denotes the average pressure in the MD region, $\it Y_{n}-Y_{n-1}$ is the thickness of the uppermost layer to which the force is applied, and $\it F_{ext}$ is the external force acting on ith particle located on position $\it y_{i}$.
 
 
-Next, at a specific time, the macroscopic flow properties are introduced on the CFD to MD layer to lead the motion of multiple particles in that layer. A very complicated numerical intervention is required to maintain the momentum conservation. The averaged velocity of particles in $\it J_{th}$ cell equals to the velocity $\it u_{J}$ in the continuum cell.
+Next, at a specific time, the macroscopic flow properties are introduced on the CFDtoMD layer to lead the motion of multiple particles in that layer. The averaged velocity of particles in $\it J_{th}$ cell equals to the velocity $\it u_{J}$ in the continuum cell.
 
 
 \vspace{-.2em}
 \begin{equation}
- u_{J}(t) = \frac{1}{N_{J}} \displaystyle\sum_{i} v_{i}
+ u_{J}(t) = \frac {\displaystyle\sum_{i} m_{i} v_{i}} {\displaystyle\sum_{i} m_{i}}
  \label{eq:Con_vel}
 \end{equation}
 \normalsize
-where $\it v_{i}$ is the velocity of $\it i^{th}$ particle and $\it N_{J}$ is the number of particles in the cell. The Lagrangian derivative of Eq.~\ref{eq:Con_vel} obtains,
+where $\it v_{i}$ is the velocity of the $\it i^{th}$ particle and $\it N_{J}$ is the number of particles in the cell. The Lagrangian derivative of Eq.~\ref{eq:Con_vel} takes the form,
 
 \vspace{-.2em}
 \begin{equation}
- \frac{Du_{J}(t)}{Dt} =  \displaystyle\sum_{i} \frac{\ddot{x_{i}}}{N_{J}}
+ \frac{Du_{J}(t)}{Dt} = \frac {\displaystyle\sum_{i} m_{i} \ddot{x_{i}}} {\displaystyle\sum_{i} m_{i}}
  \label{eq:Lagrangian}
 \end{equation}
 \normalsize
 
-The Classical MD equation of motion can be generalized to obtain the constraint by adopting the fluctuation in the acceleration of each particles, $\zeta_{i}$
+The Classical MD equation of motion can be generalized to obtain the constraint by adopting a perturbation acceleration of each particles, $\zeta_{i}$
 
 \vspace{-.2em}
 \begin{equation}
@@ -403,7 +411,7 @@ The Classical MD equation of motion can be generalized to obtain the constraint 
  \label{eq:Con2}
 \end{equation}
 \normalsize
-where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interactions between particles,  $\it m_{i}$ is mass of each atom and  Eq.~\ref{eq:Con2} satisfies,
+where $\it F_{i}$ is the force on the $\it i^{th}$ particle based on the interactions between particles, $\it m_{i}$ is the mass of each atom and the perturbation acceleration is constrained by,
 \vspace{-.2em}
 \begin{equation}
 \displaystyle\sum_{i}\zeta_{i}m_{i} = 0
@@ -412,7 +420,7 @@ where $\it F_{i}$ is the force on $\it i^{th}$ particle based on the interaction
 \normalsize
 
 
-Finally, the constrained particle dynamics with the conventional equation of motion can be written as:
+Finally, the constrained particle equation of motion can be written as:
 
 
 \vspace{-.2em}
@@ -423,9 +431,6 @@ Finally, the constrained particle dynamics with the conventional equation of mot
 \normalsize
 
 
-The continuum velocity and the mean microscopic velocity from MD over the control domain provide the synchronization of the mass and momentum consistent with Eqn.~\ref{eq:Con3}.
-
-
 
 \subsection{Statistical Error and Coupling Parameters}
 \label{sec:numerical_noise}
@@ -433,17 +438,17 @@ The continuum velocity and the mean microscopic velocity from MD over the contro
 One of the standard issues in obtaining coupled continuum to particle-based (MD) solutions is the fact that the particle-based (MD) solutions have noise, inherent because of limited size of particle ensemble averages and time-sampling limitations. This noise, if not kept under check, is passed on to the continuum solution yielding unphysical results. According to the mathematical expressions in statistical error~\cite{Hadjicon3,Time_Mechanism}, the ratio of sampling noise compared to the macroscopic velocity is inversely proportional to the square root of spatial layer size and temporal sampling duration. For example, reducing the macroscopic velocity by half requires either 4 times larger system domain or 4 times longer sampling to maintain the same order of accuracy. 
 
 Four important coupling parameters determine the scale and pattern of
-the sampling noise: The size of sampling layer and its location in space,
-sampling duration with interval in time.
+the sampling noise: The size of sampling layer, its spatial location,
+sampling duration and the sampling frequency.
 The layer size denotes the volume of a virtual box in which spatial sampling
 takes place. The layer location is the perpendicular distance of the sampling
 layer from the solid obstacle. The sampling duration ${\Delta}{t_s}$ is denoted as
 the time length over which spatially-sampled instantaneous solutions are
-accumulated. The sampling interval ${\Delta}t$ is defined as the time
-increment between each hybrid solution exchange. 
-The layer size and sampling duration collevtively contribute to
-the suppression of sampling noise by increasing the number of sampled
-particles in space or time.
+accumulated. The sampling interval (inverse of the sampling frequency)
+${\Delta}t$ is defined as the time increment between each
+hybrid solution exchange.  The layer size and sampling duration
+collevtively contribute to the suppression of sampling noise
+by increasing the number of sampled particles in space or time.
 The layer size is free to be stretched along the periodic direction,
 while it results in excessive computational cost. Incresing the layer size
 along the non-periodic direction is relatively constrained to secure
@@ -456,9 +461,9 @@ It has been noted that the sampling layer shall be placed sufficiently
 far from the solid obstacle to avoid the effect of strong interaction
 between fluid and solid particles~\cite{Nie,Yen}.
 
-We reference to the determination of coupling parameters in previous studies~\cite{Nie,Yen,Liu,Hadjicon1,Hadjicon2,Werder,Flekkoy,Delgado1,Time_Mechanism} and intuitively design these parameters considering our application targets. We start from determining the location of the sampling layer according to other previous suggestions, e.g., at least 10$\sigma$ above the bottom wall in the nano-scale liquid argon system. The height of the sampling layer on the non-periodic direction is designed in a way that the sum of pure MD and hybrid regions does not exceed the half of the fluid system. For our deterministic transient/periodic applications, the sampling interval is roughly set to be within 1\% of the transition time or 10\% of the period. The sampling duration is designed the same as the sampling interval.
+We take into account the methods of determination of coupling parameters in previous studies~\cite{Nie,Yen,Liu,Hadjicon1,Hadjicon2,Werder,Flekkoy,Delgado1,Time_Mechanism} and intuitively design these parameters considering our application targets. We start from determining the location of the sampling layer according to other previous suggestions, e.g., at least 10$\sigma$ above the bottom wall in the nano-scale liquid argon system. The height of the sampling layer on the non-periodic direction is designed in a way that the sum of pure MD and hybrid regions does not exceed the half of the fluid system. For our deterministic transient/periodic applications, the sampling interval is roughly set to be within 1\% of the transition time or 10\% of the period. The sampling duration is designed the same as the sampling interval.
 
-We also apply the replica sampling approach~\cite{REMD} to supplement the individual hybrid solution. Instead of changing coupling parameters for solving the same fluid system different flow conditions, we simulate the same coupling configuration with the variance in the initial Maxwell-Boltzmann distribution and average these replicas to find the non-fluctuating solution. In principle, the sampled solution from N replicas has the same order of accuracy as the individual solution from N times larger domain. The superiority of replica simulations over a single large-scale simulation can be found from the computational point of view: multiple moderate-sized jobs are more prone to get faster allocation than a single excessive resource requirement on most supercomputing batch queues. For the more, this approach is free from the geometric complexity so that it can be applied to the non-periodic three-dimensional flow simulations in which the virtual increase of sampling size is impossible.
+We also apply the replica sampling approach~\cite{REMD} to supplement the individual hybrid solution. Instead of changing coupling parameters for solving the same fluid system under different flow conditions, we simulate the same coupling configuration with the variance in the initial Maxwell-Boltzmann distribution and average these replicas to find the non-fluctuating solution. In principle, the sampled solution from N replicas has the same order of accuracy as the individual solution from a N-times larger domain. The superiority of replica simulations over a single large-scale simulation can be found from the computational point of view: multiple moderate-sized jobs are more prone to get faster allocation than a single excessive resource requirement on most supercomputing batch queues. Furthermore, this approach is free from the geometric complexity so that it can be applied to the non-periodic three-dimensional flow simulations in which the virtual increase of sampling size is impossible.
 
 
 
@@ -476,7 +481,7 @@ in a fashion that MD solver advances to the CFD solver by a sampling interval.
 The synchronized coupling approach is recommended in view of parallel efficiency.
 As can be noticed in the procedure of the sequential approach in
 Fig.~\ref{Hybrid_Timescale1}-\subref{sequential_couple},
-prossessors statically assigned to individual task cannot avoid idling
+prossessors statically assigned to an individual task cannot avoid idling
 while another code is evolving to the next communication point.
 It necessitates the integration of distinct codes to a single MPI executable
 or the switching of allocated resource to the active task during runtime.
@@ -494,7 +499,7 @@ molecular dynamic time axis is shifted forward by half of the sampling interval
 ${\Delta}t$ to get rid of the time-lagging event in CFD boundary condition.
 Also, MD hybrid boundary condition is imposed by the extrapolated CFD solution
 in time. The benefit of this approach is that, in principle,
-time-lagging effect completely diminishes regardless of the sampling duration.
+the time-lagging effect diminishes regardless of the sampling duration.
 Thus, the sampling duration can be set as much as the sampling interval.
 However, the accuracy of the extrapolated solution is still debatable.
 In this scheduling, two \textit{previous} CFD solutions
@@ -734,15 +739,17 @@ The generation of an application manager and the changes in application codes ra
 
 \section{Multi-physics Flow Simulations in Various Flow Conditions}
 \label{sec:accuracy}
-A hybrid CFD-MD framework is employed to solve the nano-scale multi-physics flow field. We solve the transient Couette flow and the oscillating boundary problem, to evaluate the capability of solving moderate-speed flow field and to verify a ''prediction-correction'' temporal coupling scheme.
+A hybrid CFD-MD framework is employed to solve a multi-scale multi-physics flow field. We solve the transient Couette flow and the oscillating boundary problem, to evaluate the capability of solving moderate-speed flow field and to verify a ''prediction-correction'' temporal coupling scheme.
 
 
 \subsection{Problem Description and Coupling Conditions}
 \label{sec:accuracy_conditions}
 
-Both the Couette flow and oscillating boundary problems solve the same geometric configuration of a nano-scale channel which is filled with the liquid argon. The characteristic length of the liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and the time scale is $\tau=2.2{\times}10^{-12}$. The density is $0.81m{\sigma}^{-3}$, which implies that 0.81 atoms are placed in the characteristic volume. Wall materials are artificially designed to have the same characteristics as the liquid argon particle. The slip ratio between fluid and solid particles is set at 0.6 to satisfy the linear velocity gradient along a vertical direction.~\cite{Nie} The channel is 52 $\sigma$ in height, which is O(10$^{-8}$) meters. Applications covered in this work are periodic systems in a perpendicular direction, and the flow is derived by the horizontal motion of the upper plate.
+Both the Couette flow and oscillating boundary problems solve the same geometric configuration of a nano-scale channel which is filled with the liquid argon. The characteristic length of the liquid argon is ${\sigma}=3.405{\times}10^{-10}$ and the time scale is $\tau=2.2{\times}10^{-12}$. The density is $0.81m{\sigma}^{-3}$, which implies that 0.81 atoms are placed in the characteristic volume. Wall material is the \textit{frozen} argon particle with the same density as the fluid system. The slip ratio between fluid and solid particles is set at 0.6 to satisfy the linear velocity gradient along a vertical direction.~\cite{Nie} The channel is 52 $\sigma$ in height, which is O(10$^{-8}$) meters. Applications covered in this work are periodic systems along the horizontal direction, and the flow is derived by the horizontal motion of the upper plate.
 
-The computational domain for the hybrid simulation is depicted in Fig.~\ref{Couette_Val_Domain}. The pure MD region is specified as 10 $\sigma$, which was reported to be sufficient to prevent strong fluctuation between fluid particles and wall materials from direct transportation to CFD domains.~\cite{Yen} The hybrid region is designed to be 16 $\sigma$ to guarantee that the molecular simulation domain does not exceed the half of the fluid system. The hybrid region is divided to 8 layers. Two layer boundary zones from the particle to the continuum domain are placed ahead of the pure MD region, from 10 to 14 $\sigma$. Two layers of the continuum domain to the particle boundary are positioned from 18 to 22 $\sigma$ and the external force region is placed at the top of hybrid region, from 24 to 26 $\sigma$. Both the sampling interval and the sampling duration are set to be 10 $\tau$, considering the characteristics of our deterministic application targets. Finally, the width of the MD domain along the periodic direction is determined at 140 $\sigma$, after a number of numerical experiments.
+The computational domain for the hybrid simulation is depicted in Fig.~\ref{Couette_Val_Domain}. The pure MD region is specified as 10 $\sigma$ from the bottom of the wall. According to Yen \textit{et al.}~\cite{Yen}, this is the reasonable distance to avoid the direct influence of the strong fluctuation between fluid particles and wall materials on molecular samples at the hybrid MDtoCFD layer.
+The hybrid region is composed of 8 sublayers each with 2 $\sigma$ along the vertical direction. Two layer boundary zones from the particle to the continuum domain (MDtoCFD layers) are placed ahead of the pure MD region, from 10 to 14 $\sigma$. Two layers of the continuum domain to the particle boundary (CFDtoMD layers) are positioned from 18 to 22 $\sigma$ and the external force region is placed at the top of hybrid region, from 24 to 26 $\sigma$. Two buffer layers from 14 to 18 $\sigma$ and one buffer layer from 22 to 24 $\sigma$ are added between these active layers.
+Both the sampling interval and the sampling duration are set to be 10 $\tau$, considering the characteristics of our deterministic application targets. Finally, the width of the MD domain along the periodic direction is determined at 140 $\sigma$, after a number of numerical experiments.
 
 
 \begin{figure}
