@@ -30,6 +30,9 @@
 
 \usepackage{xspace}
 \usepackage{color}
+%\usepackage{hyphenation}
+\hyphenation{Map-Reduce}
+
 \newif\ifdraft
 \drafttrue
 
@@ -53,6 +56,7 @@
 \newcommand{\pilots}{Pilots\xspace}
 \newcommand{\pilotjob}{Pilot-Job\xspace}
 \newcommand{\pilotjobs}{Pilot-Jobs\xspace}
+\newcommand{\pilotmapreduce}{PilotMapReduce\xspace}
 \newcommand{\computeunit}{Compute Unit\xspace}
 \newcommand{\computeunits}{Compute Units\xspace}
 \newcommand{\cu}{CU\xspace}
@@ -74,7 +78,7 @@
 \newcommand{\schedulableunits}{Schedulable Units\xspace}
 \begin{document}
 
-\title{An extensible Pilot-based SAGA MapReduce}
+\title{An extensible Pilot-based MapReduce Implementation}
 
 %
 % You need the command \numberofauthors to handle the 'placement
@@ -202,7 +206,13 @@ System Grid), and astronomy
 data produced by these scientific applications are increasing rapidly driven
 by advancing technologies (e.\,g.\ increasing compute capacity and higher
 resolution sensors) and decreasing costs for computation, data acquisition and
-storage~\cite{hey2009}.
+storage~\cite{hey2009}. The number of scientific applications that either
+currently utilize, or need to utilize large volumes of potentially distributed
+data is immense. The challenges faced by these applications are
+interoperability, efficiently managing compute tasks, and moving data to the
+scheduled compute location, which is inevitable in case of programming models
+like MapReduce.
+
 
 But, processing huge amounts of data is a challenging tasks.
 MapReduce~\cite{Dean:2004:MSD:1251254.1251264} as originally developed by
@@ -211,14 +221,6 @@ abstraction for parallel data processing. However, in many cases data is
 highly distributed. While existing MapReduce perform very well on single
 machines, they show severe limitations in highly distributed scenarios.
 
-So, we need to go distributed to solve problem at the
-forefront of science, engineering, medicine \& social networking. There are
-numerous scientific applications that either currently utilize, or need to
-utilize data and resources distributed over vast heterogeneous infrastructures
-and networks with varying speeds and characteristics. The challenges faced by
-these applications are interoperability, efficiently managing compute tasks,
-and moving data to the scheduled compute location, which is inevitable in case
-of programming models like MapReduce.
 
 Pilot-Jobs have been notable in their ability to manage the compute units
 across multiple high performance clusters, providing decoupling between
@@ -255,6 +257,14 @@ model to utilize distributed cyber infrastructure motivated us, to use Pilot
 abstractions for managing the map and reduce tasks and intermediate shuffle
 data between them.
 
+The key take-aways of this paper are:
+\begin{itemize}
+	\item MapReduce simplifies the construction of data-parallel applications
+	\item Pilot-Abstraction enable the clean separation of resource management concerns and MapReduce.
+	\item The Pilot/SAGA-based approach enables a maximum of portability, interoperability and code-reuse.
+	\item Hadoop is designed for cluster/local environment, but not for a high degree of distribution.
+	\item Future work: dynamic execution
+\end{itemize}
 
 In section II we talk about background-- Pilot API, Pilot-Job, Pilot-Data,
 saga, SAGA previous implementation of MapReduce, Genome sequencing MapReduce
@@ -264,11 +274,23 @@ discuss about the experiments.
 
 \section{Related Work}
 
-Hadoop
+The MapReduce programming model~\cite{Dean:2004:MSD:1251254.1251264} and the
+distributed file system (Google File System
+(GFS)~\cite{Ghemawat:2003:GFS:1165389.945450} it is based on was originally
+pioneered by Google. Apache Hadoop~\cite{hadoop} is an open source
+implementation of MapReduce. Hadoop also includes an implementation of a
+distributed file system -- the Hadoop File System
+(HDFS)~\cite{Borthakur:2007fk}. In addition the Hadoop ecosystems includes
+several other projects, such as HBase (a system also inspired by Google's
+BigTable), Hive, Pig and Zookeeper.
 
 Sphere
 
-Twister/Iterative Map Reduce~\cite{Ekanayake:2010:TRI:1851476.1851593}
+Twister/Iterative Map Reduce~\cite{Ekanayake:2010:TRI:1851476.1851593} is a 
+MapReduce addressing particularly the requirement for supporting iterative 
+MapReduce jobs. Twister allows the flexible composition of applications by 
+specifying map and reduce tasks and the data flow between 
+these tasks. 
 
 Dryad
 
@@ -331,25 +353,53 @@ efficiently support compute- and data-related aspects of dynamic
 execution.
 
 
-\section{PilotMapReduce -- A Pilot-based SAGA-MapReduce Implementation}
-\alnote{TODO: Pradeep}
-The main aim of Pilot based SAGA-MapReduce is to provide a framwork
-
-provide an implementation of Pilot based SAGA-MapReduce provides decoupling of  MapReduce programming model
-with the complex task of assigning map and reduce compute units to the resources. SAGA Pilot-Job is no longer bound to run on a system providing the appropriate semantics orginally required by MapReduce, and is extensible to distributed dynamic cyber infrastructure. SAGA-MapReduce exposes a simple interface which provides the complete functionality needed by any MapReduce algorithm, while hiding the more complex functionality, such as chunking of the input, sorting the intermediate results,  managing and coordinating the workers, etc. — these are generically implemented by the framework.
+\section{PilotMapReduce -- A Pilot-based MapReduce Implementation}
+\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
 
- The Pilot based SAGA-MapReduce uses SAGA Pilot-API, which provides flexibilty to manage map and reduce compute units and define relationship between the intermediate data and reduce tasks across distributed infrastructure. The SAGA MapReduce framwork is responsible for:
-• Chunking the input data, whether data is local/distributed. The SAGA MapReduce framwork uses SAGA Job package to launch user defined chunk scripts on all the machines, which perform the chunking of input data remotely.
-• Launching Pilot-Jobs on all the clusters, where the data is located. Once the Pilot-Job becomes active on that particular machine, it starts executing map compute units on the local data. This avoids huge transfer of input data before starting actual MapReduce which is in the case of LMR~\cite{weissman-mr-11}
-...still needs to be refined..................
-• Collecting and grouping of partitioned and sorted intermediate data output files related to a reduce. The framework prepares 
-•  
-• assigning the input data to the workers of the map step;
-• handling the intermediate data files produced by the map step;
-and
-• passing the location of the sorted output files to the workers of
-the reduce step.
+{\emph \pilotmapreduce} provides a \pilot based implementation of the 
+MapReduce programming model decoupling the core MapReduce framework from the 
+actual management of the compute, data and network resources. By decoupling 
+job scheduling and monitoring from the resource management, \pilotmapreduce 
+can efficiently re-use the resource management and late-binding capabilities 
+of BigJob and BigData.
+
+PilotMapReduce exposes an easy-to-use interface which provides the complete
+functionality needed by any MapReduce algorithm, while hiding the more complex
+functionality, such as chunking of the input, sorting the intermediate
+results, managing and coordinating the workers, etc. — these are generically
+implemented by the framework.
+
+\alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
+
+\pilotmapreduce uses the Pilot-API for managing map and reduce compute units
+and for defining relationships between the intermediate data and reduce tasks
+across distributed infrastructure. The SAGA MapReduce framework is responsible
+for:
+
+\begin{itemize} 
+\item Chunking the input data, whether data is
+local/distributed. The SAGA MapReduce framework uses SAGA Job package to
+launch user defined chunk scripts on all the machines, which perform the
+chunking of input data remotely.
+
+ \item Launching Pilot-Jobs on all the clusters, where the data is located.
+Once the Pilot-Job becomes active on that particular machine, it starts
+executing map compute units on the local data. This avoids huge transfer of
+input data before starting actual MapReduce which is in the case of
+LMR~\cite{weissman-mr-11}
+
+ \item ...still needs to be refined..................
+
+ \item Collecting and grouping of partitioned and sorted intermediate data
+output files related to a reduce. The framework prepares
+
+ \item assigning the input data to the workers of the map step;
+
+ \item handling the intermediate data files produced by the map step;
+
+ \item Passing the location of the sorted output files to the workers of the
+reduce step. \end{itemize}
 
 
  
@@ -360,7 +410,7 @@ the reduce step.
 In~\cite{Sehgal:2011:UAI:1945091.1945329} we investigated the scale-out of an 
 MapReduce application on different infrastructures. The utilization of Pilot 
 abstractions has several advantages: (i) compute and data pilots allow an 
-efficient decoupling of resource allocation and usage, i.\,e.\ the Map Reduce 
+efficient decoupling of resource allocation and usage, i.\,e.\ the MapReduce 
 master can efficiently schedule compute units containing mapper and reduce 
 tasks; (ii) the co-location of data and compute units descriptively defined 
 and are automatically handled by Pilot framework; This enables the 
@@ -393,6 +443,30 @@ Flow of an MapReduce application (assumption input data is pre-staged?):
 
 Role of Pilot Data
 
+
+\subsection{MapReduce Architectures for Distributed Data}
+
+Motivate distributed data
+
+There are three options for running MapReduce on distributed
+data~\cite{weissman-mr-11}: (i) Local MapReduce, (ii) Global MapReduce and
+(iii) Distributed MapReduce.
+
+
+\section{MapReduce-Based Applications}
+
+
+\subsection{Classifying MapReduce Applications}
+
+Talk about different kinds of data aggregation
+
+Iterative MapReduce
+
+
+\subsection{WordCount}
+
+basis for many machine learning use cases: classification, recommendation, etc.
+
 \subsection{Genome sequencing duplicate read removal}
 
 High-throughput genome sequencing techniques provided by Next Generation
@@ -406,6 +480,9 @@ Contrast to Hadoop:
 Pilot-MapReduce provides more flexibility and building block, e.g. flexible 
 usage of sorting, more fine-grained control of data transfers etc.
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 \section{Experiments and Results}
 In this section we describe our specific experimental setups over FutureGrid platform:
 FutureGrid: The FutureGrid is a collection of homogenous, highly distributed loosely-coupled clusters used for our study. In our experiments, we use India, Sierra and Hotel FutureGrid clusters. We use Hadoop 0.20.2 over FutureGrid machines for our study. In our experimental setups, to facilitate low overhead of the master processes(i.e., JobTracker and NameNode) given our workloads, we use 8 slaves nodes including master node. In all Hadoop MapReduce experiments, source data must be first pushed into HDFS before the MapReduce job starts. 
@@ -416,9 +493,9 @@ FutureGrid: The FutureGrid is a collection of homogenous, highly distributed loo
 1. Hadoop MapReduce (Hadoop MR) vs  Local-Pilot MapReduce (Local-PMR) vs Distibuted-Pilot MapReduce (distributed-PMR) using canonical word count application.
 
 
-On FutureGrid, we used 8 nodes for Hadoop and Local-Pilot MapReduce on India cluster. In case of distributed-Pilot MapReduce, we use a total of 16 nodes in two widely seperated clusers - 4 nodes on India, 4 nodes on Hotel. In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For distributed-PMR, the total data is divided between India and Hotel cluster and is already present on shared file sytems of each cluster. We set the number of reduces to 8 and chunk size is set to Hadoop default block size 128MB.
+On FutureGrid, we used 8 nodes for Hadoop and Local-Pilot MapReduce on India cluster. In case of distributed-Pilot MapReduce, we use a total of 16 nodes in two widely separated clusters - 4 nodes on India, 4 nodes on Hotel. In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For distributed-PMR, the total data is divided between India and Hotel cluster and is already present on shared file systems of each cluster. We set the number of reduces to 8 and chunk size is set to Hadoop default block size 128MB.
 
-\subsection{Measuing Job completion time}
+\subsection{Measuring Job completion time}
 Hadoop MapReduce: Job completion time is measured as the MapReduce runtime in the main cluster, which involves time taken for MapReduce map, shuffle and reduce phases. To avoid overlap in calculating the map and shuffle phase times, we configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is completed because with default configuration MapReduce shuffle phase might start before map phase completes. 
 
 Local/Distributed-PMR: Job completion time is measured as the total runtime involved in chunking input data, MapReduce map, intermediate data transfer and reduce phases.
@@ -494,6 +571,7 @@ PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of 
 
 Extending BigData: Access data through BigData abstraction.
 
+BigData \& Realtime
 
 
 %
