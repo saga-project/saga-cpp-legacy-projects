@@ -559,43 +559,60 @@ In contrast to Word Count, almost no aggregation of the input data occurs.
 
 
 
-
-
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
+\subsection{Characterizing MapReduce: Word Count}
+
+In the first experiment, we benchmark the performance of \pilotmapreduce and
+Hadoop using a simple Word Count application and different resource
+configurations. For the local scenario, a single resource (India)
+and a total of 8 nodes are used. For the distributed scenario, 4 nodes on 
+India and 4 nodes on Hotel are used. In all scenarios the input data is 
+pre-staged on the respective resources, i.\,e.\ for Hadoop the data is located 
+in the HDFS file system, for PMR the data is stored on a shared file system. 
+For Hadoop, the number of reduces is set to 8; further, the default chunk size 
+of 128\,MB is used.\alnote{how many reduces to we use for PMR?}
 
 
-\subsection{\pilotmapreduce versus Hadoop}
+\alnote{\textbf{4+4 = 8 not 16?} On FutureGrid, we used 8 nodes for Hadoop and 
+Pilot MapReduce on India cluster. In case of distributed-Pilot MapReduce, we 
+use a total of 16 nodes in two widely separated clusters - 4 nodes on India, 4 
+nodes on Hotel.}
 
-1. Hadoop MapReduce (Hadoop MR) vs  Local-Pilot MapReduce (Local-PMR) 
+% In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For
+% distributed-PMR, the total data is divided between India and Hotel cluster and
+% is already present on shared file systems of each cluster. 
 
-vs Distributed-Pilot MapReduce (distributed-PMR) using canonical word count application.
+% \subsection{Measuring Job completion time}
+Hadoop: Job completion time is measured as the MapReduce runtime in the main
+cluster, which involves time taken for MapReduce map, shuffle and reduce
+phases. To avoid overlap in calculating the map and shuffle phase times, we
+configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is
+completed because with default configuration MapReduce shuffle phase might
+start before map phase completes.
 
+\pilotmapreduce: Job completion time is measured as the total runtime involved 
+in chunking input data, MapReduce map, intermediate data transfer and reduce 
+phases.
 
-
-On FutureGrid, we used 8 nodes for Hadoop and Local-Pilot MapReduce on India cluster. In case of distributed-Pilot MapReduce, we use a total of 16 nodes in two widely separated clusters - 4 nodes on India, 4 nodes on Hotel. In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For distributed-PMR, the total data is divided between India and Hotel cluster and is already present on shared file systems of each cluster. We set the number of reduces to 8 and chunk size is set to Hadoop default block size 128MB.
-
-\subsection{Measuring Job completion time}
-Hadoop MapReduce: Job completion time is measured as the MapReduce runtime in the main cluster, which involves time taken for MapReduce map, shuffle and reduce phases. To avoid overlap in calculating the map and shuffle phase times, we configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is completed because with default configuration MapReduce shuffle phase might start before map phase completes. 
-
-Local/Distributed-PMR: Job completion time is measured as the total runtime involved in chunking input data, MapReduce map, intermediate data transfer and reduce phases.
-
-\subsection{Evaluation}
-We measured and plotted each component of the job completion time.
+% \subsection{Evaluation}
+We measured time-to-completion for each job. Figure~\ref{fig:figures_compMR} 
+shows the results.
 
 \begin{figure}[compMR]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/HMRvsL-PMRvsD-PMR.png}
 	\caption{Pilot MapReduce vs Non-Pilot MapReduce}
-	\alnote{What is the chunk size? Distributed vs. non-distributed? which 
-	machines?}
+	\alnote{What is the chunk size? Distributed vs. non-distributed? Do we want to stick to local?}
 	\alnote{How much data is moved from map to reduce phase?}
 	\alnote{Do we have a distributed Hadoop setup as well?}
+	\alnote{Do we measure the time for putting the data into HDFS}	
 	\label{fig:figures_compMR}
 \end{figure}
 
-The time to solution increased linearly as data size increased for Hadoop MapReduce, local-PMR, distributed-PMR. 
-The Map phase time of Hadoop is 11.6
+The time to solution increased linearly as data size increased for all cases. 
+The map phase time of Hadoop is 11.6\,sec.
+
 % greater than Map phase time of Local-PMR because Hadoop MR involves preparing input splits and starting the map tasks, whereas in Pilot MapReduce, chunk time is considered seperatly and Map phase involves submitting of map compute units. The chunking time of distributed-Pilot MapReduce is less when compared to Local-PMR, since the data is halved and distributed to two machines. \pnote{ Andre::question::Hadoop uses logical splitting of files, where as PMR chunks the files physically, wiritng to disk, this is a performance bottlneck. Is acessing a single file, by many parallel subjobs cause problems?}. The shuffle phase is considered only in Hadoop MapReduce, where as the exchange is involved in Pilot MapReduce. The input to the reduce phase in all the three MapReduce increased linearly with input data. In local-PMR is < 1sec as the data is moved within cluster using SAGA file adaptor. In distributed PMR, the time to exchange data between India and Hotel also increased linearly with input data size. The Reduce phase is high for Pilot MR since the reduce compute units has to read intermediate data from the disk and write output data to the disk, where as in Hadoop MapReduce reduce phase, the intermediate data is available in memory and write the output to HDFS.
 
 
@@ -605,7 +622,9 @@ The Map phase time of Hadoop is 11.6
 	\caption{Wordcount on 8GB plain-text data}
 	\alnote{Do we have some larger volumes of data? In our old MR paper we
 	had 10 GB of data.}
-	\alnote{Time to put data into HDFS}
+	\alnote{Time to put data into HDFS?}
+	\alnote{Can we have a stacked bar chart?}
+	\alnote{Why are our reduces so slow?}
 	\label{fig:figures_compMR_8GB}
 \end{figure}
 
@@ -631,7 +650,7 @@ Swap:         2047          0       2047
   
 
 
-\subsection{Distributed MapReduce}
+\subsection{Characterizing MapReduce: Genome Sequencing}
 
 2. distributed PMR vs weissmann's implementation of  DMR using GS duplicate read removal application.
 
