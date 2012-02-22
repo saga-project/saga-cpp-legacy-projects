@@ -395,26 +395,23 @@ of BigJob and BigData.
 \pilotmapreduce exposes an easy-to-use interface which provides the complete
 functionality needed by any MapReduce algorithm, while hiding the more complex
 functionality, such as chunking of the input, sorting the intermediate
-results, managing and coordinating the map \& reduce tasks, etc. — these are generically
+results, managing and coordinating the map \& reduce tasks, etc., these are generically
 implemented by the framework.
 
 \alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
 
-\pilotmapreduce uses the Pilot-API for managing map and reduce compute units
-and for defining relationships between the intermediate data and reduce tasks
-across distributed infrastructure. 
+\pilotmapreduce uses the Pilot-API for managing map and reduce compute and intermediate data.
 
+%Pilot-API is used for managing map and reduce compute units
+%and for defining relationships between the intermediate data and reduce tasks
+%across distributed infrastructure
 
-\subsection{Architecture of Pilot-MapReduce}
-
-Figure~\ref{fig:figures_mapreduce-pilotdata} shows the architecture of the
-\pilotmapreduce framework. The framework relies on the master/worker
+\subsection{Compute Management}
+The framework relies on the master/worker
 coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
 coordinating the MapReduce workers, which again are responsible for executing
 map and reduce tasks. The MR-Manager utilizes BigJob for executing
-mapper and reduce tasks, and BigData for managing file transfers.
-BigData is particularly used for moving the intermediary output files of
-the mapper tasks to the resource where the reduce compute units are executed.
+mapper and reduce tasks. 
 
 Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
 central manager that dispatches map and reduce tasks to the nodes of the
@@ -423,10 +420,41 @@ respective tasks. The main limitation of this architecture is the fact that it
 intermixes both cluster resource management and application-level task
 managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
 another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
-represents a single point of failure and scalability bottleneck.
-Pilot-MapReduce introduces a clean separation of these two concerns. The
-\pilot abstraction enable the easy acquisition of both compute and storage
-resources. The MR manager can focus on orchestrating this resource pool. This architecture can also efficiently support workloads that currently cannot be support well enough by Hadoop, e.\,g.\ iterative applications.
+represents a single point of failure and scalability bottleneck
+
+\subsection{Data Management}
+The efficiency of distributed MapReduce on multiple clusters depends on managing the intermediate data between them.
+The BigData not only provides flexibility to manage the relationship between data and compute units, but also
+allow {\it parallel}  data transfers between machines and between data units. 
+BigData is particularly used for moving the intermediate output files of
+the mapper tasks to the resource where the reduce compute units are executed. 
+In distributed \pilotmapreduce on m clusters with n reduces distributed evenly across clusters involve n*(m-1) parallel data transfers
+to complete the intermediate data movement. 
+
+
+\subsection{Architecture of Pilot-MapReduce}
+
+
+%The framework relies on the master/worker
+%coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
+%coordinating the MapReduce workers, which again are responsible for executing
+%map and reduce tasks. The MR-Manager utilizes BigJob for executing
+%mapper and reduce tasks, and BigData for managing file transfers.
+%BigData is particularly used for moving the intermediary output files of
+%the mapper tasks to the resource where the reduce compute units are executed.
+
+%Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
+%central manager that dispatches map and reduce tasks to the nodes of the
+%Hadoop cluster. On each node the task tracker is responsible for executing the
+%respective tasks. The main limitation of this architecture is the fact that it
+%intermixes both cluster resource management and application-level task
+%managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
+%another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
+%represents a single point of failure and scalability bottleneck.
+Pilot-MapReduce introduces a clean separation of concerns regarding compute and data management. The
+pilot abstraction enable the easy acquisition of both compute and storage
+resources. The MR manager can focus on orchestrating this resource pool. This architecture can also efficiently support workloads that currently cannot be support well enough by Hadoop, e.\,g.\ iterative applications. Figure~\ref{fig:figures_mapreduce-pilotdata} shows the architecture of the
+\pilotmapreduce framework.
 
 \begin{figure}[htbp]
 	\centering
@@ -452,17 +480,18 @@ workflow:
 	after its creation. 
 
 	\item \textbf{Chunking:} The input data is {\it chunked}. BigJob is used 
-	as general 
-	abstraction for executing CUs. Thus, the MR-Manager executes a set of 
+	as general abstraction for executing CUs. Thus, the MR-Manager executes a set of 
 	chunk compute units via BJ. \label{stp:chunking}
 	
 	\item \textbf{Mapping:} The frameworks assigned a set of {\it map} CUs to 
-	the chunks created 
-	in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ and 
+	the chunks created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ and 
 	BD ensures that CUs and DUs are co-located.
 	
 	\item \textbf{Shuffling:} After the {\it map} phase is finished the output 
-	data is sorted and partitioned into multiple DU.
+	data is sorted and partitioned into multiple DU. \pnote{partitioning and sorting of 
+        map output is part of map task}. In distributed \pilotmapreduce with n reduces distributed 
+        evenly across m machines, n*(m-1) parallel data transfers are initiated to complete 
+        the intermediate data movement. 
 	
 	\item \textbf{Reducing:} The {\it reduce} tasks are prepared and 
 	executed via BJ on the DUs representing the intermediate data. The 
@@ -557,28 +586,6 @@ the application. The read outputs are filtered for duplicates in the reduce
 phase. For both steps, BWA~\cite{Li:2010:FAL:1741823.1741825} is used as tool. 
 In contrast to Word Count, almost no aggregation of the input data occurs.
 
-
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-\subsection{Characterizing MapReduce: Word Count}
-
-In the first experiment, we benchmark the performance of \pilotmapreduce and
-Hadoop using a simple Word Count application and different resource
-configurations. For both the local mapreduces, 
-a total of 8 nodes on India machine are used.  In all scenarios the input data is 
-pre-staged on the respective resources, i.\,e.\ for Hadoop the data is located 
-in the HDFS file system, for PMR the data is stored on a shared file system. 
-We set the total number of reduces to 8 for both Hadoop and Pilot MapReduces; further, the default chunk size 
-of 128\,MB is used.\alnote{HDFS \# replicas?} - \pnote{default 2}\alnote{how many reduces to we use for PMR?} \pnote{8}
-
-
-On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India cluster. 
-
-% In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For
-% distributed-PMR, the total data is divided between India and Hotel cluster and
-% is already present on shared file systems of each cluster. 
-
 % \subsection{Measuring Job completion time}
 Hadoop: Job completion time is measured as the MapReduce runtime in the main
 cluster, which involves time taken for MapReduce map, shuffle and reduce
@@ -587,6 +594,26 @@ configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is
 completed because with default configuration MapReduce shuffle phase might
 start before map phase completes.\alnote{do we measure the time that it takes 
 to setup the cluster? put data into hdfs?}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\subsection{Characterizing Local-MapReduce: Word Count}
+
+In the first experiment, we benchmark the performance of \pilotmapreduce and
+Hadoop using a simple Word Count application on a single cluster varying resource
+configurations. For both the mapreduces, 
+a total of 8 nodes on India machine are used.  In all scenarios the input data is 
+pre-staged on the respective resources, i.\,e.\ for Hadoop the data is located 
+in the HDFS file system, for PMR the data is stored on a shared file system. 
+We set the total number of reduces to 8 for both Hadoop and Pilot MapReduces; further, the default chunk size 
+of 128\,MB is used.\alnote{HDFS \# replicas?} - \pnote{default 2}\alnote{how many reduces to we use for PMR?} \pnote{8}
+
+On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India cluster. 
+
+% In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For
+% distributed-PMR, the total data is divided between India and Hotel cluster and
+% is already present on shared file systems of each cluster. 
+
 
 \pilotmapreduce: Job completion time is measured as the total runtime involved 
 in chunking input data, MapReduce map, intermediate data transfer and reduce 
@@ -599,13 +626,13 @@ shows the results.
 \begin{figure}[compMR]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/HMRvsL-PMRvsD-PMR.png}
-	\caption{Pilot MapReduce vs Non-Pilot MapReduce} \pnote{128MB; Yes i think it make sense to stick to local; why beacause
+	\caption{Pilot-MapReduce vs Hadoop MapReduce} \pnote{128MB; Yes i think it make sense to stick to local; why beacause
 1. Local MR performs better than DMR when initial data transfer is considered.
 2. If initial data transfer is considered, then Weismann's DMR should be considered to compare distributed-PMR, since we are using wordcount application, which has high aggregation.}
 	\alnote{What is the chunk size? Distributed vs. non-distributed? }\pnote{Do we want to stick to local?}
 	\alnote{How much data is moved from map to reduce phase?} \pnote{192.76 in case of wordcount} 
 	\alnote{Do we have a distributed Hadoop setup as well?}\pnote{No}
-	\alnote{Do we measure the time for putting the data into HDFS--NO}
+	\alnote{Do we measure the time for putting the data into HDFS--Yes}
 	\label{fig:figures_compMR}
 \end{figure}
 
@@ -615,16 +642,16 @@ The map phase time of Hadoop is 11.6\,sec.
 % greater than Map phase time of Local-PMR because Hadoop MR involves preparing input splits and starting the map tasks, whereas in Pilot MapReduce, chunk time is considered seperatly and Map phase involves submitting of map compute units. The chunking time of distributed-Pilot MapReduce is less when compared to Local-PMR, since the data is halved and distributed to two machines. \pnote{ Andre::question::Hadoop uses logical splitting of files, where as PMR chunks the files physically, wiritng to disk, this is a performance bottlneck. Is acessing a single file, by many parallel subjobs cause problems?}. The shuffle phase is considered only in Hadoop MapReduce, where as the exchange is involved in Pilot MapReduce. The input to the reduce phase in all the three MapReduce increased linearly with input data. In local-PMR is < 1sec as the data is moved within cluster using SAGA file adaptor. In distributed PMR, the time to exchange data between India and Hotel also increased linearly with input data size. The Reduce phase is high for Pilot MR since the reduce compute units has to read intermediate data from the disk and write output data to the disk, where as in Hadoop MapReduce reduce phase, the intermediate data is available in memory and write the output to HDFS.
 
 
-\begin{figure}[compMR_8GB]
+\begin{figure}[compMR_16GB]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/comparision_16gb.png}
-	\caption{Wordcount on 16GB plain-text data}
+	\caption{Wordcount on 16GB plain-text data with 8 workers, 8 reduces and 128MB chunk size on India.}
 	\alnote{Do we have some larger volumes of data? In our old MR paper we
 	had 10 GB of data.} \pnote{16GB data is added}
 	\alnote{Time to put data into HDFS?} \pnote{ included in the graph?}
 	\alnote{Can we have a stacked bar chart?}
 	\alnote{Why are our reduces so slow?} \pnote{ Hadoop reduce tasks read intermediate data either from memory or hdfs; whereas In pilotMR- the reduces read/write  to a shared file system}
-	\label{fig:figures_compMR_8GB}
+	\label{fig:figures_compMR_16GB}
 \end{figure}
 
 
@@ -648,13 +675,13 @@ Swap:         2047          0       2047
 
          - varying input size (1GB, 2GB, 4GB, 8GB - experiments repeated for 3 times atleast..)
 
-  
+ \subsection{Characterizing distributed-MapReduce: Word Count} 
 
 
-\subsection{Characterizing MapReduce: Genome Sequencing}
 
-2. distributed PMR vs weissmann's implementation of  DMR using GS duplicate read removal application.
+\subsection{distributed-\pilotmapreduce vs traditional DMR: Genome Sequencing}
 
+2. Distributed PMR vs Weissmann's implementation of  DMR
 
 \begin{figure}[jonsdmr]
 	\centering
@@ -662,20 +689,27 @@ Swap:         2047          0       2047
 	\caption{Weissmann's dmr for GS application} 
 	\label{fig:figures_jonsdmr}
 \end{figure}
-Weissmanns paper doesn't talk about low workload scheme applications where reduce output is still significantly large.. ( it talks about zero, high, balooning ).. so we have a model for these type of applications.
 
-why weissmanns DMR is choosed?? LMR involves huge amount of initial data transfer. GMR need global filesystem across clusters, which is difficult to have, and latencies issues in moving files. So, DMR is a potential choice over LMR and GMR. 
+In this experimentation section, we try to compare the distributed PMR implemenation with \cite{weissmann} DMR implemenation using genome sequencing application which has low aggreagation workload. The DMR is configured using 3 local Pilot-MapReduces. The number of workers on each cluster is set to 32 , chunk size to 625k sequences and number of reduces to 8 in both PMR and DMR. We conduct the experiments on India and Hotel futuregrid machines. The job completion time for DMR is max time of both individual MapReduce jobs on India and Hotel, plus the result combination step to combine the sub-results into the final result at a single data lcoation on Hotel.  We considered Hotel machine to combine the sub-results to optimize the data transfer, which is in case of using another machine. We choosed Hotel instead of India, because Hotel is faster than India machine.
+
+
+\pnote{Weissmanns paper doesn't talk about low workload scheme applications where reduce output is still significantly large.. ( it talks about zero, high, balooning ).. so we have a model for these type of applications. why weissmanns DMR is choosed?? LMR involves huge amount of initial data transfer. GMR need global filesystem across clusters, which is difficult to have, and latencies issues in moving files. So, DMR is a potential choice over LMR and GMR. }
+
+In ~\cite{weissman-mr-11}, different workload data aggregation schemes are evaluated.  
+High Aggregation: The MapReduce output is multiple orders of magnitude smaller than the input, e.g. Wordcount on English plain-text.
+Zero Aggregation: The MapReduce output is the same size as the input, e.g. the Sort workload.
+No model regarding data aggregation schemes between high and zero, i.e for low aggregation is specified. In this experiment, we try  to prove that \pilotmapreduce is a best model for
+low aggregation schema applications. We choose ~\cite{weissman-mr-11} DMR configuration and compare it with \pilotmapreduce with genome sequence application, which produces significant amount of output and neither high aggreation nor zero aggregation. We ran experiments with 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
+
+
+
+
+
 
 DMR outperforms PMR if pilot-data doesn't transfer intermediate data concurrently. At the same time, if the concurrency  is not tuned properly, it might cause bandwidth problems.
 
------- So a experiment section needed to fine tune the concurrency between machines.. Again it depends on bandwidth and the machines use. need to perform experiments.
 
-Infrastructure used - India, hotel, sierra futuregrid machines.. hotel is the fastest and sierra is slowest.
-
-DMR implementation - use multiple Local PMR clusters and then combine their result with second round of Local PMR cluster. ( India, sierra, hotel) machines are used.
-DMR tts = max ( tts of LMR on india, tts of LMR  on sierrra, tts of LMR  on hotel ) + max (reduce data transfer from india->hotel, reduce data transfer from sierra->hotel) + ( combined LMR on hotel ).. why hotel?? because the runtime on hotel is less.  
-
-PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of intermediate data between all machines(n) ( n * n-1 concurrent exchanges)) + max ( reduce phase on  india, reduce on  sierrra, reduce on hotel)
+PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of intermediate data between all machines(n) ( r * n-1 concurrent exchanges)) + max ( reduce phase on  india, reduce on  sierrra, reduce on hotel)
 
 --- experiments done for local PMR on each individual cluster.. once time taken to trasnfer intermediate data between machines is obtained.. then tts for PMR can be caluculated and compared to DMR.
 
