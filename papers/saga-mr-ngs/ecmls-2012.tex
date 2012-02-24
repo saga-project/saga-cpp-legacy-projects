@@ -136,7 +136,7 @@
  
 \end{abstract}
 
-We present the use of MapReduce programming model for Next-Generatiion Sequencing (NGS) data analysis.  Our approach is based on Pilot-based SAGA-MapReduce (P-SAGA-MR) framework which extends previously introduced SAGA-MapReduce with a Pilot task and data management implementation.  With the new P-SAGA-MR, a variety of applications for NGS data and downstream analysis are transformed to become scalable tools by analyzing and processing large distributed data sets located in distributed multiple infrastructures effectively.   As an example, we demonstrate the capacity of P-SAGA-MR for an application carrying out NGS reads alignment and duplicate removal, implemented to the map phase and the reduce phase task, respectively.  We compared our implementation with other MapReduce-based NGS data analysis tools such as Seqal of the SEAL package and Crossbow that make use of Hadoop-based environment but currently implemented with two different mappers, BWA and Bowtie, respectively.  Based on obtained results presenting benchmark experiments using two different mappers and comparison to the two tools, we discuss how P-SAGA-MR stands out, in particular with respect to the scalability with multiple cluster integration and the extensibility with supporting multiple tools and the potential of P-SAGA-MR for a broad range of NGS data analytics. 
+We present the use of MapReduce programming model for Next-Generatiion Sequencing (NGS) data analysis.  Our approach is based on Pilot-based SAGA-MapReduce (P-SAGA-MR) framework which extends previously introduced SAGA-MapReduce with a Pilot task and data management implementation.  With the new P-SAGA-MR, a variety of applications for NGS data and downstream analysis are transformed to become scalable tools by analyzing and processing large distributed data sets located in distributed multiple infrastructures effectively.   As an example, we demonstrate the capacity of P-SAGA-MR for an application carrying out NGS reads alignment and duplicate removal, implemented to the map phase and the reduce phase task, respectively.  We compared our implementation with other MapReduce-based NGS data analysis tools such as SEQAL of the SEAL package and Crossbow that make use of Hadoop-based environment but currently implemented with two different mappers, BWA and Bowtie, respectively.  Based on obtained results presenting benchmark experiments using two different mappers and comparison to the two tools, we discuss how P-SAGA-MR stands out, in particular with respect to the scalability with multiple cluster integration and the extensibility with supporting multiple tools and the potential of P-SAGA-MR for a broad range of NGS data analytics. 
 
 
 \category{D.1.3}{Software}{Concurrent Programming}{ Distributed
@@ -178,8 +178,8 @@ The paper is organized as follows. In the following section, the data sets we us
   & \textbf{P-SAGA-MR}\cite{pmr2012} & \textbf{SEQAL}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
 %\cline{3-9}
  \hline 
-Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop cluster  & Hadoop-based & MR-based Structured \\ 
-Stretegy  & Distributed MR & MR  & or Amazon EMR & MR & Programming  \\
+Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop   & Hadoop-based & MR-based Structured \\ 
+Stretegy  & Distributed MR & MR  & Streaming  & MR & Programming  \\
 & & (Pydoop) &  & & Framework  \\ \hline
   
 Hadoop & No & Yes & Yes\footnote[1] & Yes & No \\ 
@@ -205,8 +205,8 @@ Primary Tasks & Alignment/Duplicate  & Alignment/ & Alignment/ & Alignment &Vari
   &  Removal & Duplicate & SNP Discovery & & NGS Data  \\  
            &  &  Removal & &  & \& Downstream  \\
            &  & & &  & Analysis \\ \hline  
-Extensibility to   &  High  & Medium &  Low & Low & High      \\
-Other Analysis  &      &  &  &  &   \\ \hline
+Extensibility for   &  High  & Medium &  Low & Low & High      \\
+Multiple Tools  &      &  &  &  &   \\ \hline
 
 \hline
 \end{tabular}}
@@ -227,8 +227,8 @@ For this work, we used RNA-Seq data from our collaborator lab which is from huma
 For this work, we used two Futuregrid systems, SIERRA and HOTEL.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  
 
 
-\subsubsection{Comparative Experiment with Seqal}
-Seqal is chosen for the comparison with our approach with P-SAGA-MR since it aims the analysis of read alignment and duplicate removal.  Also, Seqal is implemented with BWA for alignment, implying that the comparison is informative to differentiate Hadoop-based MR implementation and the Pilot-based implementation.
+\subsubsection{Comparative Experiment with SEQAL}
+SEQAL is chosen for the comparison with our approach with P-SAGA-MR since it aims the analysis of read alignment and duplicate removal.  Also, SEQAL is implemented with BWA for alignment, implying that the comparison is informative to differentiate Hadoop-based MR implementation and the Pilot-based implementation.
 
 Hadoop version 0.20.2 and seqal version  seal-0.2.3 were used for SEQAL-based read alignment.
 
@@ -240,8 +240,6 @@ Hadoop SEQAL experiment setup is as follows.  The input file format is prq forma
 To make the comparision more meaningful, we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 The chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads.
 The reduce phase starts after all map phase tasks are completed. 
-
-We found problems faced with using SEQAL; the tmp directory on each node is used to store data  by hadoop, but tmp is limited and tasks failed due to memory problem.  So a parallel file system is needed in case of multiple nodes, or tmp data directory should point to different disks.
 
 PMR setup for using two separated systems is as follows.  Initially the half of the data is placed on sierra. whereas the remaining half is on hotel. The number of workers is 8 and each individual node of the four nodes (two nodes per each cluster) has 2 workers.  For a single system set up, everything is similar except all workers are now running in the system.  Input is in fastq format. An In-house script is used for the chunking step. The user can define the chunker script and provide as an input to the pMR framwork.  
  
@@ -276,56 +274,65 @@ In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PJ-based SAGA-Map
 There are unique features that differentiate our approach from others, which could be beneficial for developing cyberinfrastructure for NGS data analytics and downstream analysis.  
 \begin{enumerate}
 
-\item MapReduce via Parallel/Concurrency framework vs. MapReduce as a API embedded in an Application or a pipeline  
+\item Pilot-based MapReduce for Parallel/Concurrency framework 
 \item No need of Hadoop infrastructure
 \item Scalability by utilizing multiple compute resources
 \item Distributed data across distributed resources
 \end{enumerate}
  
- In Fig.~\ref{fig:scale-pj-saga-mr}, we present the overall scaling results for the task of mapping and duplicate removal with P-SAGA-MR.  Generally, our observation is that the most of time-to-solution for the tasks are consumed in the map phase, the alignment of reads onto a reference genome.  
-
-
-
-\begin{figure}
+ \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-tts.pdf} 
 \caption{\small Read size dependent time-to-solution.  The number of nodes for this experiment is 16, and chunk size is set to contain 62500 reads.  The number of Reducer is set to 8}
-  \label{fig:scale-pj-saga-mr} 
+  \label{fig:read-size} 
 \end{figure}
+
+ In Fig.~\ref{fig:read-size}, the required scalability is measured with the increase of input data size.  It is apparent that compared to the map phase that conducts parallel alignment with BWA, other two steps, the reduce phase and the preparation of input data with multiple files are negligible.  Note that the alignment and the duplicate removal tasks are low-aggregation problems for MapReduce framework.  
+
+Meanwhile, Fig~\ref{fig:scale-p-saga-mr} shows the overall good scaling results for the task of mapping and duplicate removal with P-SAGA-MR as the number of nodes used increases, indicating that P-SAGA-MR is a viable framework for delivering the good parallel performance against sizable data sets.
+
+
+
+
 
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-scale.pdf}
 \caption{\small Pilot-based SAGA-MapReduce scalability}
-  \label{fig:scale-pj-saga-mr} 
+  \label{fig:scale-p-saga-mr} 
 \end{figure}
 
 
-\subsection{Comparison to Hadoop-based Seqal and Crossbow}
+\subsection{Comparison to Hadoop-based SEQAL and Crossbow}
 \subsubsection{Closely Related Works}
-There exist a few works specifically targeting NGS data analytics using the MR framework and four other tools are presented in Table~\ref{table:mr-comparison}
+There exist a few works specifically targeting NGS data analytics using the MR framework and four other tools are presented in Table~\ref{table:mr-comparison}.  In brief, Cloudburst was one of early tools to demonstrate the significant potential of MapReduce for NGS data analysis, whereas Crossbow focused on better scalability using Hadoop streaming.  Compared to the two Hadoop-based tools, GATK was introduced to support the general parallel execution pattern across many NGS data analytics.  Recently, the SEAL package was announced in which SEQAL is a utility for the alignment and duplicate removal.   
 
-Interestingly, multi-domain support MR framework is recently introduced for AutodDock application which is, in contrast to our applications that are loosely-coupled, pleasingly parallel.\cite{ecmls11-mr-autodock}
+In spite of the commonality that MapReduce is the core programming model for the tools, they differ in several aspects depending upon the need of Hadoop, the way to utilize Hadoop, the level of flexibility for the extension of tools for alternative tasks or external tools such as aligners, and multiple cluster support.
+
+Interestingly, multi-domain support with the MR framework is recently demonstrated for AutodDock application which is, in contrast to our applications that are loosely-coupled, pleasingly parallel.\cite{ecmls11-mr-autodock}
 
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
 
-\caption{\small Hadoop based SEQAL vs local-PMR vs distributed-PMR}
+\caption{\small Hadoop-based SEQAL vs. Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase}
   \label{fig:comp_with_seqal_1} 
 \end{figure}
 
 \subsubsection{Performance Comparison}
-In Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2}, we compared directly the time-to-solution between Seqal and two scenarios with P-SAGA-MR, one with a single cluster and the other with two clusters.  In Fig.~\ref{fig:comp_with_seqal_2}, we dissect the contributions of each step for the total runtime.
+In Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2}, we compared directly the time-to-solution between SEQAL and two scenarios with P-SAGA-MR, one with a single cluster and the other with two clusters.  In Fig.~\ref{fig:comp_with_seqal_2}, we dissect the contributions of each step for the total runtime.  
 
+Notably, SEQAL takes more time on the overall run time, and the most contributing cause come from the map phase.  We interpret this result with the fact that the tmp directory on each node is used to store data by hadoop, but when the size of a tmp directory is limited for the required task, a remote file system is configured as  the tmp data directory for remote disks of other nodes.
 
+Another observation from Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2} is that whereas SEQAL is limited by a single cluster with Hadoop, P-SAGA-MR can be easily scale-across multiple clusters. The distributed-PMR is indeed performing well against local-PMR without significant performance loss due to the low connectivity between two clusters with our experimental set up.  
 
+Again, Fig.~\ref{fig:comp_with_seqal_2} clearly indicates the map phase for SEQAL has a disadvantage against P-SAGA-MR.  The comparison of the reduce phase could originate from the different implementation between SEQAL and ours.
 
-\begin{figure}
+\begin{figure} 
  \centering
 \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
 
-\caption{\small  Duplicate Read Removal on 8GB input data}
+\caption{\small  Alignment and Duplicate Read Removal on 8GB input data.  Comparison between SEQAL vs. Local-PMR vs. distributed-PMR.  The runtime contributions from each step are compared in details. BWA is the aligner for the map phase}
   \label{fig:comp_with_seqal_2} 
 \end{figure}
 
@@ -340,39 +347,18 @@ The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves so
 \pmnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
 
 
-\section{Concluding Remarks}
+\section{Discussions and Concluding Remarks}
+\textit{P-SAGA-MR vs. Other approaches}
+\\
+
+On the other hand, in spite of many advantages, Hadoop-based approaches are limited by its computing environment nature.  The open source Hadoop is implemented with a job and task tracker: the job tracker is the central manager that dispatches map and reduce tasks to the nodes(nodes could be from multiple clusters) of the Hadoop cluster. On each node the task tracker is responsible for executing the respective tasks. The main limitation of this architecture is the fact that it intermixes both cluster resource management and application-level task managements. Thus, it is e.g. not easily possible to integrate Hadoop with another resource management tool, e.g. PBS or Torque. Also, the job tracker represents a single point of failure and scalability bottleneck. Another limitation is the latencies between machines should not be so big as HDFS uses Avro - an RPC-style protocol for communications.
+
+\textit{P-SAGA-MR, a viable solution for scale-across and extensible framework for NGS data analytics}
+\\
+
+\textit{DARE and beyond}
 
 
-% \begin{table}
-% \small
-% \begin{tabular}{|c|c|c|c|c|c|} 
-% \hline 
-%Case & Read File & Threads   &  \# of & BigJob Size   &   $T_C$   \\
-%   & Size& per Task & Tasks  & Cores(Nodes)  & \\
-%   \hline
-%g1 & 0.209 GB & 2 &   40 &  80(10) & 3966 s \\
-%g2 & 0.435 GB & 2 &  20 & 40(5) & 8031 s\\ \hline
-%g3  & 0.209 GB& 2 & 40  & 12(3) & 25807 s \\
-%g4 & 0.435 GB& 2 & 20  & 12(3) & 23872 s  \\ \hline
-%\hline
-%g5 & 0.209 GB& 2& 40 & 80(20) & 1111 s \\
-%g6&0.435 GB&2& 20 & 40(10)&2096 s\\
-%\hline
-%\end{tabular}
-%\caption{Performance comparison for different parallel configurations
-%  using SAGA-BigJob on a HPC-Grid (LONI). One BigJob is submitted with
-%  the number of sub-jobs, where each sub-job is a BFAST task.  The
-%  total (read) data size is the read-file size multiplied by the
-%  number of tasks (which is equal to the number of read-files); which
-%  is a constant for g1-g6.  Cases g1, g2 and g3,g4 and g5,g6 are
-%  conducted on QB, Painter and Eric respectively. The cases g1, g2,
-%  g3, g4 are use 40 index files of a Human Chromosome 21.  Note that
-%  g5 and g6 are the results with 10 index files; g6 is specifically
-%  carried out to provide a direct comparison to c5 (on a cloud
-%  resource as in the following Table~\ref{table:cloud-VM}) }
-%  
-%  \label{table:bigjob-loni} 
-%\end{table}
 
 
 
