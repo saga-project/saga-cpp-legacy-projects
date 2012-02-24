@@ -97,7 +97,12 @@
        \affaddr{Louisiana State University}\\
        \affaddr{216 Johnston}\\
        \affaddr{Baton Rouge, LA}
-       \email{yours are here}       
+\alignauthor Nayong Kim\\
+       \affaddr{Center for Computation and Technology}\\
+       \affaddr{Louisiana State University}\\
+       \affaddr{216 Johnston}\\
+       \affaddr{Baton Rouge, LA}
+\and
 \alignauthor Joohyun Kim\titlenote{Author for correspondence}\\
        \affaddr{Center for Computation and Technology}\\
        \affaddr{Louisiana State University}\\
@@ -131,7 +136,7 @@
  
 \end{abstract}
 
-We present the use of MapReduce programming model for Next-Generatiion Sequencing (NGS) data analysis.  Our approach is based on Pilot-based SAGA-MapReduce (P-SAGA-MR) framework which extends previously introduced SAGA-MapReduce with a Pilot task and data management implementation.  With the new P-SAGA-MR, a variety of applications for NGS data and downstream analysis are transformed to become scalable tools by analyzing and processing large distributed data sets located in distributed multiple infrastructures effectively.   As an example, we demonstrate the capacity of P-SAGA-MR for an application carrying out NGS reads alignment and duplicate removal, implemented to the map phase and the reduce phase task, respectively.  We compared our implementation with other MapReduce-based NGS data analysis tools.  For more detailed comparison, we chose the SEQAL application of the SEAL package.  Based on our findings from obtained results, we discuss how P-SAGA-MR stands out among other similar tools and the potential of P-SAGA-MR for a broad range of NGS data analytics. 
+We present the use of MapReduce programming model for Next-Generatiion Sequencing (NGS) data analysis.  Our approach is based on Pilot-based SAGA-MapReduce (P-SAGA-MR) framework which extends previously introduced SAGA-MapReduce with a Pilot task and data management implementation.  With the new P-SAGA-MR, a variety of applications for NGS data and downstream analysis are transformed to become scalable tools by analyzing and processing large distributed data sets located in distributed multiple infrastructures effectively.   As an example, we demonstrate the capacity of P-SAGA-MR for an application carrying out NGS reads alignment and duplicate removal, implemented to the map phase and the reduce phase task, respectively.  We compared our implementation with other MapReduce-based NGS data analysis tools such as Seqal of the SEAL package and Crossbow that make use of Hadoop-based environment but currently implemented with two different mappers, BWA and Bowtie, respectively.  Based on obtained results presenting benchmark experiments using two different mappers and comparison to the two tools, we discuss how P-SAGA-MR stands out, in particular with respect to the scalability with multiple cluster integration and the extensibility with supporting multiple tools and the potential of P-SAGA-MR for a broad range of NGS data analytics. 
 
 
 \category{D.1.3}{Software}{Concurrent Programming}{ Distributed
@@ -145,9 +150,9 @@ We present the use of MapReduce programming model for Next-Generatiion Sequencin
 
 \terms{Design, Experimentation, Performance}
 
- \keywords{Genome Sequence Alignment, BWA, Human Genome, RNA-Seq,
+ \keywords{Genome Sequence Alignment, BWA, Human Genome, RNA-Seq Data,
   MapReduce, Distributed Computing, Simple API for Grid
-  Applications (SAGA)}
+  Applications (SAGA), Pilot Job and Data}
 
 %\keywords{ACM proceedings, \LaTeX, text tagging} % NOT required for Proceedings 
 %\keywords{RNA conformation energy landscape, Runtime Environment, SAM-I riboswitch,
@@ -173,18 +178,19 @@ The paper is organized as follows. In the following section, the data sets we us
   & \textbf{P-SAGA-MR}\cite{pmr2012} & \textbf{SEQAL}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
 %\cline{3-9}
  \hline 
-Key Strategy for   & Pilot-based   &  Hadoop-based/  &  Hadoop  & Hadoop-based & MR-based Structured \\ 
-Parallelism  & Distributed MR & MR  & Streaming & MR & Programming  \\
+Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop cluster  & Hadoop-based & MR-based Structured \\ 
+Stretegy  & Distributed MR & MR  & or Amazon EMR & MR & Programming  \\
 & & (Pydoop) &  & & Framework  \\ \hline
   
-Hadoop Requirement & No & Yes & Yes & Yes & No \\ \hline  
+Hadoop & No & Yes & Yes\footnote[1] & Yes & No \\ 
+Requirement  & & & &  &\\ \hline  
   
     
 Multiple  Cluster & Yes  & Limited   & Limited  & Limited  & Limited \\
 Support &  & by Hadoop &  by Hadoop & by Hadoop  & by JVM   \\ \hline
 
-Parallel Job and Data  & Advert Service (SAGA) & Hadoop/HDFS & Hadoop/HDFS & Hadoop/HDFS & Java \\ 
-Coordination & &  & & & Framework\\ \hline
+Distributed Job and  & Advert Service (SAGA) & Hadoop/HDFS & Hadoop/HDFS & Hadoop/HDFS & Java \\ 
+Data Coordination & &  & & & Framework\\ \hline
 %Strength & 1. Scalable with Multiple Systems  &  &  &  & \\ 
 %
 %&  2. Pilot Job/Data Support & &  & & \\ 
@@ -195,16 +201,17 @@ Coordination & &  & & & Framework\\ \hline
 Primary Aligner &  BWA  &  BWA & Bowtie & RMAP &  BWA \\ \hline
 Multiple Aligner  & Straightforward & Not Straight- & Possible & Not Straight-  & Straight-  \\ 
 Support &  & forward &   & forward  & forward \\\hline
-Target Tasks & Alignment/Duplicate  & Alignment/ & Alignment/ & Alignment &Various\\
-  &  Removal or Alignment/Others & Duplicate & SNP Discovery & & NGS Data  \\  
-           & (Others include RNA-Seq, &  Removal & &  & \& Downstream  \\
-           & ChIP-Seq, SNP, and many) & & &  & Analysis \\ \hline  
-       
+Primary Tasks & Alignment/Duplicate  & Alignment/ & Alignment/ & Alignment &Various\\
+  &  Removal & Duplicate & SNP Discovery & & NGS Data  \\  
+           &  &  Removal & &  & \& Downstream  \\
+           &  & & &  & Analysis \\ \hline  
+Extensibility to   &  High  & Medium &  Low & Low & High      \\
+Other Analysis  &      &  &  &  &   \\ \hline
 
 \hline
 \end{tabular}}
 \hfill{}
-\caption{Feature comparison of P-SAGA-MR with other tools for Next-Generation Sequencing (NGS) data analysis with MapReduce framework}
+\caption{Feature comparison of P-SAGA-MR with other tools for Next-Generation Sequencing (NGS) data analysis with MapReduce framework.  $^{1}${Crossbow can run without hadoop when scalability is not needed.} }
  \label{table:mr-comparison}
 \end{table*}
 \end{center}
