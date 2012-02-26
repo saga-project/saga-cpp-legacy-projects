@@ -176,10 +176,17 @@ tasks that can be concurrently executed \& managed; {\it scale-across}
 is a measure of the number of distinct compute resources that an
 application can utilize.
 
-\jhanote{Say something about tooling, something about integrated and
+\pmnote{
+Doesn't  scale-up and scale-out mean same thing as per above description??
+In Fig 3,  as the number of nodes or cores increase, the runtime decreases- so its scales-up well.
+The concurrency of tasks, increase with number of cores.. Figure -3 again shows that.
+I mean both are related to the number of workers used.
+}
+
+\jhanote{Say something about tooling, something about integrated the concurrency also increased. and
   extensible environment}
 
-\jhanote{``Unfortunately, users cannot directly deploy a MapReduce
+\jhanote{`Unfortunately, users cannot directly deploy a MapReduce
   framework such as Hadoop on top of these clusters to form a single
   larger MapReduce cluster. Typically the internal nodes of a cluster
   are not directly reachable from outside. However, MapReduce requires
@@ -188,6 +195,11 @@ application can utilize.
   deployed within a single cluster. Therefore, one challenge is to
   make multiple clusters act collaboratively as one so it can more
   efficiently run MapReduce.''}
+
+\pmnote{ Why do we need a distributed mapreduce framework to process distributed data on multiple frameworks?
+1. To process the data on a single cluster takes more time and getting shared HPC resources to process that huge is also difficult. So distributing the data( Which can be a one time setup) to multiple clusters allows the flexibility to use more computation and process the data quickly. 
+2. "Although commercial clouds can provide virtually unlimited computation and storage resources on-demand, due to financial, security and possibly other concerns, many researchers still run experiments on a number of small clusters with limited number of nodes that cannot unleash the full power of MapReduce." - {Hierarchical mapreduce}
+}
 
 The paper is organized as follows. In the following section, the data sets we used for this work and the introducing of the P-SAGA-MR are presented.   Later, results for parallel performance measurements and comparison of our results with SEQAL which represents applications that use the open source Hadoop-based MapReduce\cite{hadoop-url, taylor2010} and aiming the same read alignment-duplicate removal task\cite{seal_2011_mapred,seal2011} are presented.  Finally, we will give concluding remarks focusing on challenges associated with scalable calculations of NGS data analytics which could be effectively resolved by the utilization of P-SAGA-MR that seamlessly supports parallel/concurrent computation and data processing  tasks with scalable multiple HPC infrastructures.
 
@@ -305,7 +317,7 @@ There are unique features that differentiate our approach from others, which cou
  \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-tts.pdf} 
-\caption{\small Read size dependent time-to-solution.  The number of nodes for this experiment is 16, and chunk size is set to contain 62500 reads.  The number of Reducer is set to 8}
+\caption{\small Scale-out: Read size dependent time-to-solution.  The number of nodes for this experiment is 16, and chunk size is set to contain 62500 reads.  The number of reducers is set to 8}
   \label{fig:read-size} 
 \end{figure}
 
@@ -320,7 +332,7 @@ Meanwhile, Fig~\ref{fig:scale-p-saga-mr} shows the overall good scaling results 
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-scale.pdf}
-\caption{\small Pilot-based SAGA-MapReduce scalability}
+\caption{\small Scale-up: Pilot-based SAGA-MapReduce scalability; As the number of nodes increases, number of workers/node=2, the time to solution decreased, the input read size is 10GB, number of reduces is set to 8, number of reads/chunk = 625000. }
   \label{fig:scale-p-saga-mr} 
 \end{figure}
 
@@ -337,7 +349,8 @@ Interestingly, multi-domain support with the MR framework is recently demonstrat
  \centering
 \includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
 
-\caption{\small Hadoop-based SEQAL vs. Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase}
+\caption{\small Hadoop-based SEQAL vs. Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase; number of nodes=4; number of workers/node=2, number of reducers=8, number of reads/chunk=292763 for PMR ==128MB for hadoop based apps}
+
   \label{fig:comp_with_seqal_1} 
 \end{figure}
 
@@ -353,9 +366,17 @@ Again, Fig.~\ref{fig:comp_with_seqal_2} clearly indicates the map phase for SEQA
 \begin{figure} 
  \centering
 \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
-
-\caption{\small  Alignment and Duplicate Read Removal on 8GB input data.  Comparison between SEQAL vs. Local-PMR vs. distributed-PMR.  The runtime contributions from each step are compared in details. BWA is the aligner for the map phase}
+\caption{\small  Alignment and Duplicate Read Removal on 8GB input data.  Comparison between SEQAL vs. Local-PMR vs. distributed-PMR.  The runtime contributions from each step are compared in details. BWA is the aligner for the map phase; ********DMR provides scale-across********** as two machines sierra and hotel are used.}
   \label{fig:comp_with_seqal_2} 
+\end{figure}
+
+
+\begin{figure} 
+ \centering
+\includegraphics[scale=0.50]{figures/tool_comp.png}
+\caption{\small  Map phase comparision of SEQAL, Local-PMR(BWA), distributed-PMR(BWA), Local-PMR(Bowtie), distributed-PMR(Bowtie).  
+number of nodes=4, number of workers/node=2,reduces=8, number of reads/chunk=292763; ********DMR provides scale-across********** as two machines sierra and hotel are used.}
+  \label{fig:tool_comp} 
 \end{figure}
 
 
