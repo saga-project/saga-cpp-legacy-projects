@@ -290,7 +290,7 @@ consisting of an distributed file system (Sector) and a data processing engine
 user-defined function on a stream of data. Hadoop in contrast operates on top 
 of file system chunks.
 
-Twister/Iterative Map Reduce~\cite{Ekanayake:2010:TRI:1851476.1851593} is a 
+Twister~\cite{Ekanayake:2010:TRI:1851476.1851593} is a 
 MapReduce addressing particularly the requirement for supporting iterative 
 MapReduce jobs. Twister allows the flexible composition of applications by 
 specifying map and reduce tasks and the data flow between these tasks. 
@@ -423,13 +423,15 @@ another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
 represents a single point of failure and scalability bottleneck
 
 \subsection{Data Management}
-The efficiency of distributed MapReduce on multiple clusters depends on managing the intermediate data between them.
-The BigData not only provides flexibility to manage the relationship between data and compute units, but also
-allow {\it parallel}  data transfers between machines and between data units. 
-BigData is particularly used for moving the intermediate output files of
-the mapper tasks to the resource where the reduce compute units are executed. 
-In distributed \pilotmapreduce on m clusters with n reduces distributed evenly across clusters involve n*(m-1) parallel data transfers
-to complete the intermediate data movement. 
+\alnote{We haven't introduced the notion of distributed pilot map reduce.}
+The efficiency of distributed MapReduce on multiple clusters depends on managing the
+intermediate data between them. BigData does not only provides flexibility to manage the
+relationship between data and compute units, but also allow {\it parallel} data transfers
+between machines and between data units. BigData is particularly used for moving the
+intermediate output files of the mapper tasks to the resource where the reduce compute
+units are executed. In distributed \pilotmapreduce on m clusters with n reduces distributed
+evenly across clusters involve n*(m-1) parallel data transfers to complete the intermediate
+data movement.
 
 
 \subsection{Architecture of Pilot-MapReduce}
@@ -484,14 +486,21 @@ workflow:
 	chunk compute units via BJ. \label{stp:chunking}
 	
 	\item \textbf{Mapping:} The frameworks assigned a set of {\it map} CUs to 
-	the chunks created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ and 
-	BD ensures that CUs and DUs are co-located.
+	the chunks created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. 
+	BJ and BD ensures that CUs and DUs are co-located.
 	
-	\item \textbf{Shuffling:} After the {\it map} phase is finished the output 
-	data is sorted and partitioned into multiple DU. \pnote{partitioning and sorting of 
-        map output is part of map task}. In distributed \pilotmapreduce with n reduces distributed 
-        evenly across m machines, n*(m-1) parallel data transfers are initiated to complete 
-        the intermediate data movement. 
+	\item \textbf{Shuffling:} \pnote{partitioning and sorting of 
+        map output is part of map task}. \alnote{Hadoop Definitive Guide: ``The process by 
+		which the system performs the sort and transfers the map outputs to the reducers as 
+		inputs is known as the shuffle.'' - I would prefer to work with this definition 
+		since it encapsulates this intermediate step very well. Rather then including it in 
+		the mapping phase (even if it might be done partially by the mapper process.) }  
+		After the processing is finished the output data is sorted and partitioned into 
+		multiple DU. Then, data is moved from the map CUs to the location of the reduce 
+		CUs. In a distributed 
+		\pilotmapreduce with n reduces distributed evenly across m machines, n*(m-1) 
+		parallel data transfers are initiated to complete the intermediate data movement. 
+		\alnote{We need to introduce what we mean by a distributed PMR.}
 	
 	\item \textbf{Reducing:} The {\it reduce} tasks are prepared and 
 	executed via BJ on the DUs representing the intermediate data. The 
