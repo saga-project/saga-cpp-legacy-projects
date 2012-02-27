@@ -434,6 +434,15 @@ evenly across clusters involve n*(m-1) parallel data transfers to complete the i
 data movement.
 
 
+\pnote{
+   comparing data transfer with Hadoop data transfer.
+Hadoop-Data transfer - "Separate nodes in a Hadoop cluster still communicate with one another. However, in contrast to more conventional distributed systems where application developers explicitly marshal byte streams from node to node over sockets or through MPI buffers, communication in Hadoop is performed implicitly. Pieces of data can be tagged with key names which inform Hadoop how to send related bits of information to a common destination node. Hadoop internally manages all of the data transfer and cluster topology issues."
+Similarly - A group of files is represented by a data unit
+mapred.reduce.parallel.copies		The default number of parallel transfers run by reduce during the copy(shuffle) phase.
+Concurrent data transfers... allowed..between machines and nodes.}
+
+
+
 \subsection{Architecture of Pilot-MapReduce}
 
 
@@ -571,8 +580,7 @@ characteristic of a MapReduce application~\cite{weissman-mr-11}.
 
 In the following we investigate two application scenario: (i) WordCount, an
 application with a high data aggregation and thus, a small volume of
-intermediate data \pnote{ high aggregation means the output of both (map \& reduce phase) is much less than input, in wordcount the intermediate data is higher than input data, in our implementation it is 192 percentage of input data} and (ii) a Genome Sequencing application, a application with
-almost no data aggregation.\pnote { there is data aggregation, where the output is only 30 percentage of input data; but its not zero , or high aggreagation, its in between them... The main point I am trying to prove  is that distributed-PMR is better than Jon's DMR atleast in low aggregation applications like GS dpulicate read removal.
+intermediate data \pnote{ high aggregation means the output of both (map \& reduce phase) is much less than input, in wordcount the intermediate data is higher than input data, in our implementation it is 192 percentage of input data} and (ii) a Genome Sequencing application, with aggregation between High and zero data aggregation.\pnote { there is data aggregation, where the output is only 30 percentage of input data; but its not zero , or high aggreagation, its in between them... The main point I am trying to prove  is that distributed-PMR is better than Jon's DMR atleast in low aggregation applications like GS dpulicate read removal.
 Why is that because, Pilot-data provides concurrent data transfers between machines and the dataunits- so ideal intermediate data transfer would be { max(time taken to transfer data related to a reduce} which is significantly less than entire output of 1st stage MR's of Jon's DMR configuration.}
 
 \subsubsection*{Word Count}
@@ -725,9 +733,20 @@ In this experimentation section, we try to compare the distributed PMR implemena
 In ~\cite{weissman-mr-11}, different workload data aggregation schemes are evaluated.  
 High Aggregation: The MapReduce output is multiple orders of magnitude smaller than the input, e.g. Wordcount on English plain-text.
 Zero Aggregation: The MapReduce output is the same size as the input, e.g. the Sort workload.
-No model regarding data aggregation schemes between high and zero, i.e for low aggregation is specified. In this experiment, we try  to prove that \pilotmapreduce is a best model for
-low aggregation schema applications. We choose ~\cite{weissman-mr-11} DMR configuration and compare it with \pilotmapreduce with genome sequence application, which produces significant amount of output and neither high aggreation nor zero aggregation. We ran experiments with 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
+There is no MapReduce configuration regarding low aggregation schemes, where the output data is significant and between high and zero aggregation schemes. In this experiment, we try  to prove that \pilotmapreduce is a best model for low aggregation schema applications. We choose ~\cite{weissman-mr-11} DMR configuration and compare it with \pilotmapreduce with genome sequence application, which produces significant amount of output and neither high aggreation nor zero aggregation. We ran experiments with 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
 
+\begin{figure}[dmrvspmr]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/dmrvspmr.png}
+	\caption{DMR vs PMR using Duplicate read removal application on 2 machines} 
+	\label{fig:figures_dmrvspmr}
+\end{figure}
+
+A correlation exists between the input sequence sizes and performance of MapReduce configurations. As the data size increases, the runtime for both the frameworks increases. 
+In PMR, the increase in runtime is due to the amount of data, to be processed by map phase , moved in the shuffle phase  and processed by reduce phase. In DMR, the increase in runtime is due to increase in data to be processed by map and reduce phases and the amount of data to be moved to the second level of MapReduce.
+
+For 20GB, 40GB and 80GB PMR performs better than DMR, because the effective amount of data to be transferred is less than the amount of data to be transferred in DMR.
+The performance of PMR decreases 
 
 
 
