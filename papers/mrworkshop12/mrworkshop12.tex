@@ -33,6 +33,7 @@
 \usepackage{xspace}
 \usepackage{color}
 \usepackage{url}
+\usepackage{subfigure}
 %\usepackage{hyphenation}
 \hyphenation{Map-Reduce}
 
@@ -44,7 +45,7 @@
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
 \newcommand{\pnote}[1]{ {\textcolor{magenta} { ***pradeep: #1 }}}
-\newcommand{\note}[1]{ {\textcolor{brown} { ***Note: #1 }}}
+\newcommand{\note}[1]{ {\textcolor{red} { ***Note: #1 }}}
 \else
 \newcommand{\terminology}[1]{}
 \newcommand{\alnote}[1]{}
@@ -387,7 +388,7 @@ execution.
 \alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
 
-{\emph \pilotmapreduce} provides a \pilot based implementation of the 
+{\emph \pilotmapreduce (PMR)} is a \pilot-based implementation of the 
 MapReduce programming model decoupling the core MapReduce framework from the 
 actual management of the compute, data and network resources. By decoupling 
 job scheduling and monitoring from the resource management, \pilotmapreduce 
@@ -531,7 +532,7 @@ are met for each step of the MapReduce workflow.
 
 
 \subsection{Pilot-MapReduce and Distributed Data}
-
+\label{sec:pmr-distributed}
 An increasing amount of data that scientific applications need to operate on 
 is distributed data. In many cases the place of data 
 generation and processing are far apart: For example, the Earth Science Grid 
@@ -558,6 +559,42 @@ localities and is able to operate on a dynamic and distributed pool of storage
 and compute resources. BigJob and BigData will ensure that the affinity 
 requirements of the MR framework are met.
 
+\begin{figure*}
+	\centering
+	\subfigure[Distributed PMR]{
+		\includegraphics[width=0.4\textwidth]{figures/distributed-mapreduce.pdf}
+		\label{fig:figures_distributed-mapreduce}}
+	\subfigure[Hierachical PMR]{
+		\includegraphics[width=0.4\textwidth]{figures/hierachical-mapreduce.pdf}
+	\label{fig:figures_hierachical-mapreduce}}
+	\caption{\pilotmapreduce Deployment 
+	Scenarios\label{fid:distributed-mapreduce-overview}}
+\end{figure*}
+
+\pilotmapreduce supports various deployment options.
+Figure~\ref{fid:distributed-mapreduce-overview} shows two common deployment
+options: (i) \emph{distributed} and (ii) \emph{hierarchical}. In scenario (i)
+the map jobs run close to the data on a nearby resource; the intermediate data
+is then moved to a single resource for running the reduce jobs. BigJob and
+BigData are used for managing CUs and DUs and the necessary data movements. In
+contrast, in scenario (ii) the outputs of the first complete MapReduce run are
+moved to a central aggregation resource. A complete MapReduce run is then
+executed on this resource.
+
+
+% FROM Pradeep: should be covered in this section resp. perf section so # fare
+% In ~\cite{weissman-mr-11}, different workload data aggregation schemes are
+% evaluated. High Aggregation: The MapReduce output is multiple orders of
+% magnitude smaller than the input, e.g. Wordcount on English plain-text. Zero
+% Aggregation: The MapReduce output is the same size as the input, e.g. the Sort
+% workload. There is no MapReduce configuration regarding low aggregation
+% schemes, where the output data is significant and between high and zero
+% aggregation schemes. In this experiment, we try to prove that \pilotmapreduce
+% is a best model for low aggregation schema applications. We choose
+% ~\cite{weissman-mr-11} DMR configuration and compare it with \pilotmapreduce
+% with genome sequence application, which produces significant amount of output
+% and neither high aggreation nor zero aggregation. We ran experiments with
+% 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
 
 \section{Experiments and Results}
 
@@ -570,7 +607,12 @@ For our Hadoop experiments, we use Hadoop 0.20.2. At the begin of each run a
 Hadoop cluster is started via the Torque resource management system on a
 specified number of nodes. The first assigned node is used as master node
 running the Hadoop JobTracker and the NameNode. \alnote{What further settings
-did we use? max number map tasks etc?}. \pnote{The maximum number of maps or reduces that can run on a node is set to 1, so that the task can use entire node for running tasks and there wont be any memory problems with huge amounts of data. The shuffle phase is configured to start after map phase, since it is difficult to calculate individual phase times, as shuffle phase starts before map phase completes.}
+did we use? max number map tasks etc?}. \pnote{The maximum number of maps or 
+reduces that can run on a node is set to 1, so that the task can use entire
+node for running tasks and there wont be any memory problems with huge amounts
+of data. The shuffle phase is configured to start after map phase, since it is
+difficult to calculate individual phase times, as shuffle phase starts before
+map phase completes.}
 
 
 \subsection{MapReduce-Based Applications}
@@ -580,16 +622,28 @@ factor is the amount of data that must be moved through the MapReduce system.
 The degree of data aggregation of the map tasks is thus, an important 
 characteristic of a MapReduce application~\cite{weissman-mr-11}.
 
-In the following we investigate two application scenario: (i) WordCount, an
-application with a high data aggregation and thus, a small volume of
-intermediate data \pnote{ high aggregation means the output of both (map \& reduce phase) is much less than input, in wordcount the intermediate data is higher than input data, in our implementation it is 192 percentage of input data} and (ii) a Genome Sequencing application, with aggregation between High and zero data aggregation.\pnote { there is data aggregation, where the output is only 30 percentage of input data; but its not zero , or high aggreagation, its in between them... The main point I am trying to prove  is that distributed-PMR is better than Jon's DMR atleast in low aggregation applications like GS dpulicate read removal.
-Why is that because, Pilot-data provides concurrent data transfers between machines and the dataunits- so ideal intermediate data transfer would be { max(time taken to transfer data related to a reduce} which is significantly less than entire output of 1st stage MR's of Jon's DMR configuration.}
+MapReduce application can be classified with respect to different criteria,
+e.\,g.\, the volume of the intermediate data, i.\,e.\ the size of the output
+of the map tasks and the volume of the output data, i.\,e.\ the size of reduce
+phase output. In the following we investigate two application scenarios: 
+WordCount and a Genome Sequencing application.
+
+% \pnote { there is data aggregation, where the output
+% is only 30 percentage of input data; but its not zero, or high aggregation,
+% its in between them... The main point I am trying to prove is that
+% distributed-PMR is better than Hierarchical MR at least in low aggregation
+% applications like GS duplicate read removal. Why is that because, Pilot-data
+% provides concurrent data transfers between machines and the DU -- so ideal
+% intermediate data transfer would be { max(time taken to transfer data related
+% to a reduce} which is significantly less than entire output of 1st stage MR's
+% of Jon's DMR configuration.}
 
 \subsubsection*{Word Count}
 
 The Word Count application is the basis for many machine learning use cases, 
-used e.\,g.\ for the classification of documents or clustering. In general, 
-the output of the mapping phase is significant smaller than the input.
+used e.\,g.\ for the classification of documents or clustering. Word Count 
+generates a large volume of intermediate data ($\sim$200$\%$), but only a 
+small volume of output data.
 
 
 \subsubsection*{Genome Sequencing}
@@ -604,28 +658,25 @@ duplicate removal. The read alignment is implemented in the mapping phase of
 the application. The read outputs are filtered for duplicates in the reduce 
 phase. For both steps, BWA~\cite{Li:2010:FAL:1741823.1741825} is used as tool. 
 In contrast to Word Count, almost no aggregation of the input data occurs.
-
-% \subsection{Measuring Job completion time}
-Hadoop: Job completion time is measured as the MapReduce runtime in the main
-cluster, which involves time taken for MapReduce map, shuffle and reduce
-phases. To avoid overlap in calculating the map and shuffle phase times, we
-configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is
-completed because with default configuration MapReduce shuffle phase might
-start before map phase completes.\alnote{do we measure the time that it takes 
-to setup the cluster? put data into hdfs?}
+We use two implementations of this workflow: (i) SEQAL~\cite{seal-2011}, a 
+Hadoop-based implementation, and (ii) a custom, BWA-based implementation based 
+on PMR (GS/PMR). The volume of the intermediate data of the GS application is 
+about the size of the input data, i.\,e. no aggregation of the intermediate 
+data, and a medium aggregation of the output data ($\sim$30$\%$).
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\subsection{Characterizing Local-MapReduce: Word Count}
+\subsection{Characterizing Word Count}
+\alnote{Pradeep: Can we merge both figures 4/5 and include the sub-times (chunk, map, reduce in the graph)?}
 
-In the first experiment, we benchmark the performance of \pilotmapreduce and
-Hadoop using a simple Word Count application on a single cluster varying resource
-configurations. For both the mapreduces, 
-a total of 8 nodes on India machine are used.  In all scenarios the input data is 
-pre-staged on the respective resources, i.\,e.\ for Hadoop the data is located 
-in the HDFS file system, for PMR the data is stored on a shared file system. 
-We set the total number of reduces to 8 for both Hadoop and Pilot MapReduces; further, the default chunk size 
-of 128\,MB is used.\alnote{HDFS \# replicas?} - \pnote{default 2}\alnote{how many reduces to we use for PMR?} \pnote{8}
+In the first experiment, we benchmark the performance of \pilotmapreduce and Hadoop using a
+simple Word Count application on a single resource using different resource configurations.
+For both frameworks, a total of 8 nodes on India machine are used. In all scenarios the
+input data is pre-staged on the respective resources, i.\,e.\ for Hadoop the data is
+located in the HDFS file system, for PMR the data is stored on a shared file system. We set
+the total number of reduces to 8 for both Hadoop and \pilotmapreduce; further, the default
+chunk size of 128\,MB is used.\alnote{HDFS \# replicas?} - \pnote{default 2}\alnote{how
+many reduces to we use for PMR?} \pnote{8}
 
 On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India cluster. 
 
@@ -634,18 +685,15 @@ On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India cluster.
 % is already present on shared file systems of each cluster. 
 
 
-\pilotmapreduce: Job completion time is measured as the total runtime involved 
-in chunking input data, MapReduce map, intermediate data transfer and reduce 
-phases.
-
-% \subsection{Evaluation}
-We measured time-to-completion for each job. Figure~\ref{fig:figures_compMR} 
+\pilotmapreduce: We measure the time-to-completion, which includes chunking input data, 
+running the mapping CUs, shuffling (which again comprises of sorting and the intermediate 
+data transfer, and finally running the reduce CUs. Figure~\ref{fig:figures_compMR} 
 shows the results.
 
 \begin{figure}[compMR]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/HMRvsL-PMRvsD-PMR.png}
-	\caption{Pilot-MapReduce vs Hadoop MapReduce} \pnote{128MB; Yes i think it make sense to stick to local; why beacause
+	\caption{Pilot-MapReduce versus Hadoop Performance} \pnote{128MB; Yes i think it make sense to stick to local; why because
 1. Local MR performs better than DMR when initial data transfer is considered.
 2. If initial data transfer is considered, then Weismann's DMR should be considered to compare distributed-PMR, since we are using wordcount application, which has high aggregation.}
 	\alnote{What is the chunk size? Distributed vs. non-distributed? }\pnote{Do we want to stick to local?}
@@ -665,8 +713,7 @@ The map phase time of Hadoop is 11.6\,sec.
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/comparision_16gb.png}
 	\caption{Wordcount on 16GB plain-text data with 8 workers, 8 reduces and 128MB chunk size on India.}
-	\alnote{Do we have some larger volumes of data? In our old MR paper we
-	had 10 GB of data.} \pnote{16GB data is added}
+
 	\alnote{Time to put data into HDFS?} \pnote{ included in the graph?}
 	\alnote{Can we have a stacked bar chart?}
 	\alnote{Why are our reduces so slow?} \pnote{ Hadoop reduce tasks read intermediate data either from memory or hdfs; whereas In pilotMR- the reduces read/write  to a shared file system}
@@ -697,71 +744,143 @@ Swap:         2047          0       2047
 %\subsubsection*{Distributed MapReduce: Word Count} 
 
 
+\subsection{Characterizing Genome Sequencing}
 
-\subsection{Characterizing: Genome Sequencing}
+\alnote{Pradeep: Can we merge both figures 6/7 and include the sub-times 
+(chunk, map, reduce in the graph)?}
 
+\note{To avoid overlap in calculating the map and shuffle phase times, we
+configure Hadoop MapReduce to start shuffle phase after MapReduce map phase is
+completed because with default configuration MapReduce shuffle phase might
+start before map phase completes.}\alnote{we should use the default Hadoop 
+config.}
+\alnote{How much time does it take to put data into HDFS?}
+
+In the section, we compare and contrast GS/PMR and SEQAL. For both
+applications, we utilize the same set of input data comprising of different
+sizes of read files and the reference genome. SEQAL, however, expects the 
+input data in a different format (qseq instead of fastq); thus, the data was 
+previously converted to meet the SEQAL requirements. We measure the
+time-to-completion (including the time for the chunking, mapping, shuffling
+and reducing phase). We utilize a total of 4 nodes: for Hadoop 2 workers per 
+nodes are used, the default chunk size of 128\,MB is used. For PMR the number 
+of reduces is set to 8; \alnote{Pradeep: is this correct? What machine?} 
 
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
-\caption{\small Hadoop-based SEQAL vs. Pilot-MapReduce:  BWA is the aligner for the map phase; number of nodes=4; number of workers/node=2, number of reducers=8, number of reads/chunk=292763 for PMR ==128MB for hadoop based apps
-\alnote{Can we adjust the style and include the map/shuffle/reduce time in a stacked bar chart?}}
- \label{fig:comp_with_seqal_1} 
+\caption{SEQAL/Hadoop  vs. GS/PMR:  In comparison GS/PMR performs better than 
+SEQAL which can be mainly attributed to the shared filesystem on which HDFS 
+does not operate optimally.
+\alnote{Can we adjust the style and include the map/shuffle/reduce time in a 
+stacked bar chart?}}
+\alnote{remove distributed PMR}
+\label{fig:comp_with_seqal_1} 
 \end{figure}
+
+Figure~\ref{fig:comp_with_seqal_1} and Figure~\ref{fig:comp_with_seqal_2}
+shows the results of both applications. Notably, SEQAL requires a longer
+time-to-completion than GS/PMR. This is mainly caused by a non-optimal
+configuration of Hadoop: The local disks available on FG is too small for the
+used input data; thus, HDFS had to be configured to utilize a shared,
+distributed file system, which leads to a non-optimal performance during the
+I/O intensive map phase.  The comparison of the reduce phase could originate 
+from the different implementation between SEQAL and ours. \alnote{Pradeep: 
+What does the previous sentence mean? I though GS/PMR and SEQAL both use bwa 
+duplicate removal tool?}
+
+
 
 \begin{figure} 
  \centering
 \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
-\caption{\small Comparison between SEQAL and Pilot-MapReduce.  The runtime contributions from each step are compared in details. BWA is the aligner for the map phase; ********DMR provides scale-across********** as two machines sierra and hotel are used.}
+\caption{SEQAL vs. GS/PMR Performance of each Phase:  The runtime  contributions from each step are compared in details.}
+\alnote{remove distributed PMR}
   \label{fig:comp_with_seqal_2} 
 \end{figure}
 
 
-
-2. Distributed PMR vs Weissmann's implementation of  DMR
-
-\begin{figure}[jonsdmr]
-	\centering
-		\includegraphics[width=0.47\textwidth]{figures/jon_dmr_dup_rm_app.pdf}
-	\caption{Weissmann's dmr for GS application} 
-	\label{fig:figures_jonsdmr}
-\end{figure}
-
-In this experimentation section, we try to compare the distributed PMR implemenation with \cite{weissmann} DMR implemenation using genome sequencing application which has low aggreagation workload. The DMR is configured using 3 local Pilot-MapReduces. The number of workers on each cluster is set to 32 , chunk size to 625k sequences and number of reduces to 8 in both PMR and DMR. We conduct the experiments on India and Hotel futuregrid machines. The job completion time for DMR is max time of both individual MapReduce jobs on India and Hotel, plus the result combination step to combine the sub-results into the final result at a single data lcoation on Hotel.  We considered Hotel machine to combine the sub-results to optimize the data transfer, which is in case of using another machine. We choosed Hotel instead of India, because Hotel is faster than India machine.
+\subsection{Distributed MapReduce}
+\note{Points to make:
+\begin{itemize}
+	\item PMR is flexible and extensible
+	\item different workloads require different configurations
+	\item Hadoop is difficult to setup to spawn multiple resources
+	\item hierarchical PMR is good for high-aggregation workloads
+\end{itemize}}
 
 
-\pnote{Weissmanns paper doesn't talk about low workload scheme applications where reduce output is still significantly large.. ( it talks about zero, high, balooning ).. so we have a model for these type of applications. why weissmanns DMR is choosed?? LMR involves huge amount of initial data transfer. GMR need global filesystem across clusters, which is difficult to have, and latencies issues in moving files. So, DMR is a potential choice over LMR and GMR. }
+% \begin{figure}[htb]
+% 	\centering
+% 		\includegraphics[width=0.47\textwidth]{figures/jon_dmr_dup_rm_app.pdf}
+% 	\caption{Genome Sequencing Using Distributed \pilotmapreduce} 
+% 	\label{fig:figures_jonsdmr}
+% \end{figure}
 
-In ~\cite{weissman-mr-11}, different workload data aggregation schemes are evaluated.  
-High Aggregation: The MapReduce output is multiple orders of magnitude smaller than the input, e.g. Wordcount on English plain-text.
-Zero Aggregation: The MapReduce output is the same size as the input, e.g. the Sort workload.
-There is no MapReduce configuration regarding low aggregation schemes, where the output data is significant and between high and zero aggregation schemes. In this experiment, we try  to prove that \pilotmapreduce is a best model for low aggregation schema applications. We choose ~\cite{weissman-mr-11} DMR configuration and compare it with \pilotmapreduce with genome sequence application, which produces significant amount of output and neither high aggreation nor zero aggregation. We ran experiments with 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
-
-\begin{figure}[dmrvspmr]
+\begin{figure}[t]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/dmrvspmr.png}
-	\caption{DMR vs PMR using Duplicate read removal application on 2 machines} 
+	\caption{Distributed and Hierarchical GS/PMR
+	\alnote{Can we add a distributed case for Hadoop either WC or SEQAL?}} 
+	\alnote{Please adapt to new naming: hierachical/distributed}
 	\label{fig:figures_dmrvspmr}
 \end{figure}
 
-A correlation exists between the input sequence sizes and performance of MapReduce configurations. As the data size increases, the runtime for both the frameworks increases. 
-In PMR, the increase in runtime is due to the amount of data, to be processed by map phase , moved in the shuffle phase  and processed by reduce phase. In DMR, the increase in runtime is due to increase in data to be processed by map and reduce phases and the amount of data to be moved to the second level of MapReduce.
 
-For 20GB, 40GB and 80GB PMR performs better than DMR, because the effective amount of data to be transferred is less than the amount of data to be transferred in DMR.
-The performance of PMR decreases 
+In this section, we evaluate the performance and scalability of (i) a 
+distributed and (ii) hierarchical \pilotmapreduce configuration (see
+section~\ref{sec:pmr-distributed}) using the genome sequencing application.
+In the distributed scenario 2 \pilotmapreduce jobs are created, in the  
+hierarchical scenario an additional MR job is necessary for combining and 
+aggregating the data.
+
+For this experiment we utilize two machines: india and hotel; the number of
+workers per resource is set to 32, the number of reduces is set to to 8. In
+both cases hotel is used for running the reduce tasks (scenario (i))
+respectively the combining MR run (scenario (ii)). This setup ensures that
+data transfer times are optimized.
+
+% % \pnote{Weissmanns paper doesn't talk about low workload scheme applications
+% where reduce output is still significantly large.. ( it talks about zero,
+% high, balooning ).. so we have a model for these type of applications. why
+% weissmanns DMR is choosed?? LMR involves huge amount of initial data transfer.
+% GMR need global filesystem across clusters, which is difficult to have, and
+% latencies issues in moving files. So, DMR is a potential choice over LMR and
+% GMR.}
 
 
+% A correlation exists between the input data sizes and the performance of
+% MapReduce configurations. 
 
+Figure~\ref{fig:figures_dmrvspmr} shows the results. In both scenarios the
+runtime increases with the input data size. In scenario (i), the increase in
+runtime is due to the amount of data, to be processed by map phase, moved in
+the shuffle phase and processed by reduce phase. In scenario (ii), the higher
+runtime is due to increase in data to be processed by map and reduce phases
+and the amount of data to be moved to the second level of MapReduce. For
+20\,GB, 40\,GB and 80\,GB a distributed PMR performs better than the
+hierarchical PMR, because the effective amount of data to be transferred is
+less than the amount of data to be transferred. The hierarchical PMR 
+outperforms the distributed PMR if output of the reduce phase is much lower 
+than the intermediate data that would have been required to transfer in 
+scenario (i).
 
-
-DMR outperforms PMR if pilot-data doesn't transfer intermediate data concurrently. At the same time, if the concurrency  is not tuned properly, it might cause bandwidth problems.
+In summary, PMR provides the flexibility to deploy MR workload in different
+configurations optimizing the performance with respect to the characteristics
+of different application workloads: a hierarchical setup is good for
+applications with highly aggregated output data as GS/PMR, while a normal
+distributed setup is good for application with a highly aggregate intermediate
+output as Word Count. A major limitation of Hadoop is still its inflexibility
+with respect to supporting different kind of resources and resource topology.
+In our case e.\,g.\ we were not able to run Hadoop across more than two
+machines on FG due to firewall issues.
 
 
 PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of intermediate data between all machines(n) ( r * n-1 concurrent exchanges)) + max ( reduce phase on  india, reduce on  sierrra, reduce on hotel)
 
---- experiments done for local PMR on each individual cluster.. once time taken to trasnfer intermediate data between machines is obtained.. then tts for PMR can be caluculated and compared to DMR.
-
-
+--- experiments done for local PMR on each individual cluster.. once time 
+taken to transfer intermediate data between machines is obtained.. then tts 
+for PMR can be calculated and compared to HPMR.
 
 
 \section{Conclusions and Future Work}
@@ -792,11 +911,6 @@ usage of sorting, more fine-grained control of data transfers etc.
 %
 % ACM needs 'a single self-contained file'!
 %
-
-
-cite moore's law
-cite script used to convert fastq to qseq
-cite reference paper used to implement duplicate removal application.
 
 
 \subsection*{Acknowledgments}
