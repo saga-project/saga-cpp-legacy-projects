@@ -564,9 +564,9 @@ requirements of the MR framework are met.
 	\subfigure[Distributed PMR]{
 		\includegraphics[width=0.4\textwidth]{figures/distributed-mapreduce.pdf}
 		\label{fig:figures_distributed-mapreduce}}
-	\subfigure[Distributed PMR(implemented)]{
-		\includegraphics[width=0.4\textwidth]{figures/distributed_pmr_exchange.pdf}
-		\label{fig:figures_distributed-mapreduce-exchange}}
+%	\subfigure[Distributed PMR(implemented)]{
+%		\includegraphics[width=0.4\textwidth]{figures/distributed_pmr_exchange.pdf}
+%		\label{fig:figures_distributed-mapreduce-exchange}}
 	\subfigure[Hierachical PMR]{
 		\includegraphics[width=0.4\textwidth]{figures/hierachical-mapreduce.pdf}
 	\label{fig:figures_hierachical-mapreduce}}
@@ -602,8 +602,20 @@ executed on this resource.
 
 \section{Experiments and Results}
 
-In this section we analyze the performance and scalability of \pilotmapreduce
-and compare/contrast it to Hadoop. For this purpose we run several experiments
+
+In this section we analyze the performance and scalability of different configuations of MapReduce using 
+\pilotmapreduce and  Hadoop MapReduce.The various configurations of MapReduce used are
+
+
+\subsection{MapReduce configurations}:
+\begin{itemize}
+\item \textbf{\pilotmapreduce:}  - Computation is performed on a single local cluster using Pilot-based MapReduce.
+\item \textbf{distributed-\pilotmapreduce:} - Computation is performed on multiple-clusters using \pilotmapreduce.
+\item \textbf{Hierarchical-MR:} - Construct multiple Hadoop MapReduce clusters, run MapReduce jobs in each cluster and then combine the results with a final Hadoop MapReduce job. 
+\item \textbf{Hierarchical-PMR:} - Similar to Hierarchical-MR but used \pilotmapreduce clusters instead of Hadoop MapReduce.
+\end{itemize}
+
+For this purpose we run several experiments
 on FutureGrid~\cite{fg}. We run the experiment on the FG resources: India, 
 Sierra and Hotel. Each experiment is repeated at least three times.
 
@@ -694,18 +706,35 @@ running the mapping CUs, shuffling (which again comprises of sorting and the int
 data transfer, and finally running the reduce CUs. Figure~\ref{fig:figures_compMR} 
 shows the results.
 
-\begin{figure}[compMR]
+%\begin{figure}[compMR]
+%	\centering
+%		\includegraphics[width=0.47\textwidth]{figures/HMRvsL-PMRvsD-PMR.png}
+%	\caption{Pilot-MapReduce versus Hadoop Performance} \pnote{128MB; Yes i think it make sense to stick to local; why because
+%1. Local MR performs better than DMR when initial data transfer is considered.
+%2. If initial data transfer is considered, then Weismann's DMR should be considered to compare distributed-PMR, since we are using wordcount application, which has high aggregation.}
+%	\alnote{What is the chunk size? Distributed vs. non-distributed? }\pnote{Do we want to stick to local?}
+%	\alnote{How much data is moved from map to reduce phase?} \pnote{192.76 in case of wordcount} 
+%	\alnote{Do we have a distributed Hadoop setup as well?}\pnote{No}
+%	\alnote{Do we measure the time for putting the data into HDFS--Yes}
+%	\label{fig:figures_compMR}
+%\end{figure}
+
+\begin{figure}[compPMRvsHMR]
 	\centering
-		\includegraphics[width=0.47\textwidth]{figures/HMRvsL-PMRvsD-PMR.png}
-	\caption{Pilot-MapReduce versus Hadoop Performance} \pnote{128MB; Yes i think it make sense to stick to local; why because
-1. Local MR performs better than DMR when initial data transfer is considered.
-2. If initial data transfer is considered, then Weismann's DMR should be considered to compare distributed-PMR, since we are using wordcount application, which has high aggregation.}
-	\alnote{What is the chunk size? Distributed vs. non-distributed? }\pnote{Do we want to stick to local?}
-	\alnote{How much data is moved from map to reduce phase?} \pnote{192.76 in case of wordcount} 
-	\alnote{Do we have a distributed Hadoop setup as well?}\pnote{No}
-	\alnote{Do we measure the time for putting the data into HDFS--Yes}
-	\label{fig:figures_compMR}
-\end{figure}
+		\includegraphics[width=0.47\textwidth]{figures/wc_hadoopvspmr_stackcluster.pdf}
+		\caption{Pilot-MapReduce versus Hadoop MapReduce: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
+	\label{fig:figures_compPMRvsHMR}
+\end{figure}	
+
+\begin{figure}[compPMRvsHMR_gnuplot]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/wordcount_hmr_pmr.pdf}
+		\caption{Pilot-MapReduce versus Hadoop MapReduce using wordcount application: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
+		\pnote{same as above graph.. but used gnuplot, it makes things clear..}
+	\label{fig:figures_compPMRvsHMR_gnuplot}
+\end{figure}		
+	
+
 
 The time to solution increased linearly as data size increased for all cases. 
 The map phase time of Hadoop is 11.6\,sec.
@@ -713,16 +742,16 @@ The map phase time of Hadoop is 11.6\,sec.
 % greater than Map phase time of Local-PMR because Hadoop MR involves preparing input splits and starting the map tasks, whereas in Pilot MapReduce, chunk time is considered seperatly and Map phase involves submitting of map compute units. The chunking time of distributed-Pilot MapReduce is less when compared to Local-PMR, since the data is halved and distributed to two machines. \pnote{ Andre::question::Hadoop uses logical splitting of files, where as PMR chunks the files physically, wiritng to disk, this is a performance bottlneck. Is acessing a single file, by many parallel subjobs cause problems?}. The shuffle phase is considered only in Hadoop MapReduce, where as the exchange is involved in Pilot MapReduce. The input to the reduce phase in all the three MapReduce increased linearly with input data. In local-PMR is < 1sec as the data is moved within cluster using SAGA file adaptor. In distributed PMR, the time to exchange data between India and Hotel also increased linearly with input data size. The Reduce phase is high for Pilot MR since the reduce compute units has to read intermediate data from the disk and write output data to the disk, where as in Hadoop MapReduce reduce phase, the intermediate data is available in memory and write the output to HDFS.
 
 
-\begin{figure}[compMR_16GB]
-	\centering
-		\includegraphics[width=0.47\textwidth]{figures/comparision_16gb.png}
-	\caption{Wordcount on 16GB plain-text data with 8 workers, 8 reduces and 128MB chunk size on India.}
+%\begin{figure}[compMR_16GB]
+%	\centering
+%		\includegraphics[width=0.47\textwidth]{figures/comparision_16gb.png}
+%	\caption{Wordcount on 16GB plain-text data with 8 workers, 8 reduces and 128MB chunk size on India.}
 
-	\alnote{Time to put data into HDFS?} \pnote{ included in the graph?}
-	\alnote{Can we have a stacked bar chart?}
-	\alnote{Why are our reduces so slow?} \pnote{ Hadoop reduce tasks read intermediate data either from memory or hdfs; whereas In pilotMR- the reduces read/write  to a shared file system}
-	\label{fig:figures_compMR_16GB}
-\end{figure}
+%	\alnote{Time to put data into HDFS?} \pnote{ included in the graph?}
+%	\alnote{Can we have a stacked bar chart?}
+%	\alnote{Why are our reduces so slow?} \pnote{ Hadoop reduce tasks read intermediate data either from memory or hdfs; whereas In pilotMR- the reduces read/write  to a shared file system}
+%	\label{fig:figures_compMR_16GB}
+%\end{figure}
 
 
 Observed performance issues:
@@ -730,20 +759,16 @@ Observed performance issues:
 2) when a single node is used to launch all workers, hadoop fails with lot of memory problems, whereas PMR successfully completed all tasks.			
 reasons for this problem
 
-http://tech.backtype.com/the-dark-side-of-hadoop+J204		
-
-compute node memory statistics.
-
-(python)-bash-3.2$ hostname
-i69
-(python)-bash-3.2$ free -m
-                  total          used       free     shared    buffers     cached
-Mem:         24081       4524      19557          0        146       4128
--/+ buffers/cache:       248      23832
-Swap:         2047          0       2047
-	
-
-         - varying input size (1GB, 2GB, 4GB, 8GB - experiments repeated for 3 times atleast..)
+%http://tech.backtype.com/the-dark-side-of-hadoop+J204		
+%compute node memory statistics.
+%(python)-bash-3.2$ hostname
+%i69
+%(python)-bash-3.2$ free -m
+%                  total          used       free     shared    buffers     cached
+%Mem:         24081       4524      19557          0        146       4128
+%-/+ buffers/cache:       248      23832
+%Swap:         2047          0       2047
+%      - varying input size (1GB, 2GB, 4GB, 8GB - experiments repeated for 3 times atleast..)
 
 %\subsubsection*{Distributed MapReduce: Word Count} 
 
@@ -772,7 +797,7 @@ of reduces is set to 8; \alnote{Pradeep: is this correct? What machine?}
 
 \begin{figure}
  \centering
-\includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
+\includegraphics[scale=0.50]{figures/seqalvspmr.pdf}
 \caption{SEQAL/Hadoop  vs. GS/PMR:  In comparison GS/PMR performs better than 
 SEQAL which can be mainly attributed to the shared filesystem on which HDFS 
 does not operate optimally.
@@ -781,6 +806,8 @@ stacked bar chart?}}
 \alnote{remove distributed PMR}
 \label{fig:comp_with_seqal_1} 
 \end{figure}
+
+
 
 Figure~\ref{fig:comp_with_seqal_1} and Figure~\ref{fig:comp_with_seqal_2}
 shows the results of both applications. Notably, SEQAL requires a longer
@@ -799,8 +826,9 @@ duplicate removal tool?}
  \centering
 \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
 \caption{SEQAL vs. GS/PMR Performance of each Phase:  The runtime  contributions from each step are compared in details.}
-\alnote{remove distributed PMR}
-  \label{fig:comp_with_seqal_2} 
+\alnote{remove distributed PMR }
+\pnote{ Do we need this since we have stacked-cluster graph?}
+ \label{fig:comp_with_seqal_2} 
 \end{figure}
 
 
@@ -827,6 +855,7 @@ duplicate removal tool?}
 	\caption{Distributed and Hierarchical GS/PMR
 	\alnote{Can we add a distributed case for Hadoop either WC or SEQAL?}} 
 	\alnote{Please adapt to new naming: hierachical/distributed}
+        \pnote{ Working on that}
 	\label{fig:figures_dmrvspmr}
 \end{figure}
 
