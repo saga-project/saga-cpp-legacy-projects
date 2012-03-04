@@ -313,21 +313,32 @@ conclude with a discussion of future directions which we will pursue.
 
 \section{Characterizing BFAST and ChIP-Seq Pipeline}
 
-\it{Three Types of Services for NGS Data Analytics:} Before
-investigating the challenges of NGS data analysis for two
-applications, mapping and ChIP-Seq, we introduce a runtime environment
-that allows dynamic execution of standalone tools, pipelines, and
-workflows, collectively referred to as applications.  We categorize
-the resulting dynamic applications as three types of services as
-summarized in Table~\ref{table:three-type-service}.
+Before investigating NGS data analysis and their infrastructural
+requirements for mapping and ChIP-Seq, we discuss a runtime
+environment that allows distributed and dynamic execution of
+standalone tools, pipelines, and workflows, collectively referred to
+as applications.  We categorize the resulting applications into three
+types of services as summarized in
+Table~\ref{table:three-type-service}.
 
-We will examine two specific software tools, BFAST for the mapping application and a new pipeline for ChIP-Seq
-data analysis. For the ChIP-Seq pipeline, we used MACS are used for a peak caller and three different mappers, BFAST, BWA, and Bowtie.  Note that these two examples show how existing computational tools are transformed to Type I and Type II services.  In fact, Type III services are the extended version of Type II with an
-advanced dynamic workflow support, and thus in this work, they are not considered.  
+{\it Three Types of Services for NGS Data Analytics:} We will examine
+two specific software tools, BFAST for the mapping application and a
+new pipeline for ChIP-Seq data analysis. For the ChIP-Seq pipeline, we
+used MACS as the peak caller, along with three different mappers,
+BFAST, BWA, and Bowtie.  Note that these two examples show how
+existing computational tools can be used as Type I/II services. In
+this paper, we will focus on Type I and II, as the same underlying
+concepts can be generalized to Type III services.
 
-With Type I services, we focus on how the enhancement of existing individual software tools is achieved with scalable
-infrastructure and supporting dynamic execution patterns, whereas with Type II services, we will emphasize an example of the development of a pipeline service by integrating multiple tools. For evolutionary techniques such as RNA-Seq and
-genome wide mapping of DNA-protein interactions (ChIP-Seq) or methylation patterns, pipeline approaches have been playing increasingly important roles, implying that the need for Type II services is growing fast.
+With Type I services, we focus on how the enhancement of existing
+individual software tools is achieved with scalable infrastructure and
+supporting dynamic execution patterns, whereas with Type II services,
+we will emphasize an example of the development of a pipeline service
+by integrating multiple tools. For evolutionary techniques such as
+RNA-Seq and genome wide mapping of DNA-protein interactions (ChIP-Seq)
+or methylation patterns, pipeline approaches have been playing
+increasingly important roles, implying that the need for Type II
+services is growing fast.
 
 \jhanew{JK: Please go through and make consistent the use of service
   and application/tool}
@@ -368,17 +379,19 @@ genome wide mapping of DNA-protein interactions (ChIP-Seq) or methylation patter
 
 Before we propose a scalable, extensible infrastructure to support
 data-analytics on a range of problem-instances, it is critical to
-characterize the computational and data dependencies of the application and corresponding software tools.
-Here, BFAST is a focused tool for the mapping application which is needed as the
-first step for any NGS-data analysis.  The overall execution of BFAST,
-or any other mappers that align short reads onto a reference genome, is
-affected by the specific biological problem at hand -- such as types
-of target reference genomes and high-throughput sequencing techniques
-and protocols, as well as computational attributes such as data
-structure and formats and the ability to exploit the underlying
-architecture.  Here, we present various runtime options for BFAST that
-ultimately permit performance tuning; we also present measurements
-of the compute and data requirements for the problem instance of interest.
+characterize the computational and data dependencies of the
+application and corresponding software tools.  % Here, BFAST is a
+% focused tool for the mapping application which is needed as the first
+% step for any NGS-data analysis.
+The overall execution of BFAST, or any other mappers that align short
+reads onto a reference genome, is affected by the specific biological
+problem at hand -- such as types of target reference genomes and
+high-throughput sequencing techniques and protocols, as well as
+computational attributes such as data structure and formats and the
+ability to exploit the underlying architecture.  Here, we present
+various runtime options for BFAST that ultimately permit performance
+tuning; we also present measurements of the compute and data
+requirements for the problem instance of interest.
 
 % our investigation to characterize the
 % target application and more importantly the utilization of such
@@ -388,15 +401,13 @@ of the compute and data requirements for the problem instance of interest.
 \subsubsection{BFAST Static and Runtime Options}
 
 BFAST requires a reference genome sequence and NGS platform generated
-short reads initially, and produces mapping results of tens or hundreds of millions of
-short reads onto a target reference genome.
-
- Notable key common
-features of BFAST that are generally shared among diverse genome-wide
-analysis applications include: i) a requirement of input data
-containing sequence information of a reference genome or short reads
-from NGS platforms ii) a production of output information that is
-generally written with a format that is successively injected to
+short reads initially, and produces mapping results of tens or
+hundreds of millions of short reads onto a target reference genome.
+Notable key common features of BFAST that are generally shared among
+diverse genome-wide analysis applications include: i) it requires
+input data containing sequence information of a reference genome or
+short reads from NGS platforms, ii) production of output information
+that is generally written with a format that is in turn injected to
 another tool as input.
 
 % Such features often allow a pipeline approach and task-level
@@ -417,42 +428,44 @@ another tool as input.
  
 There can be large variation in the data volume -- input, output,
 and/or temporary files, often requiring that BFAST should support
-different (local) execution modes.  BFAST supports classic space-time
-tradeoff capabilities, i.e., memory and disk usage versus
-time-to-completion. BFAST can be run using multi-threads (ideally
-on a multi-core machine).
+different (local versus distributed) execution modes.  BFAST supports
+classic space-time tradeoff capabilities, i.e., memory and disk usage
+versus time-to-completion. BFAST can be run using multi-threads
+(ideally on a multi-core machine).
 
 Specifically, BFAST supports multi-threading and a ``low memory''
 option for the 'bfast match' step, which finds Candidate Alignment
 Locations (CALs) of each short read in indexes of a reference genome.
-The low memory option aims specifically to split the index files into
-several files, and thereby facilitating low (peak) memory consumption.
-The number of threads is determined by the parameter (\texttt{-n});
-the \texttt{-d} option is used to split the index into multiple parts
-in order to support low-memory computation
+The memory option aims provides the ability to split the index files
+into several files, and thereby facilitating low (peak) memory
+consumption.  The number of threads is determined by the parameter
+(\texttt{-n}); the \texttt{-d} option is used to split the index into
+multiple parts in order to support low-memory computation
 
-%Considering the fact that the whole reference genome is required for each read mapping
-%\ashleynote{This part needs to be rewritten; not sure how to while maintaining
-%correctness though}; thus the
-Note that the \texttt{-d} option is useful for specific architectures (with low
-memory); but as we present later, it requires more computing time.
-The number of index files generated with the \texttt{-d} flag is
-$N_i$, which equals $n_m \times 4^d$.  Here, $4^d$ index files are
-generated by splitting one original index file and $n_m$ is the number of masks
-for indexing, and usually fixed as 10 for our work.  For example,
-$d=0$ creates 10 index files, whereas $d=1$ creates 40 index files,
-i.e. four index files are generated for each mask and processed
+% Considering the fact that the whole reference genome is required for
+% each read mapping \ashleynote{This part needs to be rewritten; not
+%   sure how to while maintaining correctness though}; thus the
+
+Note that the \texttt{-d} option is useful for specific architectures
+(with low memory), but as we present later, it requires more computing
+time.  The number of index files generated with the \texttt{-d} flag
+is $N_i$, which equals $n_m \times 4^d$.  Here, $4^d$ index files are
+generated by splitting one original index file and $n_m$ is the number
+of masks for indexing, and usually fixed as 10 for our work.  For
+example, $d=0$ creates 10 index files, whereas $d=1$ creates 40 index
+files, i.e. four index files are generated for each mask and processed
 sequentially.\jkimnote{this is rewritten as suggested by Ashley}
 
 Taken together, BFAST can support varying degrees and types of
 parallelism or multi-threading, and thus is suitable for modern
-processor architectures.  Nonetheless and more importantly, it is
+(processor) architectures.  Nonetheless and more importantly, it is
 valid to ask if there remains other bottlenecks (eg data flow/access)
-in the utilization of heterogeneous distributed infrastructure?
-Additionally, if the answer is found to be positive, it is natural to
-ask whether appropriate runtime environments can be developed in order
-to overcome these limitations, and to enable BFAST's effective use of
-distributed architectures? \ashleynote{This paragraph really needs to
+in the utilization of heterogeneous distributed infrastructure?  If
+the answer is found to be positive, it is natural to ask whether
+appropriate runtime environments can be developed in order to overcome
+these limitations?
+
+\ashleynote{This paragraph really needs to
   be rewritten.  I attempted to do so, but it's a little vague so I
   wasn't sure exactly what to do.  It says ``BFAST is suitable for
   modern processor architectures.''  Then it says that there are
@@ -500,13 +513,13 @@ distributed architectures? \ashleynote{This paragraph really needs to
 %\includegraphics[scale=0.66]{figures/threadsvstime.pdf} 
 
 \caption{\small The time-to-completion of the 'bfast match' step is
-  measured by varying the size of short read files.  Two lines
-  represent two cases differing in the low memory option, which
-  results in the different number of index files (40 vs 10).  Results
-  against the entire human genome (hg18) (left) and chromosome 21
-  only (middle) as reference sequences for exome analysis, are
-  presented along with results with B. Glumae (right).  The number of
-  threads with the multi-threading option is set to 12. }
+  measured as a function of the size of short read files.  The
+  different lines represent two different memory options, which
+  results in different number of index files (40 vs 10). Results for
+  three different reference sequences for exome analysis are provided
+  here: (i) the entire human genome (hg18) (left), chromosome 21 only
+  (middle) and, B. Glumae (right).  The number of threads is set to
+  12.}
   \label{fig:parallel-execution} 
  \end{figure}
 
@@ -540,14 +553,14 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
   Minimum Disk Space &  approx. 200 GB   &    approx. 30 GB  &  approx. 84 GB (chr 19)\\
    Index Files Volume  & approx. 128 GB  & approx. 0.447 GB  & approx. 3.1 GB (chr 19)\\ 
 \hline  \hline
-\end{tabular} \caption{The summary of reference genome sequences, NGS data, and required disk
+\end{tabular} \caption{Summary of reference genome sequences, NGS data, and required disk
   space for running BFAST.  The mouse genome used for ChIP-Seq data analysis
   is converted in nucleotide space in spite of the fact that sequencing
   data were obtained with the ABI platform.  \ashleynote{
-  Should this be ``The mouse genome used for ChIP-Seq data analysis
-  is converted in nucleotide space in spite of the fact that sequencing
-  data were obtained with the ABI platform''?}\jkimnote{done}
-    For ChIP-Seq, two short reads
+    Should this be ``The mouse genome used for ChIP-Seq data analysis
+    is converted in nucleotide space in spite of the fact that sequencing
+    data were obtained with the ABI platform''?}\jkimnote{done}
+  For ChIP-Seq, two short reads
   data sets (control data and treat) are needed.  All read data are single-end.}
  \label{table:two-genomes} 
 \end{table}
@@ -569,12 +582,11 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
 % analysis tool with scalable distributed architectures.
 
 In Table~\ref{table:two-genomes}, we summarize the typical values of
-the parameters upon which the time-to-completion ($T_C$) typically
-depends; values for two genome data sets are representative of
-biological diversity, i.e. human (eucaryote), and a microbe (procaryote),
-Burkerholderia Glumae\cite{kim2011}.  The two genomes differ
-in the size and the genome structure of reference genomes, and types
-of sequencing protocols.  Importantly, the two different genomes
+the parameters upon which the time-to-completion ($T_C$) depends, for
+two genome data sets, i.e. human (eucaryote), and a microbe
+(procaryote), Burkerholderia Glumae\cite{kim2011}.  The two genomes
+differ in the size and the genome structure of reference genomes, and
+types of sequencing protocols.  Importantly, the two different genomes
 display widely different data sizes in terms of the reference genome
 sequence, short reads data, and required disk-space for carrying out
 the mapping with BFAST.
@@ -587,44 +599,56 @@ time-to-completion for 'bfast match' step while varying the size of a
 read file.  The results are shown in
 Fig.~\ref{fig:parallel-execution}. % \jhanote{This is pointing to the
 % wrong figure?!}\jkimnote{fixed} 
-Here, we present the time to completion ($T_C$) of exome analysis with
-two different reference genomes, the entire human genome (hg18) and
-one of its chromosomes, chromosome 21 (hg18-chr21), along with the whole genome
-resequencing with a microbe, B. Glumae\cite{kim2011} (see Table~\ref{table:two-genomes}).  For
-each case, we compare two different options for the \texttt{-d} flag.
+Here, we present the $T_C$ of exome analysis with two different
+reference genomes, the entire human genome (hg18) and one of its
+chromosomes, chromosome 21 (hg18-chr21), along with the whole genome
+resequencing with a microbe, B. Glumae\cite{kim2011} (see
+Table~\ref{table:two-genomes}).  For each case, we compare two
+different options for the \texttt{-d} flag.
 
-As shown in Fig.~\ref{fig:parallel-execution}, time-to-completion 
-scales linearly as the size of read files increases.
-This suggests that if the read files can be broken up into smaller
-fragments and which can be processed concurrently, there is the
-possibility of a speed-up. This points to the potential of task-level
-concurrency.
+As shown in Fig.~\ref{fig:parallel-execution}, time-to-completion
+scales linearly as the size of read files increases.  This suggests
+that if the read files can be broken up into smaller fragments and
+which can be processed concurrently, there is the possibility of a
+speed-up. This points to the potential of task-level concurrency.
 
 % indicating the parallel option with multiple read files is a useful
 % strategy of scaling out, i.e.  using more cores with a smaller size
 % of read files.
 
-Secondly, the results with the memory option ($d=1$) generating 40 index files
-(factor of four increase in the number of files\jhanote{4 difference
-  in what?} compared to the option with $d=0$) indicates that there is
-approximately a factor of four difference in the time-to-completion.
-We calculated the ratios of slopes between 40 and 10 index files and
-those are 3.50 (hg18), 4.25 (hg18-chr21), and 4.46 (B. Glumae),
-respectively.  \jhanote{Previous sentence needs attention too}
-Although many factors including the complex structure of the index
-files affect on the speed-down with the option ($d=1$), the main
-reason is that such low memory option requires four CAL
-finding processes for each read that are conducted successively with four different index files as indicated in the publication\cite{bfast2009}.\ashleynote{Previous sentence hard to parse,
-not going to edit it because I don't want to accidentally change the meaning} 
-Therefore, this represents a classic
-memory-time trade-off: in other words the peak memory consumed is
-dependent on the size of the index files (which decreases as the
-number of index files increases), whilst the runtime is dominated by
-the size of the read-file (linear dependence).
+Secondly, the results with the memory option ($d=1$) generates 40
+index files (factor of four increase in the number of files\jhanote{4
+  difference in what?} compared to the option with $d=0$) indicates
+that there is approximately a factor of four difference in the
+time-to-completion.  We calculated the ratios of slopes between 40 and
+10 index files and those are 3.50 (hg18), 4.25 (hg18-chr21), and 4.46
+(B. Glumae), respectively.  Although there are many factors including the
+complex structure of the index files that effect the slow-down with the
+$d=1$ option, the main reason is that such low memory option
+requires four CAL finding processes for each read that are conducted
+successively with four different index files as indicated in the
+publication\cite{bfast2009}.\ashleynote{Previous sentence hard to
+  parse, not going to edit it because I don't want to accidentally
+  change the meaning} In other words the peak memory consumed is dependent on the
+size of the index files (which decreases as the number of index files
+increases), whilst the runtime is dominated by the size of the
+read-file (linear dependence).
 
-Finally, we observed that the entire human genome required only two fold increase in $T_C$ compared to the mapping calculation with its chromosome 21.  These results suggest that unlike the task-level concurrency with read data, the task-level concurrency using biological information, i.e. independent mapping with individual chromosomes or plasmids is not a good choice in general. However, we note that disk space and memory requirements in some cases prohibit the use of a large reference genome.  For example, the human genome requires about 200 GB disk space and 16 GB memory and in fact, a small cluster at LONI (see Table~\ref{table:two-systems}) such as Painter cannot be used with the whole human genome as a reference genome.   In such cases, the task-level concurrency with biologically independent reference sequences might be a solution.   Overall, the three cases shown in
-Fig.~\ref{fig:parallel-execution} highlight diverse biological
-contexts along with the computational requirements of BFAST, leading to different optimal strategies for distributed
+Finally, we observe that the entire human genome required only a two
+fold increase in $T_C$ compared to the mapping calculation with only
+chromosome 21.  % These results suggest that unlike the task-level
+% concurrency with read data, the task-level concurrency using
+% biological information, i.e. independent mapping with individual
+% chromosomes or plasmids is not a good choice in general. However,
+We note that disk space and memory requirements can in some cases
+prohibit the use of a large reference genome.  For example, the human
+genome requires about 200 GB disk space and 16 GB memory and in fact,
+not all systems can (see Table~\ref{table:two-systems}) be used with
+the whole human genome as a reference genome.  In such cases, the
+task-level concurrency is a possible solution.  Overall, the three
+cases shown in Fig.~\ref{fig:parallel-execution} highlight the diverse
+biological contexts along with the computational requirements of
+BFAST, leading to different optimal strategies for distributed
 parallel executions.
 
 % Secondly, the low memory option that creates more index files require
@@ -768,7 +792,7 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 
 
  \end{tabular}
-\caption{Specification of two distributed environments. LONI represents Louisiana Optical Network Initiative\cite{loni}. FutureGrid Cloud\cite{futuregrid} employs Eucalyptus}
+ \caption{Specification of two distributed environments. LONI represents Louisiana Optical Network Initiative\cite{loni}. FutureGrid Cloud\cite{futuregrid} employs Eucalyptus}
 \label{table:two-systems} 
 \end{table}
 
@@ -1441,8 +1465,11 @@ In summary, we presented a case for requiring a flexible pipeline in which multi
 %   ChIP-Seq.  Time-to-completion for the mapping step is compared among
 %   three different mappers, BFAST, Bowtie, BWA (left). \jhanote{Move
 %     left figure to section 2.4} 
-  Peak calling results are compared among three different ChIP-Seq pipeline scenarios using different mappers for the first step.  For
-  these calculations, the same treat reads data are mapped onto the chromosome 19 of mouse reference genome (mm9) and MACS is used for the second step, the peak calling process}
+  Peak calling results are compared among three different ChIP-Seq
+  pipeline scenarios using different mappers for the first step.  For
+  these calculations, the same treat reads data are mapped onto the
+  chromosome 19 of mouse reference genome (mm9) and MACS is used for
+  the second step, the peak calling process}
   \label{fig:chip-seq-comp-2} 
  \end{figure}
 
