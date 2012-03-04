@@ -958,42 +958,37 @@ does not operate optimally.
 \alnote{Can we adjust the style and include the map/shuffle/reduce time in a 
 stacked bar chart?}}
 \alnote{remove distributed PMR}
+\alnote{Include reduce phase or not?}
 \label{fig:comp_with_seqal_1} 
 \end{figure}
 
 
+Figure~\ref{fig:comp_with_seqal_1} shows the results of both applications. The
+setup times remain constant to the times measures in the Word Count experiment.
+In comparison to Word Count both GS application are more compute intensive,
+i.\,e.\ the ratio between computation in the map phase and the size of the input
+data is significant larger. Notably, SEQAL requires a longer time-to-completion
+than GS/PMR. This is mainly caused by a non-optimal configuration of Hadoop: The
+local disks available on FG is too small for the used input data; thus, HDFS had
+to be configured to utilize a shared, distributed file system, which leads to a
+non-optimal performance during the I/O intensive map phase. The difference in
+the reduce phase mainly originate from the different implementations of the
+duplicate removal process in SEQAL and GS/PMR.
+\alnote{Pradeep: Please elaborate a bit on the differences}
 
-Figure~\ref{fig:comp_with_seqal_1} and Figure~\ref{fig:comp_with_seqal_2}
-shows the results of both applications. Notably, SEQAL requires a longer
-time-to-completion than GS/PMR. This is mainly caused by a non-optimal
-configuration of Hadoop: The local disks available on FG is too small for the
-used input data; thus, HDFS had to be configured to utilize a shared,
-distributed file system, which leads to a non-optimal performance during the
-I/O intensive map phase.  The comparison of the reduce phase could originate 
-from the different implementation between SEQAL and ours. \alnote{Pradeep: 
-What does the previous sentence mean? I though GS/PMR and SEQAL both use bwa 
-duplicate removal tool?}
 
-
-
-\begin{figure} 
- \centering
-\includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
-\caption{SEQAL vs. GS/PMR Performance of each Phase:  The runtime  contributions from each step are compared in details.}
-\alnote{remove distributed PMR }
-\pnote{ Do we need this since we have stacked-cluster graph?}
- \label{fig:comp_with_seqal_2} 
-\end{figure}
+% \begin{figure} 
+%  \centering
+% \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
+% \caption{SEQAL vs. GS/PMR Performance of each Phase:  The runtime  contributions from each step are compared in details.}
+% \alnote{remove distributed PMR }
+% \pnote{ Do we need this since we have stacked-cluster graph?}
+%  \label{fig:comp_with_seqal_2} 
+% \end{figure}
 
 
 \subsection{Distributed MapReduce}
-\note{Points to make:
-\begin{itemize}
-	\item PMR is flexible and extensible
-	\item different workloads require different configurations
-	\item Hadoop is difficult to setup to spawn multiple resources
-	\item hierarchical PMR is good for high-aggregation workloads
-\end{itemize}}
+
 
 
 % \begin{figure}[htb]
@@ -1018,9 +1013,9 @@ duplicate removal tool?}
 In this section, we evaluate the performance and scalability of (i) a 
 distributed and (ii) hierarchical \pilotmapreduce configuration (see
 section~\ref{sec:pmr-distributed}) using the genome sequencing application.
-In the distributed scenario 2 \pilotmapreduce jobs are created, in the  
-hierarchical scenario an additional MR job is necessary for combining and 
-aggregating the data.
+In the distributed scenario (i) \pilotmapreduce map CUs are distributed across 
+two machines, in the  hierarchical scenario (ii) an additional MapReduce run is 
+necessary for combining and aggregating the data.
 
 For this experiment we utilize two machines: india and hotel; the number of
 workers per resource is set to 32, the number of reduces is set to to 8. In
@@ -1053,36 +1048,48 @@ outperforms the distributed PMR if output of the reduce phase is much lower
 than the intermediate data that would have been required to transfer in 
 scenario (i).
 
+
+Running MapReduce on widely distributed data using a traditional single resource
+MapReduce may not yield into an optimal runtime. Depending on the application's
+characteristics a distributed deployment may show a better performance. In
+high-data aggregation application the MapReduce output is multiple orders of
+magnitude smaller than input. Hierarchical MapReduce configuration is considered
+as a optimal choice since it involves less amount of output data to be
+transferred to the combine MapReduce phase. In zero or ballooning data
+aggregation applications, the intermediate and output data generated is larger
+than or equal to input data; and a Local-MapReduce is considered as an optimal
+solution, which involves initial data transfer of source data from all the
+clusters to a single compute cluster. Even though the initial data transfers in
+case of Local-MapReduce \jhanote{this is a term; please define a term before
+using it} are costly, they are needed because of lack of an abstraction which
+manages the relationships between the data and compute units effectively across
+wide-area systems.
+
 In summary, PMR provides the flexibility to deploy MR workload in different
 configurations optimizing the performance with respect to the characteristics
 of different application workloads: a hierarchical setup is good for
 applications with highly aggregated output data as GS/PMR, while a normal
 distributed setup is good for application with a highly aggregate intermediate
 output as Word Count. A major limitation of Hadoop is still its inflexibility
-with respect to supporting different kind of resources and resource topology.
+with respect to supporting different kind of resources and topologies.
 In our case e.\,g.\ we were not able to run Hadoop across more than two
 machines on FG due to firewall issues.
+
+
+\note{Points to make:
+\begin{itemize}
+	\item PMR is flexible and extensible
+	\item different workloads require different configurations
+	\item Hadoop is difficult to setup to spawn multiple resources
+	\item hierarchical PMR is good for high-aggregation workloads
+\end{itemize}}
 
 \jhanote{The following paragraph should move to next section. Also
   need to explain the different axes of analysis: high vs low
   aggregation between phases; local versus distributed; hierarchical
   versus non-hierarchical. Currently all clobbered together and
   difficult to read} 
-\alnote{\textbf{Incorporate:} Computing widely distributed data using a traditional single cluster-MapReduce
-may not achieve optimal MapReduce runtime. Several MapReduce configurations were
-proposed for distributed data processing based on the data
-aggregation~\cite{weissman-mr-11}. In high-data aggregation application the
-MapReduce output is multiple orders of magnitude smaller than input.
-Hierarchical MapReduce configuration is considered as a optimal choice since it
-involves less amount of output data to be transferred to the combine MapReduce
-phase. In zero or ballooning data aggregation applications, the intermediate and
-output data generated is larger than or equal to input data; and a
-Local-MapReduce is considered as an optimal solution, which involves initial
-data transfer of source data from all the clusters to a single compute cluster.
-Even though the initial data transfers in case of Local-MapReduce \jhanote{this
-is a term; please define a term before using it} are costly, they are needed
-because of lack of an abstraction which manages the relationships between the
-data and compute units effectively across wide-area systems.}
+\alnote{\textbf{Incorporate:} }
 
 
 
