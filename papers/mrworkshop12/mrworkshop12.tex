@@ -166,27 +166,28 @@ computational resources requires effective management of data and
 compute resources. Often this data is widely distributed across
 different geographic locations, or needs to be distributed. MapReduce
 is an effective programming model for processing large distributed
-datasets. The effectiveness of MapReduce on widely distributed data
+datasets. The effectiveness of MapReduce on distributed data
 depends on effective management of computation (map and reduce) and
-intermediate data (shuffle) units, for applications with different
-ratios of data aggregation (between map and reduce phase).
+data (in particular the transfer of intermediate data units).
+
 %To optimize the runtime of the zero and ballooning data applications,
-In order to provide a flexible runtime environment, we design and
-implement an infrastructure independent MapReduce framework using
-SAGA-based Pilot abstractions for both compute (Pilot-Jobs) and data
-(Pilot-Data). This framework -- called Pilot-MapReduce (PMR) utilizes
-Pilot-Jobs to couple the map phase computation to the nearby source
-data, and Pilot-Data to move intermediate data using parallel data
-transfers to the reduce computation phase. Our experimental evaluation
-using Wordcount on Random Data over Pilot-MapReduce(PMR) shows that
-Pilot abstraction for data movement across multiple clusters is
-promising, and thus minimizes overall execution time span of the
-entire MapReduce execution. We also show the scalability that can be
-achieved using PMR on multiple clusters by comparing it with SEQAL
-which is a Hadoop based MapReduce application. We analyze the
-effectiveness of PMR for different applications based upon the
-ratio of data-aggregation between phases as well as single
-and hierarchical MapReduce.
+In this paper, we present the design and implementation of \pilotmapreduce (PMR)
+-- a flexible, infrastructure-indepen\-dent runtime environment for
+MapReduce-based applications based on \pilot abstractions for both compute
+(Pilot-Jobs) and data (Pilot-Data). This framework utilizes Pilot-Jobs to couple
+the map phase computation to the nearby source data, and Pilot-Data to move
+intermediate data using parallel data transfers to the reduce computation phase.
+
+We show the effectiveness of PMR using different applications with different
+characteristics (e.\,g.\ different volumes of intermediate and output data). Our
+experimental evaluations show that Pilot abstraction for data movement across
+multiple clusters is promising, and thus minimizes overall execution time span
+of the entire MapReduce execution. We also show the scalability that can be
+achieved using PMR on multiple clusters by comparing it with SEQAL which is a
+Hadoop based MapReduce application. 
+% We analyze the effectiveness of PMR for
+% different applications based upon the ratio of data-aggregation between phases
+% as well as single and hierarchical MapReduce.
 \end{abstract}
 
 %Hierarchical MapReduce is a potential distributed solution only for
@@ -246,24 +247,21 @@ cluster/local environment, but not for a high degree of distribution.
   need to explain the different axes of analysis: high vs low
   aggregation between phases; local versus distributed; hierarchical
   versus non-hierarchical. Currently all clobbered together and
-  difficult to read} Computing widely distributed data using a
-traditional single cluster-MapReduce may not achieve optimal MapReduce
-runtime. Several MapReduce configurations were proposed for
-distributed data processing based on the data aggregation 
-~\cite{weissman-mr-11}. In high-data aggregation application the MapReduce
-output is multiple orders of magnitude smaller than input.
-Hierarchical MapReduce configuration is considered as a optimal choice
-since it involves less amount of output data to be transferred to the
-combine MapReduce phase. In zero or ballooning data aggregation
-applications, the intermediate and output data generated is larger
-than or equal to input data; and a Local-MapReduce is considered as an
-optimal solution, which involves initial data transfer of source data
-from all the clusters to a single compute cluster. Even though the
-initial data transfers in case of Local-MapReduce \jhanote{this is a
-  term; please define a term before using it} are costly, they are
-needed because of lack of an abstraction which manages the
-relationships between the data and compute units effectively across
-wide-area systems.
+  difficult to read} Computing widely distributed data using a traditional single cluster-MapReduce
+may not achieve optimal MapReduce runtime. Several MapReduce configurations were
+proposed for distributed data processing based on the data
+aggregation~\cite{weissman-mr-11}. In high-data aggregation application the
+MapReduce output is multiple orders of magnitude smaller than input.
+Hierarchical MapReduce configuration is considered as a optimal choice since it
+involves less amount of output data to be transferred to the combine MapReduce
+phase. In zero or ballooning data aggregation applications, the intermediate and
+output data generated is larger than or equal to input data; and a
+Local-MapReduce is considered as an optimal solution, which involves initial
+data transfer of source data from all the clusters to a single compute cluster.
+Even though the initial data transfers in case of Local-MapReduce \jhanote{this
+is a term; please define a term before using it} are costly, they are needed
+because of lack of an abstraction which manages the relationships between the
+data and compute units effectively across wide-area systems.
 
 %Why pilot abstractions
 A critical aspect of MapReduce, is the management of data and compute localities as well as the management of data movements, e.\,g.\ between the map and the reduce phase. 
@@ -281,12 +279,12 @@ effectively. The Pilot-API is an implementation of P* model, and provides
 flexibility to manage compute, data and relationships between them
 (affinities)~\cite{pstar-2012}.
 
-In this paper, we discuss \pilotmapreduce- a new \pilot based MapReduce
-implementation which enables clean separation of resource
-management and MapReduce application. We show
-how \pilot abstractions are used for managing the map and reduce tasks and
-intermediate shuffle data between them. We also discuss the usability of \pilot-abstractions
-in designing dynamic execution workflows which involves multiple MapReduce computations. 
+In this paper, we present \pilotmapreduce -- a novel \pilot-based MapReduce
+implementation which enables clean separation of resource management and
+MapReduce application. We show how \pilot abstractions are used for managing the
+map and reduce tasks and intermediate shuffle data between them. We also discuss
+the usability of \pilot-abstractions in designing dynamic execution workflows
+which involves multiple MapReduce computations.
 
 \pnote{The key take-aways of this paper are:
 \begin{itemize}
@@ -297,13 +295,14 @@ in designing dynamic execution workflows which involves multiple MapReduce compu
 	\item Future work: dynamic execution.
 \end{itemize}  - repetative? }
 
-This paper is organized as follows. Section~\ref{sec:related_work} 
-presents related works. Section 3 gives an overview of \pilot abstractions. 
-Section 4 gives an overview of our \pilotmapreduce framework. Section 5 gives 
-experiment setup and result analysis. The conclusion and future work are given 
-in Section 6.
+This paper is organized as follows: Section~\ref{sec:related_work} presents
+related works. Section~\ref{sec-pilot-impl} gives an overview of \pilot
+abstractions. In section~\ref{sec-pilot-mr} we discuss the design and
+implementation of the \pilotmapreduce framework. Section~\ref{sec-experiments}
+gives experiment setup and result analysis. The conclusion and future work are
+given in Section~\ref{sec-conclusion}.
 
-\section{Related and Backgroud Work}
+\section{Related and Background Work}
 \label{sec:related_work}
 The MapReduce programming model~\cite{Dean:2004:MSD:1251254.1251264}
 and the distributed file system (Google File System
@@ -360,8 +359,9 @@ Twitter Storm - \pnote{ Andre- Could you please add information about twitter st
 we discuss usability of \pilot-abstractions to design execution management workflows which involve mapreduce computations. 
 
 \section{Pilot Abstractions}
+\label{sec-pilot-impl}
 
-Pilot-abstractions provide effective management of compute and data units and the relationships between them(affinites).  They liberate 
+Pilot-abstractions provide effective management of compute and data units and the relationships between them(affinities).  They liberate 
 the applications from the challenging  requirement of assigning/scheduling the compute or data unit onto a particular resource.
 
 \subsection{Pilot Abstractions for Compute}
@@ -427,6 +427,7 @@ and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
 of work, while a DU represents a logical set for data~\cite{pstar-2012}.
 
 \section{Pilot-MapReduce -- A Pilot-based MapReduce Implementation}
+\label{sec-pilot-mr}
 %\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
 
@@ -442,10 +443,14 @@ results, managing and coordinating the map \& reduce tasks, etc., these are gene
 implemented by the framework. 
 
 \subsection{Extensibility of \pilotmapreduce}
+\alnote{Can we merge this section into~\ref{sec:pmr-distributed}?}
+
 PMR inherits the interoperability and extensibility properties by using Pilot-API for managing 
 the map and reduce computations and intermediate data movement between them.
-PMR can be easily scaled to multiple clusters. A {\it local-PMR}  performs the map and reduce computations on a single cluster. 
-A {\it distributed-PMR} provides an opportunity to utlize multiple distributed producton cyberinfrastructure clusters to run the map and reduce computations.
+PMR can be easily scaled to multiple clusters. 
+\alnote{Spelling local-PMR vs. local PMR?}
+A {\it local-PMR}  performs the map and reduce computations on a single cluster. 
+A {\it distributed-PMR} provides an opportunity to utilize multiple distributed production cyberinfrastructure clusters to run the map and reduce computations.
 Therefore, the challenge to make use of multiple clusters to act collaboratively as one is addressed by distributed-PMR.
 
 Unfortunately, users cannot directly deploy a MapReduce framework such as Hadoop on top of distributed production cyberinfrastructures to form a single larger MapReduce cluster. 
@@ -671,7 +676,7 @@ executed on this resource to combine the results.
 % 20GB, 40GB and 80GB on two machines and 30GB, 60GB , 120GB on 3 machines.
 
 \section{Experiments and Results}
-
+\label{sec-experiments}
 
 In this section we analyze the performance and scalability of different configurations of MapReduce using 
 \pilotmapreduce and  Hadoop MapReduce.The various configurations of MapReduce used are
@@ -992,7 +997,7 @@ for PMR can be calculated and compared to HPMR.
 
 
 \section{Conclusions and Future Work}
-
+\label{sec-conclusion}
 
 Extending BigData: Access data through BigData abstraction.
 
