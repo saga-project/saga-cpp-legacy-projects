@@ -204,8 +204,7 @@ Hadoop based MapReduce application.
 
 % \terms{Design, Experimentation, Performance}
 
-\keywords{Pilot-Jobs, Pilot-Data, Data-Intensive, MapReduce, Genome Sequence
-Alignment, BWA, Human Genome, MapReduce, Distributed Computing}% NOT required for Proceedings
+\keywords{Pilot-Jobs, Data-Intensive, MapReduce, Genome Sequencing, BWA,  Distributed Computing}% NOT required for Proceedings
 
 \section{Introduction}
 
@@ -436,6 +435,23 @@ distinct production cyber infrastructures.
 and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
 of work, while a DU represents a logical set for data~\cite{pstar-2012}.
 
+\subsection{Affinities}
+\label{sec-affinities}
+
+The Pilot-API promotes \emph{affinities} as a first class characteristic for
+describing relationships between data and/or compute supporting dynamic decision
+making. Unfortunately, most production infrastructure lack system-level support
+for affinities, i.\,e.\ resource localities cannot be introspected. Data storage
+in particular in distributed settings, such as in the XSEDE or the EGI
+environment, is often a black box for the application with unknown quality of
+services, i. e. the application usually does not know what bandwidths and
+latencies it can expect. To address these deficiency the Pilot-API introduces 
+affinities on application-level: applications can associate compute and data 
+units as well as resources  (the \pilots) with affinity labels. The BigJob and 
+BigData runtime will then ensure that CUs and DUs are placed with respect to the 
+affinity requirements of the application.
+
+
 \section{Pilot-MapReduce -- A Pilot-based MapReduce Implementation}
 \label{sec-pilot-mr}
 %\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
@@ -452,21 +468,7 @@ functionality, such as chunking of the input, sorting the intermediate
 results, managing and coordinating the map \& reduce tasks, etc., these are generically
 implemented by the framework. 
 
-\subsection{Extensibility of \pilotmapreduce}
-\alnote{Can we merge this section into~\ref{sec:pmr-distributed}?}
 
-PMR inherits the interoperability and extensibility properties by using Pilot-API for managing 
-the map and reduce computations and intermediate data movement between them.
-PMR can be easily scaled to multiple clusters. 
-\alnote{Spelling local-PMR vs. local PMR?}
-A {\it local-PMR}  performs the map and reduce computations on a single cluster. 
-A {\it distributed-PMR} provides an opportunity to utilize multiple distributed production cyberinfrastructure clusters to run the map and reduce computations.
-Therefore, the challenge to make use of multiple clusters to act collaboratively as one is addressed by distributed-PMR.
-
-Unfortunately, users cannot directly deploy a MapReduce framework such as Hadoop on top of distributed production cyberinfrastructures to form a single larger MapReduce cluster. 
-Typically the internal nodes of a cluster are not directly reachable from outside. However, MapReduce requires the master node to directly communicate with any slave node,
-which is also one of the reasons why MapReduce frameworks are usually deployed within a single cluster. [hierarchical mapreduce paper]. Hadoop is mainly designed for cluster/local environment,
- but not for a high degree of distribution.
 
 
 %\alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
@@ -627,7 +629,7 @@ that the data and compute affinity requirements of the MapReduce applications
 are met for each step of the MapReduce workflow.
 
 
-\subsection{Pilot-MapReduce and Distributed Data}
+\subsection{Distributed MapReduce}
 \label{sec:pmr-distributed}
 An increasing amount of data that scientific applications need to operate on 
 is distributed data. In many cases the place of data 
@@ -641,19 +643,18 @@ proposed~\cite{weissman-mr-11}: (i) in a global MapReduce setup one central
 JobTracker and HDFS NameNode is used for managing a distributed set of
 resources; (ii) in a hierarchical MapReduce setup multiple MapReduce clusters
 are used: a MapReduce cluster close to the data source for pre-processing data
-and a central cluster for aggregating the different de-central data sources.
-The volume of the pre-processed data is generally lower and thus, can be
-easily moved to another processing resource. Weissman
-et.\,al~\cite{weissman-mr-11} show that a hierarchical setup leads in most
-cases to a better performance than the utilization of a global Hadoop cluster.
-
-A main drawback of this approach is the increased complexity: Hadoop is not 
-designed with respect to a federation of multiple MapReduce cluster. Thus, 
-setting up such a system requires a lot of manual efforts. \pilotmapreduce in 
-contrast enables the MapReduce framework to reason about data and compute 
-localities and is able to operate on a dynamic and distributed pool of storage 
-and compute resources. BigJob and BigData will ensure that the affinity 
-requirements of the MR framework are met.
+and a central cluster for aggregating the different de-central data sources. The
+volume of the pre-processed data is generally lower and thus, can be easily
+moved to another processing resource. Weissman et.\,al~\cite{weissman-mr-11}
+show that a hierarchical Hadoop configuration leads for some application to a
+better performance than a naive global Hadoop cluster. A main drawback of this
+approach is the increased complexity: Hadoop is not designed with respect to a
+federation of multiple MapReduce cluster. Thus, setting up such a system
+requires a lot of manual efforts. \pilotmapreduce in contrast enables the
+MapReduce framework to reason about data and compute localities and is able to
+operate on a dynamic and distributed pool of storage and compute resources.
+BigJob and BigData will ensure that the affinity requirements of the MR
+framework are met.
 
 \begin{figure}
 	\centering
@@ -670,15 +671,37 @@ requirements of the MR framework are met.
 \end{figure}
 
 
-\pilotmapreduce supports various deployment options.
-Figure~\ref{fid:distributed-mapreduce-overview} shows two common deployment
-options: (i) \emph{distributed} and (ii) \emph{hierarchical}. In scenario (i)
-the map jobs run close to the data on a nearby resource; the intermediate data
-is then moved to a single resource for running the reduce jobs. BigJob and
-BigData are used for managing CUs and DUs and the necessary data movements. In
-contrast, in scenario (ii) the outputs of the first complete MapReduce run are
-moved to a central aggregation resource. A complete MapReduce run is then
-executed on this resource to combine the results.
+\pilotmapreduce supports different distributed MapReduce topologies: (i)
+\emph{local}, (ii) \emph{distributed} and (iii) \emph{hierarchical}. A local PMR
+(i) performs all map and reduce computations on a single resource.
+Figure~\ref{fid:distributed-mapreduce-overview} shows options (ii) and (iii): A
+distributed PMR (ii) utilizes multiple resources often to run map tasks close to
+the data to avoid costly data transfers; the intermediate data is then moved to
+another resource for running the reduce tasks. BigJob and BigData are used for
+managing CUs and DUs and the necessary data movements. In contrast, in a
+hierarchical PMR (iii) the outputs of the first complete MapReduce run are moved
+to a central aggregation resource. A complete MapReduce run is then executed on
+this resource to combine the results.
+
+The Pilot-API provides a consistent API for managing both compute units (i.\,e.\ 
+map and reduce tasks) and data units. Using descriptive affinities label the  
+data flow between CUs, i.\,e.\ the transfer of the intermediate data can be 
+efficiently managed. Using this capability PMR can be easily scaled out to 
+multiple resources to support e.\,g.\ scenario (ii) and (iii). 
+
+
+% A {\it distributed-PMR} provides an opportunity to utilize multiple distributed production infrastructure to run the map and reduce computations.
+% Therefore, the challenge to make use of multiple clusters to act collaboratively as one is addressed by distributed-PMR.
+
+\alnote{\textbf{place somewhere:} Unfortunately, users cannot directly deploy a MapReduce framework such as Hadoop
+on top of distributed production cyberinfrastructures to form a single larger
+MapReduce cluster. Typically the internal nodes of a cluster are not directly
+reachable from outside. However, MapReduce requires the master node to directly
+communicate with any slave node, which is also one of the reasons why MapReduce
+frameworks are usually deployed within a single cluster. [hierarchical mapreduce
+paper]. Hadoop is mainly designed for cluster/local environment, but not for a
+high degree of distribution.}
+
 
 
 % FROM Pradeep: should be covered in this section resp. perf section so # fare
@@ -1052,7 +1075,7 @@ usage of sorting, more fine-grained control of data transfers etc.
 \scriptsize
 This work is funded by NSF CHE-1125332 (Cyber-enabled Discovery and
 Innovation), HPCOPS NSF-OCI 0710874 award, NSF-ExTENCI (OCI-1007115) and NIH
-Grant Number P20RR016456 from the NIH National Center For Re- search
+Grant Number P20RR016456 from the NIH National Center For Research
 Resources. Important funding for SAGA has been provided by the UK EPSRC grant
 number GR/D0766171/1 (via OMII-UK) and the Cybertools project (PI Jha) 
 NS-F/LEQSF (2007-10)-CyberRII-01. SJ acknowledges the e-Science Institute,
