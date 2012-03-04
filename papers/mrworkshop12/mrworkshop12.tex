@@ -36,6 +36,8 @@
 \usepackage{subfigure}
 %\usepackage{hyphenation}
 \hyphenation{Map-Reduce}
+\usepackage{listings} 
+
 
 \newif\ifdraft
 \drafttrue
@@ -264,7 +266,10 @@ relationships between the data and compute units effectively across
 wide-area systems.
 
 %Why pilot abstractions
-A critical aspect of MapReduce, is the management of data and compute localities as well as the management of data movements, e.\,g.\ between the map and the reduce phase. The efficient support of these capabilities via the Pilot abstractions as well as the limitations of existing MapReduce implementations motivated this work. Pilot abstractions are classified into two types; Pilot-Jobs and Pilot-Data. Pilot-Jobs have been notable in their ability to manage large numbers of compute units across multiple high performance clusters, providing decoupling
+A critical aspect of MapReduce, is the management of data and compute localities as well as the management of data movements, e.\,g.\ between the map and the reduce phase. 
+The efficient support of these capabilities via the Pilot abstractions as well as the limitations of existing MapReduce implementations motivated this work. 
+Pilot abstractions are classified into two types; Pilot-Jobs and Pilot-Data. Pilot-Jobs have been notable in their ability to manage large numbers of 
+compute units across multiple high performance clusters, providing decoupling
 application-level scheduling and system-level resource management. But, there
 is also a need of an abstraction to liberate applications/users from
 challenging requirement of moving data to the scheduled compute location to
@@ -342,34 +347,33 @@ In this paper we present a  MapReduce implementation that utilizes \pilot abstra
 
 Dryad provides distributed execution of coarse-grain data-parallel applications. The entire execution is represented in the form of data flow graphs, where the vertices represent the computational tasks that can be paralellized on a set of computational resoruces and the links between vertices tell Dryad what other vertices need to complete before a particular vertex can start.
 
-Twitter Storm -
+Twitter Storm - \pnote{ Andre- Could you please add information about twitter storm}
 
 we discuss usability of \pilot-abstractions to design execution management workflows which involve mapreduce computations. 
 
-\section{Pilot Compute and Pilot Data}
+\section{Pilot Abstractions}
 
-Pilot-Jobs support effective distributed resource utilization, and are arguably one of the most widely-used distributed computing abstractions. 
+Pilot-abstractions provide effective management of compute and data units and the relationships between them(affinites).  They liberate 
+the applications from the challenging  requirement of assigning/scheduling the compute or data unit onto a particular resource.
 
-\subsection{Pilot Abstractions for Compute and Data}
-
-The abstraction of a {\emph \pilotjob} generalizes the reoccurring concept of
+\subsection{Pilot Abstractions for Compute}
+The abstraction of a {\emph \pilotjob} (PJ) generalizes the reoccurring concept of
 utilizing a placeholder job as a container for a set of compute tasks;
 instances of that placeholder job are commonly referred to as Pilot-Jobs or
 pilots. The PJ provides applications (user) level control and management of
-the set of allocated resources. Analogous to \pilotjobs, {\emph Pilot-Data}
+the set of allocated resources. 
+
+BigJob (BJ) is a SAGA-based PJ framework. BJ has been designed to be general-purpose and extensible. 
+While BJ has been originally built for HPC infrastructures, such as XSEDE and FutureGrid, it is generally also usable in other environments. 
+This extensibility mainly arises from the usage of SAGA as a common API for accessing distributed resources. 
+SAGA provides a simple, POSIX-style API to the most common grid functions at a sufficiently high-level of abstraction 
+so as to be independent of the diverse and dynamic grid environments.~\cite{pstar-2012}
+
+\subsection{Pilot Abstractions for Data}
+Analogous to \pilotjobs, {\emph Pilot-Data}(PD)
 provides late-binding capabilities for data by separating the allocation of
 physical storage and application-level data units~\cite{pstar-2012}.
 
-The Pilot-API exposes the core functionalities of a \pilot framework via a
-unified interface providing a common API that can be used across multiple PJ
-frameworks. The API provides three core classes: the
-\texttt{PilotComputeService} for the management of Pilot-Jobs,
-\texttt{PilotDataService} for the management of Pilot-Data and the
-\texttt{ComputeDataService} for the management of \texttt{ComputeUnits} (CUs)
-and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
-of work, while a DU represents a logical set for data~\cite{pstar-2012}.
-
-\subsection{BigData: A Pilot-Data Implementation}
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/bigdata.pdf}
@@ -400,40 +404,82 @@ the management of affinity between CUs and also between DUs and
 DUs. The BD scheduler supports preliminary affinity-aware
 scheduling: both BigJob and BigData are tightly integrated to
 efficiently support compute- and data-related aspects of dynamic
-execution.
+execution. 
 
+\subsection{Pilot-API}
+
+The Pilot-API is an {\it interoperable} and {\it extensible} API which exposes the core functionalities
+of a \pilot framework via a unified interface providing a common API that can be used across multiple 
+distinct production cyber infrastructures.
+ The API provides three core classes: the
+\texttt{PilotComputeService} for the management of Pilot-Jobs,
+\texttt{PilotDataService} for the management of Pilot-Data and the
+\texttt{ComputeDataService} for the management of \texttt{ComputeUnits} (CUs)
+and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
+of work, while a DU represents a logical set for data~\cite{pstar-2012}.
 
 \section{Pilot-MapReduce -- A Pilot-based MapReduce Implementation}
-\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
+%\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
 
 {\emph \pilotmapreduce (PMR)} is a \pilot-based implementation of the 
 MapReduce programming model decoupling the core MapReduce framework from the 
 actual management of the compute, data and network resources. By decoupling 
-job scheduling and monitoring from the resource management, \pilotmapreduce 
+job scheduling and monitoring from the resource management, PMR 
 can efficiently re-use the resource management and late-binding capabilities 
-of BigJob and BigData.
-
-\pilotmapreduce exposes an easy-to-use interface which provides the complete
+of BigJob and BigData. PMR exposes an easy-to-use interface which provides the complete
 functionality needed by any MapReduce algorithm, while hiding the more complex
 functionality, such as chunking of the input, sorting the intermediate
 results, managing and coordinating the map \& reduce tasks, etc., these are generically
-implemented by the framework.
+implemented by the framework. 
 
-\alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
+\subsection{Extensibility of \pilotmapreduce}
+PMR inherits the interoperability and extensibility properties by using Pilot-API for managing 
+the map and reduce computations and intermediate data movement between them.
+PMR can be easily scaled to multiple clusters. A {\it local-PMR}  performs the map and reduce computations on a single cluster. 
+A {\it distributed-PMR} provides an opportunity to utlize multiple distributed producton cyberinfrastructure clusters to run the map and reduce computations.
+Therefore, the challenge to make use of multiple clusters to act collaboratively as one is addressed by distributed-PMR.
 
-\pilotmapreduce uses the Pilot-API for managing map and reduce compute and intermediate data.
+Unfortunately, users cannot directly deploy a MapReduce framework such as Hadoop on top of distributed production cyberinfrastructures to form a single larger MapReduce cluster. 
+Typically the internal nodes of a cluster are not directly reachable from outside. However, MapReduce requires the master node to directly communicate with any slave node,
+which is also one of the reasons why MapReduce frameworks are usually deployed within a single cluster. [hierarchical mapreduce paper]. Hadoop is mainly designed for cluster/local environment,
+ but not for a high degree of distribution.
+
+
+%\alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
 
 %Pilot-API is used for managing map and reduce compute units
 %and for defining relationships between the intermediate data and reduce tasks
 %across distributed infrastructure
 
-\subsection{Compute Management}
-The framework relies on the master/worker
+\subsection{Compute Management in \pilotmapreduce}
+The PMR relies on the master/worker
 coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
 coordinating the MapReduce workers, which again are responsible for executing
-map and reduce tasks. The MR-Manager utilizes BigJob for executing
+map and reduce tasks. The MapReduce-Manager utilizes BigJob for executing
 mapper and reduce tasks. 
+
+\lstset{
+language=Python,
+frame=single,
+captionpos=b,
+stringstyle=\ttfamily,
+basicstyle=\scriptsize\ttfamily
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}[caption={\textbf{Pilot Compute Creation:} Instantiation of a Pilot Job using Pilot Compute Description}, label={lst:pcs_creation}]
+pcs = PilotComputeService()
+cds = ComputeDataService()
+pjd ={"service_url":"pbs-ssh://sierra.futuregrid.org", 
+"number_of_processes": '8',
+"walltime":10, 
+"processes_per_node:'8',
+"affinity_datacenter_label":'sierra',
+"affinity_machine_label":'sierra'}
+pj=pcs.create_pilot(pilot_compute_description=pjd)
+cds.add_pilot_compute_service(pcs)
+\end{lstlisting}
+\end{minipage}
 
 Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
 central manager that dispatches map and reduce tasks to the nodes of the
@@ -442,51 +488,49 @@ respective tasks. The main limitation of this architecture is the fact that it
 intermixes both cluster resource management and application-level task
 managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
 another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
-represents a single point of failure and scalability bottleneck
+represents a single point of failure and scalability bottleneck.
 
-\subsection{Data Management}
-\alnote{We haven't introduced the notion of distributed pilot map reduce.}
-The efficiency of distributed MapReduce on multiple clusters depends on managing the
-intermediate data between them. BigData does not only provides flexibility to manage the
+\subsection{Data Management in \pilotmapreduce}
+
+The efficiency of PMR on multiple clusters depends on managing the intermediate data 
+between them. BigData does not only provides flexibility to manage the
 relationship between data and compute units, but also allow {\it parallel} data transfers
 between machines and between data units. BigData is particularly used for moving the
 intermediate output files of the mapper tasks to the resource where the reduce compute
-units are executed. In distributed \pilotmapreduce on m clusters with n reduces distributed
+units are executed. In distributed-PMR on m clusters with n reduces distributed
 evenly across clusters involve n*(m-1) parallel data transfers to complete the intermediate
-data movement.
+data movement. Thus BigData play a major role in reducing the runtime of a distributed-PMR running
+on multiple clusters.
 
+\lstset{
+language=Python,
+frame=single,
+captionpos=b,
+stringstyle=\ttfamily,
+basicstyle=\scriptsize\ttfamily
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
+pds = PilotDataService()
+pd_desc=
+{"service_url":"ssh://india.futuregrid.org/pilotdata",
+"size":100,
+"affinity_datacenter_label":'india',
+"affinity_machine_label":'india'}
+pd=pds.create_pilot( pilot_data_description=pd_desc)
+cds.add_pilot_data_service(pds)
+\end{lstlisting}
+\end{minipage}
 
-\pnote{
-   comparing data transfer with Hadoop data transfer.
-Hadoop-Data transfer - "Separate nodes in a Hadoop cluster still communicate with one another. However, in contrast to more conventional distributed systems where application developers explicitly marshal byte streams from node to node over sockets or through MPI buffers, communication in Hadoop is performed implicitly. Pieces of data can be tagged with key names which inform Hadoop how to send related bits of information to a common destination node. Hadoop internally manages all of the data transfer and cluster topology issues."
-Similarly - A group of files is represented by a data unit
-mapred.reduce.parallel.copies		The default number of parallel transfers run by reduce during the copy(shuffle) phase.
-Concurrent data transfers... allowed..between machines and nodes.}
+Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set the number of parallel transfers run by reduce during the copy(shuffle) phase. 
+and use key names for pieces of data which inform Hadoop how to send related bits of information to a common destination node.[http://developer.yahoo.com/hadoop/tutorial/module1.html]
 
-
-
-\subsection{Architecture of Pilot-MapReduce}
-
-
-%The framework relies on the master/worker
-%coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
-%coordinating the MapReduce workers, which again are responsible for executing
-%map and reduce tasks. The MR-Manager utilizes BigJob for executing
-%mapper and reduce tasks, and BigData for managing file transfers.
-%BigData is particularly used for moving the intermediary output files of
-%the mapper tasks to the resource where the reduce compute units are executed.
-
-%Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
-%central manager that dispatches map and reduce tasks to the nodes of the
-%Hadoop cluster. On each node the task tracker is responsible for executing the
-%respective tasks. The main limitation of this architecture is the fact that it
-%intermixes both cluster resource management and application-level task
-%managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
-%another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
-%represents a single point of failure and scalability bottleneck.
-Pilot-MapReduce introduces a clean separation of concerns regarding compute and data management. The
+\subsection{Architecture of \pilotmapreduce}
+\pilotmapreduce introduces a clean separation of concerns regarding compute and data management. The
 pilot abstraction enable the easy acquisition of both compute and storage
-resources. The MR manager can focus on orchestrating this resource pool. This architecture can also efficiently support workloads that currently cannot be support well enough by Hadoop, e.\,g.\ iterative applications. Figure~\ref{fig:figures_mapreduce-pilotdata} shows the architecture of the
+resources. The MR manager can focus on orchestrating this resource pool. This architecture can also efficiently 
+support workloads that currently cannot be support well enough by Hadoop, e.\,g.\ iterative applications. 
+Figure~\ref{fig:figures_mapreduce-pilotdata} shows the architecture of the
 \pilotmapreduce framework.
 
 \begin{figure}[htbp]
@@ -502,7 +546,7 @@ resources. The MR manager can focus on orchestrating this resource pool. This ar
 The flow of a typical MapReduce application involves the chunking of the data,
 the execution of the map compute tasks, shuffling and moving the intermediate
 data to the reduce task and finally the execution of the for reduce tasks.
-Pilot-MapReduce utilizes a set of compute and data pilots for this application
+\pilotmapreduce utilizes a set of compute and data pilots for this application
 workflow:
 \begin{enumerate}
 	\item Initially, the MR manager allocates a set of compute and data 
@@ -520,18 +564,17 @@ workflow:
 	the chunks created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. 
 	BJ and BD ensures that CUs and DUs are co-located.
 	
-	\item \textbf{Shuffling:} \pnote{partitioning and sorting of 
-        map output is part of map task}. \alnote{Hadoop Definitive Guide: ``The process by 
-		which the system performs the sort and transfers the map outputs to the reducers as 
-		inputs is known as the shuffle.'' - I would prefer to work with this definition 
-		since it encapsulates this intermediate step very well. Rather then including it in 
-		the mapping phase (even if it might be done partially by the mapper process.) }  
+	\item \textbf{Shuffling:} %\pnote{partitioning and sorting of 
+%        map output is part of map task}. \alnote{Hadoop Definitive Guide: ``The process by 
+%		which the system performs the sort and transfers the map outputs to the reducers as 
+%		inputs is known as the shuffle.'' - I would prefer to work with this definition 
+%		since it encapsulates this intermediate step very well. Rather then including it in 
+%		the mapping phase (even if it might be done partially by the mapper process.) }  
 		After the processing is finished the output data is sorted and partitioned into 
 		multiple DU. Then, data is moved from the map CUs to the location of the reduce 
-		CUs. In a distributed 
-		\pilotmapreduce with n reduces distributed evenly across m machines, n*(m-1) 
+		CUs. In a distributed-PMR with n reduces distributed evenly across m machines, n*(m-1) 
 		parallel data transfers are initiated to complete the intermediate data movement. 
-		\alnote{We need to introduce what we mean by a distributed PMR.}
+%		\alnote{We need to introduce what we mean by a distributed PMR.}
 	
 	\item \textbf{Reducing:} The {\it reduce} tasks are prepared and 
 	executed via BJ on the DUs representing the intermediate data. The 
@@ -562,12 +605,12 @@ machines~\cite{Jha:2011fk}.
 Several options for running Hadoop on distributed data have been
 proposed~\cite{weissman-mr-11}: (i) in a global MapReduce setup one central
 JobTracker and HDFS NameNode is used for managing a distributed set of
-resources; (ii) in a distributed MapReduce setup multiple MapReduce clusters
+resources; (ii) in a Hierarchical MapReduce setup multiple MapReduce clusters
 are used: a MapReduce cluster close to the data source for pre-processing data
 and a central cluster for aggregating the different de-central data sources.
 The volume of the pre-processed data is generally lower and thus, can be
 easily moved to another processing resource. Weissman
-et.\,al~\cite{weissman-mr-11} show that a distributed setup leads in most
+et.\,al~\cite{weissman-mr-11} show that a Hierarchical setup leads in most
 cases to a better performance than the utilization of a global Hadoop cluster.
 
 A main drawback of this approach is the increased complexity: Hadoop is not 
@@ -602,7 +645,7 @@ is then moved to a single resource for running the reduce jobs. BigJob and
 BigData are used for managing CUs and DUs and the necessary data movements. In
 contrast, in scenario (ii) the outputs of the first complete MapReduce run are
 moved to a central aggregation resource. A complete MapReduce run is then
-executed on this resource.
+executed on this resource to combine the results.
 
 
 % FROM Pradeep: should be covered in this section resp. perf section so # fare
