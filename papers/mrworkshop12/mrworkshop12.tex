@@ -819,7 +819,7 @@ The Word Count application is the basis for many machine learning use cases,
 used e.\,g.\ for the classification of documents or clustering. Word Count 
 generates a large volume of intermediate data ($\sim$200$\%$). The volume of the 
 output data depends on the input data, e.\,g.\ the size of the output data is 
-larger for a random input than for an input text in English. 
+larger for a random input than for an input in a natural language. 
 
 % but only a small volume of output data.
 
@@ -846,27 +846,31 @@ data, and a medium aggregation of the output data ($\sim$30$\%$).
 
 \subsection{Characterizing Word Count}
 \alnote{Pradeep: Can we merge both figures 4/5 and include the sub-times (chunk, map, reduce in the graph)?}
+\alnote{random vs. non-random data}
 
-In the first experiment, we benchmark the performance of \pilotmapreduce and Hadoop using a
-simple Word Count application on a single resource using different resource configurations.
-For both frameworks, a total of 8 nodes on India machine are used. In all scenarios the
-input data is pre-staged on the respective resources, i.\,e.\ for Hadoop the data is
-located in the HDFS file system, for PMR the data is stored on a shared file system. We set
-the total number of reduces to 8 for both Hadoop and \pilotmapreduce; further, the default
-chunk size of 128\,MB is used.\alnote{HDFS \# replicas?} - \pnote{default 2}\alnote{how
-many reduces to we use for PMR?} \pnote{8}
+In the first experiment, we benchmark the performance of \pilotmapreduce and
+Hadoop using a simple Word Count application on a single resource using
+different resource configurations. For both frameworks, a total of 8 nodes on
+India machine are used. In all scenarios the input data is pre-staged on the
+respective resources, i.\,e.\ for Hadoop the data is located in the HDFS file
+system, for PMR the data is stored on a shared file system. We set the total
+number of reduces to 8 for both Hadoop and \pilotmapreduce; further, the HDFS 
+default chunk size of 128\,MB and a replica count of two is used.
+% \alnote{HDFS \# replicas?} \pnote{default
+% 2}\alnote{how many reduces to we use for PMR?} \pnote{8}
 
-On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India cluster. 
+% On FutureGrid, we used 8 nodes for Hadoop and Pilot MapReduce on India 
+% cluster. 
 
 % In case of Hadoop MR, data is already present on India cluster, but needs to be pushed into HDFS before Hadoop MapReduce is started. For local-PMR, data is already present on India cluster which is stored on a shared file system. For
 % distributed-PMR, the total data is divided between India and Hotel cluster and
 % is already present on shared file systems of each cluster. 
 
-
-\pilotmapreduce: We measure the time-to-completion, which includes chunking input data, 
-running the mapping CUs, shuffling (which again comprises of sorting and the intermediate 
-data transfer, and finally running the reduce CUs. Figure~\ref{fig:figures_compMR} 
-shows the results.
+We measure the runtime of a complete MapReduce run, which includes setting up 
+the MapReduce framework (PMR resp. Hadoop) chunking
+input data, running the mapping CUs, shuffling (which again comprises of sorting
+and the intermediate data transfer), and finally running the reduce CUs.
+Figure~\ref{fig:figures_compPMRvsHMR_gnuplot} shows the results.
 
 %\begin{figure}[compMR]
 %	\centering
@@ -881,26 +885,30 @@ shows the results.
 %	\label{fig:figures_compMR}
 %\end{figure}
 
-\begin{figure}[ht]
-	\centering
-		\includegraphics[width=0.47\textwidth]{figures/wc_hadoopvspmr_stackcluster.pdf}
-		\caption{Pilot-MapReduce versus Hadoop MapReduce: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
-		\alnote{can we use the same color for map, shuffle, reduce for both PMR and Hadoop}
-	\label{fig:figures_compPMRvsHMR}
-\end{figure}	
+% \begin{figure}[ht]
+% 	\centering
+% 		\includegraphics[width=0.47\textwidth]{figures/wc_hadoopvspmr_stackcluster.pdf}
+% 		\caption{Pilot-MapReduce versus Hadoop MapReduce: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
+% 		\alnote{can we use the same color for map, shuffle, reduce for both PMR and Hadoop}
+% 	\label{fig:figures_compPMRvsHMR}
+% \end{figure}	
 
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wordcount_hmr_pmr.pdf}
-		\caption{Pilot-MapReduce versus Hadoop MapReduce using wordcount application: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
+		\caption{Word Count -- Pilot-MapReduce versus Hadoop: The runtime increases with the increasing input data volume.} 
 		\pnote{same as above graph.. but used gnuplot, it makes things clear..} \alnote{Can we use the same style for both figures. Adding some gray tones to the graph would be good. Otherwise, it looks like a figure from the 70ies.}
+		\alnote{increase font size of axis labels}
 	\label{fig:figures_compPMRvsHMR_gnuplot}
 \end{figure}		
 	
+The performance of both Hadoop and PMR is comparable. The time to solution 
+increased linearly as data size increased for all cases. In particular for 
+larger volumes of input data PMR shows a better performance than Hadoop. 
+Further, the results indicate that the shuffle phase is critical in particular 
+if larger volumes of data need to be sorted and moved as in the Word Count 
+application where the intermediate data is about 200\,\% of the input data.
 
-
-The time to solution increased linearly as data size increased for all cases. 
-The map phase time of Hadoop is 11.6\,sec.
 
 % greater than Map phase time of Local-PMR because Hadoop MR involves preparing input splits and starting the map tasks, whereas in Pilot MapReduce, chunk time is considered seperatly and Map phase involves submitting of map compute units. The chunking time of distributed-Pilot MapReduce is less when compared to Local-PMR, since the data is halved and distributed to two machines. \pnote{ Andre::question::Hadoop uses logical splitting of files, where as PMR chunks the files physically, wiritng to disk, this is a performance bottlneck. Is acessing a single file, by many parallel subjobs cause problems?}. The shuffle phase is considered only in Hadoop MapReduce, where as the exchange is involved in Pilot MapReduce. The input to the reduce phase in all the three MapReduce increased linearly with input data. In local-PMR is < 1sec as the data is moved within cluster using SAGA file adaptor. In distributed PMR, the time to exchange data between India and Hotel also increased linearly with input data size. The Reduce phase is high for Pilot MR since the reduce compute units has to read intermediate data from the disk and write output data to the disk, where as in Hadoop MapReduce reduce phase, the intermediate data is available in memory and write the output to HDFS.
 
@@ -917,10 +925,10 @@ The map phase time of Hadoop is 11.6\,sec.
 %\end{figure}
 
 
-Observed performance issues:
+\alnote{Not sure whether we should mention these - these issues are well-known: Observed performance issues:
 1) HDFS performs better when nodes local data directory is used.. But performance degrades if shared storage is used. 			
 2) when a single node is used to launch all workers, hadoop fails with lot of memory problems, whereas PMR successfully completed all tasks.			
-reasons for this problem
+reasons for this problem}
 
 %http://tech.backtype.com/the-dark-side-of-hadoop+J204		
 %compute node memory statistics.
