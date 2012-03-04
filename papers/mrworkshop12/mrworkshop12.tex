@@ -567,7 +567,7 @@ The PMR relies on the master/worker
 coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
 coordinating the MapReduce workers, which again are responsible for executing
 map and reduce tasks. The MapReduce-Manager utilizes BigJob for executing
-mapper and reduce tasks. 
+mapper and reduce tasks (Listing~\ref{lst:pcs_creation}). 
 
 \alnote{Can we do a MR specific example?}
 
@@ -604,17 +604,18 @@ represents a single point of failure and scalability bottleneck.
 
 % \subsection{Data Management in \pilotmapreduce}
 
-The efficiency of PMR on multiple clusters depends on managing the intermediate data 
-between them. BigData does not only provides flexibility to manage the
-relationship between data and compute units, but also allow {\it parallel} data transfers
-between machines and between data units. BigData is particularly used for moving the
-intermediate output files of the mapper tasks to the resource where the reduce compute
-units are executed. In distributed-PMR on m clusters with n reduces distributed
-evenly across clusters involve n*(m-1) parallel data transfers to complete the intermediate
-data movement. Thus BigData play a major role in reducing the runtime of a distributed-PMR running
-on multiple clusters.
+The efficiency of PMR in particular on multiple resources depends on the
+management of the the intermediate data. BigData does not only provides
+flexibility to manage the relationship between data and compute units, but also
+allow {\it parallel} data transfers between machines and between data units.
+BigData is used for moving the intermediate output files of the mapper tasks to
+the resource where the reduce compute units are executed.
+Listing~\ref{lst:pds_creation} illustrates the creation of a new Pilot-Data at
+the location of the reduce task.
 
-\alnote{Can we do a MR specific example?}
+
+\alnote{Can we do a MR specific example? Showing the co-placement of compute and 
+data}
 
 \lstset{
 language=Python,
@@ -636,12 +637,12 @@ cds.add_pilot_data_service(pds)
 \end{lstlisting}
 \end{minipage}
 
-Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set
+\alnote{\textbf{removed for now - maybe add later for analysis of perf:} Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set
 the number of parallel transfers run by reduce during the
 copy (shuffle) phase.  and use key names for pieces of data which
 inform Hadoop how to send related bits of information to a common
-destination
-node.~\footnote{\url{http://developer.yahoo.com/hadoop/tutorial/module1.html}}
+destination node.}
+%~\footnote{\url{http://developer.yahoo.com/hadoop/tutorial/module1.html}}
 
 
 
@@ -770,28 +771,28 @@ of the map tasks and the volume of the output data, i.\,e.\ the size of reduce
 phase output. In the following we investigate two application scenarios: 
 WordCount and a Genome Sequencing application.
 
-\jhanote{The following paragraph should move to next section. Also
-  need to explain the different axes of analysis: high vs low
-  aggregation between phases; local versus distributed; hierarchical
-  versus non-hierarchical. Currently all clobbered together and
-  difficult to read} 
-\alnote{\textbf{Incorporate:} }
+% \jhanote{The following paragraph should move to next section. Also
+%   need to explain the different axes of analysis: high vs low
+%   aggregation between phases; local versus distributed; hierarchical
+%   versus non-hierarchical. Currently all clobbered together and
+%   difficult to read} 
+% \alnote{\textbf{Incorporate:} }
 
-Computing widely distributed data using a traditional single cluster-MapReduce
-may not achieve an optimal MapReduce runtime. Several MapReduce configurations were
-proposed for distributed data processing based on the data
-aggregation~\cite{weissman-mr-11}. In high-data aggregation application the
-MapReduce output is multiple orders of magnitude smaller than input.
-Hierarchical MapReduce configuration is considered as an optimal choice since it
-involves less amount of output data to be transferred to the combine MapReduce
-phase. In zero or ballooning data aggregation applications, the intermediate and
-output data generated is larger than or equal to input data.  So, the all the input data from
-multiple clusters is moved to a single cluster, and then MapReduce job is performed, which is 
-known as Local MapReduce. Even though the initial data transfers are costly in case of Local-MapReduce \jhanote{this
-is a term; please define a term before using it}, they are needed
-because of lack of an abstraction which manages the relationships between the
-data and compute units effectively across wide-area systems. So, BigData optimizes runtime of \pilotmapreduce by allowing
-flexibility to specify intermediate data and reduce compute affinities, and required concurrent data movement between machines and data units.
+% Computing widely distributed data using a traditional single cluster-MapReduce
+% may not achieve an optimal MapReduce runtime. Several MapReduce configurations were
+% proposed for distributed data processing based on the data
+% aggregation~\cite{weissman-mr-11}. In high-data aggregation application the
+% MapReduce output is multiple orders of magnitude smaller than input.
+% Hierarchical MapReduce configuration is considered as an optimal choice since it
+% involves less amount of output data to be transferred to the combine MapReduce
+% phase. In zero or ballooning data aggregation applications, the intermediate and
+% output data generated is larger than or equal to input data.  So, the all the input data from
+% multiple clusters is moved to a single cluster, and then MapReduce job is performed, which is 
+% known as Local MapReduce. Even though the initial data transfers are costly in case of Local-MapReduce \jhanote{this
+% is a term; please define a term before using it}, they are needed
+% because of lack of an abstraction which manages the relationships between the
+% data and compute units effectively across wide-area systems. So, BigData optimizes runtime of \pilotmapreduce by allowing
+% flexibility to specify intermediate data and reduce compute affinities, and required concurrent data movement between machines and data units.
 
 \subsubsection*{Word Count}
 
@@ -918,6 +919,8 @@ from the different implementation between SEQAL and ours.
 % \end{figure}
 
 
+\subsection{Distributed MapReduce}
+
 In this section, we evaluate the performance and scalability of (i) a 
 distributed and (ii) hierarchical \pilotmapreduce configuration (see
 section~\ref{sec:pmr-distributed}) using the genome sequencing application.
@@ -943,6 +946,7 @@ data transfer times are optimized.
 % A correlation exists between the input data sizes and the performance of
 % MapReduce configurations. 
 
+\alnote{The following paragraph needs refinement after data is in}
 Figure~\ref{fig:figures_dmrvspmr} shows the results. In both scenarios the
 runtime increases with the input data size. In scenario (i), the increase in
 runtime is due to the amount of data, to be processed by map phase, moved in
@@ -957,31 +961,33 @@ than the intermediate data that would have been required to transfer in
 scenario (i).
 
 
-Running MapReduce on widely distributed data using a traditional single resource
-MapReduce may not yield into an optimal runtime. Depending on the application's
-characteristics a distributed deployment may show a better performance. In
-high-data aggregation application the MapReduce output is multiple orders of
-magnitude smaller than input. Hierarchical MapReduce configuration is considered
-as a optimal choice since it involves less amount of output data to be
-transferred to the combine MapReduce phase. In zero or ballooning data
-aggregation applications, the intermediate and output data generated is larger
-than or equal to input data; and a Local-MapReduce is considered as an optimal
-solution, which involves initial data transfer of source data from all the
-clusters to a single compute cluster. Even though the initial data transfers in
-case of Local-MapReduce \jhanote{this is a term; please define a term before
-using it} are costly, they are needed because of lack of an abstraction which
-manages the relationships between the data and compute units effectively across
-wide-area systems.
 
-In summary, PMR provides the flexibility to deploy MR workload in different
-configurations optimizing the performance with respect to the characteristics
-of different application workloads: a hierarchical setup is good for
-applications with highly aggregated output data as GS/PMR, while a normal
+Running MapReduce on widely distributed data using a single resource
+configuration may not yield into an optimal runtime. Depending on the
+application's characteristics a distributed or hierarchical deployment may show
+a better performance. In high aggregation applications, such as the genome 
+sequencing application, the MapReduce output is multiple orders of magnitude 
+smaller than input. A hierarchical MapReduce configuration is considered a good 
+choice for such a scenario since it involves less amount of output data that 
+needs to be transferred. In no data aggregation applications, i.\,e.\ the 
+output data generated is larger than or equal to input data, a distributed configuration is better suited. 
+
+% Even though the initial data transfers in case of
+% Local-MapReduce \jhanote{this is a term; please define a term before using it}
+% are costly, they are needed because of lack of an abstraction which manages the
+% relationships between the data and compute units effectively across wide-area
+% systems.
+
+
+In summary, PMR provides the flexibility to deploy MapReduce workload in
+different configurations optimizing the performance with respect to the
+characteristics of different application workloads: a hierarchical setup is good
+for applications with highly aggregated output data as GS/PMR, while a normal
 distributed setup is good for application with a highly aggregate intermediate
-output as Word Count. A major limitation of Hadoop is still its inflexibility
-with respect to supporting different kind of resources and topologies.
-In our case e.\,g.\ we were not able to run Hadoop across more than two
-machines on FG due to firewall issues.
+output. A major limitation of Hadoop is still its inflexibility with respect to
+supporting different kind of resources and topologies. In our case e.\,g.\ we
+were not able to run Hadoop across more than two machines on FG due to firewall
+issues.
 
 
 \note{Points to make:
@@ -992,26 +998,24 @@ machines on FG due to firewall issues.
 	\item hierarchical PMR is good for high-aggregation workloads
 \end{itemize}}
 
-\jhanote{The following paragraph should move to next section. Also
-  need to explain the different axes of analysis: high vs low
-  aggregation between phases; local versus distributed; hierarchical
-  versus non-hierarchical. Currently all clobbered together and
-  difficult to read} 
-\alnote{\textbf{Incorporate:} }
 
 
 
-
-PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of intermediate data between all machines(n) ( r * n-1 concurrent exchanges)) + max ( reduce phase on  india, reduce on  sierrra, reduce on hotel)
-
+\note{
+PMR tts = max( map  on india, map on  sierrra, map on hotel) + max( exchange of 
+intermediate data between all machines(n) ( r * n-1 concurrent exchanges)) + max 
+( reduce phase on  india, reduce on  sierrra, reduce on hotel)
 --- experiments done for local PMR on each individual cluster.. once time 
 taken to transfer intermediate data between machines is obtained.. then tts 
 for PMR can be calculated and compared to HPMR.
+}
 
-\alnote{What is m?}
-In a distributed-PMR with n reduces 
-distributed evenly across m machines, n*(m-1) parallel data transfers 
-are initiated to complete the intermediate data movement.
+\alnote{\textbf{For Analysis:}
+In distributed-PMR on m clusters
+with n reduces distributed evenly across clusters involve n*(m-1) parallel data
+transfers to complete the intermediate data movement. Thus BigData play a major
+role in reducing the runtime of a distributed-PMR running on multiple clusters.
+}
 
 \section{Discussion and Future Work}
 \label{sec-conclusion}
