@@ -441,7 +441,7 @@ of work, while a DU represents a logical set for data~\cite{pstar-2012}.
 The Pilot-API promotes \emph{affinities} as a first class characteristic for
 describing relationships between data and/or compute supporting dynamic decision
 making. Unfortunately, most production infrastructure lack system-level support
-for affinities, i.\,e.\ resource localities cannot be introspected. Data storage
+for affinities, e.\,g.\ resource localities cannot be introspected. Data storage
 in particular in distributed settings, such as in the XSEDE or the EGI
 environment, is often a black box for the application with unknown quality of
 services, i. e. the application usually does not know what bandwidths and
@@ -470,93 +470,12 @@ implemented by the framework.
 
 
 
-
 %\alnote{Can we put a code snipped in here somewhere? maybe a separate sub-section}
 
 %Pilot-API is used for managing map and reduce compute units
 %and for defining relationships between the intermediate data and reduce tasks
 %across distributed infrastructure
 
-\subsection{Compute Management in \pilotmapreduce}
-The PMR relies on the master/worker
-coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
-coordinating the MapReduce workers, which again are responsible for executing
-map and reduce tasks. The MapReduce-Manager utilizes BigJob for executing
-mapper and reduce tasks. 
-
-\alnote{Can we do a MR specific example?}
-
-\lstset{
-language=Python,
-frame=single,
-captionpos=b,
-stringstyle=\ttfamily,
-basicstyle=\scriptsize\ttfamily
-}
-\noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{Pilot Compute Creation:} Instantiation of a Pilot Job using Pilot Compute Description}, label={lst:pcs_creation}]
-pcs = PilotComputeService()
-cds = ComputeDataService()
-pjd ={"service_url":"pbs-ssh://sierra.futuregrid.org", 
-"number_of_processes": '8',
-"walltime":10, 
-"processes_per_node:'8',
-"affinity_datacenter_label":'sierra',
-"affinity_machine_label":'sierra'}
-pj=pcs.create_pilot(pilot_compute_description=pjd)
-cds.add_pilot_compute_service(pcs)
-\end{lstlisting}
-\end{minipage}
-
-Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
-central manager that dispatches map and reduce tasks to the nodes of the
-Hadoop cluster. On each node the task tracker is responsible for executing the
-respective tasks. The main limitation of this architecture is the fact that it
-intermixes both cluster resource management and application-level task
-managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
-another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
-represents a single point of failure and scalability bottleneck.
-
-\subsection{Data Management in \pilotmapreduce}
-
-The efficiency of PMR on multiple clusters depends on managing the intermediate data 
-between them. BigData does not only provides flexibility to manage the
-relationship between data and compute units, but also allow {\it parallel} data transfers
-between machines and between data units. BigData is particularly used for moving the
-intermediate output files of the mapper tasks to the resource where the reduce compute
-units are executed. In distributed-PMR on m clusters with n reduces distributed
-evenly across clusters involve n*(m-1) parallel data transfers to complete the intermediate
-data movement. Thus BigData play a major role in reducing the runtime of a distributed-PMR running
-on multiple clusters.
-
-\alnote{Can we do a MR specific example?}
-
-\lstset{
-language=Python,
-frame=single,
-captionpos=b,
-stringstyle=\ttfamily,
-basicstyle=\scriptsize\ttfamily
-}
-\noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
-pds = PilotDataService()
-pd_desc=
-{"service_url":"ssh://india.futuregrid.org/pilotdata",
-"size":100,
-"affinity_datacenter_label":'india',
-"affinity_machine_label":'india'}
-pd=pds.create_pilot( pilot_data_description=pd_desc)
-cds.add_pilot_data_service(pds)
-\end{lstlisting}
-\end{minipage}
-
-Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set
-the number of parallel transfers run by reduce during the
-copy (shuffle) phase.  and use key names for pieces of data which
-inform Hadoop how to send related bits of information to a common
-destination
-node.~\footnote{\url{http://developer.yahoo.com/hadoop/tutorial/module1.html}}
 
 \subsection{Architecture of \pilotmapreduce}
 \pilotmapreduce introduces a clean separation of concerns regarding compute and data management. The
@@ -627,6 +546,88 @@ management of relationships between data units and/or compute units. BigJob
 and BigData provide an implementation of the Pilot-API. Both frameworks ensure
 that the data and compute affinity requirements of the MapReduce applications
 are met for each step of the MapReduce workflow.
+
+\subsection{Compute and Data Management}
+The PMR relies on the master/worker
+coordination model, i.\,e.\ a central MapReduce-Manager is responsible for
+coordinating the MapReduce workers, which again are responsible for executing
+map and reduce tasks. The MapReduce-Manager utilizes BigJob for executing
+mapper and reduce tasks. 
+
+\alnote{Can we do a MR specific example?}
+
+\lstset{
+language=Python,
+frame=single,
+captionpos=b,
+stringstyle=\ttfamily,
+basicstyle=\scriptsize\ttfamily
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}[caption={\textbf{Pilot Compute Creation:} Instantiation of a Pilot Job using Pilot Compute Description}, label={lst:pcs_creation}]
+pcs = PilotComputeService()
+cds = ComputeDataService()
+pjd ={"service_url":"pbs-ssh://sierra.futuregrid.org", 
+"number_of_processes": '8',
+"walltime":10, 
+"processes_per_node:'8',
+"affinity_datacenter_label":'sierra',
+"affinity_machine_label":'sierra'}
+pj=pcs.create_pilot(pilot_compute_description=pjd)
+cds.add_pilot_compute_service(pcs)
+\end{lstlisting}
+\end{minipage}
+
+Similarly, Hadoop also utilizes a job and task tracker: the job tracker is the
+central manager that dispatches map and reduce tasks to the nodes of the
+Hadoop cluster. On each node the task tracker is responsible for executing the
+respective tasks. The main limitation of this architecture is the fact that it
+intermixes both cluster resource management and application-level task
+managements. Thus, it is e.\,g.\ not easily possible to integrate Hadoop with
+another resource management tool, e.\,g.\ PBS or Torque. Also, the job tracker
+represents a single point of failure and scalability bottleneck.
+
+% \subsection{Data Management in \pilotmapreduce}
+
+The efficiency of PMR on multiple clusters depends on managing the intermediate data 
+between them. BigData does not only provides flexibility to manage the
+relationship between data and compute units, but also allow {\it parallel} data transfers
+between machines and between data units. BigData is particularly used for moving the
+intermediate output files of the mapper tasks to the resource where the reduce compute
+units are executed. In distributed-PMR on m clusters with n reduces distributed
+evenly across clusters involve n*(m-1) parallel data transfers to complete the intermediate
+data movement. Thus BigData play a major role in reducing the runtime of a distributed-PMR running
+on multiple clusters.
+
+\alnote{Can we do a MR specific example?}
+
+\lstset{
+language=Python,
+frame=single,
+captionpos=b,
+stringstyle=\ttfamily,
+basicstyle=\scriptsize\ttfamily
+}
+\noindent\begin{minipage}{0.47 \textwidth}
+\begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
+pds = PilotDataService()
+pd_desc=
+{"service_url":"ssh://india.futuregrid.org/pilotdata",
+"size":100,
+"affinity_datacenter_label":'india',
+"affinity_machine_label":'india'}
+pd=pds.create_pilot( pilot_data_description=pd_desc)
+cds.add_pilot_data_service(pds)
+\end{lstlisting}
+\end{minipage}
+
+Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set
+the number of parallel transfers run by reduce during the
+copy (shuffle) phase.  and use key names for pieces of data which
+inform Hadoop how to send related bits of information to a common
+destination
+node.~\footnote{\url{http://developer.yahoo.com/hadoop/tutorial/module1.html}}
+
 
 
 \subsection{Distributed MapReduce}
@@ -721,24 +722,24 @@ high degree of distribution.}
 \section{Experiments and Results}
 \label{sec-experiments}
 
-In this section we analyze the performance and scalability of different configurations of MapReduce using 
-\pilotmapreduce and  Hadoop MapReduce.The various configurations of MapReduce used are
 
-
-\subsection{MapReduce configurations}
+% The various configurations of MapReduce used are
+%\subsection{MapReduce configurations}
 \alnote{This section is pretty much redundant to 4.4. Ok, to merge?}
 \alnote{Let's keep this simple and split it of into two dimensions: topology (local, hierach, distr) and impl (hadoop / pmr)}
 
-\begin{itemize}
+\alnote{Redundant to \ref{sec:pmr-distributed}\begin{itemize}
 \item \textbf{\pilotmapreduce:}  - Computation is performed on a single local cluster using Pilot-based MapReduce.
 \item \textbf{distributed-\pilotmapreduce:} - Computation is performed on multiple-clusters using \pilotmapreduce.
 \item \textbf{Hierarchical-MR:} - Construct multiple Hadoop MapReduce clusters, run MapReduce jobs in each cluster and then combine the results with a final Hadoop MapReduce job. 
 \item \textbf{Hierarchical-PMR:} - Similar to Hierarchical-MR but used \pilotmapreduce clusters instead of Hadoop MapReduce.
-\end{itemize}
+\end{itemize}}
 
-For this purpose we run several experiments
-on FutureGrid~\cite{fg}. We run the experiment on the FG resources: India, 
-Sierra and Hotel. Each experiment is repeated at least three times.
+In this section we analyze the performance and scalability of different
+configurations of MapReduce using \pilotmapreduce and Hadoop MapReduce. For this
+purpose we run several experiments on FutureGrid~\cite{fg}. We run the
+experiment on the FG resources: India, Sierra and Hotel. Each experiment is
+repeated at least three times.
 
 For our Hadoop experiments, we use Hadoop 0.20.2. At the begin of each run a 
 Hadoop cluster is started via the Torque resource management system on a
@@ -779,9 +780,11 @@ WordCount and a Genome Sequencing application.
 
 The Word Count application is the basis for many machine learning use cases, 
 used e.\,g.\ for the classification of documents or clustering. Word Count 
-generates a large volume of intermediate data ($\sim$200$\%$), but only a 
-small volume of output data.
-\alnote{elaborate on impact of random data vs. a standard ``english'' input text}
+generates a large volume of intermediate data ($\sim$200$\%$). The volume of the 
+output data depends on the input data, e.\,g.\ the size of the output data is 
+larger for a random input than for an input text in English. 
+
+% but only a small volume of output data.
 
 
 \subsubsection*{Genome Sequencing}
@@ -841,7 +844,7 @@ shows the results.
 %	\label{fig:figures_compMR}
 %\end{figure}
 
-\begin{figure}[compPMRvsHMR]
+\begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wc_hadoopvspmr_stackcluster.pdf}
 		\caption{Pilot-MapReduce versus Hadoop MapReduce: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
@@ -849,7 +852,7 @@ shows the results.
 	\label{fig:figures_compPMRvsHMR}
 \end{figure}	
 
-\begin{figure}[compPMRvsHMR_gnuplot]
+\begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wordcount_hmr_pmr.pdf}
 		\caption{Pilot-MapReduce versus Hadoop MapReduce using wordcount application: configuration - 128MB chunk size, 8 reduces, 8 nodes, 1worker/node} 
