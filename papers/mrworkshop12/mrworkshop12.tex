@@ -157,36 +157,7 @@
 
 \maketitle
 \begin{abstract}
-In recent years, there has been a large increase in the size of computational
-data which is widely distributed across different geographic locations. Timing and
-cost-effective processing of these large-distributed datasets on distributed
-computational resources requires effective management of data and compute
-resources. Pilot-Jobs are successful in uptaking the distributed
-infrastructures by compute intensive applications, but still there is a
-necessity of an abstraction for data intensive applications to provide
-coupling between data and compute units through a set of relationships.
-Pilot-Data provides an abstraction for expressing and managing relationships
-between data and/or compute units. The coupling of Pilot abstractions,
-Pilot-Job and Pilot-Data, through SAGA Pilot API implementation, provides
-flexibility to specify the relationship between compute and data units and
-thus effective management of compute and data units across distributed
-infrastructures. MapReduce is an effective programming model for processing
-large distributed datasets. However, processing widely-distributed data sets
-using traditional MapReduce setup configurations limits concurrent usage of
-distributed infrastructure and depending on the type of workload aggregation,
-overheads like huge data transfers or additional computation to combine
-results are involved [weissmanns]. Most MapReduce implementations however,
-tied to specific infrastructure. In this paper, we describe the design and
-implementation of Pilot API based SAGA MapReduce (PMR), which is 
-infrastructure
-independent and extensible to multiple clusters. We validate and characterize
-PMR by benchmarking it with Hadoop MapReduce using canonical word count
-application. We present a PMR workflow to post-process data produced by deep
-sequencing machines at widely-distributed geographic locations. The workflow
-takes the output of the sequencing machines, performs short-read mapping using
-BWA aligner, and removes duplicate reads. Our experiments show that it
-provided a significantly improved throughput as it scaled to multiple
-clusters, over traditionally distributed MapReduce~\cite{weissman-mr-11}.
+In recent years, there has been a large increase in the size of computational data, which is widely distributed across different geographic locations. Timing and cost-effective processing of these large-distributed datasets on distributed computational resources requires effective management of data and compute resources. MapReduce is an effective programming model for processing large distributed datasets. The productiveness of MapReduce on widely distributed data depends on effective management of computation(map and reduce) and intermediate data(shuffle) units.  Hierarchical MapReduce is suggested as a potential distributed solution only for high data aggregation applications leaving single cluster-MapReduce as a optimal solution for zero or ballooning data applications~\cite {weissman-mr-11}, which is still costly as it involves initial huge data transfers of source data to the single cluster. To optimize the runtime of the zero and ballooning data applications, we provide an infrastructure independent MapReduce framework using SAGA implementations of Pilot abstractions; Pilot-Jobs and Pilot-Data. Pilot-MapReduce framework utilizes Pilot-Jobs to couple the map phase computation to the nearby source data, and Pilot-Data to move intermediate data using parallel data transfers to the reduce computation phase. Our experimental evaluation using Wordcount on Random Data over Pilot-MapReduce(PMR) shows that Pilot abstraction for data movement across multiple clusters is promising, and thus minimizes overall execution time span of the entire MapReduce execution. We also show the scalability that can be achieved using PMR on multiple clusters by comparing it with SEQAL which is a Hadoop based MapReduce application.
 \end{abstract}
 
 % A category with the (minimum) three required fields
@@ -203,23 +174,22 @@ Grid Applications (SAGA)}% NOT required for Proceedings
 \section{Introduction}
 
 %General Motivation
-There are various challenges associated with data at extreme scales: which
-have become a critical factor in many sciences disciplines, e.\,g.\ in the
+There are various challenges associated with processing of data at extreme scales: which
+has become a critical factor in many science disciplines, e.\,g.\ in the
 areas of fusion energy (ITER), bioinformatics (metagenomics), climate (Earth
 System Grid), and astronomy
 (LSST)~\cite{Berriman:2011:AAS:2039359.2047483,Jha:2011fk}. The volumes of
-data produced by these scientific applications are increasing rapidly driven
-by advancing technologies (e.\,g.\ increasing compute capacity and higher
+data produced by these scientific applications is increasing rapidly, driven
+by advanced technologies (e.\,g.\ increasing compute capacity and higher
 resolution sensors) and decreasing costs for computation, data acquisition and
-storage~\cite{hey2009}. The number of scientific applications that either
-currently utilize, or need to utilize large volumes of potentially distributed
+storage~\cite{hey2009}. The number of scientific applications that either currently utilize, or need to utilize large volumes of potentially distributed
 data is immense. The challenges faced by these applications are
 interoperability, efficiently managing compute tasks, and moving data to the
 scheduled compute location, which is inevitable in case of programming models
 like MapReduce.
 
 %Intro to MapReduce
-Processing large volumes of data is a challenging tasks. MapReduce is an
+Processing large volumes of data is a challenging task. MapReduce is an
 effective programming model for addressing this challenge.
 MapReduce~\cite{Dean:2004:MSD:1251254.1251264} as originally developed by
 Google aims to address the big data problem by providing an easy-to-use
@@ -228,16 +198,18 @@ doing MapReduce computations is Apache Hadoop~\cite{hadoop}. The main
 limitations of current MR implementations are: (i) They lack a modular 
 architecture, (ii) are tied to specific infrastructure, e.\,g.\ Hadoop relies 
 on the Hadoop File System (HDFS), and  (iii) do not provide efficient support 
-for dynamic and distributed data.
+for dynamic and processing distributed data, e.\,g.\ Hadoop is designed for cluster/local environment, 
+but not for a high degree of distribution.
 
 % In particular when the source
 % data and computing platform distributed widely, the most efficient
 % architecture for processing data over the entire data set becomes non-trivial.
 
+%Intro to weissman's MapReduce configurations and workload types.
+Computing widely distributed data using a traditional single cluster-MapReduce may not achieve optimal MapReduce runtime. Several MapReduce configurations were proposed for distributed data processing based on the data aggregation ~\cite {weissman-mr-11}. In High data aggregation application the MapReduce output is multiple orders of magnitude smaller than input; and a Hierarchical MapReduce configuration is considered as a optimal choice since it involves less amount of output data to be transferred to the combine MapReduce phase. In Zero or ballooning data aggregation applications, the intermediate and output data generated is larger than or equal to input data; and a Local-MapReduce is considered as an optimal solution, which involves initial data transfer of source data from all the clusters to a single compute cluster. Even though the initial data transfers in case of Local-MapReduce are costly, they are needed because of lack of an abstraction which manages the relationships between the data and compute units effectively across wide-area systems. 
 
 %Why pilot abstractions
-Pilot-Jobs have been notable in their ability to manage large numbers of
-compute units across multiple high performance clusters, providing decoupling
+A critical aspect of MapReduce, is the management of data and compute localities as well as the management of data movements, e.\,g.\ between the map and the reduce phase. The efficient support of these capabilities via the Pilot abstractions as well as the limitations of existing MapReduce implementations motivated this work. Pilot abstractions are classified into two types; Pilot-Jobs and Pilot-Data. Pilot-Jobs have been notable in their ability to manage large numbers of compute units across multiple high performance clusters, providing decoupling
 application-level scheduling and system-level resource management. But, there
 is also a need of an abstraction to liberate applications/users from
 challenging requirement of moving data to the scheduled compute location to
@@ -249,31 +221,23 @@ effectively. The Pilot-API is an implementation of P* model, and provides
 flexibility to manage compute, data and relationships between them
 (affinities)~\cite{pstar-2012}.
 
-
-In this paper, we \pilotmapreduce -- a new \pilot based MapReduce
-implementation. \pilot abstractions enable the clean separation of resource
-management and MapReduce application. A critical aspect of MapReduce, is the
-management of data/compute localities as well as the management of data
-movements, e.\,g.\ between the mapping and the reduction phase. The efficient
-support of these capabilities via the \pilot abstractions as well as the
-limitations of existing MapReduce implementations motivated this work. We show
+In this paper, we discuss \pilotmapreduce- a new \pilot based MapReduce
+implementation which enables clean separation of resource
+management and MapReduce application. We show
 how \pilot abstractions are used for managing the map and reduce tasks and
-intermediate shuffle data between them.
+intermediate shuffle data between them. We also discuss the usability of \pilot-abstractions
+in designing dynamic execution workflows which involves multiple MapReduce computations. 
 
-The key take-aways of this paper are:
+\pnote{The key take-aways of this paper are:
 \begin{itemize}
-	\item MapReduce simplifies the construction of data-parallel applications
+	\item MapReduce simplifies the construction of data-parallel applications.
 	\item Pilot-Abstraction enable the clean separation of resource management concerns and MapReduce.
 	\item The Pilot/SAGA-based approach enables a maximum of portability, interoperability and code-reuse.
 	\item Hadoop is designed for cluster/local environment, but not for a high degree of distribution.
-	\item Future work: dynamic execution
-\end{itemize}
+	\item Future work: dynamic execution.
+\end{itemize}  - repetative? }
 
-In section II we talk about background-- Pilot API, Pilot-Job, Pilot-Data,
-saga, SAGA previous implementation of MapReduce, Genome sequencing MapReduce
-application. In section III, we discuss how Pilot abstractions, Pilot-Job and
-Pilot-Data used to implement the architecture of MapReduce.,. In section IV we
-discuss about the experiments.
+The rest of the paper is organized as follows. Section 2 presents related works. Section 3 gives an overview of \pilot abstractions. Section 4 gives an overview of our \pilotmapreduce framework. Section 5 gives experiment setup and result analysis. The conclusion and future work are given in Section 6.
 
 \section{Related Work}
 
@@ -285,7 +249,11 @@ implementation of MapReduce. Hadoop also includes an implementation of a
 distributed file system -- the Hadoop File System
 (HDFS)~\cite{Borthakur:2007fk}. In addition the Hadoop ecosystems includes
 several other projects, such as HBase (a system also inspired by Google's
-BigTable), Hive, Pig and Zookeeper.
+BigTable), Hive, Pig and Zookeeper. The main limitation of Hadoop MapReduce is that it forces
+applications into a very rigid model. Hadoop e.\,g.\ is well suited for
+running a single MapReduce application, but very limited in terms 
+of extensibility, e.\,g.\ it cannot efficiently run an ensemble of MapReduce 
+simulations or support a pipeline of multiple MapReduce tasks.
 
 Sector/Sphere~\cite{Gu_Grossman_2009} is a parallel data processing framework
 consisting of an distributed file system (Sector) and a data processing engine
@@ -297,7 +265,6 @@ Twister~\cite{Ekanayake:2010:TRI:1851476.1851593} is a
 MapReduce addressing particularly the requirement for supporting iterative 
 MapReduce jobs. Twister allows the flexible composition of applications by 
 specifying map and reduce tasks and the data flow between these tasks. 
-
 
 SAGA-MapReduce~\cite{Sehgal:2011:UAI:1945091.1945329} is a SAGA-based
 MapReduce implementation that utilizes the SAGA-API for accessing system-level
@@ -313,19 +280,15 @@ defined and are automatically handled by Pilot framework; This enables the
 applications to easily trade-off data transfers and available compute
 capacities.
 
-The main limitation of MapReduce and in particular of Hadoop is that it forces
-applications into a very rigid model. Hadoop e.\,g.\ is well suited for
-running single applications, but very limited in terms of extensibility,
-e.\,g.\ it cannot efficiently run an ensemble of MapReduce simulations or
-support a pipeline of multiple MapReduce tasks. In this paper we present a 
-MapReduce implementation that utilizes \pilot abstractions for de-coupling the MapReduce runtime, application-level scheduling and resource management.
+In this paper we present a  MapReduce implementation that utilizes \pilot abstractions for de-coupling the MapReduce runtime, application-level scheduling and resource management.
 
 %data flow oriented frameworks
 
+Dryad provides distributed execution of coarse-grain data-parallel applications. The entire execution is represented in the form of data flow graphs, where the vertices represent the computational tasks that can be paralellized on a set of computational resoruces and the links between vertices tell Dryad what other vertices need to complete before a particular vertex can start.
 
-Dryad
+Twitter Storm -
 
-Twitter Storm
+we discuss usability of \pilot-abstractions to design execution management workflows which involve mapreduce computations. 
 
 \section{Pilot Compute and Pilot Data}
 
