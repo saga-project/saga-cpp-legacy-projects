@@ -150,28 +150,32 @@ Shantenu Jha\corrauth\ensuremath{{^2{^,}^1}} %\comma, %\footnotemark[3],
 
 High-throughput genome sequencing techniques provided by Next
 Generation Sequencing (NGS) platforms are changing biological sciences
-and biomedical research dramatically\cite{mardis2008-tig,mardis2008-arghg}. These techniques
+and biomedical research
+dramatically\cite{mardis2008-tig,mardis2008-arghg}. These techniques
 have led to a broadening of sequencing capabilities and access to
 comprehensive genome-wide information at increasingly lower costs
 compared to previous sequencing techniques (such as those based on
 Sanger sequencing)
 \cite{metzker2010,mardis2008-tig,mardis2008-arghg,gilad2009,mortazavi2008,sorek2010}.
-Thanks to advances in evolutionary protocols utilizing the sequencing technologies such as ChIP-Seq
-(chromatin immunoprecipitation followed by sequencing) and RNA-Seq, high-throughput
-sequencing techniques have become essential methodologies in studies of cell development and
+Thanks to advances in evolutionary protocols utilizing the sequencing
+technologies such as ChIP-Seq (chromatin immunoprecipitation followed
+by sequencing) and RNA-Seq, high-throughput sequencing techniques have
+become essential methodologies in studies of cell development and
 differentiation\cite{wang2009-natrevgen,pepke2009,gilad2009,mortazavi2008,sorek2010}.
 Indeed, the resulting influx of biological information about the
-genome-wide organization for regulatory protein-DNA interactions and transcription dynamics reveal underlying mechanisms of gene expression and regulation in living cells. This has the potential to lead to remedies
-for various diseases such as cancer, infectious diseases, and
+genome-wide organization for regulatory protein-DNA interactions and
+transcription dynamics reveal underlying mechanisms of gene expression
+and regulation in living cells. This has the potential to lead to
+remedies for various diseases such as cancer, infectious diseases, and
 dysfunctional diseases caused genetically or by
 aging\cite{amaral2008,encode2007,baek2008,costa2009}.
 
 
 It is expected that data-sets of interest will increase by several
 orders of magnitude as the number of genomes that need to be sequenced
-together increases exponentially.  For example, genome-wide variation studies require a
-statistical number of genomes for one single species as shown in the
-recent 1000 genome project and human genome
+together increases exponentially.  For example, genome-wide variation
+studies require a statistical number of genomes for one single species
+as shown in the recent 1000 genome project and human genome
 studies\cite{1000genome,mardis2008-tig,gilad2009,alex2009,kim2011}.
 Although high-throughput techniques enjoy extremely high coverage of
 target genome regions, current "deep sequencing" technologies adopted
@@ -190,23 +194,28 @@ studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,far
 % studies\cite{alex2009,trapnell2009,scheibye-alsing2009,pop2002,hernandez2008,farrer2008}.
 
 To address such challenges, there have been algorithmic advances and
-a lot of software tools have become available\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
-However, compared to the research community interests on such algorithmic advances and new software tools, the
-development of a well-architected integrated infrastructure -- the
-software \& services, data management capabilities and user interfaces
-has received less attention.
+many software tools have become
+available\cite{trapnell2009,bfast2009,scheibye-alsing2009,pepke2009,samtools}.
+However, compared to the algorithmic advances and new software tools,
+the development of a well-architected integrated infrastructure -- the
+software \& services, data management capabilities, has received less
+attention.
 
 As we will demonstrate, NGS analysis is not a simple or singular
 compute or data-intensive application, but an interesting mix of
 high-end and high-throughput computing with data-intensive
 requirements; thus a scalable and integrated infrastructure is
-required.  The need for an appropriate scalable and flexible
-architecture for the infrastructure becomes critical, in particular because the computational complexity of a specific problem
-instance is often influenced by the biological characteristics of
-target genome(s) and the volume of relevant genomics data.  Thus we
-hope to find a solution for the fundamental question: what is the appropriate
-integrated compute and data infrastructure to address the existing
-requirements of NGS analytics now and appearing in the future?
+required. The need for multiple tools, each with varying CI
+requirements appropriate scalable and flexible architecture for the
+infrastructure becomes critical. % in particular because the
+% computational complexity of a specific problem instance is often
+% influenced by the biological characteristics of target genome(s) and
+% the volume of relevant genomics data.
+In analyzing the suitability of distributed cyberinfrastructure for
+NGS, we hope to contribute to the fundamental question: what is the
+appropriate integrated compute and data infrastructure to address the
+existing requirements of NGS analytics now and appearing in the
+future?
 
 % Our approach is to primarily focus on the mapping process of short
 % reads from NGS platforms against a reference genome.  The mapping is
@@ -220,46 +229,59 @@ requirements of NGS analytics now and appearing in the future?
 % bioinformatics tool enhanced considerably for genome-wide analysis
 % with scalable infrastructure.
 
-Specifically, in this paper, first, we analyze the computational complexity of
-BFAST\cite{bfast2009, bfast2009b} that represents a latest generation of alignment tools.
-The determinants of its performance were investigated for two exemplary genomes, human genome and a microbial
-genome {\it Burkerholderia Glumae}\cite{kim2011}.  Secondly, having understood
-the computational requirements, and the importance of both scaling-up
-and scaling-out with the alignment tool, we present a pipeline for ChIP-Seq data analysis.  Based on our investigation with these two examples, we came up with the initial design objectives and a prototype of DARE-NGS to support a range of genome-wide analytics.
+We analyze the computational complexity of BFAST~\cite{bfast2009,
+  bfast2009b} -- one of the latest generation of alignment tools.  The
+determinants of its performance were investigated for two exemplary
+genomes, human genome and a microbial genome {\it Burkerholderia
+  Glumae}\cite{kim2011}.  Secondly, having understood the
+computational requirements, and the importance of both scaling-up and
+scaling-out with the alignment tool, we present a pipeline for
+ChIP-Seq data analysis.  Based on our investigation with these two
+examples, we came up with the initial design objectives and a
+prototype of DARE-NGS to support a range of genome-wide analytics.
  
-DARE-NGS is a science gateway that builds upon existing capabilities of the Dynamic Application
-Runtime Environment (DARE) framework\cite{dare-tg11} -- is a runtime
-infrastructure that has been shown to enable the seamless utilization
-of heterogeneous distributed computing resources\cite{jha2009developing,saga-royalsoc,saga-ccgrid10} such as
-high-performance computing (HPC) grids and cloud environments.  DARE
-provides an efficient framework to build a scalable infrastructure supporting a wide range of abstractions and
-execution requirements for the analytics required for NGS data.
+The Distributed Application Runtime Environment (DARE)
+framework~\cite{dare-tg11}, is a runtime infrastructure that has been
+shown to enable the seamless utilization of heterogeneous distributed
+computing
+resources~\cite{jha2009developing,saga-royalsoc,saga-ccgrid10},
+including high-performance computing (HPC) grids and cloud
+environments.
 
-DARE-NGS is designed on the organizing principle that the bulk of
-NGS-analytics can be categorized into three types of services --Type
-I, II and III (see Table~\ref{table:three-type-service}). Type I represents a service adequate for stand-alone tools, but transforms those tools as dynamic applications with a scalable and flexible runtime environment. Types II and III
-targets services providing integrated pipelines and workflow composition of tools
-respectively.  The main design strategy of the DARE framework is to
-separate the application logic from a target tool(s), consequently
-resulting in easy-to-develop cycles for improvement, changes, and
-deployment of new tools.
+DARE provides an effective framework to build a scalable
+infrastructure supporting a wide range of applications, abstractions
+and execution requirements, including those for the analytics required
+for NGS data.  DARE-NGS builds upon existing capabilities of DARE, and
+is designed on the organizing principle that the bulk of NGS-analytics
+can be categorized into three types of services -- Type I, II and III
+(see Table~\ref{table:three-type-service}). Type I represents a
+service adequate for stand-alone tools, but transforms those tools as
+dynamic applications with a scalable and flexible runtime
+environment. Types II and III services provide integrated pipelines
+and workflow composition of tools respectively.  The main design
+strategy of the DARE framework is to separate the application logic
+from a target tool(s), consequently resulting in %easy-to-develop,
+easily extensible, interoperable and flexible deployment of new tools.
 
-\reviewer{R-7 : ""an existing efficient framework upon which to build
-  a scalable infrastructure to support a wide range of abstractions
-  and execution environments.""  When I think efficient, I usually
-  think of the HPC concept of speedup / number of processors or a more
-  loosely defined programability argument.  None of the traditional
-  measures are present in this paper.  For example, in Table 6 the
-  framework appears to scale to at least 80 cores but I have at least
-  three concerns with these data: 1.)  how long did the job take on a
-  serial system, and therefore what is the speedup on the grid/cloud?
-  2.)  Were the authors able to process a complete run of either the
-  human or Burkerholderia? This is unclear from the abstract
-  examples. 4.) Does the grid/cloud version provide speedup over a
-  plain threaded version of BFAST on similar hardware?  5.)  No
-  ability to measure how scalable the software is as there are only
-  two data points on an HPC grid (LONI) that I assume had a shared
-  file system?  The same number of cores were used in Table 7. }
+%cycles for improvement, changes, and deployment of new tools.
+
+
+% \reviewer{R-7 : ""an existing efficient framework upon which to build
+%   a scalable infrastructure to support a wide range of abstractions
+%   and execution environments.""  When I think efficient, I usually
+%   think of the HPC concept of speedup / number of processors or a more
+%   loosely defined programability argument.  None of the traditional
+%   measures are present in this paper.  For example, in Table 6 the
+%   framework appears to scale to at least 80 cores but I have at least
+%   three concerns with these data: 1.)  how long did the job take on a
+%   serial system, and therefore what is the speedup on the grid/cloud?
+%   2.)  Were the authors able to process a complete run of either the
+%   human or Burkerholderia? This is unclear from the abstract
+%   examples. 4.) Does the grid/cloud version provide speedup over a
+%   plain threaded version of BFAST on similar hardware?  5.)  No
+%   ability to measure how scalable the software is as there are only
+%   two data points on an HPC grid (LONI) that I assume had a shared
+%   file system?  The same number of cores were used in Table 7. }
 
 % \smnote{ 1) Lets say we have "n" read files and with DARE it takes
 %   around time "t" time for matching step if we run it serially it
@@ -280,31 +302,24 @@ deployment of new tools.
 %   across machines.} \jhanew{Sharath, JK: Please remove comments that
 %   have been fixed. Has this been addressed?}
 
-
 This paper is organized as follows.  In \S2, we introduce BFAST and a
 ChIP-Seq pipeline, and characterise their computational and data
-requirements.  In \S3, we examine BFAST as one of several possible
-mapping tools promising higher sensitivity but requiring high-end computational resources.  BFAST performance is measured and analyzed
-using local and multiple distributed resources (HPC grid and a
-cloud). The execution of the ChIP-Seq pipeline -- a more complex
-application -- is presented as an example of a Type II service and its
-characterization as a dynamic application is presented. \ashleynote{Changed 
-``applications'' to ``application'' here, leaving a note here to make sure that I didn't
-change the meaning of the sentence inadvertantly}
- We conclude with a summary and discussion of future directions which we will
-pursue.
+requirements.  In \S3, BFAST performance is characterized and analyzed
+using local and multiple distributed resources (HPC grids and
+clouds). The execution of the ChIP-Seq pipeline is presented as an
+example of a Type II service and the importance of flexible and
+dynamic pipelines is established. In addition to a summary, we
+conclude with a discussion of future directions which we will pursue.
 
 \section{Characterizing BFAST and ChIP-Seq Pipeline}
 
-\subsection{NGS Data Analytics: Three Types of Services}
-
-Before presenting our investigation on challenges of NGS data analysis
-for two applications, mapping and ChIP-Seq, we introduce our main
-strategy, the development of a runtime environment that allows dynamic
-execution of applications provided as standalone tools, pipelines, and
-workflows.  We categorize the resulting dynamic applications as three
-types of services as summarized in
-Table~\ref{table:three-type-service}.  
+\it{Three Types of Services for NGS Data Analytics:} Before
+investigating the challenges of NGS data analysis for two
+applications, mapping and ChIP-Seq, we introduce a runtime environment
+that allows dynamic execution of standalone tools, pipelines, and
+workflows, collectively referred to as applications.  We categorize
+the resulting dynamic applications as three types of services as
+summarized in Table~\ref{table:three-type-service}.
 
 We will examine two specific software tools, BFAST for the mapping application and a new pipeline for ChIP-Seq
 data analysis. For the ChIP-Seq pipeline, we used MACS are used for a peak caller and three different mappers, BFAST, BWA, and Bowtie.  Note that these two examples show how existing computational tools are transformed to Type I and Type II services.  In fact, Type III services are the extended version of Type II with an
