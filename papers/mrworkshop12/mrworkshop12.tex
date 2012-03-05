@@ -41,7 +41,7 @@
 \usepackage{enumerate}
 
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 
 \ifdraft
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -86,8 +86,8 @@
 \begin{document}
 
 %\title{An Extensible Pilot-based MapReduce Implementation}
-\title{Pilot-based MapReduce: An Extensible and Flexible
-  Implementation for Distributed Data}
+\title{Pilot-MapReduce: An Extensible and Flexible
+  MapReduce Implementation for Distributed Data}
 
 %
 % You need the command \numberofauthors to handle the 'placement
@@ -954,42 +954,46 @@ which is based on duplicate removal description provided in ~\cite{seal-2011}.
 
 In this section, we evaluate the performance and scalability of (i) a 
 distributed and (ii) hierarchical \pilotmapreduce configuration (see
-section~\ref{sec:pmr-distributed}) using the genome sequencing application and a 
-Word Count application on random data. In the distributed scenario (i) \pilotmapreduce map CUs are distributed across 
+section~\ref{sec:pmr-distributed}) using the Word Count application on natural 
+language and on random data as well as the genome sequencing application. In the 
+distributed scenario (i) \pilotmapreduce map CUs are distributed across 
 two machines, in the  hierarchical scenario (ii) an additional MapReduce run is 
 necessary for combining and aggregating the data.
 
-For the distributed data processing of random data using the Word Count application, 
-we try to compare the Distributed PMR with with Hadoop MapReduce on a single cluster. We consider that 
-the initial source data is equally distributed on Sierra and Hotel.
-We utilize two machines:sierra and hotel. The number of workers for Word Count is set to 8 on Hotel machine.
-In case of distributed PMR, the number of workers is divided equally between Sierra and Hotel. In both the cases,
-the chunk size is set to 128\,MB, number of reduces to 8. As the input data is varied the runtime for both the MapReduce increased.
-The runtime for Hadoop MapReduce on Hotel, includes moving data from Sierra to Hotel and loading the entire data into HDFS and  MapReduce 
-Job time.
+For Word Count we compare a distributed and hierarchical PMR configuration with
+the performance of a single resource Hadoop configuration. We utilize two
+machines, Sierra and Hotel, and assume that the initial input data is equally
+distributed on these two machines. That means that for the Hadoop scenario half 
+of the input data is moved from Sierra to Hotel prior to running the actual 
+MapReduce job. Unfortunately, the FutureGrid firewall rules prohibited the usage 
+of a distributed Hadoop setup. For all configurations, we use a total of 8 
+nodes. 
 
-Figure~\ref{fig:hadoopvsdistp} shows the results.
-The runtime of Hadoop MR is affected by the time taken for initial amount of data transfer. \alnote{What is transferred from where to where?} For
-2\,GB, 4\,GB and 8\,GB, 16\,GB the distributed PMR performs better than the
-Local PMR, because the effective amount of data to be transferred is
-much less than the initial amount of data transfer in Hadoop MR.
-But the map phase and reduce phase time of the  distributed PMR are high because of scheduling overhead of CUs involved in PMR.
-\pnote{observed when running distributed PMR; Still need to be modified, But checking in as time is up..}
+\alnote{Add hierarchical MR}
+Figure~\ref{fig:hadoopvsdistp} shows the results. In general, the distributed 
+PMR performs better than Hadoop mainly due to the time necessary to move the 
+input files to the single Hadoop resource. However, the map and reduce phase 
+runtime of PMR are much longer than in the Hadoop case. This is mainly caused by 
+the resource heterogeneity and the resulting scheduling overhead: the slowest node determines the overall runtime of each computation phase.
+
+\pnote{observed when running distributed PMR; Still need to be modified, But 
+checking in as time is up..}
 
 
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wc_hmrvspmr_random.png}
-\caption{WordCount on Random Data, Hadoop MR on 1 machine vs Distributed PMR on 2 machines} 	
+\caption{WordCount on Random Data, Hadoop MR on 1 machine vs Distributed PMR on 
+2 machines} 	
+\alnote{only show 16 GB case for Hadoop, hierarchical Hadoop, DPMR and HPMR. Two clusters of bars for random and non-random data}
 \label{fig:hadoopvsdistp}
 \end{figure}		
 
 
-For Genome Sequencing application we utilize two machines: india and hotel; the number of
-workers per resource is set to 32, the number of reduces is set to to 8. In
-both cases hotel is used for running the reduce tasks (scenario (i))
-respectively the combining MR run (scenario (ii)). This setup ensures that
-data transfer times are optimized.
+For the Genome Sequencing application we utilize India and Hotel and a total of
+32 nodes. For both distributed and hierarchical PMR, Hotel is used for running
+the reduce tasks respectively the combining MR run. This setup ensures that the
+necessary data transfers are minimized.
 
 % % \pnote{Weissmanns paper doesn't talk about low workload scheme applications
 % where reduce output is still significantly large.. ( it talks about zero,
@@ -1003,28 +1007,47 @@ data transfer times are optimized.
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/hmrvsdpmr.png}
-\caption{GS/PMR: Hierarchical MapReduce vs Distributed PMR on 2 machines} 	
+\caption{GS/PMR Hierarchical MapReduce vs Distributed PMR: The hierachic on 2 machines} 	
 \label{fig:hmrvsdist}
 \end{figure}		
 
 
+\alnote{What is transferred from where to where?}
+\begin{table}[h]
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Application} &\textbf{input} &\textbf{intermediate} &\textbf{output}\\
+\hline
+GS/PMR 		&20\,GB &9\,GB		 &6.2\,GB\\
+\hline
+Word Count (English) & & &\\
+\hline
+Word Count (random) & & &\\
+\hline
+\end{tabular}
+\caption{Data Volumes for different Application Scenarios}
+\label{tab:data-volumes}
+\alnote{Pradeep: please fill out}
+\end{table}
+
 % A correlation exists between the input data sizes and the performance of
 % MapReduce configurations. 
 
-\alnote{The following paragraph needs refinement after data is in}
-Figure~\ref{fig:hmrvsdist} shows the results. In both scenarios the
-runtime increases with the input data size. In scenario (i), the increase in
-runtime is due to the amount of data, to be processed by map phase, moved in
-the shuffle phase and processed by reduce phase. In scenario (ii), the higher
-runtime is due to increase in data to be processed by map and reduce phases
-and the amount of data to be moved to the second level of MapReduce. For
-20\,GB, 40\,GB and 80\,GB a distributed PMR performs better than the
-hierarchical PMR, because the effective amount of data to be transferred is
-less than the amount of data to be transferred. The hierarchical PMR 
-outperforms the distributed PMR if output of the reduce phase is much lower 
-than the intermediate data that would have been required to transfer in 
-scenario (i).
+\alnote{The following parFigure~\ref{fig:hmrvsdist} shows the results. In both scenarios the runtime
+increases with the input data size. In scenario (i), the increase in runtime is
+due to the amount of data, to be processed by map phase, moved in the shuffle
+phase and processed by reduce phase. In scenario (ii), the higher runtime is
+mainly due to the additional map and reduce runs that are necessary While the
+amount of data that needs to be moved in both scenarios is comparable (see
+table~\ref{tab:data-volumes}), a current limitation of the hierarchical PMR
+implementation is the lack of a parallel file transfer between the MapReduce
+jobs. In summary, the hierarchical PMR outperforms the distributed PMR if output
+of the reduce phase is much lower than the intermediate data that would have
+been required to transfer otherwise.
+agraph needs refinement after data is in}
 
+
+% Analysis
 Running MapReduce on widely distributed data using a single resource
 configuration may not yield into an optimal runtime. Depending on the
 application's characteristics a distributed or hierarchical deployment may show
@@ -1033,13 +1056,9 @@ sequencing application, the MapReduce output is multiple orders of magnitude
 smaller than input. A hierarchical MapReduce configuration is considered a good 
 choice for such a scenario since it involves less amount of output data that 
 needs to be transferred. In no data aggregation applications, i.\,e.\ the 
-output data generated is larger than or equal to input data, a distributed configuration is better suited. 
+output data generated is larger than or equal to input data, a distributed 
+configuration is better suited. 
 
-% Even though the initial data transfers in case of
-% Local-MapReduce \jhanote{this is a term; please define a term before using it}
-% are costly, they are needed because of lack of an abstraction which manages the
-% relationships between the data and compute units effectively across wide-area
-% systems.
 
 In summary, PMR provides the flexibility to deploy MapReduce workload in
 different configurations optimizing the performance with respect to the
