@@ -573,7 +573,6 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
 %the total available cores in a given system, 12 cores in the case of
 %results in Fig.~\ref{fig:parallel-execution}.
 
-
 \subsubsection{Computational Requirements for BFAST}
 
 % It is important An understanding of computational requirements for
@@ -582,8 +581,8 @@ Genome (Release ID)   & Human (hg18) & B. Glumae (BGR1) & Mouse (mm9)  \\
 % analysis tool with scalable distributed architectures.
 
 In Table~\ref{table:two-genomes}, we summarize the typical values of
-the parameters upon which the time-to-completion ($T_C$) depends, for
-two genome data sets, i.e. human (eucaryote), and a microbe
+the parameters upon which the time-to-completion ($T_C$) depends. 
+We consider two genome data sets, i.e. human (eucaryote), and a microbe
 (procaryote), Burkerholderia Glumae\cite{kim2011}.  The two genomes
 differ in the size and the genome structure of reference genomes, and
 types of sequencing protocols.  Importantly, the two different genomes
@@ -728,7 +727,7 @@ III&40 & 10 & 105MB & 13 &52 Gb \\
 %   depend on the size/number of read files but does depend on the
 %   size/number of index files. Needs to be explained.}
 
-Generally speaking, mapping should deal with the data for a
+Generally speaking, mapping should deal with data for a
 reference genome, short reads, and processed data generated in each
 step.  Particularly, the temporary data generated during 'bfast match'
 step needs careful attention due to their significant size and more
@@ -737,19 +736,19 @@ the step is executed, for example, concurrently vs. serially, or
 centralized storage vs. distributed storage, or the low memory option
 (i.e. the number of index files).
 
-We estimated the peak disk-space requirement.  As shown
-in Table~\ref{table:dynamic-diskspace}, the number of temporary files as
-well as the size of each temporary file change depending upon the set
-up for 'bfast match' step such as the number and the size of each read
-file and the low memory option.  The low memory option changes the number and the size
-of each index file, and thus the corresponding temporary files are generated differently.
-For example, cases I and II that
-are with $d=1$ and 40 index files require more space with more
-temporary files than case III with 10 index files ($d=0$) does. Case
-II need a bit more space than case I that is conducted with a half
-number of read files but twice size of each read file.  In summary, our estimation on dynamically required disk-space with human
-genome chromosome 21 suggests that the data volume would be a major
-issue for a large genome system.
+We estimated the peak disk-space requirement.  As shown in
+Table~\ref{table:dynamic-diskspace}, the number of temporary files as
+well as the size of each temporary file change depending upon the
+configuration of 'bfast match' step such as the number and the size of
+each read file and the memory option invoked.  The memory option
+changes the number and the size of each index file, and thus the
+corresponding temporary files are generated differently.  For example,
+cases I and II that are with $d=1$ and 40 index files require more
+space for temporary files than case III with 10 index files ($d=0$)
+does. Case II needs a bit more space than case I, for it is conducted
+with a half number of read files but twice size of each read file.  In
+summary, run-time disk-space analysis suggests that data volume might
+be a major issue for a large genome system.
    
 % Generally, fragmentation of data setsq is a primary idea to mitigate
 % storage requirement as well as computing time.
@@ -812,49 +811,65 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/chip-seq-mapper-dependency-ttc.pdf}
-\caption{\small Comparison of time-to-completion for the mapping step with three different mappers.  BFAST, Bowtie, and BWA were used. A file size of 100 MB short reads is used. \jhanote{Move
-  left figure to section 2.4} 
-}
+\caption{\small Comparison of time-to-completion for the mapping step
+  with three different mappers --  BFAST, Bowtie, and BWA. A
+  short read file size of 100 MB is used. \jhanote{Move left figure
+    to section 2.4} }
   \label{fig:chip-seq-comp} 
  \end{figure}
  
  The ChIP-Seq experiment provides genome-wide mapping of DNA-protein
  interactions, and obtained information is directly associated with
  transcription regulation\cite{pepke2009, laajala, wilbanks}.  An
- understanding of transcription regulation is one of the fundamental goals
- in biological sciences, which is relevant to virtually all
+ understanding of transcription regulation is one of the fundamental
+ goals in biological sciences, which is relevant to virtually all
  aspects of biological processes in a living cell responsible for cell
  development, differentiation, host-pathogen interactions,
- epigenetics, tumorigenesis, and so on.  New drug or bio-marker discovery for
- many devastating diseases including neurodegenerative disorders are
- examples of anticipated outcomes from such studies\cite{pepke2009}.
- 
- Replacing ChIP-ChIP methods based on micro-array approaches,
- the ChIP-Seq experiment became quickly a main player with its genome-wide
- scale information and higher resolution\cite{pepke2009,mardis2008-tig}.  ChIP-Seq means Chromatin
- Immunoprecipitation (ChIP) followed by sequencing (ChIP-Seq). Following this protocol, the sequenced reads indicate the location of a binding site or a peak where
- regulatory proteins bind as manifested by the enrichment of reads in such a region.  
- 
- Generally, the conventional computational task for ChIP-Seq data is composed of two
- independent steps\cite{pepke2009}.  In the first step,
- the mapping of two data sets, corresponding to the control (if it exists) and the
- treatment data \ashleynote{Treat data?  Should this be treatment data?}\jkimnote{done}
- (the main data with the experimental condition from the ChIP experiment), are carried out separately, and in the second step, a peak caller, which carries out statistical analysis to infer true
- peaks indicating DNA-protein interaction regions, is executed.  The control data facilitate the construction of a peak model and background calibration, but is optional.  
+ epigenetics, tumorigenesis, and so on.  New drug or bio-marker
+ discovery for many devastating diseases including neurodegenerative
+ disorders are examples of anticipated outcomes from such
+ studies\cite{pepke2009}.
+
+ ChIP-Seq protocol involves Chromatin Immunoprecipitation (ChIP)
+ followed by sequencing (ChIP-Seq). Following this protocol, the
+ sequenced reads indicate the location of a binding site or a peak
+ where regulatory proteins bind as manifested by the enrichment of
+ reads in such a region.  Replacing ChIP-ChIP methods based on
+ micro-array approaches, the ChIP-Seq experiment has rapidly become a
+ major protocol with its genome-wide scale information and higher
+ resolution\cite{pepke2009,mardis2008-tig}.
+
+%  Generally, the conventional computational task for ChIP-Seq data is
+%  composed of two independent steps\cite{pepke2009}. 
+
+ In the first step, the mapping of two data sets, corresponding to the
+ control (if it exists) and the treatment data (the main data with the
+ experimental condition from the ChIP experiment), are carried out
+ separately, and in the second step, a peak caller, which carries out
+ statistical analysis to infer true peaks representing DNA-protein
+ interaction regions.  The control data facilitate the construction of
+ a peak model and background calibration, but is optional.
  
 % The unknown statistical nature of mapped reads, accompanied with various sources of errors and uncertainties arising from the ChIP-Seq experiment process, is the main obstacle for the assessment of peak calling results.  Importantly, the difficulty is additionally compounded by the limitation of current sequencing technologies producing a relatively short length of reads (mostly up to 100 something at the time of this work), which imposes challenges for increasing sensitivity in the mapping step\cite{pepke2009,laajala,wilbanks}. \ashleynote{I edited this up somewhat, but the last part is still unclear.  Consequently, considering the difficulty of validation of used tools and statistical inference algorithms for ChIP-Seq data analysis, conducting multiple analyses with multiple tools or pipelines and letting a biologist identify real biological consequences using experimental means is a viable or sometimes favored approach.  It is not surprising to observe that biologists are not comfortable to rely upon results obtained with a single or limited solutions. 
 %   ``... and thus challenging for increasing sensitivity in the mapping step'' sounds off, but I'm not sure how to fix it while maintaining correctness.}
  
- In this work, we use the well-proven peak caller, MACS\cite{macs} for
- the second step, while three different software tools, BFAST, Bowtie,
- and BWA, are employed for the first mapping step to carry out three different pipeline results.  These mappers
+ In this work, we use the widely used peak caller -- MACS\cite{macs},
+ for the second step, while three different mappers -- BFAST, Bowtie,
+ and BWA, are employed in the first mapping step.  These mappers
  differ in many ways, particularly by their different computational
- requirements.  The two additional mappers, BWA and Bowtie, are widely used
- due to their adoption of the memory efficient 
- Burrow-Wheeler Transformation, whereas BFAST was found to provide
- increased sensitivity\cite{bfast2009,mapping-survey}.  Note that the second step with MACS takes a relatively shorter time than the mapping step and thus we focus on the computational characteristics with the first step.  
+ requirements.  The two additional mappers, BWA and Bowtie, are widely
+ used as they implement the memory efficient Burrows-Wheeler
+ Transformation, whereas BFAST was found to provide increased
+ sensitivity\cite{bfast2009,mapping-survey}.  Note that the second
+ step with MACS takes a relatively shorter time than the mapping step
+ and thus we focus on the computational characteristics with the first
+ step.
  
- In Fig.~\ref{fig:chip-seq-comp}, we present the comparison of the three mappers, BWA, Bowtie and BFAST for the mapping step.  Note that the results were obtained by using the pipeline we developed as a Type II service, in which the mapping step was carried out using 256 cores of a remote HPC cluster (QB) for 128 tasks concurrently.  
+ In Fig.~\ref{fig:chip-seq-comp}, we present the comparison of the
+ three mappers, BWA, Bowtie and BFAST for the mapping step.  Note that
+ the results were obtained by using the pipeline we developed as a
+ Type II service, in which the mapping step was carried out using 256
+ cores of a HPC cluster (QB) for 128 tasks concurrently.
  
 % Our main focus with the
 % ChIP-Seq pipeline is to present a compelling example of how the use of
@@ -887,26 +902,24 @@ Workstation &  Local   &  Cyder & Disk       & 5 TB\\
 
 \reviewer{R2 : CloudBurst is worth comparing with BFAST}
 
-While interesting progress has been made in the algorithmic development and
-there exist efforts at providing a runtime environment to support,
-some important requirement are notably missing in existing
-infrastructural solutions.\ashleynote{What ``algorithmic domain''?  What is
-the runtime environment supporting?  Having a hard time following this.}  Most significant is the limitation that
-most solutions are tailored for a specific problem instance. But can
-an infrastructure be designed such that it meets the requirements of
-a large range of problem instances, both in terms of the size of the data
-involved and the amount of computing required?  In order to meet these
-requirements, the ability to utilize multiple and heterogeneous
-resources will be inevitable.
+A widely-used tool-box that provides a variety of tools for
+genome-wide analysis through as a single framework and software
+package has been recently developed\cite{galaxy}.  While interesting
+progress has been made in algorithms, some important requirement are
+notably missing in existing infrastructural solutions.  A significant
+limitation is that most solutions are tailored for a specific problem
+instance. But can an infrastructure be designed such that it meets the
+requirements of a large range of problem instances, both in terms of
+the size of the data involved and the amount of computing required?
 
 There have been significant recent efforts in utilizing emerging
-distributed computing environments such as clouds for genome-wide
-analysis and infrastructure development
-efforts\cite{taylor2010,cloudburst, cloudblast, langmead2009,
-  langmead2010,gatk, halligan2009,luyf-2010}.
-A general purpose infrastructure has also been extensively developed,
-providing a variety of tools for genome-wide analysis through a
-uniform interface or framework software\cite{galaxy}.
+computing environments such as clouds for genome-wide analysis and
+infrastructure development efforts\cite{taylor2010,cloudburst,
+  cloudblast, langmead2009, langmead2010,gatk,
+  halligan2009,luyf-2010}. However clouds impose a strong model of
+data localization.  We believe that in order to meet these
+requirements, the ability to utilize multiple and heterogeneous
+resources will be inevitable.
 
 
 % For example the ability to utilize heterogeneous computing resources
@@ -937,7 +950,7 @@ uniform interface or framework software\cite{galaxy}.
 %\end{itemize*}
 
 
-\subsection{Dynamic Application Runtime Environment}
+\subsection{Distributed Application Runtime Environment}
 
 We have established that efficient analytics on NGS data is not just a
 matter of data-management, but also of providing large amounts of
@@ -953,75 +966,73 @@ to remove the comments...}
 %BFAST are desirable.
  
 This could involve supporting fine-grained parallelism of the type
-that is supported by invoking the multi-threading option of a software tool such as BFAST, or
-it could involve invoking multiple instances of the tool executing
-independently but on different read-files associated with the same
-problem instance. Which approach will be more effective depends upon
-the specific configuration of the problem instance, i.e., a problem
-instance may be I/O bound or compute/memory bound.
+that is supported by invoking the multi-threading option of a software
+tool such as BFAST, or it could involve invoking multiple instances of
+the tool executing independently but on different read-files
+associated with the same problem instance. Which approach will be more
+effective depends upon the specific configuration of the problem
+instance, i.e., a problem instance may be I/O bound or compute/memory
+bound.
 
 To achieve the goal of supporting both types of parallelism on
 heterogeneous distributed computing resources, we have developed the
-Dynamic Application Runtime Environment (DARE)
+Distributed Application Runtime Environment (DARE)
 framework\cite{dareurl,dare-tg11,dare-ecmls11}.
 
-At the core of the DARE framework, is a SAGA BigJob (which is a
-flexible general purpose pilot-job
-implementation)\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
-% Additionally, the framework is composed of a web application using an
-% open source web development framework, Pylons\cite{pylonsurl}. 
-% This
-% combination of the open source technology and the application
-% management system 
-With a suitable Web development framework, it supports the development
-of a lightweight but extensible, science gateway capable of using a
-range of distributed resources.  In subsequent sections, we will
-demonstrate via performance numbers the effectiveness of how the DARE
-framework supports a range of infrastructure, problem instance
-configurations and size.
 
-Such task-level concurrency supports different ways of splitting the
-data, whilst using the same runtime environment using SAGA-BigJob; all
-the parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.
-It is possible to exploit multi-level configuration in that different
+% Additionally, the framework is composed of a web application using
+% an open source web development framework, Pylons\cite{pylonsurl}.
+% This combination of the open source technology and the application
+% management system 
+
+% With a suitable Web development framework, it supports the development
+% of a lightweight but extensible, science gateway capable of using a
+% range of distributed resources. 
+
+At the core of the DARE framework, is a flexible general purpose
+pilot-job implementation --
+BigJob\cite{saga-ccgrid10,saga-royalsoc,saga-web,jha2009developing,ecmls10}.
+In subsequent sections, we will demonstrate via performance numbers
+the effectiveness of how the DARE framework supports a range of
+infrastructure, problem instance configurations and size.  Such
+task-level concurrency supports different ways of splitting the data,
+whilst using the same runtime environment using BigJob; all the
+parallel tasks of BFAST steps are defined as sub-jobs in BigJobs.  It
+is possible to optimize at multiple-levels,  in that different
 thread/cores configurations are possible for each of the sub-jobs.
 
-DARE has distinctive characteristics compared to other related
-approaches\cite{taylor2010,cloudburst, cloudblast,
+DARE has distinctive characteristics compared to other run-time
+environments~\cite{taylor2010,cloudburst, cloudblast,
   langmead2009,langmead2010,gatk,halligan2009,luyf-2010}, many of
 which have been developed in the Cloud environment.  First of all,
 most other approaches lack interoperability between different
 distributed computing environments.  This is partly because the
 application layer is tightly coupled to the runtime environment layer.
-Secondly, other approaches support either a single application or 
-a few closely applications.  Some tools such as CloudBurst\cite{cloudburst},
-CloudBlast\cite{cloudblast}, Crossbow\cite{langmead2009}, and
-GATK\cite{gatk} have advantages that are specifically confined to
-Cloud environments, as well as permit ease of utilization of effective
-programming models such as MapReduce or other software frameworks,
-whereas others\cite{luyf-2010} focus on the HPC grid environment.
-Indeed, as we will show in the context of ChIP-Seq, the DARE framework
-propose an interesting means to support dynamic applications on distributed scalable heterogeneous HPC resources. 
-\ashleynote{How does the DARE framework propose an interesting means of
-supporting dynamic applications?  I can tell from context, but it kind of
-has to be teased out of the text.  Perhaps something blatant like, 
-``The DARE framework proposes a means of supporting dynamic applications
-that overcomes the limitations of previous approaches by supporting interoperability between distributed computing
-environments and by supporting a wide range of applications.'' would be useful
-in really spelling out what makes DARE special.}
+Secondly, other approaches support a single application or a few
+applications with limited extensibility. Some tools such as
+CloudBurst\cite{cloudburst}, CloudBlast\cite{cloudblast},
+Crossbow\cite{langmead2009}, and GATK\cite{gatk} have advantages that
+are specifically confined to Cloud environments; they permit ease of
+utilization of effective programming models such as MapReduce or other
+software frameworks, whereas others\cite{luyf-2010} focus on the HPC
+grid environment.  Indeed, as we will show in the context of ChIP-Seq,
+the DARE framework proposes a means of supporting dynamic applications
+that overcomes the limitations of previous approaches by supporting
+interoperability between distributed computing environments and by
+supporting a wide range of applications.
 
 \subsection{Understanding BFAST on a Local (Single) Resource}
 \subsubsection{$T_{C}$ on $N_t$ and $N_c$}
 
 To determine how the performance of the bfast match step varies with
-the different number of threads, $N_t$, and cores, $N_c$, we measure
-the time-to-completion, $T_C$ of a task of the bfast match step on a
-single machine having multiple cores.  As shown in
-Fig.~\ref{fig:threading-benchmark}, $T_{C}$ indicates a speed-up until
-the number of threads becomes equal to the maximum number of cores.
-Interestingly, the overall performance gain is about 30 \%, and the
-scaling tendency does not reveal any strong pattern but a weak
-log-linear behavior. 
+the different number of threads ($N_t$) and cores ($N_c$) we measure
+the time-to-completion ($T_C$) of the bfast match step on a
+single machine with multiple cores.  As shown in
+Fig.~\ref{fig:threading-benchmark}, ($T_{C}$) indicates a speed-up
+until the number of threads becomes equal to the maximum number of
+cores.  Interestingly, the overall performance gain is about 30 \%,
+and the scaling tendency does not reveal any strong pattern but a weak
+log-linear behavior.
 
 
 %... \jhanote{needs merging} The results from our investigation are presented in
@@ -1051,14 +1062,14 @@ log-linear behavior.
  \centering
 \includegraphics[bb=0 0 340 300, scale=0.39]{figures/threadsvstime.pdf} 
 
-\caption{\small Measuring the time-to-completion ($T_C$) as a function of the
-  number of threads.  The node (Cyder) used for tests has 12 cores and the reference genome is Human
-  genome (hg18) chromosome 21. The low
-  memory option with 40 index files is used for this measurement. The
-  $T_C$ decreases logarithmically, until the number of
-  threads is equal to the number of cores, after which the performance
-  levels off. Similar behavior is observed for different machines
-  with varying number of cores.}
+\caption{\small Measuring the time-to-completion as a function of the
+  number of threads.  A single node on the machine (Cyder) used for
+  tests has 12 cores and the reference genome is Human genome (hg18)
+  chromosome 21. The low memory option with 40 index files is used for
+  this measurement. The $T_C$ decreases logarithmically, until the
+  number of threads is equal to the number of cores, after which the
+  performance levels off. Similar behavior is observed for different
+  machines with varying number of cores.}
   \label{fig:threading-benchmark} 
  \end{figure}
 
@@ -1069,7 +1080,7 @@ we varied the number of threads per task and the number of tasks
 running concurrently such that the total number of cores utilized at
 any stage is fixed to the number available on the single node -- 4
 (see Table~\ref{table:understandio}) The total amount of short-data
-processed per task varied such that the total amount of short-date
+processed per task varied such that the total amount of short-data
 processed was a constant.
 
 Case s1 provided the starting configuration where 1 (BFAST) task was
@@ -1079,9 +1090,10 @@ with a concomitant decrease in the threads per tasks (so as to be
 constant at 8). We find that although in general, $T_C$ decreases as
 the number of tasks increase (s1 to s2) and thus the amount of
 data-processed per task decreases, that is not universal. Specifically
-in going from s2 to s3, there is an increase in the $T_C$.  The exact
-cause for such behavior is unknown, but points to read-contention on
-index files along with an I/O bottleneck.
+in going from s2 to s3, there is an increase in $T_C$.  The exact
+cause for such behavior is difficult to discern in the absence of
+performane profiling, but circumstantial evidence points to
+read-contention on index files along with an I/O bottleneck.
 
 % The comparison between s1 and s2 suggests clearly the
 % configuration of s2 is more efficient to utilize task-level
@@ -1092,23 +1104,14 @@ index files along with an I/O bottleneck.
 % importance of finding an optimal configuration for a better
 % performance.
 
-In the case of s4, 4 BFAST tasks were also run on a single node; the
-performance was better than for s3. This can be expected because
-although the four BFAST tasks were trying to access the same set of
-index files for processing, the multi-threading option was used.  In this
-case all LONI machines have a Lustre filesystem for accessing the
-input data.  Because of increase in access of same files there has
-been a unpredictable behavior in time-to-completion (s3). This was
-also observed on other local server -- Cyder and Walrus (Eucalyptus
-cloud storage) based Cloud systems.
-\ashleynote{The preceding sentence is a bit confusing.  Do Cyder and
-Walrus work together in tandem?  If so, perhaps ``...  also observed
-on the other local server, Cyder, which works in tandem with the Eucalyptus cloud
-storage based system Walrus.''}
+% -- Cyder and Walrus (Eucalyptus cloud storage) based Cloud systems.
+% \ashleynote{The preceding sentence is a bit confusing.  Do Cyder and
+%   Walrus work together in tandem?  If so, perhaps ``...  also
+%   observed on the other local server, Cyder, which works in tandem
+%   with the Eucalyptus cloud storage based system Walrus.''}
 
 % The comparison between s3 and s4 finds that a slight gain in the
 % performance when more threads are utilized per a task.
-
 
 % Finally and interestingly, the results s3 and s4, compared to s2,
 % indicates the significance of I/O for an optimal configuration since
@@ -1118,6 +1121,14 @@ storage based system Walrus.''}
 % The system I/O influences the performance of the step for finding CALs
 % (bfast match).
 
+In the case of s4, 4 BFAST tasks were also run on a single node; the
+performance was better than for s3. This can be expected because
+although the four BFAST tasks were trying to access the same set of
+index files for processing, the multi-threading option was used.  In
+this case all LONI machines have a Lustre filesystem for accessing the
+input data.  Because of increase in access of same files there has
+been a unpredictable behavior in time-to-completion (s3). This was
+consistent with observation on other local and cloud resources.
 
  \begin{table}
  \small
@@ -1178,28 +1189,28 @@ s4& 0.6 GB & 4 & 4 & 5804 s \\
 %significance of agile runtime environment that drives a dynamical
 %configuration and utilization of distributed resources.
 
-\subsection{Execution of BFAST mapping on Distributed Resources}
+\subsection{Characterizing BFAST (mapping) on Distributed Resources}
 % Grids and Clouds}
 
-In order to demonstrate the flexibility of the DARE framework and its
-ability to support both fine-grained parallelism and task-level
-parallelism over multiple cloud environments, we perform tests over a
-HPC-grid (LONI) and a Cloud resource (FutureGrid) (see
-Table~\ref{table:two-systems} for details of the infrastructure).
-
+In order to demonstrate the flexibility of DARE and its ability to
+support both fine-grained parallelism and task-level parallelism over
+multiple and distinct environments, we utilize a HPC-grid (LONI) and a
+Cloud resource (FutureGrid) (see Table~\ref{table:two-systems} for
+details of the infrastructure).
 
 \subsubsection{Using BFAST on HPC Grids}
 
 The first two configurations -- case g1 and g2 in
-Table.\ref{table:bigjob-loni} demonstrate how the DARE framework can
-support a large range task-concurrency without losing scalability.
-Specifically, in g1 \& g2 all parameters and conditions are kept
-similar, but the number of BFAST tasks (sub-jobs) are varied, and thus
-the number of cores utilized.  The individual processing time of each
-BFAST task is, as expected to decrease in proportion to the data-file
-size; interestingly, as can be seen, with twice as many tasks
-(sub-jobs) utilized within a BigJob, the time taken decreases by half.
-Therefore, the increase in the coordination cost of multiple BFAST tasks is negligible, which indicates a simple, but important test of scalability (with the number of tasks) of the DARE framework.  
+Table.\ref{table:bigjob-loni} demonstrate how DARE can support
+large-scale task-concurrency.  Specifically, in g1 \& g2 all
+parameters and conditions are kept similar, but the number of BFAST
+tasks (sub-jobs) are varied and thus the number of cores utilized.
+The individual processing time of each BFAST task decreases in
+proportion to the data-file size; interestingly, as can be seen, with
+twice as many sub-jobs the time taken decreases by half.  Therefore,
+the increase in the coordination cost of multiple BFAST tasks is
+negligible, which indicates a simple, but important test of
+scalability (with the number of tasks) of the DARE framework.
 
 In cases g3 and g4, the number of BFAST tasks (sub-jobs) is greater
 than the number of cores available at any one instance; thus multiple
@@ -1216,7 +1227,7 @@ sizes.
 For g5 and g6 the number of index files is 10; to be contrasted with
 40 for g1-g4.  However, in spite of a different index file number, the
 linear scaling behavior exists.  As discussed in \S 2.2.1, the
-time-to-completion depends has a linear dependence on the index files
+time-to-completion has a linear dependence on the index files
 (memory-time trade-off); once this is taken into account the total
 time-to-completeness is consistent with g1-g4.
 
@@ -1303,11 +1314,11 @@ support concurrent task execution by establishing the scale-out to a
 large number of cores/resources. Although we did not use physically
 distributed resources to validate their performance, we used logically
 distributed tasks and have in earlier work established performance
-over distributed HPC grids\cite{saga-ccgrid10}.  The question then arises:
- can the DARE framework support similar capabilities
-of scaling on clouds without sacrificing the ability to utilize
-fine-grained parallelism as needed? We attempt to address this
-question in the remainder of this section.
+over distributed HPC grids\cite{saga-ccgrid10}.  The question then
+arises: can DARE support similar capabilities of scaling on clouds
+without sacrificing the ability to utilize fine-grained parallelism as
+needed? We attempt to address this question in the remainder of this
+section.
 
 As mentioned, the cloud infrastructure used was the Eucalyptus based
 IaaS resources on the NSF-sponsored FutureGrid\cite{futuregrid}.
@@ -1444,13 +1455,54 @@ c4 & 0.435 GB&2 & 20 & 40 & 1 &1137 s \\
 
 \subsection{The need of flexibility, extensibility, and scalability in a ChIP-Seq pipeline}
 
-In Fig.~\ref{fig:chip-seq-comp-2}, we compare the number of predicted peaks using the developed pipeline with three different mappers.  These calculations were carried out without considering the control data and the reference genome sequence is chromosome 19 of mouse genome (mm9).  MACS was used for the peak calling step for these calculations.  The first step, the mapping process using a mapper was implemented to support the distributed mode for which 128 files of ChIP-Seq reads were generated from the full data set and processed concurrently. The second step, the peak calling, which takes significantly less time and thus parallel support is not critically required for the data of interest, was implemented to carry out after gathering all mapping results into the server where DARE resides.  Note that with the distributed resources, three different peak calling calculations can be conducted at the same time and various execution scenarios are easily implemented with DARE, the framework to support dynamic applications on distributed CIs.  
+In Fig.~\ref{fig:chip-seq-comp-2}, we compare the number of predicted
+peaks using the developed pipeline with three different mappers.
+These calculations were carried out without considering the control
+data and the reference genome sequence is chromosome 19 of mouse
+genome (mm9).  MACS was used for the peak calling step for these
+calculations.  The first step, the mapping process using a mapper was
+implemented to support the distributed mode for which 128 files of
+ChIP-Seq reads were generated from the full data set and processed
+concurrently. The second step, the peak calling, which takes
+significantly less time (and thus support for concurrent execution is
+not critical) was set to execute after gathering all mapping results
+into the DARE server.  Using distributed resources, the three
+different peak calling calculations can be conducted at the same time
+and various execution scenarios are easily implemented with DARE.
 
-As shown Fig.~\ref{fig:chip-seq-comp-2} with respect to the number of predicted peaks, or the location of binding sites of biological interests,  peak calling using the same ChIP-Seq data was considerably affected by a mapper.  We observed that not only the varying number of predicted peaks but also significant difference in statistical measures for a predicted peak such as False Discovery Rate were observed.  The resulting difference is in fact not surprising since the mapping statistics already indicate the dependency of a chosen mapper.   For example, we found that with the treat data, 8,375,179 reads were mapped by BFAST whereas 3,104,010 reads and only 277,427 reads were mapped by BWA and Bowtie, respectively.  The general tendency that BFAST maps more reads than the other two mappers was observed by others and us with different data sets\cite{bfast2009,mapping-survey}.  
+As shown Fig.~\ref{fig:chip-seq-comp-2} the number of predicted peaks,
+or the location of binding sites of biological interests, peak calling
+using the same ChIP-Seq data was dependent on the mapper.  We observed
+that not only the varying number of predicted peaks but also
+significant difference in statistical measures for a predicted peak
+such as False Discovery Rate were observed.  The resulting difference
+is in fact not surprising since the mapping statistics already
+indicate a dependency on the specific chosen mapper.  For example, we found
+that with the treatment data, 8,375,179 reads were mapped by BFAST whereas
+3,104,010 reads and only 277,427 reads were mapped by BWA and Bowtie,
+respectively.  The general tendency that BFAST maps more reads than
+the other two mappers was observed by others and us with different
+data sets\cite{bfast2009,mapping-survey}.
 
-Recent review articles attempting the practical comparison for different peak callers reported that different results among popular peak callers were due to different algorithms and statistical analysis strategies employed\cite{wilbanks, laajala}.  More importantly, considering the complex nature of peak calling process, the practical validation of a chosen software tool for peak calling is non-trivial and out of the question especially for ordinary researchers.  Here, according to our results, we find that the consequence of the mapping step is another factor affecting sensitivity of peak calling.
+Recent review articles comparing peak callers reported difference in
+results were due to different algorithms and statistical analysis
+strategies employed\cite{wilbanks, laajala}.  Considering the complex
+nature of peak calling process, the practical validation of a chosen
+software tool for peak calling is non-trivial and often out of the
+question especially for ordinary researchers.  Here, according to our
+results, we find that the consequence of the mapping step is another
+factor affecting sensitivity of peak calling.
 
-In summary, we presented a case for requiring a flexible pipeline in which multiple alternative tools are easily employed and scalable executions for increased computing requirements are seamlessly supported. This is because biologists are likely to seek the assessment of their findings with final experimental validation, implying that they might favor a practical means to have all candidate peaks from multiple combination of tools in the two step ChIP-seq pipeline.  Our ChIP-Seq pipeline is an example of DARE-based Type II service, and a practical solution for researchers who are perplexed with the difficult validation of results and the decision for software tools deployed. 
+In summary, we presented a case for requiring a flexible pipeline in
+which multiple alternative tools are easily employed and scalable
+executions for increased computing requirements are seamlessly
+supported. This is because biologists are likely to seek the
+assessment of their findings with final experimental validation,
+implying that they might favor a practical means to have all candidate
+peaks from multiple combination of tools in the two step ChIP-seq
+pipeline.  Our ChIP-Seq pipeline is an example of DARE Type II
+service, and provides a practical solution for the flexible deployment
+of a range of software tools on given distributed reources.
 
 \begin{figure}
  \centering
@@ -1465,32 +1517,32 @@ In summary, we presented a case for requiring a flexible pipeline in which multi
 %   ChIP-Seq.  Time-to-completion for the mapping step is compared among
 %   three different mappers, BFAST, Bowtie, BWA (left). \jhanote{Move
 %     left figure to section 2.4} 
-  Peak calling results are compared among three different ChIP-Seq
-  pipeline scenarios using different mappers for the first step.  For
-  these calculations, the same treat reads data are mapped onto the
-  chromosome 19 of mouse reference genome (mm9) and MACS is used for
-  the second step, the peak calling process}
+  Peak calling results for three different ChIP-Seq pipeline
+  scenarios.  A different mapper is used for the first step.  For
+  these calculations, the same treatment read data are mapped onto the
+  chromosome 19 of mouse reference genome (mm9) and MACS is used as
+  the second step.}
   \label{fig:chip-seq-comp-2} 
  \end{figure}
 
-
-
 \section{Conclusion and Future Work}
 
-The challenges of Next Generation Sequencing are significant
-and pervasive.
-BFAST, which has emerged as an important analytic tool for NGS, is  a sophisticated application that has the
-capability to utilize advanced architectural features -- in particular
-at the processor level, such as multi-threading and support for low
-memory run-time configurations. However, by analyzing the human
-genome, we find that more often than not, in order to perform analysis
-at the scales required, additional support for concurrent execution is
+The challenges of Next Generation Sequencing are significant and
+pervasive.  BFAST, has emerged as one of many important analytical
+tools for NGS, is a sophisticated application that has the capability
+to utilize advanced architectural features -- in particular at the
+processor level, such as multi-threading and support for low memory
+run-time configurations. However, by analyzing the human genome, we
+find that more often than not, in order to perform analysis at the
+scales required, additional support for concurrent execution is
 required, whilst exploiting the fine-grained parallelism. We also
-observed, that for BFAST -- which is a data-intensive application,
-the performance bottleneck often becomes I/O; we establish that in
-order to overcome the I/O induced bottleneck, any effective run-time
-environment must support both scale-up and scale-out. In other words,
-a sophisticated run-time environment for BFAST is required.
+observed, that for BFAST -- which is a data-intensive application, the
+performance bottleneck often becomes I/O; we establish that in order
+to overcome the I/O induced bottleneck, any effective run-time
+environment must support both local and distributed execution.
+In other words, a sophisticated run-time environment that addresses
+the challenges for both local and distributed environments is
+required.
 
 This paper represents the initial steps in the design and development
 of a general-purpose, scalable and extensible infrastructure to
@@ -1507,17 +1559,18 @@ problem instance. The immediate next step is to demonstrate the
 effectiveness for larger problem instances, e.g., genome wide
 variation studies with many individual human-genomes, through both the
 scale-up and scale-out of the infrastructure.  Additionally, we will
-extend our framework to develop and support multi-stage workflow,
-i.e., the full pipeline,
- 
+extend our framework to develop and support multi-stage workflow.
+
 We have begun implementing the next steps and features for this
 project. In an attempt to provide these advanced capabilities to the
 community, we are working on NGS Data Analytics Science Gateway that
 will abstract many of the infrastructure details and provide
 ``autonomic'' capabilities, i.e., map the specific problem instance to
-the appropriate backend infrastructure.
-
-The mapping with BFAST and the pipeline discussed in this work are freely available via our gateway, DARE-NGS (http://dare.cct.lsu.edu).
+the appropriate backend infrastructure.  Mapping with BFAST and the
+pipeline discussed in this work are freely available via the
+DARE-based gateway (DARE-NGS available at
+\url{http://dare.cct.lsu.edu}). Type II services and Type III
+workflows will be added soon.
 
 % We present analyses with two genome systems representing a eukaryote
 % and a prokaryote, respectively, using a HPC grid and a Cloud
