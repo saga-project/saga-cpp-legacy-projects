@@ -766,7 +766,7 @@ high degree of distribution.}
 \label{sec-experiments}
 
 
-In this section we analyze the performance and scalability of  \pilotmapreduce and compare to Hadoop MapReduce using different applications.
+In this section we analyze the performance and scalability of  \pilotmapreduce and compare it to Hadoop MapReduce using different applications.
 For this purpose we run several experiments on FutureGrid~\cite{fg}. We run the
 experiment on the FG resources: India, Sierra and Hotel. Each experiment is
 repeated at least three times. For our Hadoop experiments, we use Hadoop 0.20.2. At the begin of each run a 
@@ -777,7 +777,7 @@ set to 2 and number of reduces to 8.
 
 \subsection{MapReduce-Based Applications}
 
-MapReduce has been utilized in various science application. A key performance 
+MapReduce has been utilized in various science applications. A key performance 
 factor is the amount of data that must be moved through the MapReduce system. 
 The degree of data aggregation of the map tasks is thus, an important 
 characteristic of a MapReduce application~\cite{weissman-mr-11}.
@@ -860,10 +860,9 @@ Figure~\ref{fig:figures_wordcount_hadoopmr_pmr} shows the results. The runtime
 of Hadoop MapReduce include time to load input source data into HDFS and
 MapReduce runtime.
 
-
 \begin{figure}[ht]
 	\centering
-		\includegraphics[width=0.47\textwidth]{figures/wordcount_hmr_pmr.pdf}
+		\includegraphics[width=0.47\textwidth]{figures/wordcount_pmr_hadoopmr.png}
 \caption{Word Count: PMR versus Hadoop: The performance of Hadoop and PMR is 
 comparable. The runtime increase with the input data size. Hadoop tasks have a 
 notable higher startup time than PMR tasks.} 	
@@ -896,9 +895,11 @@ reasons for this problem}
 In this section, we compare and contrast GS/PMR and SEQAL. For both
 applications, we utilize the same set of input data comprising of different
 sizes of read files and the reference genome. SEQAL, however, expects the 
-input data in a different format (qseq instead of fastq); thus, the data was 
-previously converted to meet the SEQAL requirements. We measure the
-runtime of PMR (including the time for the chunking, mapping, shuffling
+input data in a different format (prq instead of fastq); thus, the data was 
+previously converted to meet the SEQAL requirements. The fastq files from sequencing 
+machines are directly used as input to the PMR. A custom chunk script is used to chunk the
+fastq files based on the number of reads. We make sure that the chunk size in both SEQAL and
+PMR is equal. We measure the runtime of PMR (including the time for the chunking, mapping, shuffling
 and reducing phase). For both frameworks, a total of 4 nodes on FutureGrid 
 sierra machine, 8 reduces, 2 workers/node, default chunk size of 128\,MB is 
 used. For Hadoop based SEQAL, the replication factor of two is used. Since SEQAL 
@@ -913,16 +914,16 @@ focus our investigation on the map phase.
 
 \begin{figure}[ht]
 	\centering
-		\includegraphics[width=0.47\textwidth]{figures/seqalvspmr_map.pdf}
+		\includegraphics[width=0.47\textwidth]{figures/seqalvspmr.png}
 \caption{SEQAL and GS/PMR: GS/PMR provides a marginal better performance that 
 SEQAL. The overhead of SEQAL is mainly attributed to the used HDFS configuration 
 using a shared file system.} 	
-\alnote{Can we remove the setup time? hard to read anyways. }
-\label{fig:seqalvspmr_map}
+\label{fig:seqalvspmr}
 \end{figure}		
 
-Figure~\ref{fig:seqalvspmr_map} shows the results of both applications. The
-setup times remain constant to the times measures in the Word Count experiment.
+Figure~\ref{fig:seqalvspmr} shows the results of both applications. In the
+setup time of SEQAL, Hadoop copies the reference genome archive to all the 
+nodes and extracts it so it is available locally.
 In comparison to Word Count both GS application are more compute intensive,
 i.\,e.\ the ratio between computation in the map phase and the size of the input
 data is significant larger. Notably, SEQAL requires a longer time-to-completion
@@ -931,7 +932,9 @@ local disks available on FG is too small for the used input data; thus, HDFS had
 to be configured to utilize a shared, distributed file system, which leads to a
 non-optimal performance during the I/O intensive map phase. The difference in
 the reduce phase mainly originate from the different implementations of the
-duplicate removal process in SEQAL and GS/PMR.
+duplicate removal process in SEQAL and GS/PMR. We developed a custom script in python
+which is based on duplicate removal description provided in ~\cite{seal-2011}.
+
 \alnote{Pradeep: Please elaborate a bit on the differences}
 
 % Figure~\ref{fig:seqalvspmr_map} shows the results. Notably, SEQAL requires a longer
@@ -942,26 +945,42 @@ duplicate removal process in SEQAL and GS/PMR.
 % I/O intensive map phase.  The comparison of the reduce phase could originate 
 % from the different implementation between SEQAL and ours.
 
-% \begin{figure} 
-%  \centering
-% \includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
-% \caption{SEQAL vs. GS/PMR Performance of each Phase:  The runtime  contributions from each step are compared in details.}
-% \alnote{remove distributed PMR }
-% \pnote{ Do we need this since we have stacked-cluster graph?}
-%  \label{fig:comp_with_seqal_2} 
-% \end{figure}
-
 
 \subsection{Distributed MapReduce}
 
 In this section, we evaluate the performance and scalability of (i) a 
 distributed and (ii) hierarchical \pilotmapreduce configuration (see
-section~\ref{sec:pmr-distributed}) using the genome sequencing application.
-In the distributed scenario (i) \pilotmapreduce map CUs are distributed across 
+section~\ref{sec:pmr-distributed}) using the genome sequencing application and a 
+wordcount application on random data. In the distributed scenario (i) \pilotmapreduce map CUs are distributed across 
 two machines, in the  hierarchical scenario (ii) an additional MapReduce run is 
 necessary for combining and aggregating the data.
 
-For this experiment we utilize two machines: india and hotel; the number of
+For the distributed data processing of random datausing WordCount application, 
+we try to compare the Distributed PMR with with Hadoop MapReduce on a single cluster. We consider that 
+the initial souce data is equally distributed on Sierra and Hotel.
+We utilize two machines:sierra and hotel. The number of workers for WordCount is set to 8 on Hotel machine.
+In case of distributed PMR, the number of workers is divided equally between Sierra and Hotel. In both the cases,
+the chunk size is set to 128MB, number of reduces to 8. As the input data is varied the runtime for both the MapReduce increased.
+The runtime for Hadoop MapReduce on Hotel, includes moving data from Sierra to Hotel and loading the entire data into HDFS and  MapReduce 
+Job time.
+
+The runtime of Hadoop MR is affected by the time taken for intitial amount of data transfer. For
+2\,GB, 4\,GB and 8\,GB, 16\,GB the distributed PMR performs better than the
+Local PMR, because the effective amount of data to be transferred is
+much less than the initial amount of data transfer in Hadoop MR.
+But the Map phase and reduce phase time of Distributed PMR are high because of scheduling overhead of CUs involved in PMR.
+\pnote{observed when running distributed PMR; Still need to be modified, But checking in as time is up..}
+
+
+\begin{figure}[ht]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/wc_hmrvspmr_random.png}
+\caption{WordCount on Random Data, Hadoop MR on 1 machine vs Distributed PMR on 2 machines} 	
+\label{fig:hadoopvsdistp}
+\end{figure}		
+
+
+For Genome Sequncing application we utilize two machines: india and hotel; the number of
 workers per resource is set to 32, the number of reduces is set to to 8. In
 both cases hotel is used for running the reduce tasks (scenario (i))
 respectively the combining MR run (scenario (ii)). This setup ensures that
@@ -974,6 +993,14 @@ data transfer times are optimized.
 % GMR need global filesystem across clusters, which is difficult to have, and
 % latencies issues in moving files. So, DMR is a potential choice over LMR and
 % GMR.}
+
+
+\begin{figure}[ht]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/hmrvsdpmr.png}
+\caption{GS/PMR: Hierarchical MapReduce vs Distributed PMR on 2 machines} 	
+\label{fig:hmrvsdist}
+\end{figure}		
 
 
 % A correlation exists between the input data sizes and the performance of
@@ -993,8 +1020,6 @@ outperforms the distributed PMR if output of the reduce phase is much lower
 than the intermediate data that would have been required to transfer in 
 scenario (i).
 
-
-
 Running MapReduce on widely distributed data using a single resource
 configuration may not yield into an optimal runtime. Depending on the
 application's characteristics a distributed or hierarchical deployment may show
@@ -1010,7 +1035,6 @@ output data generated is larger than or equal to input data, a distributed confi
 % are costly, they are needed because of lack of an abstraction which manages the
 % relationships between the data and compute units effectively across wide-area
 % systems.
-
 
 In summary, PMR provides the flexibility to deploy MapReduce workload in
 different configurations optimizing the performance with respect to the
