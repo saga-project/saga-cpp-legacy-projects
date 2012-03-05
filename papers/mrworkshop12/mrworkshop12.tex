@@ -230,51 +230,51 @@ storage~\cite{hey2009}. The number of scientific applications that
 either currently utilize, or need to utilize large volumes of
 potentially distributed data is immense. The challenges faced by these
 applications are interoperability, efficiently managing compute tasks,
-and moving data to the scheduled compute location, which is inevitable
-in case of programming models like MapReduce.
+and moving data to the scheduled compute location.
+
+% which is inevitable in case of programming models like MapReduce.
 
 %Intro to MapReduce
-Processing large volumes of data is a challenging task. MapReduce is an
-effective programming model for addressing this challenge.
-MapReduce~\cite{Dean:2004:MSD:1251254.1251264} as originally developed by
-Google aims to address the big data problem by providing an easy-to-use
-abstraction for parallel data processing. The most prominent framework for 
-doing MapReduce computations is Apache Hadoop~\cite{hadoop}. The main 
-limitations of current MR implementations are: (i) They lack a modular 
-architecture, (ii) are tied to specific infrastructure, e.\,g.\ Hadoop relies 
-on the Hadoop File System (HDFS), and  (iii) do not provide efficient support 
-for dynamic and processing distributed data, e.\,g.\ Hadoop is designed for 
-cluster/local environment, but not for a high degree of distribution.
+Processing large volumes of data is a challenging task. MapReduce is
+an effective programming model for addressing this challenge.
+MapReduce~\cite{Dean:2004:MSD:1251254.1251264} as originally developed
+by Google aims to address the big data problem by providing an
+easy-to-use abstraction for parallel data processing. The most
+prominent framework for doing MapReduce computations is Apache
+Hadoop~\cite{hadoop}. However, there are limitations to the current MR
+implementations: (i) They lack a modular architecture, (ii) are
+tied to specific infrastructure, e.\,g.\ Hadoop relies on the Hadoop
+File System (HDFS), and (iii) do not provide efficient support for
+dynamic and processing distributed data, e.\,g.\ Hadoop is designed
+for cluster/local environment, but not for a high degree of
+distribution.
 
 % In particular when the source
 % data and computing platform distributed widely, the most efficient
 % architecture for processing data over the entire data set becomes non-trivial.
 %Intro to weissman's MapReduce configurations and workload types.
-
-
-
 %Why pilot abstractions
-A critical aspect of MapReduce, is the management of data and compute localities
-as well as the management of data movements, e.\,g.\ between the map and the
-reduce phase. The efficient support of these capabilities via the Pilot
-abstractions as well as the limitations of existing MapReduce implementations,
-such as the limited support for distributed data. Pilot abstractions enable the
-clean separation of resource management concerns and application/frameworks,
-such as MapReduce. In particular, \pilotjobs have been notable in their ability
-to manage large numbers of compute units across multiple high performance
-clusters, providing decoupling application-level scheduling and system-level
-resource management. But, there is also a need of an abstraction to liberate
-applications from the challenging task of data management. The
-Pilot-API~\cite{pstar-2012} aims to address this issue by providing a unified
-API for managing both compute and data pilots. In this paper, we present
-\emph{BigData (BD)}, an extension of the BigJob framework (BJ)~\cite{bigjob_web}
-to data. Both BigJob and BigData provide a full implementation of the Pilot-API
-and enable the management of resources, compute \& data units as well as the
-relationships between them. The Pilot-API particularly promotes affinities as a
-first class characteristic for describing such relationships between compute and
-data elements and to support dynamic decision making. In this paper, we show the
-advantages of the \pilot-based architecture in terms of flexibility,
-extensibility, scalability and performance.
+
+% as well as the limitations of existing MapReduce implementations, such
+% as the limited support for distributed data. 
+
+Pilot abstractions enable the clean separation of resource management
+concerns and application/frameworks. In particular, \pilotjobs have
+been notable in their ability to manage large numbers of compute units
+across multiple high performance clusters, providing decoupling
+application-level scheduling and system-level resource
+management. But, there is also a need of an abstraction to liberate
+applications from the challenging task of compute-data placement and
+scheduling. The Pilot-API~\cite{pstar-2012} aims to address this issue
+by providing a unified API for managing both compute and data
+pilots. In this paper, we present \emph{BigData (BD)}, an extension of
+the BigJob framework (BJ)~\cite{bigjob_web} to data. Both BigJob and
+BigData provide a full implementation of the Pilot-API and enable the
+management of resources, compute \& data units as well as the
+relationships between them. Specifically, the Pilot-API promotes
+affinities as a first class characteristic for describing such
+relationships between compute and data elements and to support dynamic
+decision making. 
 
 % Pilot-Data provides an abstraction
 % for expressing and managing relationships between data units and/or compute
@@ -282,12 +282,19 @@ extensibility, scalability and performance.
 % complete solution for data intensive applications to utilize distributed cyber
 % infrastructure effectively. 
 
-In this paper, we present \pilotmapreduce \ -- a novel \pilot-based MapReduce
-implementation which enables clean separation of resource management and
-MapReduce application. We show how \pilot abstractions are used for managing the
-map and reduce tasks and intermediate shuffle data between them. We also discuss
-the usability of \pilot-abstractions in designing dynamic execution workflows
-which involves multiple MapReduce computations.
+A critical aspect of MapReduce, is the management of data and compute
+localities as well as the management of data movements, e.\,g.\
+between the map and the reduce phase.  In this paper, we demonstrate
+the efficient support of these capabilities via the Pilot
+abstractions. We design and implement \pilotmapreduce \ -- a novel
+\pilot-based MapReduce implementation which enables clean separation
+of resource management and MapReduce application. We show how \pilot
+abstractions are used for managing the map and reduce tasks and
+intermediate shuffle data between them.  In addition, we show the
+advantages of the \pilot-based architecture in terms of flexibility,
+extensibility, scalability and performance; for example, we discuss
+the usability of \pilot-abstractions in designing dynamic execution
+workflows which involves multiple MapReduce computations.
 
 \pnote{The key take-aways of this paper are:
 \begin{itemize}
@@ -298,6 +305,15 @@ which involves multiple MapReduce computations.
 	\item Future work: dynamic execution.
 \end{itemize}  - repetitive? }
 
+Before we proceed further, it is critical to emphasise that it is not
+the aim of this paper to suggest PMR as a replacement to Hadoop.
+However, we posit that where MR-based applications need to be employed
+over distributed data, including but not limited to clusters connected
+over WAN, or production distributed cyberinfrastructure such as XSEDE,
+EGI, PMR provides a flexible, extensible implementation of MR that is
+also efficient.
+ 
+
 This paper is organized as follows: Section~\ref{sec:related_work} presents
 related works. Section~\ref{sec-pilot-impl} gives an overview of \pilot
 abstractions and the BigData framework. In section~\ref{sec-pilot-mr} we discuss
@@ -305,9 +321,10 @@ the design and implementation of the \pilotmapreduce framework.
 Section~\ref{sec-experiments} gives experiment setup and result analysis. The
 conclusion and future work are given in Section~\ref{sec-conclusion}.
 
-\jhanote{Introduction must lay out the fact that PMR does not as a
-  substitute Hadoop on dedicated clusters, but is useful on WAN
-  clusters and production infrastructure}
+
+% Introduction must lay out the fact that PMR does not as a
+%   substitute Hadoop on dedicated clusters, but is useful on WAN
+%   clusters and production infrastructure}
 
 \section{Related and Background Work}
 \label{sec:related_work}
