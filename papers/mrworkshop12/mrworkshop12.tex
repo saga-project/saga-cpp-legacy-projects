@@ -1007,39 +1007,33 @@ of a distributed Hadoop setup. For all configurations, we use a total of 8
 nodes.\alnote{Why did we use 4 nodes for GS/PMR before?}
 
 Figure~\ref{fig:allmrs_rands} shows the results. In general, the distributed PMR
-has a slight advantage in favor of the hierarchical PMR if the intermediate data 
-is small (such as in the natural language case).  If the data is distributed, 
-the performance of Hadoop is impacted by the time necessary to move the input
-files to the single Hadoop resource. However, the map and reduce phase runtime
-of PMR are longer than for Hadoop mainly due to the resource heterogeneity and
-the resulting scheduling overhead: the slowest node determines the overall
-runtime of both the map and reduce phase. In the random setup, a hierarchical 
-setup cannot be recommended since the amount of data that needs to be moved is 
-not lower than in the distributed case.
+has a slight advantage in favor of the hierarchical PMR if the intermediate data
+is smaller than the output data (such as in the natural language case). If the
+data is distributed, the performance of Hadoop is impacted by the time necessary
+to move the input files to the single Hadoop resource. However, generally the
+map and reduce phase runtime of PMR are longer than for Hadoop mainly due to the
+resource heterogeneity and the resulting scheduling overhead: the slowest node
+determines the overall runtime of both the map and reduce phase.
+
 
 For Word Count on random data, distributed PMR performs better than other
 implementations since it moves only required data in the intermediate phase and
 there are no initial or combine outputs overhead. The intermediate data that
-needs to be moved from Sierra to Hotel is 15.45\,GB, and data related to each
-reduce nearly 1.9GB is segregated as data unit. The Pilot-Data supports parallel
-transfer of data units, which results in an effective data transfer of 1.9GB
-This leads to the performance of distributed PMR. Hadoop suffers the initial
-data transfer of 8GB from Sierra to Hotel and HDFS load times. In hierarchical
-Hadoop, we transferred the total output reduce data 14.8GB using Pilot-Data,
-where each data unit consists a reduce output file. So that all reduces can be
-transferred in parallel and effective data transfer would be nearly 1.85GB. But
-loading 14.8GB on Hotel contributed significantly towards its the entire
-runtime. Hierarchical PMR is closer to distributed PMR, but it involves combine
-MapReduce overhead.
+needs to be moved from Sierra to Hotel is 15.5\,GB, and data related to each
+reduce nearly 1.9\,GB is segregated as data unit. The Pilot-Data supports
+parallel transfer of data units, which results in an effective data transfer of
+1.9\,GB This leads to the performance of distributed PMR. Hadoop suffers the
+initial data transfer of 8\,GB from Sierra to Hotel and HDFS load times. In
+hierarchical Hadoop, we transferred the total output reduce data 14.8\,GB using
+Pilot-Data, where each data unit consists a reduce output file. So that all
+reduces can be transferred in parallel and effective data transfer would be
+nearly 1.85\,GB. But loading 14.8\,GB on Hotel contributed significantly towards its
+the entire runtime. Hierarchical PMR is closer to distributed PMR, but it
+involves combine MapReduce overhead.
+In the random setup, a hierarchical 
+setup cannot be recommended since the amount of data that needs to be moved is 
+not lower than in the distributed case.
 
-For Word Count on natural language text data, Both hierarchical Hadoop and PMR
-performs better than other implementations, since they involves very less amount
-of output data generated and involves less combine overhead. Hadoop suffers the
-initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In case
-of distributed PMR the intermediate data 12.85\,GB moved using Pilot-Data
-resulting in a effective data transfer of 1.6\,GB. The data transfer and amount
-to reduce the entire intermediate data results in higher runtime of distributed
-PMR.
 
 
 \pnote{observed when running distributed PMR; Still need to be modified, But 
@@ -1049,7 +1043,7 @@ checking in as time is up..}
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/allmrs_rands.pdf}
-\caption{Word Count Using Hadoop, Hierarchical Hadoop, Distributed PMR  and 	Hierarchical PMR} 	
+\caption{Word Count on 16\,GB Data Using Hadoop, Hierarchical Hadoop, Distributed PMR  and Hierarchical PMR} 	
 \label{fig:allmrs_rands}
 \end{figure}		
 
