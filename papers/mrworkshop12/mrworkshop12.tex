@@ -924,17 +924,16 @@ reasons for this problem}
 
 In this section, we compare and contrast GS/PMR and SEQAL. For both
 applications, we utilize the same set of input data comprising of different
-sizes of read files and the reference genome. SEQAL, however, expects the 
-input data in a different format (prq instead of fastq); thus, the data was 
-previously converted to meet the SEQAL requirements. The fastq files from sequencing 
-machines are directly used as input to the PMR. A custom chunk script is used to chunk the
-fastq files based on the number of reads. We make sure that the chunk size for both SEQAL and
-PMR is equal. We measure the runtime of PMR (including the time for the chunking, mapping, shuffling
-and reducing phase). For both frameworks, a total of 4 nodes on FutureGrid 
-sierra machine, 8 reduces, 2 workers/node, default chunk size of 128\,MB is 
-used. For Hadoop based SEQAL, the replication factor of two is used. Since SEQAL 
-and GS/PMR utilize different duplicate removal tools in the reduce phase, we 
-focus our investigation on the map phase. 
+sizes of read files and the reference genome. SEQAL, however, expects the input
+data in a different format (prq instead of fastq); thus, the data was previously
+converted to meet the SEQAL requirements. For PMR, the fastq files from
+sequencing machines are directly used; further, a custom chunk script is used to
+chunk the fastq files based on the number of reads. We make sure that the chunk
+size for both SEQAL and PMR is equal. For both frameworks, a total of 4 nodes on
+FutureGrid sierra machine, 8 reduces, 2 workers/node, default chunk size of
+128\,MB is used. For Hadoop based SEQAL, the replication factor of two is used.
+Since SEQAL and GS/PMR utilize different duplicate removal tools in the reduce
+phase, we focus our investigation on the map phase.
 
 %  to compare scalability of PMR across clusters, we are
 % interested in only in the execution of map phase. SEQAL provides an option to
@@ -993,19 +992,29 @@ runtime of PMR are much longer than in the Hadoop case. This is mainly caused by
 the resource heterogeneity and the resulting scheduling overhead: the slowest node determines the overall runtime of both the map and reduce phase.
 
 
-For Word Count on random data, distributed PMR performs better than other implementations since it moves only required data 
-in the intermediate phase and there are no intial or combine outputs overhead. The intermediate data that needs to be moved from 
-Sierra to Hotel is 15.45GB, and data related to each reduce nearly 1.9GB is seggregated as data unit. The Pilot-Data supports parallel 
-transfer of data units, which results in an effective data transfer of 1.9GB This leads to the performance of distributed PMR. Hadoop suffers the 
-initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In hierarchical Hadoop, we transferred the total output reduce data 
-14.8GB using Pilot-Data, where each data unit consists a reduce output file. So that all reduces can be transferred in parallel and 
-effective data transfer would be nearly 1.85GB. But loading 14.8GB on Hotel contributed significantly
-towards its the entire runtime.  Hierarchical PMR  is closer to distributed PMR, but it involves combine MapReduce overhead.
+For Word Count on random data, distributed PMR performs better than other
+implementations since it moves only required data in the intermediate phase and
+there are no initial or combine outputs overhead. The intermediate data that
+needs to be moved from Sierra to Hotel is 15.45\,GB, and data related to each
+reduce nearly 1.9GB is segregated as data unit. The Pilot-Data supports parallel
+transfer of data units, which results in an effective data transfer of 1.9GB
+This leads to the performance of distributed PMR. Hadoop suffers the initial
+data transfer of 8GB from Sierra to Hotel and HDFS load times. In hierarchical
+Hadoop, we transferred the total output reduce data 14.8GB using Pilot-Data,
+where each data unit consists a reduce output file. So that all reduces can be
+transferred in parallel and effective data transfer would be nearly 1.85GB. But
+loading 14.8GB on Hotel contributed significantly towards its the entire
+runtime. Hierarchical PMR is closer to distributed PMR, but it involves combine
+MapReduce overhead.
 
-For Word Count on natural language text data, Both hierarchical Hadoop and PMR performs better than other implementations, 
-since they involves very less amount of output data generated and involves less combine
-overhead. Hadoop suffers the initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In case of Distibuted PMR the intermediate data 12.85GB 
-moved using Pilot-Data resulting in a effective data transfer of 1.6GB. The data transfer and amount to reduce the entire intermediate data results in higher runtime of distributed PMR.
+For Word Count on natural language text data, Both hierarchical Hadoop and PMR
+performs better than other implementations, since they involves very less amount
+of output data generated and involves less combine overhead. Hadoop suffers the
+initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In case
+of distributed PMR the intermediate data 12.85\,GB moved using Pilot-Data
+resulting in a effective data transfer of 1.6\,GB. The data transfer and amount
+to reduce the entire intermediate data results in higher runtime of distributed
+PMR.
 
 
 \pnote{observed when running distributed PMR; Still need to be modified, But 
@@ -1109,7 +1118,7 @@ Hi-PMR&16\,MB&2\,MB&8\\
 \alnote{Pradeep: please fill out}
 \end{table}
 
-\begin{table}[h]
+\begin{table*}[h]
 \begin{tabular}{|l|c|c|c|c|}
 \hline
 \textbf{MapReduce} &\textbf{Read size} &\textbf{Data to be moved} &\textbf{Effective 
@@ -1136,14 +1145,15 @@ DPMR &80\,GB&35.6\,GB&\,4.45GB&8\\
 \caption{Data Volumes for Genome Sequencing application}
 \label{tab:data-volumes-gs}
 \alnote{Pradeep: please fill out}
-\end{table}
+\end{table*}
 
 
 
 % A correlation exists between the input data sizes and the performance of
 % MapReduce configurations. 
 
-\alnote{The following parFigure~\ref{fig:gs_hihmr_dpmr} shows the results. In both scenarios the runtime
+\alnote{The following paragraph needs refinement}
+Figure~\ref{fig:gs_hihmr_dpmr} shows the results. In both scenarios the runtime
 increases with the input data size. In scenario (i), the increase in runtime is
 due to the amount of data, to be processed by map phase, moved in the shuffle
 phase and processed by reduce phase. In scenario (ii), the higher runtime is
