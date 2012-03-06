@@ -40,9 +40,9 @@
 \hyphenation{Ha-doop}
 \usepackage{listings} 
 \usepackage{enumerate}
-
+\usepackage{paralist}
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 
 \ifdraft
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -538,7 +538,7 @@ pilots for this application workflow: % \jhanote{Worth noting that
 %   reader doesn't look to figure 2 to understand these
 %   steps..}\alnote{changed enumeration list to A., B. referencing steps
 %   in fig.}
-\begin{enumerate}[A.]
+\begin{compactenum}[A.]
 \item Initially, the MR manager allocates a set of compute and data
   resources by starting one (or most often a set of) compute and data
   pilots on different resources (step 1 and 2 in
@@ -584,25 +584,34 @@ pilots for this application workflow: % \jhanote{Worth noting that
 	
 	\item The \pilots are terminated.
 
-\end{enumerate}
+\end{compactenum}
 
 \jhanote{The mapping from the Chunking/Mapping/Shuffling stages to the
   diagram steps is a bit hard to grasp. For example although we talk
-  about chunking, we find a mention of step 5/6..}
+  about chunking, we find a mention of step 5/6..}\alnote{yes, since both 
+aspects are a bit orthogonal. The figure shows how compute and data units are 
+managed via Pilot abstractions. The phases are more about what the MR framework 
+does in the CUs and where DUs need to be moved. Should we remove the steps from 
+the enumeration?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
-late-binding of compute and data units. The API also allows the
-expression and management of relationships between data units and/or
-compute units. BigJob and BigData provide an implementation of the
-Pilot-API. Both frameworks ensure that the data and compute affinity
-requirements of the MapReduce applications are met for each step of
-the MapReduce workflow. \jhanote{we don't elaborate how/why.}
+late-binding of compute and data units. The API also allows the expression and
+management of relationships between data units and/or compute units. BigJob and
+BigData provide an implementation of the Pilot-API. Both frameworks ensure that
+the data and compute affinity requirements of the MapReduce applications are met
+for each step of the MapReduce workflow. For example, in the shuffle phase PMR
+generates a DU and CU for each reduce task. The DUs and CUs are then submitted
+to BigJob and BigData framework, which handles the scheduling, transfer of the
+DU and execution of the CU. PMR assigns a resource affinity to each DU and CU.
+BJ and BD then ensure that each CU is co-located to the right DU.
+\jhanote{we don't elaborate how/why.}\alnote{example on how affinity are used 
+added.}
 
 \subsection{Compute and Data Management}
 The PMR relies on the master/worker coordination model, i.\,e.\ a
 central MapReduce-Manager is responsible for coordinating the
 MapReduce workers, which in turn are responsible for executing map and
-reduce tasks. The MapReduce-Manager utilizes BigJob for executing
+reduce tasks. The MapReduce-Manager utilizes BigJob and BigData for executing
 mapper and reduce tasks (Listing~\ref{lst:pcs_creation}).
 
 \alnote{Can we do a MR specific example?}
