@@ -967,28 +967,55 @@ duplicate removal process in SEQAL and GS/PMR.
 
 \subsection{Distributed MapReduce}
 
-In this section, we evaluate the performance and scalability of (i) a 
-distributed and (ii) hierarchical \pilotmapreduce configuration (see
-section~\ref{sec:pmr-distributed}) using the Word Count application on natural 
-language and on random data as well as the genome sequencing application. In the 
-distributed scenario (i) \pilotmapreduce map CUs are distributed across 
-two machines, in the  hierarchical scenario (ii) an additional MapReduce run is 
-necessary for combining and aggregating the data.
+In this section, we evaluate the performance and scalability of the (i)
+distributed and (ii) hierarchical PMR configuration (see
+section~\ref{sec:pmr-distributed}) using the Word Count application on natural
+language and on random data as well as the genome sequencing application. In the
+distributed scenario (i) the map CUs are distributed across two machines, in the
+hierarchical scenario (ii) two resources are used each executing an independent
+MR run. The MapReduce run for combining and aggregating the output of the first
+round is executed on one of these machines. The performance of each application
+depends on greatly on the amount of generated intermediate and output data.
+Table~\ref{tab:data-volumes} summarizes the characteristics of the used
+applications.
+
+\begin{table}[h]
+\begin{tabular}{|l|c|c|c|}
+\hline
+\textbf{Application} &\textbf{Input} &\textbf{Intermediate} &\textbf{Output}\\
+\hline
+GS/PMR 		&20\,GB &18.7\,GB		 &6.2\,GB\\
+\hline
+Word Count (English) &16\,GB&29.5\,GB&20\,MB\\
+\hline
+Word Count (random) &16\,GB&29.6\,GB&29.5\,GB\\
+\hline
+\end{tabular}
+\caption{Data Volumes for different Applications}
+\label{tab:data-volumes}
+\end{table}
 
 For Word Count we compare a distributed and hierarchical PMR configuration with
-the performance of a single resource Hadoop configuration. We utilize two
-machines, Sierra and Hotel, and assume that the initial input 16GB data is
-equally distributed on these two machines. That means that for the Hadoop
-scenario half of the input data is moved from Sierra to Hotel prior to running
-the actual MapReduce job. Unfortunately, the FutureGrid firewall rules
-prohibited the usage of a distributed Hadoop setup. For all configurations, we
-use a total of 8 nodes.\alnote{Why did we use 4 nodes for GS/PMR before?}
+the performance of two Hadoop configurations: a single resource Hadoop
+configuration (half of the data is initially moved to that cluster) and a
+hierarchical Hadoop setup with two resources. We utilize two machines, Sierra
+and Hotel. The initial input data of 16\,GB is equally distributed on these two
+machines. As said for the single resource Hadoop configuration half of the input
+data needs to be moved from Sierra to Hotel prior to running the actual
+MapReduce job. Unfortunately, the FutureGrid firewall rules prohibited the usage
+of a distributed Hadoop setup. For all configurations, we use a total of 8
+nodes.\alnote{Why did we use 4 nodes for GS/PMR before?}
 
-Figure~\ref{fig:allmrs_rands} shows the results. In general, the distributed 
-PMR performs better than Hadoop mainly due to the time necessary to move the 
-input files to the single Hadoop resource. However, the map and reduce phase 
-runtime of PMR are much longer than in the Hadoop case. This is mainly caused by 
-the resource heterogeneity and the resulting scheduling overhead: the slowest node determines the overall runtime of both the map and reduce phase.
+Figure~\ref{fig:allmrs_rands} shows the results. In general, the distributed PMR
+has a slight advantage in favor of the hierarchical PMR if the intermediate data 
+is small (such as in the natural language case).  If the data is distributed, 
+the performance of Hadoop is impacted by the time necessary to move the input
+files to the single Hadoop resource. However, the map and reduce phase runtime
+of PMR are longer than for Hadoop mainly due to the resource heterogeneity and
+the resulting scheduling overhead: the slowest node determines the overall
+runtime of both the map and reduce phase. In the random setup, a hierarchical 
+setup cannot be recommended since the amount of data that needs to be moved is 
+not lower than in the distributed case.
 
 For Word Count on random data, distributed PMR performs better than other
 implementations since it moves only required data in the intermediate phase and
@@ -1050,101 +1077,87 @@ minimized.
 \end{figure}		
 
 
-The runtime of the hierarchical PMR is lesser than in the distributed case
+The runtime of the hierarchical PMR is less than in the distributed case
 because of low data need to be transferred and less overhead in combine
 MapReduce phase. The data movement for both hierarchical and distributed PMRs is
 shown in table ~\ref{tab:data-volumes-gs}.
 
 \alnote{What is transferred from where to where? In the experiments data is always moved from sierra to hotel, because of higher data transfer rates and hotel is fastest machine}
-\begin{table}[h]
-\begin{tabular}{|l|c|c|c|}
-\hline
-\textbf{Application} &\textbf{Input} &\textbf{Intermediate} &\textbf{Output}\\
-\hline
-GS/PMR 		&20\,GB &18.65\,GB		 &6.2\,GB\\
-\hline
-Word Count (English) &16\,GB&29.47\,GB&20\,MB\\
-\hline
-Word Count (random) &16\,GB&29.6\,GB&29.5\,GB\\
-\hline
-\end{tabular}
-\caption{Data Volumes for different Applications}
-\label{tab:data-volumes}
-\alnote{Pradeep: please fill out}
-\end{table}
 
 
 
-\begin{table}[h]
-\begin{tabular}{|l|c|c|c|c|}
-\hline
-\textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
-data transfer}&\textbf{Parallel transfers}\\
-\hline
-HMR  &8\,GB &8\,GB		 &1\\
-\hline
-Hi-HMR &14.8\,GB&1.85\,GB&8\\
-\hline
-DPMR&15.45\,GB&1.93\,GB&8\\
-\hline
-Hi-PMR&15.20\,GB&1.9\,GB&8\\
-\hline
-\end{tabular}
-\caption{Data Volumes for Word Count application with 16GB random data}
-\label{tab:data-volumes-random}
-\alnote{Pradeep: please fill out}
-\end{table}
 
 
-
-\begin{table}[h]
-\begin{tabular}{|l|c|c|c|c|}
-\hline
-\textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
-data movement}&\textbf{Parallel transfers}\\
-\hline
-HMR  &8\,GB &8\,GB		 &1\\
-\hline
-Hi-HMR &16\,MB&2\,MB&8\\
-\hline
-DPMR&12.85\,GB&1.6\,GB&8\\
-\hline
-Hi-PMR&16\,MB&2\,MB&8\\
-\hline
-\end{tabular}
-\caption{Data Volumes for Word Count application with 16GB natural langauge text data}
-\label{tab:data-volumes-text}
-\alnote{Pradeep: please fill out}
-\end{table}
-
-\begin{table*}[h]
-\begin{tabular}{|l|c|c|c|c|}
-\hline
-\textbf{MapReduce} &\textbf{Read size} &\textbf{Data to be moved} &\textbf{Effective 
-data transfer}&\textbf{Parallel transfers}\\
-\hline
-Hi-HMR &20\,GB&3.04\,GB&0.38\,GB&8\\
-\hline
-DPMR &20\,GB&9.32\,GB&1.22\,GB&8\\
-\hline
-
-\hline
-Hi-HMR &40\,GB&5.79\,GB&0.724\,GB&8\\
-\hline
-DPMR &40\,GB&18.46\,GB&2.42\,GB&8\\
-\hline
-
-\hline
-Hi-HMR &80\,GB&8.73\,GB&1.09\,GB&8\\
-\hline
-DPMR &80\,GB&35.6\,GB&\,4.45GB&8\\
-\hline
-
-\end{tabular}
-\caption{Data Volumes for Genome Sequencing application}
-\label{tab:data-volumes-gs}
-\alnote{Pradeep: please fill out}
-\end{table*}
+% \begin{table}[h]
+% \begin{tabular}{|l|c|c|c|c|}
+% \hline
+% \textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
+% data transfer}&\textbf{Parallel transfers}\\
+% \hline
+% HMR  &8\,GB &8\,GB		 &1\\
+% \hline
+% Hi-HMR &14.8\,GB&1.85\,GB&8\\
+% \hline
+% DPMR&15.45\,GB&1.93\,GB&8\\
+% \hline
+% Hi-PMR&15.20\,GB&1.9\,GB&8\\
+% \hline
+% \end{tabular}
+% \caption{Data Volumes for Word Count application with 16GB random data}
+% \label{tab:data-volumes-random}
+% \alnote{Pradeep: please fill out}
+% \end{table}
+% 
+% 
+% 
+% \begin{table}[h]
+% \begin{tabular}{|l|c|c|c|c|}
+% \hline
+% \textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
+% data movement}&\textbf{Parallel transfers}\\
+% \hline
+% HMR  &8\,GB &8\,GB		 &1\\
+% \hline
+% Hi-HMR &16\,MB&2\,MB&8\\
+% \hline
+% DPMR&12.85\,GB&1.6\,GB&8\\
+% \hline
+% Hi-PMR&16\,MB&2\,MB&8\\
+% \hline
+% \end{tabular}
+% \caption{Data Volumes for Word Count application with 16GB natural langauge text data}
+% \label{tab:data-volumes-text}
+% \alnote{Pradeep: please fill out}
+% \end{table}
+% 
+% \begin{table*}[h]
+% \begin{tabular}{|l|c|c|c|c|}
+% \hline
+% \textbf{MapReduce} &\textbf{Read size} &\textbf{Data to be moved} &\textbf{Effective 
+% data transfer}&\textbf{Parallel transfers}\\
+% \hline
+% Hi-HMR &20\,GB&3.04\,GB&0.38\,GB&8\\
+% \hline
+% DPMR &20\,GB&9.32\,GB&1.22\,GB&8\\
+% \hline
+% 
+% \hline
+% Hi-HMR &40\,GB&5.79\,GB&0.724\,GB&8\\
+% \hline
+% DPMR &40\,GB&18.46\,GB&2.42\,GB&8\\
+% \hline
+% 
+% \hline
+% Hi-HMR &80\,GB&8.73\,GB&1.09\,GB&8\\
+% \hline
+% DPMR &80\,GB&35.6\,GB&\,4.45GB&8\\
+% \hline
+% 
+% \end{tabular}
+% \caption{Data Volumes for Genome Sequencing application}
+% \label{tab:data-volumes-gs}
+% \alnote{Pradeep: please fill out}
+% \end{table*}
 
 
 
