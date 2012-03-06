@@ -846,7 +846,7 @@ scenarios: WordCount and a Genome Sequencing application.
 The Word Count application is the basis for many machine learning use cases, 
 used e.\,g.\ for the classification of documents or clustering. Word Count 
 generates a large volume of intermediate data ($\sim$200$\%$). The volume of the 
-output data depends on the input data, e.\,g.\ the size of the output data is 
+output data depends on the type of input data, e.\,g.\ the size of the output data is 
 larger for a random input than for an input in a natural language. 
 
 
@@ -863,11 +863,11 @@ SEQAL~\cite{seal-2011} application and a custom implementation of this workflow
 GS/PMR. Both application implement the read alignment in the mapping phase of 
 the application using BWA aligner~\cite{Li:2010:FAL:1741823.1741825}. In the 
 SEQAL case the duplicate removal in the reduce phase is implemented using  
-Picard's rmdup~\cite{picard}. GS/PMR relies on BWA for this purpose.
-
-
-%and a reduce script which tries to remove duplicates based on the
-%Picard rmdup alogrithm. We were not able to mimic the exact implementation of SEQAL reduce phase as it is a blackbox for us to implement.
+Picard's rmdup~\cite{picard}. The GS/PMR reduce phase is not an exact implementation of
+SEQAL's Picard rmdup implementation.We developed a custom script in python
+which is based on duplicate removal description provided in ~\cite{seal-2011}. 
+The GS/PMR reducer removes duplicate reads based on the key fields-chromosome,
+position, strand of GS/PMR mapper output.
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -893,7 +893,7 @@ MapReduce runtime.
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wc_pmr_hmr.pdf}
-\caption{Word Count: PMR versus Hadoop: The performance of Hadoop and PMR is 
+\caption{Word Count: PMR versus Hadoop MapReduce(HMR): The performance of Hadoop and PMR is 
 comparable. The runtime increase with the input data size. Hadoop tasks have a 
 notable higher startup time than PMR tasks.} 	
 \label{fig:figures_wc_pmr_hmr}
@@ -924,18 +924,17 @@ reasons for this problem}
 
 In this section, we compare and contrast GS/PMR and SEQAL. For both
 applications, we utilize the same set of input data comprising of different
-sizes of read files and the reference genome. SEQAL, however, expects the input
-data in a different format (prq instead of fastq); thus, the data was previously
-converted to meet the SEQAL requirements. For PMR, the fastq files from 
-sequencing machines are directly used as input; a custom chunk script is used to
-chunk the fastq files based on the number of reads. We make sure that the chunk
-size in both SEQAL and PMR is equal. We measure the runtime of PMR (including
-the time for the chunking, mapping, shuffling and reducing phase). For both
-frameworks, a total of 4 nodes on FutureGrid sierra machine, 8 reduces, 2
-workers/node, default chunk size of 128\,MB is used. For Hadoop based SEQAL, the
-replication factor of two is used. Since SEQAL and GS/PMR utilize different
-duplicate removal tools in the reduce phase, we focus our investigation on the
-map phase.
+sizes of read files and the reference genome. SEQAL, however, expects the 
+input data in a different format (prq instead of fastq); thus, the data was 
+previously converted to meet the SEQAL requirements. The fastq files from sequencing 
+machines are directly used as input to the PMR. A custom chunk script is used to chunk the
+fastq files based on the number of reads. We make sure that the chunk size for both SEQAL and
+PMR is equal. We measure the runtime of PMR (including the time for the chunking, mapping, shuffling
+and reducing phase). For both frameworks, a total of 4 nodes on FutureGrid 
+sierra machine, 8 reduces, 2 workers/node, default chunk size of 128\,MB is 
+used. For Hadoop based SEQAL, the replication factor of two is used. Since SEQAL 
+and GS/PMR utilize different duplicate removal tools in the reduce phase, we 
+focus our investigation on the map phase. 
 
 %  to compare scalability of PMR across clusters, we are
 % interested in only in the execution of map phase. SEQAL provides an option to
@@ -963,8 +962,7 @@ local disks available on FG is too small for the used input data; thus, HDFS had
 to be configured to utilize a shared, distributed file system, which leads to a
 non-optimal performance during the I/O intensive map phase. The difference in
 the reduce phase mainly originate from the different implementations of the
-duplicate removal process in SEQAL and GS/PMR. We developed a custom script in python
-which is based on duplicate removal description provided in ~\cite{seal-2011}.
+duplicate removal process in SEQAL and GS/PMR. 
 
 \alnote{Pradeep: Please elaborate a bit on the differences}
 
@@ -980,7 +978,7 @@ necessary for combining and aggregating the data.
 
 For Word Count we compare a distributed and hierarchical PMR configuration with
 the performance of a single resource Hadoop configuration. We utilize two
-machines, Sierra and Hotel, and assume that the initial input data is equally
+machines, Sierra and Hotel, and assume that the initial input 16GB data is equally
 distributed on these two machines. That means that for the Hadoop scenario half 
 of the input data is moved from Sierra to Hotel prior to running the actual 
 MapReduce job. Unfortunately, the FutureGrid firewall rules prohibited the usage 
@@ -988,11 +986,27 @@ of a distributed Hadoop setup. For all configurations, we use a total of 8
 nodes. 
 
 \alnote{Add hierarchical MR}
-Figure~\ref{fig:hadoopvsdistp} shows the results. In general, the distributed 
+Figure~\ref{fig:allmrs_rands} shows the results. In general, the distributed 
 PMR performs better than Hadoop mainly due to the time necessary to move the 
 input files to the single Hadoop resource. However, the map and reduce phase 
 runtime of PMR are much longer than in the Hadoop case. This is mainly caused by 
 the resource heterogeneity and the resulting scheduling overhead: the slowest node determines the overall runtime of both the map and reduce phase.
+
+
+For Word Count on random data, distributed PMR performs better than other implementations since it moves only required data 
+in the intermediate phase and there are no intial or combine outputs overhead. The intermediate data that needs to be moved from 
+Sierra to Hotel is 15.45GB, and data related to each reduce nearly 1.9GB is seggregated as data unit. The Pilot-Data supports parallel 
+transfer of data units, which results in an effective data transfer of 1.9GB This leads to the performance of distributed PMR. Hadoop suffers the 
+initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In hierarchical Hadoop, we transferred the total output reduce data 
+14.8GB using Pilot-Data, where each data unit consists a reduce output file. So that all reduces can be transferred in parallel and 
+effective data transfer would be nearly 1.85GB. But loading 14.8GB on Hotel contributed significantly
+towards its the entire runtime.  Hierarchical PMR  is closer to distributed PMR, but it involves combine MapReduce overhead.
+
+For Word Count on natural language text data, Both hierarchical Hadoop and PMR performs better than other implementations, 
+since they involves very less amount of output data generated and involves less combine
+overhead. Hadoop suffers the initial data transfer of 8GB from Sierra to Hotel and HDFS load times. In case of Distibuted PMR the intermediate data 12.85GB 
+moved using Pilot-Data resulting in a effective data transfer of 1.6GB. The data transfer and amount to reduce the entire intermediate data results in higher runtime of distributed PMR.
+
 
 \pnote{observed when running distributed PMR; Still need to be modified, But 
 checking in as time is up..}
@@ -1000,10 +1014,10 @@ checking in as time is up..}
 
 \begin{figure}[ht]
 	\centering
-		\includegraphics[width=0.47\textwidth]{figures/wc_hmrvspmr_random.png}
-\caption{Word Count Using Hadoop, distributed and hierarchical PMR} 	
+		\includegraphics[width=0.47\textwidth]{figures/allmrs_rands.pdf}
+\caption{Word Count Using Hadoop MapReduce(HMR), Hierarchical HMR (Hi-HMR), Distributed PMR(DPMR) and 	Hierarchical PMR (Hi-PMR)} 	
 \alnote{only show 16 GB case for Hadoop, hierarchical Hadoop, DPMR and HPMR. Two clusters of bars for random and non-random data}
-\label{fig:hadoopvsdistp}
+\label{fig:allmrs_rands}
 \end{figure}		
 
 
@@ -1024,23 +1038,26 @@ minimized.
 
 \begin{figure}[ht]
 	\centering
-		\includegraphics[width=0.47\textwidth]{figures/hmrvsdpmr.png}
-\caption{GS/PMR Using Hierarchical vs. Distributed PMR: The runtime of the hierarchical PMR is longer than in the distributed case mainly due to the need for an additional mapping and reduce phase.} 	
-\label{fig:hmrvsdist}
+		\includegraphics[width=0.47\textwidth]{figures/gs_hihmr_dpmr.pdf}
+\caption{GS/PMR Using Hierarchical PMR(Hi-PMR) vs. Distributed PMR(DPMR)} 	
+\label{fig:gs_hihmr_dpmr}
 \end{figure}		
 
 
-\alnote{What is transferred from where to where?}
+The runtime of the hierarchical PMR is lesser than in the distributed case because of low data need to be transferred and less overhead in combine MapReduce phase. The data movement
+for both hierarchical and distributed PMRs is shown in table ~\ref{tab:data-volumes-gs}
+
+\alnote{What is transferred from where to where? In the experiments data is always moved from sierra to hotel, because of higher data transfer rates and hotel is fastest machine}
 \begin{table}[h]
 \begin{tabular}{|l|c|c|c|}
 \hline
-\textbf{Application} &\textbf{input} &\textbf{intermediate} &\textbf{output}\\
+\textbf{Application} &\textbf{Input} &\textbf{Intermediate} &\textbf{Output}\\
 \hline
-GS/PMR 		&20\,GB &9\,GB		 &6.2\,GB\\
+GS/PMR 		&20\,GB &18.65\,GB		 &6.2\,GB\\
 \hline
-Word Count (English) & & &\\
+Word Count (English) &16\,GB&29.47\,GB&20\,MB\\
 \hline
-Word Count (random) & & &\\
+Word Count (random) &16\,GB&29.6\,GB&29.5\,GB\\
 \hline
 \end{tabular}
 \caption{Data Volumes for different Application Scenarios}
@@ -1048,11 +1065,85 @@ Word Count (random) & & &\\
 \alnote{Pradeep: please fill out}
 \end{table}
 
+
+\alnote{What is transferred from where to where?}
+\begin{table}[h]
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
+data transfer}&\textbf{Parallel transfers}\\
+\hline
+HMR  &8\,GB &8\,GB		 &1\\
+\hline
+Hi-HMR &14.8\,GB&1.85\,GB&8\\
+\hline
+DPMR&15.45\,GB&1.93\,GB&8\\
+\hline
+Hi-PMR&15.20\,GB&1.9\,GB&8\\
+\hline
+\end{tabular}
+\caption{Data Volumes for Word Count application with 16GB random data}
+\label{tab:data-volumes-random}
+\alnote{Pradeep: please fill out}
+\end{table}
+
+
+\alnote{What is transferred from where to where?}
+\begin{table}[h]
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{MapReduce} &\textbf{Data to be moved} &\textbf{Effective 
+data movement}&\textbf{Parallel transfers}\\
+\hline
+HMR  &8\,GB &8\,GB		 &1\\
+\hline
+Hi-HMR &16\,MB&2\,MB&8\\
+\hline
+DPMR&12.85\,GB&1.6\,GB&8\\
+\hline
+Hi-PMR&16\,MB&2\,MB&8\\
+\hline
+\end{tabular}
+\caption{Data Volumes for Word Count application with 16GB natural langauge text data}
+\label{tab:data-volumes-text}
+\alnote{Pradeep: please fill out}
+\end{table}
+
+\begin{table}[h]
+\begin{tabular}{|l|c|c|c|c|}
+\hline
+\textbf{MapReduce} &\textbf{Read size} &\textbf{Data to be moved} &\textbf{Effective 
+data transfer}&\textbf{Parallel transfers}\\
+\hline
+Hi-HMR &20\,GB&3.04\,GB&0.38\,GB&8\\
+\hline
+DPMR &20\,GB&9.32\,GB&1.22\,GB&8\\
+\hline
+
+\hline
+Hi-HMR &40\,GB&5.79\,GB&0.724\,GB&8\\
+\hline
+DPMR &40\,GB&18.46\,GB&2.42\,GB&8\\
+\hline
+
+\hline
+Hi-HMR &80\,GB&8.73\,GB&1.09\,GB&8\\
+\hline
+DPMR &80\,GB&35.6\,GB&\,4.45GB&8\\
+\hline
+
+\end{tabular}
+\caption{Data Volumes for Genome Sequencing application}
+\label{tab:data-volumes-gs}
+\alnote{Pradeep: please fill out}
+\end{table}
+
+
+
 % A correlation exists between the input data sizes and the performance of
 % MapReduce configurations. 
 
-\alnote{The following paragraph needs refinement after new data is in}
-Figure~\ref{fig:hmrvsdist} shows the results. In both scenarios the runtime
+\alnote{The following parFigure~\ref{fig:gs_hihmr_dpmr} shows the results. In both scenarios the runtime
 increases with the input data size. In scenario (i), the increase in runtime is
 due to the amount of data, to be processed by map phase, moved in the shuffle
 phase and processed by reduce phase. In scenario (ii), the higher runtime is
