@@ -96,12 +96,12 @@
        \affaddr{216 Johnston}\\
        \affaddr{Baton Rouge, LA}
        \email{pradeepm66@gmail.com}
-\alignauthor Andre Luckow\\
+\alignauthor Nayong Kim\\
        \affaddr{Center for Computation and Technology}\\
        \affaddr{Louisiana State University}\\
        \affaddr{216 Johnston}\\
        \affaddr{Baton Rouge, LA}
-\alignauthor Nayong Kim\\
+\alignauthor Andre Luckow\\
        \affaddr{Center for Computation and Technology}\\
        \affaddr{Louisiana State University}\\
        \affaddr{216 Johnston}\\
@@ -322,11 +322,11 @@ Multiple Tools  &      &  &  &  &   \\ \hline
 \subsubsection{Comparative Experiments with two Hadoop-based tools, SEQAL and Crossbow}
 Among the software tools compared in ~\ref{table:mr-comparison}, we chose SEQAL of the SEAL package and Crossbow for the comparison.  Note that these two tools along with other tools such as Cloudburst and GATK are different from each other with respect to the usage mode of MapReduce and the design strategies behind each tool for parallelism, in particular, aiming NGS data processing and management as summarized in Table~\ref{table:mr-comparison}.  Importantly, SEQAL and Crossbow are Hadoop-based tools but differ in that the former is designed conventionally with implementing Map and Reduce functions whereas the latter uses Hadoop-streaming.  In the case of Crossbow, the overall analysis is taken with 4 steps.  Each step is an independent Hadoop-streaming task.  The first step is for pre-processing and the last one is for post-processing. The second one is for the alignment and the third one is for SNP finding, which uses slightly modified Bowtie and SOAPsnp.  
 
-For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  For SEQAL and Crossbow experiment, the replication factor for Hadoop configuration is set  to 1.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, BWA with SEQAL does not use the multi-threading option, whereas Crossbow sets up the default option for Bowtie with multi-threading option, "--mm" to support running many concurrent Bowtie processes on a node while sharing the memory index to avoid memory overhead effectively.  This Crossbow feature, which is contrasted to SEQAL having no multi-threading support as default, could be exploited for additional fine-grained parallel execution along with the coarse-grained parallelism from the MapReduce framework.
+For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  For SEQAL and Crossbow experiment, the replication factor for Hadoop configuration is set  to 2.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, BWA with SEQAL does not use the multi-threading option, whereas Crossbow sets up the default option for Bowtie with multi-threading option, "--mm" to support running many concurrent Bowtie processes on a node while sharing the memory index to avoid memory overhead effectively.  This Crossbow feature, which is contrasted to SEQAL having no multi-threading support as default, could be exploited for additional fine-grained parallel execution along with the coarse-grained parallelism from the MapReduce framework.
 
 The input file format for SEQAL is prq format.  To convert a fasta format sequence file to this format, we use SEAL, a software tool containing SEQAL as a part that has a file conversion capacity between qseq/fastq and prq format.  
 
-In the case of Hadoop-based MapReduce tools, the needed configuration should set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the resource size, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
+In the case of Hadoop-based MapReduce tools, we set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the parameters for the size of resource, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
 %
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 
@@ -375,7 +375,25 @@ We aim the comparative experiments with SEQAL and Crossbow with the following po
 \end{itemize}
 
 
+\begin{table}
+\small
+ \begin{tabular}{|c|c|c|c|c|c|} 
+ \hline 
 
+Case & \# of  & \# of &  \# of & \# of & \# of cores \\
+E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & per   \\
+$N_M$, $N_R$,  & &  & ers & ers & worker \\
+Input Size) & & & & & \\
+ \hline
+E(4, 4, 8, 8 GB) &4 &  4 & 32  & 8 & 8 \\
+E(4, 8, 8, 8 GB) & 4 & 8 & 32 & 8 & 4 \\
+E (8, 8, 8, 8 GB) & 8 & 8 & 32 & 8 & 8 \\ 
+ \hline
+ \end{tabular}
+
+ \caption{Description of experimental cases for understanding scalability, impact of parallelism strategy, and performance comparison. Note that each node has 8 cores.}
+    \label{table:exp-description} 
+\end{table}
 
 
 \section{Results}\label{sec:results}
@@ -473,6 +491,8 @@ The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves so
 \pmnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
 
 \subsubsection{Scale-across, Extensibility, and Parallelism Support}
+
+
 
 
 
