@@ -201,7 +201,7 @@ Recent advances in high-throughput DNA sequencing technologies such as Next-Gene
 
 Among many directions for overcoming such challenges, the use of parallelism for distributed data is an emerging strategy and in fact the programming model of MapReduce along with Cloud environments has been widely touted as an efficient solution for big data problems\cite{mapreduce-2004-dean,schatz-nature-biotech-2010, taylor2010}.  Several tools using MapReduce were already introduced for NGS data analysis such as read alignment onto a reference genome\cite{cloudburst, gatk,langmead2009,seal2011,langmead2010, taylor2010}.
 
-In this work, we present the development of a Next-Generation Sequencing reads alignment tool using Pilot-based SAGA-MapReduce (PMR) which is a recent re-implementation of SAGA-MapReduce with a newly developed Pilot-based approach\cite{Sehgal2011590,pmr2012}.  Indeed, PMR provides a viable solution for computational challenges with NGS data analytics, in particular, arising from the required scalability for dealing with ever-growing data volume, variety, and demand for time-to-solution as well as an effective software development for a diverse and ever-increasing software tools, in particular the emergence of revolutionary NGS techniques such as RNA-Seq.  Our implementation of the MapReduce programming model supports the development of dynamic applications which represent applications executed in distributed resources across the boundary of a cluster system or the mix of HPC grids and Clouds via effective and dynamic task and data management.  This aspect is particularly contrasted to other approaches using Hadoop-based MapReduce implementations \cite{cloudburst,langmead2009,seal2011,langmead2010}.  
+In this work, we present the development of a Next-Generation Sequencing reads alignment tool using Pilot-based SAGA-MapReduce (PMR) which is a recent re-implementation of SAGA-MapReduce with a newly developed Pilot-based approach\cite{Sehgal2011590,pmr2012,pstar11}.  Indeed, PMR provides a viable solution for computational challenges with NGS data analytics, in particular, arising from the required scalability for dealing with ever-growing data volume, variety, and demand for time-to-solution as well as an effective software development for a diverse and ever-increasing software tools, in particular the emergence of revolutionary NGS techniques such as RNA-Seq.  Our implementation of the MapReduce programming model supports the development of dynamic applications which represent applications executed in distributed resources across the boundary of a cluster system or the mix of HPC grids and Clouds via effective and dynamic task and data management.  This aspect is particularly contrasted to other approaches using Hadoop-based MapReduce implementations \cite{cloudburst,langmead2009,seal2011,langmead2010}.  
 
 To demonstrate the capabilities with PMR, we primarily attempt the comparative experiments to the two known MapReduce-based tools, SEQAL in the SEAL package and Crossbow\cite{seal2011,lanmead2010}.  The two tools were developed for carrying out two different analyses; the alignment step was implemented as the first step with BWA and Bowtie, respectively but the second analysis is duplicate read removal for SEQAL whereas SNP finding for Crossbow.  This comparison provides clear evidence for promising features with PMR for NGS data analysis tools combining the read alignment and successive tasks.  Those features include i) scalability across multiple heterogeneous infrastructures ii) framework supporting a quick turnaround of development cycles and extensions iii) effectiveness for a big data problem with distributed data, implying that distributed cyberinfrastructure would be another viable compute and data management environment for high-throughput DNA sequencing data.  
 
@@ -264,7 +264,7 @@ The short reads alignment and the de-novo assembly are the required first steps 
 
 After alignment of sequenced reads onto the reference genome, a duplicate read removal step might be required because sample preparation processes before sequencing might contain artifacts stemming from high-throughtput read amplification; many duplicates introduced are not relevant to true biological conditions.  For characterizing our framework, we compare our results with the SEQAL tool of SEAL package since SEQAL aims to carry out the read alignment and duplicate removal.  SEQAL uses BWA for the alignment and for the duplicate removal, implements the same criteria as the Picard MarkDuplicates command\cite{seal2011,seal_2011_mapred}.  On the other hand, information about aligned reads are essential for many downstream analyses such as genome variation study, transcriptome analysis, and other various complex functional genomics and pathway analysis.  For example, Crossbow, the tool we investigated by the comparative experiments, aims to SNP finding along with aligned results\cite{langmead2009}.  Interestingly, Crossbow use the aligner, Bowtie, and thus our PMR-based tool is extended to implement Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its efficiency in memory requirement and computation, but the current version doe not support gapped alignment whereas BWA does.
 
-\subsection{Experimental Set-up for NGS Read Alignment and Duplicate Removal}
+\subsection{Experimental Set-up}
 \subsubsection{HPC Resources}
 For this work, we used two Futuregrid systems, SIERRA and HOTEL.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  In brief, two systems are multi-node clusters and equipped with the PBS job scheduler and Hadoop, implying that the systems are appropriate to test our PMR and to compare our results with Hadoop-based tools.
 
@@ -272,6 +272,8 @@ For this work, we used two Futuregrid systems, SIERRA and HOTEL.  More details o
 The two combined steps such as alignment and duplicate removal or alignment and SNP finding are attractive targets for  parallelizing tasks by using MapReduce; the read alignment step is conducted as a Map phase and duplicate removal or SNP finding as a Reduce phase.  Note that a certain kind of combination for designing a MapReduce-based tool is immediately conceivable for other advanced downstream analyses such as transcript quantification or peak calling for other advanced NGS protocols.  The development for such tools will be announced in the future works.
 
 The schematic workflow and architecture for running PMR is presented in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure computational tasks of the map phase and the reduce phase including the number of workers, available fine-grained parallelism options of software tools used for each phase, and configurations for Pilot Job (BigJob).  Note that we can choose many different combinations of these configurations (i.e. associated with parallel options with used software tools, and Pilot and MapReduce levels) for different strategies that tune the parallelism for a target analysis (in which map and reduce phases are decoupled, of course) differently by carefully considering fine-grained and coarse-grained parallelism levels.    
+
+As shown in Fig.~\ref{fig:arch-pj-saga-mr}, PMR implements a MapReduce task with the Pilot framework\cite{pmr2012} with the following workflow. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.  Note that this unit of workflow can be extended to scenarios of hierarchical MR or distributed MR\cite{pmr2012}.
 
 \begin{center}
 \begin{table*}[ht]
@@ -312,7 +314,7 @@ Multiple Tools  &      &  &  &  &   \\ \hline
 \hline
 \end{tabular}}
 \hfill{}
-\caption{Feature comparison of PMR with other tools for Next-Generation Sequencing (NGS) data analysis that primarily provides parallelism using the MapReduce framework.  $^{1}${The feature of Crossbow that can run with a desktop environment without Hadoop is not considered in the scope of this work due to the lack of scalability support.} }
+\caption{Feature comparison of PMR with other tools for Next-Generation Sequencing (NGS) data analysis that primarily provide a parallelism support using the MapReduce framework.  $^{1}${The feature of Crossbow that can run with a desktop environment without Hadoop is not considered in the scope of this work due to the lack of scalability support.} }
  \label{table:mr-comparison}
 \end{table*}
 \end{center}
@@ -320,15 +322,15 @@ Multiple Tools  &      &  &  &  &   \\ \hline
 \subsubsection{Comparative Experiments with two Hadoop-based tools, SEQAL and Crossbow}
 Among the software tools compared in ~\ref{table:mr-comparison}, we chose SEQAL of the SEAL package and Crossbow for the comparison.  Note that these two tools along with other tools such as Cloudburst and GATK are different from each other with respect to the usage mode of MapReduce and the design strategies behind each tool for parallelism, in particular, aiming NGS data processing and management as summarized in Table~\ref{table:mr-comparison}.  Importantly, SEQAL and Crossbow are Hadoop-based tools but differ in that the former is designed conventionally with implementing Map and Reduce functions whereas the latter uses Hadoop-streaming.  In the case of Crossbow, the overall analysis is taken with 4 steps.  Each step is an independent Hadoop-streaming task.  The first step is for pre-processing and the last one is for post-processing. The second one is for the alignment and the third one is for SNP finding, which uses slightly modified Bowtie and SOAPsnp.  
 
-For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, BWA with SEQAL does not use the multi-threading option, whereas Crossbow sets up the default option for Bowtie with multi-threading option, "--mm" to support running many concurrent Bowtie processes on the same computer to share the memory index to avoid memory overhead effectively. Therefore, it is limited to launch a specific number of parallel search threads for increasing alignment throughput on using of Crossbow. 
+For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  For SEQAL and Crossbow experiment, the replication factor for Hadoop configuration is set  to 1.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, BWA with SEQAL does not use the multi-threading option, whereas Crossbow sets up the default option for Bowtie with multi-threading option, "--mm" to support running many concurrent Bowtie processes on a node while sharing the memory index to avoid memory overhead effectively.  This Crossbow feature, which is contrasted to SEQAL having no multi-threading support as default, could be exploited for additional fine-grained parallel execution along with the coarse-grained parallelism from the MapReduce framework.
 
-The input file format for SEQAL is prq format.  SEAL, a software tool containing SEQAL as a part, has a file conversion capacity between qseq/fastq and prq format.  For SEQAL experiment, the replication factor for Hadoop configuration is set  to 1.  
+The input file format for SEQAL is prq format.  To convert a fasta format sequence file to this format, we use SEAL, a software tool containing SEQAL as a part that has a file conversion capacity between qseq/fastq and prq format.  
 
-In the case of Hadoop-based MapReduce tools, the needed configuration should set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the resource size, i.e., the number of nodes ($N_{node}$) and the number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
+In the case of Hadoop-based MapReduce tools, the needed configuration should set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the resource size, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
 %
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 
-PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_{cpu-n}$, $N_W$, and the size of BigJobs.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W-n}$.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with HOTEL and the other half in SIERRA.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
+PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_{cpu-n}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W-n}$.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with HOTEL and the other half in SIERRA.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
 
 Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
  
@@ -339,6 +341,16 @@ Data management is an important component for any tools processing distributed d
  
 For the experiments with PMR using distributed resources, we assume that all input and required data are stored initially on a single cluster to process and measure the time for distributing data.  
 
+
+
+
+\begin{figure}
+ \centering
+%\includegraphics[scale=0.45]{figures/align-dup.pdf} 
+\includegraphics[scale=0.45]{figures/F1.pdf} 
+\caption{\small PMR architecture and workflow for a MapReduce task}
+  \label{fig:arch-pj-saga-mr} 
+\end{figure}
 
 \section{Rational and Experiments}\label{sec:experiments}
 
@@ -368,22 +380,13 @@ We aim the comparative experiments with SEQAL and Crossbow with the following po
 
 \section{Results}\label{sec:results}
 
-\subsection{PMR for NGS data analysis: Implementation}
-In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PMR is shown.  In brief, the target tasks are carried out with this order by implementing MapReduce with the Pilot framework\cite{pmr2012}. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.
-
-
-\begin{figure}
- \centering
-%\includegraphics[scale=0.45]{figures/align-dup.pdf} 
-\includegraphics[scale=0.45]{figures/F1.pdf} 
-\caption{\small PMR architecture and workflow for a MapReduce task}
-  \label{fig:arch-pj-saga-mr} 
-\end{figure}
 
 
 \subsection{PMR for NGS data analysis : Reads Alignment and Duplicate Removal}
 
-There are unique features that differentiate our approach from others, which could be beneficial for developing cyberinfrastructure for NGS data analytics and downstream analysis.  
+A MapReduce task for read alignment and duplicate removal represents an interesting category of NGS data analysis, which can be indicated with the results shown in  Fig.~\ref{fig:read-size}.  First, the Map phase, read alignment, takes significantly more time than the task with the Reduce phase, duplicate removal.  Secondly, the Reduce phase task, like the Map phase task, i.e. read alignment, additive.  Here, the term additive means $f(X + Y) = f(X) + f(Y)$ where $X$ and $Y$ are input variables and $f$ represents the Map or the Reduce function. For example, SNP finding or other advanced NGS analysis are not in this type of analysis.   
+
+Our PMR-based tools have unique features, compared to other MapReduce approaches, because of the runtime environment support with the Pilot framework\cite{dare-tg11, pmr2012}.  Some are 
 \begin{enumerate}
 
 \item Pilot-based MapReduce for Parallel/Concurrency framework 
@@ -400,7 +403,7 @@ There are unique features that differentiate our approach from others, which cou
   \label{fig:read-size} 
 \end{figure}
 
- In Fig.~\ref{fig:read-size}, the required scalability is measured with the increase of input data size.  It is apparent that compared to the map phase that conducts parallel alignment with BWA, other two steps, the reduce phase and the preparation of input data with multiple files are negligible.  Note that the alignment and the duplicate removal tasks are low-aggregation problems for MapReduce framework.  
+In Fig.~\ref{fig:read-size}, the required scalability is measured with the increase of input data size.  It is apparent that compared to the map phase that conducts parallel alignment with BWA, other two steps, the reduce phase and the preparation of input data with multiple files are negligible.  Note that the alignment and the duplicate removal tasks are low-aggregation problems for MapReduce framework.  
 
 Meanwhile, Fig~\ref{fig:scale-p-saga-mr} shows the overall good scaling results for the task of mapping and duplicate removal with PMR as the number of nodes used increases, indicating that PMR is a viable framework for delivering the good parallel performance against sizable data sets.
 
