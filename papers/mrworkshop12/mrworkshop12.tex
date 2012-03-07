@@ -541,23 +541,24 @@ pilots for this application workflow: % \jhanote{Worth noting that
 \begin{compactenum}[A.]
 \item Initially, the MR manager allocates a set of compute and data
   resources by starting one (or most often a set of) compute and data
-  pilots on different resources (step 1 and 2 in
-  figure~\ref{fig:figures_mapreduce-pilotdata}). In general, on each
+  pilots on different resources 
+  %(step 1 and 2 in  figure~\ref{fig:figures_mapreduce-pilotdata}). 
+  In general, on each
   resource one compute and one data pilot is co-located. The data
   pilot is either created with reference to local input data or the
   input data is moved to the data pilot after its creation.
 
 \item \textbf{Chunking:} The input data is {\it chunked}. BigJob is
   used as general abstraction for executing CUs. Thus, the MR-Manager
-  executes a set of chunk compute units via BJ. The execution of
-  the chunk CUs is captured in step 5 and 6 in
-  figure~\ref{fig:figures_mapreduce-pilotdata}. \label{stp:chunking}
-	
+  executes a set of chunk compute units via BJ.\label{stp:chunking} 
+  % The execution of
+  %   the chunk CUs is captured in step 5 and 6 in
+  %   figure~\ref{fig:figures_mapreduce-pilotdata}. 
 \item \textbf{Mapping:} The frameworks assigned a set of {\it map} CUs
   to the chunks created in step~\ref{stp:chunking}. Again, BJ is used
   for managing the CUs. BJ and BD ensures that CUs and DUs are
   co-located. The execution of the map CUs is done analogous to the
-  chunk CUs (step 5/6).
+  chunk CUs. % (step 5/6).
 	
 \item \textbf{Shuffling:} %\pnote{partitioning and sorting of
   % map output is part of map task}. \alnote{Hadoop Definitive Guide:
@@ -572,14 +573,14 @@ pilots for this application workflow: % \jhanote{Worth noting that
   partitioned into multiple DU. Then, data is moved from the map CUs
   to the location of the reduce CUs. For each reduce task a Data Unit
   containing the necessary input files is created and submitted to
-  BigData (step 3/4 in figure~\ref{fig:figures_mapreduce-pilotdata})
+  BigData. % (step 3/4 in figure~\ref{fig:figures_mapreduce-pilotdata})
 		
   % \alnote{We need to introduce what we mean by a distributed PMR.}
 	
 \item \textbf{Reducing:} The {\it reduce} tasks are prepared and
-  executed via BJ on the DUs representing the intermediate data (step
-  5/6 in figure~\ref{fig:figures_mapreduce-pilotdata}).  The
-  management of the data transfers is done by BJ and BD. For this
+  executed via BJ on the DUs representing the intermediate data.
+  % (step  5/6 in figure~\ref{fig:figures_mapreduce-pilotdata}).  
+  The management of the data transfers is done by BJ and BD. For this
   purpose, each reduce CU reference a certain DU as dependency.
 	
 	\item The \pilots are terminated.
@@ -900,11 +901,11 @@ system. We set the total number of reduces to 8 for both Hadoop and
 \pilotmapreduce; further, the default chunk size of 128\,MB is used. A
 HDFS replication factor of 2 is used.
 
-The runtime of local PMR include time to chunk input data, running the
+The runtime of PMR includes the time to chunk input data, running the
 mapping CUs, shuffling (which again comprises of sorting and the
 intermediate data transfer, and finally running the reduce CUs.
 Figure~\ref{fig:figures_wc_pmr_hmr} shows the results. The runtime of
-Hadoop MapReduce include time to load input source data into HDFS and
+Hadoop MapReduce includes the time to load input source data into HDFS and
 MapReduce runtime.
 
 \begin{figure}[ht]
@@ -918,13 +919,23 @@ MapReduce runtime.
 \end{figure}		
 	
 The time to solution increased linearly as data size increased; the
-performance of both Hadoop and PMR is comparable upto 8GB. However,
+performance of both Hadoop and PMR is comparable up to 8\,GB. However,
 for the largest volumes of input data we examined, PMR shows a better
-performance than Hadoop. \jhanote{Can we say why?} Further, the
-results indicate that the shuffle phase is critical in particular if
-larger volumes of data need to be sorted and moved as in the Word
-Count application where the intermediate data is about 200\,\% of the
-input data.
+performance than Hadoop. In particular, the setup, map and shuffle phase in the 
+Hadoop case are longer. Both the map and shuffle phase are the most  
+data-intensive phases -- Word Count needs to read all input files and generates 
+intermediate data with the size of about 200\,\% of the input data. The worse 
+performance of Hadoop indicates a potential issue with HDFS. PMR relies mostly 
+on the shared file system for handling the intermediate data.
+\jhanote{Can we say why?}\alnote{Pradeep: did we use the 
+tmp directory of the shared file system in the 16 GB case? Could be again a 
+sub-optimal Hadoop deployment.}
+
+% the
+% results indicate that the shuffle phase is critical in particular if
+% larger volumes of data need to be sorted and moved as in the Word
+% Count application where the intermediate data is about 200\,\% of the
+% input data.
 
 % The total runtime increased linearly as data size increased for both the MapReduces. Hadoop is optimized and performs well with shared file systems.
 
