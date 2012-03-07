@@ -265,12 +265,12 @@ After alignment of sequenced reads onto the reference genome, a duplicate read r
 
 \subsection{Experimental Set-up for NGS Read Alignment and Duplicate Removal}
 \subsubsection{HPC Resources}
-For this work, we used two Futuregrid systems, SIERRA and HOTEL.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  In brief, two systems are multi-node clusters and equipped with the PBS job scheduler and Hadoop support, implying that the systems are appropriate to test our PMR and to compare our results with Hadoop-based tools.
+For this work, we used two Futuregrid systems, SIERRA and HOTEL.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  In brief, two systems are multi-node clusters and equipped with the PBS job scheduler and Hadoop, implying that the systems are appropriate to test our PMR and to compare our results with Hadoop-based tools.
 
 \subsubsection{MapReduce-based NGS Data Analytics using Pilot-based SAGA-MapReduce (PMR)}
 The two combined steps such as alignment and duplicate removal or alignment and SNP finding are attractive targets for  parallelizing tasks by using MapReduce; the read alignment step is conducted as a Map phase and duplicate removal or SNP finding as a Reduce phase.  Note that a certain kind of combination for designing a MapReduce-based tool is immediately conceivable for other advanced downstream analyses such as transcript quantification or peak calling for other advanced NGS protocols.  The development for such tools will be announced in the future works.
 
-The schematic workflow and architecture for running PMR is presented in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure computational tasks of the map phase and the reduce phase including the number of workers, available fine-grain parallel options of software tools used for each phase, and configurations for Pilot Job (BigJob).  Note that we can choose many different combinations of these configurations (i.e. associated with parallel options with used software tools, and Pilot and MapReduce levels) for different strategies that tune the parallelism for a target analysis (in which map and reduce phases are decoupled, of course) differently by carefully considering fine-grain and coarse-grain levels.    
+The schematic workflow and architecture for running PMR is presented in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure computational tasks of the map phase and the reduce phase including the number of workers, available fine-grained parallelism options of software tools used for each phase, and configurations for Pilot Job (BigJob).  Note that we can choose many different combinations of these configurations (i.e. associated with parallel options with used software tools, and Pilot and MapReduce levels) for different strategies that tune the parallelism for a target analysis (in which map and reduce phases are decoupled, of course) differently by carefully considering fine-grained and coarse-grained parallelism levels.    
 
 \begin{center}
 \begin{table*}[ht]
@@ -323,13 +323,13 @@ For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used wit
 
 The input file format for SEQAL is prq format.  SEAL, a software tool containing SEQAL as a part, has a file conversion capacity between qseq/fastq and prq format.  For SEQAL experiment, the replication factor for Hadoop configuration is set  to 1.  
 
-In the case of Hadoop-based MapReduce, the needed configuration should set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$).  These number should be carefully chosen along with the resource size that is determined by the number of nodes ($N_{node}$) and the number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since the multiple workers in a node might need memories more than the total memory and consequently fail to run.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
+In the case of Hadoop-based MapReduce tools, the needed configuration should set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the resource size, i.e., the number of nodes ($N_{node}$) and the number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, which is related to the number of tasks (i.e.$N_M$ or $N_R$), the chunk size used is 128MB, which is default block size and corresponding to nearly 292,763 reads. 
 %
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 
 PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_{cpu-n}$, $N_W$, and the size of BigJobs.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W-n}$.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with HOTEL and the other half in SIERRA.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
 
-Contrast to Hadoop-based approaches for which HDFS uses a TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination for workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
+Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
  
 %   \pmnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
 %tts = max( map on sierra, map on hotel)+max( time tansfer from sierra to hotel, time transfer from hotel to sierra)+max(reduce on sierra, reduce on hotel)..
@@ -353,11 +353,12 @@ For this work, our primary goal is to develop a PMR-based tool that is capable o
 
 We aim the comparative experiments with SEQAL and Crossbow with the following points.
 \begin{itemize}
-\item Strength and weakness of Hadoop-based approaches
+\item Pros and cons of Hadoop-based approaches
 \item Importance of the support of scale-across 
 \item Distributed data scenario for NGS data analysis and PMR's potential as a viable solution
-\item Extensibility for multiple tool supports
-\item Low development cost for extensions of capabilities
+\item Simple and straightforward parallel execution to combine fine-grained and coarse-grained parallel strategies with PMR 
+\item Importance of extensibility for multiple tool supports
+\item Benefit of a low development cost for extensions of capabilities 
 \end{itemize}
 
 
