@@ -316,7 +316,7 @@ Multiple Tools  &      &  &  &  &   \\ \hline
 \end{table*}
 \end{center}
 
-\subsubsection{Comparative Experiments with the two Hadoop-based tools, SEQAL and Crossbow}
+\subsubsection{Comparative Experiments with two Hadoop-based tools, SEQAL and Crossbow}
 Among the software tools compared in ~\ref{table:mr-comparison}, we chose SEQAL of the SEAL package and Crossbow for the comparison.  Note that these two tools along with other tools such as Cloudburst and GATK are different from each other with respect to the usage mode of MapReduce and the design strategies behind each tool for parallelism, in particular, aiming NGS data processing and management as summarized in Table~\ref{table:mr-comparison}.  Importantly, SEQAL and Crossbow are Hadoop-based tools but differ in that the former is designed conventionally with implementing Map and Reduce functions whereas the latter uses Hadoop-streaming.  In the case of Crossbow, the overall analysis is taken with 4 steps.  Each step is an independent Hadoop-streaming task.  The first step is for pre-processing and the last one is for post-processing. The second one is for the alignment and the third one is for SNP finding, which uses slightly modified Bowtie and SOAPsnp.  
 
 For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, BWA with SEQAL does not use the multi-threading option, whereas Crossbow sets up the default option for Bowtie with multi-threading option, "--mm"".
@@ -336,7 +336,7 @@ Data management is an important component for any tools processing distributed d
 %Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
 %experiments repeated thrice.. }
  
-For the experiment using distributed resources via, we assume that all input and required data are stored initially on a single cluster to process and measure the time for distributing data.  
+For the experiments with PMR using distributed resources, we assume that all input and required data are stored initially on a single cluster to process and measure the time for distributing data.  
 
 
 \section{Rational and Experiments}\label{sec:experiments}
@@ -347,7 +347,7 @@ For the experiment using distributed resources via, we assume that all input and
 \jhanote{Motivation: distributed data requirements; MR-based sequncing
   applications comparision; challenges of the former in the latter}
 
-Since the paper about the MapReduce programming model from Google in 2004\cite{mapreduce-2004-dean} and the emergence of Hadoop, the model has drawn significant attention from various application domains as a general strategy for parallelism of a large data.  In recent years, the computational biology community, in particular focusing on data analytics and downstream analyses of high-throughput deep sequencing techniques such as Next-Generation Sequencing has found the potential of MapReduce-based approaches for dealing with unprecedented data produced from the novel platforms\cite{schatz-nature-biotech-2010}.  Not surprisingly, most of software tools using MapReduce for NGS data were developed with Hadoop environment and consequently with Cloud computing environment such as Amazon EC2.  Unlike such tools, our approach with MapReduce is highlighted with Pilot-based and scalability across multiple distributed infrastructure including HPC grids and Clouds.  
+Since the paper about the MapReduce programming model from Google in 2004\cite{mapreduce-2004-dean} and the emergence of Hadoop, the model has drawn significant attention from various application domains as a general strategy for parallelization of processing a large data.  In recent years, the computational biology community, in particular focusing on data analytics and downstream analyses of high-throughput deep sequencing techniques such as Next-Generation Sequencing has found the potential of MapReduce-based approaches for dealing with unprecedented data produced from the novel platforms\cite{schatz-nature-biotech-2010}.  Not surprisingly, most of software tools using MapReduce for NGS data were developed with Hadoop environment and consequently with Cloud computing environment such as Amazon EC2.  Unlike such tools, our approach with MapReduce is highlighted with Pilot-based and scalability across multiple distributed infrastructure including HPC grids and Clouds.  
 
 For this work, our primary goal is to develop a PMR-based tool that is capable of tasks combining the alignment and various downstream analysis for genome structure studies, genotyping, transcriptome analysis, DNA-protein interaction, and sequencing data process such as duplicate read removal.  To address many interesting aspects and features, our experiments primarily target the comparison of our PMR-based approach with two other Hadoop-based approaches, SEQAL (tool for alignment and duplicate removal) and Crossbow (tool for alignment and SNP finding) that use slightly different Hadoop-based approaches.(see Table~\ref{table:mr-comparison}).  
 
@@ -368,7 +368,7 @@ We aim the comparative experiments with SEQAL and Crossbow with the following po
 \section{Results}\label{sec:results}
 
 \subsection{PMR for NGS data analysis: Implementation}
-In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PMR is shown.  In brief, the target tasks are carried out with this order. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.
+In Fig.~\ref{fig:arch-pj-saga-mr}, the overall architecture of PMR is shown.  In brief, the target tasks are carried out with this order by implementing MapReduce with the Pilot framework\cite{pmr2012}. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.
 
 
 \begin{figure}
@@ -388,7 +388,8 @@ There are unique features that differentiate our approach from others, which cou
 \item Pilot-based MapReduce for Parallel/Concurrency framework 
 \item No need of Hadoop infrastructure
 \item Scalability by utilizing multiple compute resources
-\item Distributed data across distributed resources
+\item Distributed data management across distributed resources
+\item Simple and effective parallelism support for the combination of fine-grained and coarse-grained parallelism
 \end{enumerate}
  
  \begin{figure}
@@ -478,8 +479,8 @@ Collectively, PMR has edges in terms of flexibility and non-Hadoop-based archite
 \subsubsection{PMR, a viable solution for scale-across and extensible framework for NGS data analytics}
 
 
-\textit{DARE and beyond}
-
+\subsubsection{DARE and beyond}
+PMR-based NGS tools, implemented and scrutinized in this work, were developed in conjunction with our development of the runtime environment for dynamic applications, Dynamic Application Runtime Environment (DARE).  DARE is our strategically important component for the development of Science Gateway for NGS data analytics and downstream analysis.  Under the design strategy of DARE-based gateways, PMR-based tools were conceived to be a category of supporting execution patterns for parallel and distributed task and data management.  
 
 
 
