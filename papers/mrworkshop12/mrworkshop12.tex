@@ -42,7 +42,7 @@
 \usepackage{enumerate}
 \usepackage{paralist}
 \newif\ifdraft
-%\drafttrue
+\drafttrue
 
 \ifdraft
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -480,9 +480,9 @@ affinity requirements of the application.
 \label{sec-pilot-mr}
 %\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
-\jhanote{Not sure why we have the first instanc of ``\pilotmapreduce''
-  in ``\emph''. Also we toggle between PMR and
-  ``\pilotmapreduce''. Please be consistent} \alnote{ok removed emph}
+% \jhanote{Not sure why we have the first instanc of ``\pilotmapreduce''
+%   in ``\emph''. Also we toggle between PMR and
+%   ``\pilotmapreduce''. Please be consistent} \alnote{ok removed emph}
   
 
 \pilotmapreduce (PMR) is a \pilot-based implementation of the
@@ -586,13 +586,15 @@ pilots for this application workflow: % \jhanote{Worth noting that
 
 \end{compactenum}
 
-\jhanote{The mapping from the Chunking/Mapping/Shuffling stages to the
-  diagram steps is a bit hard to grasp. For example although we talk
-  about chunking, we find a mention of step 5/6..}\alnote{yes, since both 
-aspects are a bit orthogonal. The figure shows how compute and data units are 
-managed via Pilot abstractions. The phases are more about what the MR framework 
-does in the CUs and where DUs need to be moved. Should we remove the steps from 
-the enumeration?}
+% \jhanote{The mapping from the Chunking/Mapping/Shuffling stages to the
+%   diagram steps is a bit hard to grasp. For example although we talk
+%   about chunking, we find a mention of step 5/6..}
+\alnote{yes, since both aspects are a bit orthogonal. The figure shows
+  how compute and data units are managed via Pilot abstractions. The
+  phases are more about what the MR framework does in the CUs and
+  where DUs need to be moved. Should we remove the steps from the
+  enumeration?} \jhanote{Maybe remove the steps for now and if time
+  permits discuss them separately/lately?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
 late-binding of compute and data units. The API also allows the expression and
@@ -604,8 +606,8 @@ generates a DU and CU for each reduce task. The DUs and CUs are then submitted
 to BigJob and BigData framework, which handles the scheduling, transfer of the
 DU and execution of the CU. PMR assigns a resource affinity to each DU and CU.
 BJ and BD then ensure that each CU is co-located to the right DU.
-\jhanote{we don't elaborate how/why.}\alnote{example on how affinity are used 
-added.}
+% \jhanote{we don't elaborate how/why.}\alnote{example on how affinity are used 
+% added.}
 
 \subsection{Compute and Data Management}
 The PMR relies on the master/worker coordination model, i.\,e.\ a
@@ -727,7 +729,7 @@ distributed pool of storage and compute resources.
 % BigJob and
 % BigData will ensure that the affinity requirements of the MR framework
 % are met. 
-\jhanote{The last sentence is a repitition}\alnote{removed}
+% \jhanote{The last sentence is a repitition}\alnote{removed}
 
 \begin{figure}
 	\centering
@@ -947,7 +949,7 @@ converted to meet the SEQAL requirements. For PMR, the fastq files from
 sequencing machines are directly used; further, a custom chunk script is used to
 chunk the fastq files based on the number of reads. We make sure that the chunk
 size for both SEQAL and PMR is equal. For both frameworks, a total of 4 nodes on
-FutureGrid sierra machine, 8 reduces, 2 workers/node, default chunk size of
+FutureGrid Sierra machine, 8 reduces, 2 workers/node, default chunk size of
 128\,MB is used. For Hadoop based SEQAL, the replication factor of two is used.
 Since SEQAL and GS/PMR utilize different duplicate removal tools in the reduce
 phase, we focus our investigation on the map phase.
@@ -967,18 +969,21 @@ using a shared file system.}
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
-Figure~\ref{fig:gs_seq_pmr} shows the results of both applications. In the
-setup time of SEQAL, Hadoop copies the reference genome archive to all the 
-nodes and extracts it so it is available locally.
-In comparison to Word Count both GS application are more compute intensive,
-i.\,e.\ the ratio between computation in the map phase and the size of the input
-data is significant larger. Notably, SEQAL requires a longer time-to-completion
-than GS/PMR. This is mainly caused by a non-optimal configuration of Hadoop: The
-local disks available on FG is too small for the used input data; thus, HDFS had
-to be configured to utilize a shared, distributed file system, which leads to a
-non-optimal performance during the I/O intensive map phase. The difference in
-the reduce phase mainly originate from the different implementations of the
-duplicate removal process in SEQAL and GS/PMR. 
+Figure~\ref{fig:gs_seq_pmr} shows the results of both applications. In
+the setup time of SEQAL, Hadoop copies the reference genome archive to
+all the nodes and extracts it so it is available locally.  In
+comparison to Word Count both GS application are more compute
+intensive, i.\,e.\ the ratio between computation in the map phase and
+the size of the input data is significant larger. Notably, SEQAL
+requires a longer time-to-completion than GS/PMR. \jhanote{Is the
+  following for the Map phase or true for all phases?} This is mainly
+caused by a non-optimal configuration of Hadoop: The local disks
+available on FG is too small for the used input data; thus, HDFS had
+to be configured to utilize a shared, distributed file system, which
+leads to a non-optimal performance during the I/O intensive map
+phase. The difference in the reduce phase mainly originate from the
+different implementations of the duplicate removal process in SEQAL
+and GS/PMR.
 
 \alnote{Pradeep: Please elaborate a bit on the differences}
 
@@ -1216,24 +1221,29 @@ in the hierarchical case.
 
 
 % Analysis
-Running MapReduce on distributed data is not a trivial task -- the overall
-performance is determined by many factors, e.\,g.\ the application's
-characteristics, current machine and network loads, etc. Different MapReduce
-configurations, such as the distributed and hierarchical configuration, can
-address certain factors. For example, depending on the volume of the
-intermediate and output data of an application, a distributed or hierarchical
-configuration may show a better performance. In applications with a smaller
-volume of output than intermediate data, such as the genome sequencing
-application or Word Count on natural languages, a hierarchical MapReduce
-configuration can be considered a good choice since it involves less data
-movement. In no data aggregation applications, i.\,e.\ the output data generated
-is larger than or equal to input data, a distributed configuration is better
-suited. In summary, PMR provides the flexibility to deploy MapReduce workloads
-in different configurations optimizing the performance with respect to the
-characteristics of different application workloads. A major limitation of Hadoop
-is its inflexibility with respect to supporting different kind of resources and
-topologies. In our case e.\,g.\ we were not able to run Hadoop across more than
-two machines on FG due to firewall issues.
+Running MapReduce on distributed data is not a trivial task -- the
+overall performance is determined by many factors, e.\,g.\ the
+application's characteristics, current machine and network loads,
+etc. Different MapReduce configurations, such as the distributed and
+hierarchical configuration, can address certain factors. For example,
+depending on the volume of the intermediate and output data of an
+application, a distributed or hierarchical configuration may show a
+better performance. In applications with a smaller volume of output
+than intermediate data, such as the genome sequencing application or
+Word Count on natural languages, a hierarchical MapReduce
+configuration can be considered a good choice since it involves less
+data movement. In no data aggregation applications, i.\,e.\ the output
+data generated is larger than or equal to input data, a distributed
+configuration is better suited.
+
+In summary, PMR provides the flexibility to deploy MapReduce workloads
+in different configurations optimizing the performance with respect to
+the characteristics of different application workloads. A major
+limitation of Hadoop is its inflexibility with respect to supporting
+different kind of resources and topologies. In our case e.\,g.\ we
+were not able to run Hadoop across more than two machines on FG due to
+firewall issues. \jhanote{Should try to make consistent: FutureGrid or
+  FG}
 
 % : a hierarchical setup is good
 % for applications with highly aggregated output data as GS/PMR, while a normal
