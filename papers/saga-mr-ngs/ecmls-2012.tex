@@ -418,7 +418,7 @@ We aim the comparative experiments with SEQAL and Crossbow with the following po
 
 \subsection{PMR for NGS data analysis : Reads Alignment and Duplicate Removal}
 
-The computation of read alignment and duplicate removal represents an interesting and simple category of computational tasks among NGS data analysis that could be beneficial by the MapReduce programming model.  We implement such a MapReduce task with PMR.  The main findings with this analysis are as follows.  First, as shown in Fig.~\ref{fig:read-size}, the scalability is critically required as the input data size increases.  Not surprisingly, the results shown in Fig~\ref{fig:scale-p-saga-mr} suggests that the parallel strategy with MapReduce could be a viable solution for increasingly demanding large data sets.  
+The computation of read alignment and duplicate removal represents an interesting and simple category of computational tasks among NGS data analysis that could be benefitted by employing the MapReduce programming model.  We implement such a MapReduce task with PMR.  The main findings with this analysis are as follows.  First, as shown in Fig.~\ref{fig:read-size}, the scalability is critically required as the input data size increases.  Not surprisingly, the results shown in Fig~\ref{fig:scale-p-saga-mr} suggests that the parallel strategy with MapReduce could be a viable solution for increasingly demanding large data sets.  
 
  \begin{figure}
  \centering
@@ -428,13 +428,13 @@ The computation of read alignment and duplicate removal represents an interestin
 \end{figure}
 
 
-The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matter of fact, appears to be helped by the characteristic nature of the target computational tasks.  The Map phase, the read alignment is a single dominant step for the overall time-to-solution, and the read alignment task is the most prominent example among a variety of NGS data analysis tasks that is suitable for data parallelization as well as task parallelization.  Note that the Reduce phase task, duplicate removal is also easy for parallelization primarily due to the fact that to remove the duplicates needs only the local information, i.e. a single key or a small number of keys from the Map phase results.  Despite of the simple nature, read alignment and duplicate removal does provide an understanding of challenges for MapReduce-based approaches for NGS data analytics.  For example, unlike the well-know word count problem, the Map phase produces high volume of data size, indicating the low-aggregation problem, compared to the high-aggregation problem of the word counting\cite{weissman-mr-11}.  Indeed, the data management along with this feature should be considered carefully as indicated in Fig.~\ref{fig:read-size} with the 40 GB case that shows a significant portion of the processing time for chunking data.  Note that 40 GB is the entire data set of RNA-Seq experiment.  Nonetheless, we note that the data management between the Map phase and the Reduce phase is reasonably handled by the Pilot framework for a single cluster or even a case for utilizing a couple of clusters as presented later.
+The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matter of fact, appears to be helped by the characteristic nature of the target computational tasks.  The Map phase, the read alignment is a single dominant step for the overall time-to-solution, and the read alignment task is the most prominent example among a variety of NGS data analysis tasks that is suitable for data parallelization as well as task parallelization.  Note that the Reduce phase task, duplicate removal is also easy for parallelization primarily due to the fact that to remove the duplicates needs only the local information, i.e. a single key or a small number of keys from the Map phase results.  Despite of the simple nature, read alignment and duplicate removal does provide an understanding of challenges for MapReduce-based approaches for NGS data analytics.  For example, unlike the well-know word count problem, the Map phase produces high volume of data size, indicating the low-aggregation problem, compared to the high-aggregation problem of the word counting\cite{weissman-mr-11}.  Indeed, the data management along with this feature should be considered carefully as indicated in Fig.~\ref{fig:read-size} with the 40 GB case that shows a significant portion of the processing time for chunking data.  Note that 40 GB is the entire data set from the RNA-Seq experiment of interest.  Nonetheless, we note that the data management between the Map phase and the Reduce phase is reasonably handled by the Pilot framework for a single cluster or even a case for utilizing a couple of clusters as presented later.
 
 
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-scale.pdf}
-\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate removal.  The number of Workers per node, $N_{W-n}$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
+\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate removal.  The number of Workers per node, $N_{W_{node}}$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
 \alnote{I thought we don't include PMR only data}
   \label{fig:scale-p-saga-mr} 
 \end{figure}
@@ -442,11 +442,13 @@ The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matte
 
 \subsection{Comparison to Hadoop-based SEQAL and Crossbow}
 \subsubsection{Closely Related Works}
-There exist a few works specifically targeting NGS data analytics using the MR framework and four other tools are presented in Table~\ref{table:mr-comparison}.  In brief, Cloudburst was one of early tools to demonstrate the significant potential of MapReduce for NGS data analysis, whereas Crossbow focused on better scalability using Hadoop streaming.  Compared to the two Hadoop-based tools, GATK was introduced to support the general parallel execution pattern across many NGS data analytics.  Recently, the SEAL package was announced in which SEQAL is a utility for the alignment and duplicate removal.   
+Compared to other areas, the computational biology community, specifically focusing on NGS data analysis, joined later for the use of MapReduce\cite{cloudburst}.  Nonetheless, there have been active works resulting in the programs listed in Table~\ref{table:mr-comparison}.  In brief, Cloudburst was one of the first generation tools in this field and  demonstrated the significant potential of the MapReduce model for NGS data analysis.  After Cloudburst, Crossbow was developed by focusing on better scalability using Hadoop streaming.  Compared to the two Hadoop-based tools, GATK was introduced to address the general parallel execution pattern across many NGS data analytics.  Recently, the SEAL package was announced in which SEQAL is a utility for the alignment and duplicate removal.   
 
-In spite of the commonality that MapReduce is the core programming model for the tools, they differ in several aspects depending upon the need of Hadoop, the way to utilize Hadoop, the level of flexibility for the extension of tools for alternative tasks or external tools such as aligners, and multiple cluster support.
+In spite of the commonality that MapReduce is the core programming model for the tools, they differ in several aspects depending upon the need of Hadoop, the way to utilize Hadoop, the level of flexibility for the extension of tools for alternative tasks or the multiple tool support for different aligners, for example, and whether the multiple cluster support is possible.
 
-Interestingly, multi-domain support with the MR framework is recently demonstrated for AutodDock application which is, in contrast to our applications that are loosely-coupled, pleasingly parallel.\cite{ecmls11-mr-autodock}
+Interestingly, the cross-domain support over multiple clusters with the MapRedue framework, specifically via so called hierarchical MapReduce, was recently suggested for the AutodDock tool.  We note that this docking application belongs, in contrast to our applications that are mostly loosely-coupled, to pleasingly parallel and thus faces a different bur simpler type of challenges, compared to ours\cite{ecmls11-mr-autodock}.
+
+To demonstrate the distinctive strategies and features of PMR-based tools, we compare the performance with SEQAL and Crossbow in the followings.  
 
 \begin{figure}
  \centering
@@ -458,13 +460,13 @@ Interestingly, multi-domain support with the MR framework is recently demonstrat
 \end{figure}
 
 \subsubsection{Performance Comparison}
-In Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2}, we compared directly the time-to-solution between SEQAL and two scenarios with PMR, one with a single cluster and the other with two clusters.  In Fig.~\ref{fig:comp_with_seqal_2}, we dissect the contributions of each step for the total runtime.  
+In Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2}, we compared directly the time-to-solution between SEQAL and two scenarios with PMR, one with a single cluster and the other with two clusters.  Fig.~\ref{fig:comp_with_seqal_2} presents how each step contributes for the total runtime shown in Fig.\ref{fig:comp_with_seqal_1} .  
 
-Notably, SEQAL takes more time on the overall run time, and the most contributing cause come from the map phase.  We interpret this result with the fact that the tmp directory on each node is used to store data by Hadoop, but when the size of a tmp directory is limited for the required task, a remote file system is configured as  the tmp data directory for remote disks of other nodes.
+Notably, SEQAL takes more time on the overall run time, and the most contributing cause for benchmark difference comes from the Map phase.  We contribute this result with the situation of the Hadoop configuration with the FutureGrid systems.  The tmp directory accessed by workers of each node is configured by Hadoop, but the size of a tmp directory is limited with the fast and local attached disk space and thus a remote file system is configured as  the tmp data directory.  This situation is likely to enforce most of users, a non-expert on Hadoop system, and results in the performance loss with File I/O.  The similar observation was also indicated with the comparison of Crossbow.
 
-Another observation from Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2} is that whereas SEQAL is limited by a single cluster with Hadoop, PMR can be easily scale-across multiple clusters. The distributed-PMR is indeed performing well against local-PMR without significant performance loss due to the low connectivity between two clusters with our experimental set up.  
+Another important aspect which can be inferred from results shown in Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2} is that whereas SEQAL is limited by a single cluster with Hadoop, PMR can be easily scale-across over multiple clusters. The distributed-PMR, which uses the two cluster systems, HOTEL and SIERRA, is indeed performing well against the local-PMR in spite of the low network connectivity between two clusters compared to a intra-cluster network connection.  The overhead arising from the connection between two clusters is indicated in Fig.~\ref{fig:comp_with_seqal_2} with the longer time for shuffling in the case of "distributed-PMR". 
 
-Again, Fig.~\ref{fig:comp_with_seqal_2} clearly indicates the map phase for SEQAL has a disadvantage against PMR.  The comparison of the reduce phase could originate from the different implementation between SEQAL and ours.
+Note that the direct comparison of the Reduce phase is not straightforward due to the potentially different implementation between SEQAL and ours in spite of the fact that we used the same criteria of the duplicate removal of SEQAL\cite{seal_2011_mapred}.  In any event, unlike the Reduce phase, the Map phase of SEQAL and our PMR tool are almost comparable since the same aligner, BWA is used and all parameters (see Table~\ref{table:exp-description}) for configuring a MapReduce task are same in the comparison.   
 
 \begin{figure} 
  \centering
@@ -477,21 +479,22 @@ Again, Fig.~\ref{fig:comp_with_seqal_2} clearly indicates the map phase for SEQA
 \begin{figure} 
  \centering
 \includegraphics[scale=0.40]{figures/map_comp.pdf}
-\caption{\small  Map phase comparison.  The runtimes for the Map phase of SEQAL, Local-PMR(BWA), distributed-PMR(BWA), Local-PMR(Bowtie), distributed-PMR(Bowtie), and Crossbow(Bowtie) are compared.  The aligner used for each case is indicated in a parenthesis.  For this experiment, the number of nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, and the number of reads in each chunk is 292,763.  For the distributed-PMR, two machines of FutureGrid, Sierra and Hotel were used, whereas Sierra was used for other cases.}
+\caption{\small  Map phase comparison.  The runtimes for the Map phase of SEQAL, Local-PMR(BWA), distributed-PMR(BWA), Local-PMR(Bowtie), distributed-PMR(Bowtie), and Crossbow(Bowtie) are compared.  The aligner used for each case is indicated in a parenthesis.  For this experiment, the number of nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, and the number of reads in each chunk is 292,763.  For the distributed-PMR, two machines of FutureGrid, SIERRA and HOTEL were used, whereas SIERRA was used for other cases.}
   \label{fig:tool_comp} 
 \end{figure}
 
 %number of nodes=4, number of workers/node=2,reduces=8, number of reads/chunk=292763; ********DMR provides scale-across********** as two machines sierra and hotel are used.
 
+Another Hadoop-based tool, Crossbow, uses Bowtie as a aligner and utilizes Hadoop-Streaming\cite{hadoop-url}.  We summarize the result of measuring the times of alignment step calculations and present in Fig.~\ref{fig:tool_comp}.   The tendency shown with the comparison of SEQAL to PMR is also observed with the comparison with Crossbow; the longer runtime with the Hadoop-Streaming-based tool regardless of the use of a different aligner, Bowtie.  It is well-known that Bowtie is extremely efficient in computation of alignment and the results found, correspondingly, less time-to-solution with the aligner.  
 
 
-As the number of input sequences increased the time to solution also increased linearly for both SEQAL and local-PMR. 
-The time to solution decreased by an average of 43.39\% with 95\% confidence interval of 3.03\%. The Map phase of Local-PMR is on an average of 64\% of Map phase of SEQAL application, and is reduced by an average of 35.7\%
-The reduce phase is very less compared to seqal applicaiton because there is not sort involved in reduce phase.
-\pmnote{( why is that?? i dont see any reason to have a sort before reduce starts)) we do sort intermediate data before shuffled.}
-The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves sort )
-
-\pmnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
+%As the number of input sequences increased the time to solution also increased linearly for both SEQAL and local-PMR. 
+%The time to solution decreased by an average of 43.39\% with 95\% confidence interval of 3.03\%. The Map phase of Local-PMR is on an average of 64\% of Map phase of SEQAL application, and is reduced by an average of 35.7\%
+%The reduce phase is very less compared to seqal applicaiton because there is not sort involved in reduce phase.
+%\pmnote{( why is that?? i dont see any reason to have a sort before reduce starts)) we do sort intermediate data before shuffled.}
+%The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves sort )
+%
+%\pmnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
 
 \subsubsection{Scale-across, Extensibility, and Parallelism Support}
 
