@@ -337,11 +337,31 @@ For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used wit
 
 The input file format for SEQAL is prq format.  To convert a fasta format sequence file to this format, we use SEAL, a software tool containing SEQAL as a part that has a file conversion capacity between qseq/fastq and prq format.  
 
-In the case of Hadoop-based MapReduce tools, we set the number of workers per a node ($N_{W-n}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the parameters for the size of resource, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node ($N_{cpu-n}$).  For example, the memory size of a node wold limit a possible choice for $N_{W-n}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, if not specified differently, the default chunk size of 128MB was used, which corresponds to nearly 292,763 reads.  For example, the size of 2 GB input is broken into 16 files (8 files for each end data) and importantly results in 8 Map phase tasks.  Note that in the case of SEQAL that uses the different format, the chunking process generates the same amount of reads per file.  This chunk size is directly related to the number of Mappers $N_M$ for the alignment task since  $N_M$ is determined as the ratio of the input size over this chunk.   For the relation between parameters used for the experimental set-up, see the examples in Table\ref{table:exp-description}. 
+\begin{table}
+\small
+ \begin{tabular}{|c|c|c|c|c|c|} 
+ \hline 
+
+Case & \# of  & \# of &  \# of & \# of & \# of  \\
+E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & available  \\
+$N_M$, $N_R$,  & &  & ers & ers & cores \\
+Input Size (GB)) & ($N_{node})$& ($N_W$) & ($N_M) $ & ($N_R$) & per Worker \\
+ \hline
+E(4, 4, 32, 8, 8) &4 &  4 & 32  & 8 & 8 \\
+E(4, 8, 32, 8, 8) & 4 & 8 & 32 & 8 & 4 \\
+E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\ 
+ \hline
+ \end{tabular}
+
+ \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the five parameters in E($N_{node}$,$N_W$,$N_M$, $N_R$,Input Size).  Three examples are illustrated in this table.  Note that all nodes for this study have 8 cores and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
+    \label{table:exp-description} 
+\end{table}
+
+In the case of Hadoop-based MapReduce tools, we set the number of workers per a node ($N_{W_{node}}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the parameters for the size of resource, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node.  For example, the memory size of a node wold limit a possible choice for $N_{W_{node}}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, if not specified differently, the default chunk size of 128MB was used, which corresponds to nearly 292,763 reads.  For example, the size of 2 GB input is broken into 16 files (8 files for each end data) and importantly results in 8 Map phase tasks.  Note that in the case of SEQAL that uses the different format, the chunking process generates the same amount of reads per file.  This chunk size is directly related to the number of Mappers $N_M$ for the alignment task since  $N_M$ is determined as the ratio of the input size over this chunk.   For the relation between parameters used for the experimental set-up, see the examples in Table\ref{table:exp-description}. 
 %
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 
-PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_{cpu-n}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W-n}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we configure the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with HOTEL and the other half in SIERRA.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
+PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W_{node}}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we can provide the configuration for the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Note that SEQAL and Crossbow turn off this option as default.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with HOTEL and the other half in SIERRA.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
 
 Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
  
@@ -374,28 +394,6 @@ We aim the comparative experiments with SEQAL and Crossbow with the following po
 \item Importance of extensibility for multiple tool supports
 \item Benefit of a low development cost for extensions of capabilities 
 \end{itemize}
-
-
-\begin{table}
-\small
- \begin{tabular}{|c|c|c|c|c|c|} 
- \hline 
-
-Case & \# of  & \# of &  \# of & \# of & \# of cores \\
-E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & per   \\
-$N_M$, $N_R$,  & &  & ers & ers & Worker \\
-Input Size) & $N_{node}$& $N_W$&$N_M$ &$N_R$ &  \\
- \hline
-E(4, 4, 32, 8, 8 GB) &4 &  4 & 32  & 8 & 8 \\
-E(4, 8, 32, 8, 8 GB) & 4 & 8 & 32 & 8 & 4 \\
-E (8, 8, 32, 8, 8 GB) & 8 & 8 & 32 & 8 & 8 \\ 
- \hline
- \end{tabular}
-
- \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the five parameters in E($N_{node}$,$N_W$,$N_M$, $N_R$,Input Size).  Three examples are illustrated in this table.  For these examples, the input size is assumed to be 8 GB.  Note that all nodes for this study have 8 cores and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
-    \label{table:exp-description} 
-\end{table}
-
 
 \section{Results}\label{sec:results}
 
@@ -482,13 +480,19 @@ The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves so
 \subsubsection{Scale-across, Extensibility, and Parallelism Support}
 
 
+\begin{figure} 
+ \centering
+\includegraphics[scale=0.50]{figures/8GB_4nodes_8w_threadcomp.pdf}
+\caption{\small  The performance role of multi-threading support option is indicated.  $N_W$=8, $N_{node}$=4, and input data size is 8 GB.}
+  \label{fig:mulit-parallel} 
+\end{figure}
 
 
 
 \section{Discussions and Concluding Remarks}\label{sec:discussions}
 \textit{Computational Challenges for NGS data analysis, processing, and downstream analysis}
 
-In the last several years, every area of biology and biomedical fields has witnessed a paradigm change with DNA sequencing data generated by Next-Generation Sequencing (NGS) platforms\cite{metzker2010,1000genome,wang2009-natrevgen,alex2009,mcpherson2009}.  Most importantly, these high-throughput technologies were able to provide the thorough information about an entire genome or statistically meaningful number of genomes of same species or related ones with enormously affordable cost, compared to the first generation sequencing technology, resulting in an influx of unprecedented amount of data.  Unlike algorithmic advances and user-friendly interface development via web-based tools, GUI tools, or computing environments\cite{galaxy}, the holistic infrastructure development is far behind the community demand.  One of important conner stones for such development is to employ scalable computational task or data management frameworks.  MapReduce is a widely employed programming model for parallelization of a large data process, and we showed the model provides a successful means for dealing with the scalability of NGS data analytics beginning with short reads alignment and other following analysis such as duplicate removal and SNP finding.   
+In the last several years, every area of biology and biomedical fields has witnessed a paradigm change with DNA sequencing data generated by Next-Generation Sequencing (NGS) platforms\cite{metzker2010,1000genome,wang2009-natrevgen,alex2009,mcpherson2009}.  Most importantly, these high-throughput technologies were able to provide the thorough information about an entire genome or statistically meaningful number of genomes of same species or related ones with enormously affordable cost, compared to the first generation sequencing technology, resulting in an influx of unprecedented amount of data.  Unlike algorithmic advances and user-friendly interface development via web-based tools, GUI tools, or computing environments\cite{galaxy}, the holistic infrastructure development is far behind the community demand.  One of important conner stones for such development is to employ scalable computational task or data management frameworks.  MapReduce is a widely employed programming model for parallelization of a large data process, and as reported with other tools listed in Table~\ref{table:mr-comparison}, we observed that PMR based on MapReduce provided the scalability of NGS data analysis comprising short reads alignment and other following analysis such as duplicate removal and SNP finding.   
 
 
 \textit{PMR, a viable solution for scale-across and extensible framework for NGS data analytics}
