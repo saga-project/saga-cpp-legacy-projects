@@ -453,27 +453,22 @@ To demonstrate the distinctive strategies and features of PMR-based tools, we co
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
+\includegraphics[scale=0.52]{figures/8GB_phasewisetimes.pdf}
 
-\caption{\small Comparison of the total time-to-solution for a MapReduce-based computation of alignment and duplicate read removal.  Hadoop-based SEQAL is compared to Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase.  The size of input is 8 GB.  For this experiment, the number of Nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, the number of Reducers, $N_R$ is 8, and the number of reads in each chunk is 292,763. For the distributed-PMR, two machines of FutureGrid, Sierra and Hotel were used, whereas Sierra was used for other cases.}
+\caption{\small Comparison of the total time-to-solution for a MapReduce-based computation of alignment and duplicate read removal (upper).  Dissected elapsed times for each step of the results with 8 GB (lower). Hadoop-based SEQAL is compared to Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase.  The size of input is 8 GB.  For this experiment, the number of Nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, the number of Reducers, $N_R$ is 8, and the number of reads in each chunk is 292,763. For the distributed-PMR, two machines of FutureGrid, Sierra and Hotel were used, whereas Sierra was used for other cases.}
 \alnote{same analysis in in MR paper}
   \label{fig:comp_with_seqal_1} 
 \end{figure}
 
 \subsubsection{Performance Comparison}
-In Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2}, we compared directly the time-to-solution between SEQAL and two scenarios with PMR, one with a single cluster and the other with two clusters.  Fig.~\ref{fig:comp_with_seqal_2} presents how each step contributes for the total runtime shown in Fig.\ref{fig:comp_with_seqal_1} .  
+In Fig.~\ref{fig:comp_with_seqal_1}, we compared directly the time-to-solution between SEQAL and two scenarios with PMR, one with a single cluster and the other with two clusters.  In Fig.~\ref{fig:comp_with_seqal_2}, also how each step contributes for the total runtime is presented with the case of 8 GB input.  
 
 Notably, SEQAL takes more time on the overall run time, and the most contributing cause for benchmark difference comes from the Map phase.  We contribute this result with the situation of the Hadoop configuration with the FutureGrid systems.  The tmp directory accessed by workers of each node is configured by Hadoop, but the size of a tmp directory is limited with the fast and local attached disk space and thus a remote file system is configured as  the tmp data directory.  This situation is likely to enforce most of users, a non-expert on Hadoop system, and results in the performance loss with File I/O.  The similar observation was also indicated with the comparison of Crossbow.
 
-Another important aspect which can be inferred from results shown in Fig.~\ref{fig:comp_with_seqal_1} and Fig.~\ref{fig:comp_with_seqal_2} is that whereas SEQAL is limited by a single cluster with Hadoop, PMR can be easily scale-across over multiple clusters. The distributed-PMR, which uses the two cluster systems, HOTEL and SIERRA, is indeed performing well against the local-PMR in spite of the low network connectivity between two clusters compared to a intra-cluster network connection.  The overhead arising from the connection between two clusters is indicated in Fig.~\ref{fig:comp_with_seqal_2} with the longer time for shuffling in the case of "distributed-PMR". 
+Another important aspect which can be inferred from results shown in Fig.~\ref{fig:comp_with_seqal_1} is that whereas SEQAL is limited by a single cluster with Hadoop, PMR can be easily scale-across over multiple clusters. The distributed-PMR, which uses the two cluster systems, HOTEL and SIERRA, is indeed performing well against the local-PMR in spite of the low network connectivity between two clusters compared to a intra-cluster network connection.  The overhead arising from the connection between two clusters is indicated in Fig.~\ref{fig:comp_with_seqal_1}(lower) by showing the longer time for shuffling in the case of "distributed-PMR". 
 
 Note that the direct comparison of the Reduce phase is not straightforward due to the potentially different implementation between SEQAL and ours in spite of the fact that we used the same criteria of the duplicate removal of SEQAL\cite{seal_2011_mapred}.  In any event, unlike the Reduce phase, the Map phase of SEQAL and our PMR tool are almost comparable since the same aligner, BWA is used and all parameters (see Table~\ref{table:exp-description}) for configuring a MapReduce task are same in the comparison.   
 
-\begin{figure} 
- \centering
-\includegraphics[scale=0.50]{figures/8GB_phasewisetimes.pdf}
-\caption{\small  Dissected elapsed times for each step of the results shown in Fig.~\ref{fig:comp_with_seqal_1}.  }
-  \label{fig:comp_with_seqal_2} 
-\end{figure}
 
 
 \begin{figure} 
