@@ -502,8 +502,8 @@ The input file format for SEQAL is prq format.  To convert a fasta format sequen
 
 Case & \# of  & \# of &  \# of & \# of & \# of  \\
 E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & available  \\
-$N_M$, $N_R$,  & &  & ers & ers & cores \\
-$S_I$ (GB)) & ($N_{node})$& ($N_W$) & ($N_M) $ & ($N_R$) & per Worker \\
+$N_M$, $N_R$,  & &  & ers & ers & cores per\\
+$S_I$ (GB)) & ($N_{node})$& ($N_W$) & ($N_M) $ & ($N_R$) & Worker \\
  \hline
 E(4, 4, 32, 8, 8) &4 &  4 & 32  & 8 & 8 \\
 E(4, 8, 32, 8, 8) & 4 & 8 & 32 & 8 & 4 \\
@@ -519,7 +519,7 @@ In the case of Hadoop-based MapReduce tools, we set the number of workers per a 
 %$N_{W_{node}}$
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
 
-PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W_{node}}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we can provide the configuration for the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Note that SEQAL and Crossbow turn off this option as default.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with Hotel and the other half in Sierra.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
+PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W/node}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we can provide the configuration for the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Note that SEQAL and Crossbow turn off this option as default.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with Hotel and the other half in Sierra.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
 
 Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
  
@@ -553,7 +553,7 @@ data sets.
  \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-tts.pdf} 
-\caption{\small Need of a scalable solution with increment of data volume.  Read size dependent time-to-solution is measured for MapReduce tasks of read alignment and duplicate removal.  The number of nodes for this experiment,$N_node$ is 16, the number of Workers, $N_W$ is 32, and the chunk size is set to contain 62500 reads.  The number of Reducers is set to 8. BWA is used for read alignment.}
+\caption{\small Need of a scalable solution with increment of data volume.  Read size dependent time-to-solution is measured for MapReduce tasks of read alignment and duplicate removal.  The number of nodes for this experiment,$N_{node}$ is 16, the number of Workers, $N_W$ is 32, and the chunk size is set to contain 62500 reads.  The number of Reducers is set to 8. BWA is used for read alignment.}
   \label{fig:read-size} 
 \end{figure}
 
@@ -564,7 +564,7 @@ The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matte
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-scale.pdf}
-\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate removal.  The number of Workers per node, $N_{W_{node}}$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
+\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate removal.  The number of Workers per node, $N_{W/node}$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
 \alnote{I thought we don't include PMR only data}
   \label{fig:scale-p-saga-mr} 
 \end{figure}
