@@ -54,11 +54,11 @@
 \widowpenalty = 10000
 
 \newif\ifdraft
-%\drafttrue   
+\drafttrue   
 \ifdraft 
 \newcommand{\jkimnote}[1]{{\textcolor{green} { ***Joohyun: #1 }}} 
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
-\newcommand{\pmnote}[1]{ {\textcolor{red} { ***Pradeep: #1 }}}
+\newcommand{\pnote}[1]{ {\textcolor{red} { ***Pradeep: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
 \newcommand{\todo}[1]{ {\textcolor{red} { ***TODO: #1 }}}
 \newcommand{\fix}[1]{ {\textcolor{red} { ***FIX: #1 }}}
@@ -67,7 +67,7 @@
 \else 
 \newcommand{\reviewer}[1]{}
 \newcommand{\jkimnote}[1]{} 
-\newcommand{\pmnote}[1]{}
+\newcommand{\pnote}[1]{}
 \newcommand{\alnote}[1]{}
 \newcommand{\jhanote}[1]{}
 \newcommand{\todo}[1]{}
@@ -140,6 +140,8 @@
 
 \maketitle
 \begin{abstract} 
+\pnote{Next-generation DNA sequencing machines are generating enormous amount of sequencing data, placing unprecedented demands on the requirements of computational resources. MapReduce is proven as an effective programming model to exploit the computational resources efficiently for NGS data analysis.  A traditional single MapReduce achieves parallelism at job(map and reduce) level, whilst most of the workflows involves parallelism at MapReduce level i.e executing multiple MapReduce instances concurrently, where a single cluster does not provide enough resources to deliver significant performance gain \cite{ecmls11-mr-autodock}. Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward. For example in CrossBow SoapSNP is used as reduce phase and merging multiple SoapSNP output data might effect the statistical semantics of data. The output of SoapSNP analysis could be very large as 60 times than the genome size \cite{soap_snp}, which is a ballooning application\cite{weissman-mr-11} and the global reduce is an overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and has been proved to be an effective solution for ballooning applications and also doesn't need a global reduce function. SAGA Pilot-MapReduce(PMR) is flexible, infrastructure-independent, distributed runtime environment for MapReduce. We analyze the scalability, extensibility and usability of PMR on multiple clusters comparing with traditional Hadoop based applications like SEQAL and CrossBow. Our experimental evaluation show that PMR scaled efficiently at multiple levels of parallelism.}
+
   Although localization of Next-Generation Sequencing (NGS) data is
   suitable for many analysis and usage scenarios, it is not
   universally desirable, nor possible. However most solutions
@@ -317,7 +319,7 @@ tasks that can be concurrently executed \& managed; {\it scale-across}
 is a measure of the number of distinct compute resources that an
 application can utilize.
 
-% \pmnote{ Doesn't scale-up and scale-out mean same thing as per above
+% \pnote{ Doesn't scale-up and scale-out mean same thing as per above
 %   description??  In Fig 3, as the number of nodes or cores increase,
 %   the runtime decreases- so its scales-up well.  The concurrency of
 %   tasks, increase with number of cores.. Figure -3 again shows that.
@@ -333,7 +335,7 @@ application can utilize.
   make multiple clusters act collaboratively as one so it can more
   efficiently run MapReduce.''}
 
-%\pmnote{Why do we need a distributed mapreduce framework to process
+%\pnote{Why do we need a distributed mapreduce framework to process
 % distributed data on multiple frameworks?  1. To process the data on
 %  a single cluster takes more time and getting shared HPC resources to
 %  process that huge is also difficult. So distributing the data( Which
@@ -517,13 +519,13 @@ E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\
 
 In the case of Hadoop-based MapReduce tools, we set the number of workers per a node ($N_{W/node}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the parameters for the size of resource, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node.  For example, the memory size of a node wold limit a possible choice for $N_{W/node}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, if not specified differently, the default chunk size of 128MB was used, which corresponds to nearly 292,763 reads.  For example, the size of 2 GB input is broken into 16 files (8 files for each end data) and importantly results in 8 Map phase tasks.  Note that in the case of SEQAL that uses the different format, the chunking process generates the same amount of reads per file.  This chunk size is directly related to the number of Mappers $N_M$ for the alignment task since  $N_M$ is determined as the ratio of the size of input($S_I$) over this chunk.   For the relation between parameters used for the experimental set-up, see the examples in Table\ref{table:exp-description}. 
 %$N_{W_{node}}$
-%The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pmnote{refer to reference paper}  Thus, total 8 workers were used.
+%The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pnote{refer to reference paper}  Thus, total 8 workers were used.
 
 PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W/node}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we can provide the configuration for the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Note that SEQAL and Crossbow turn off this option as default.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with Hotel and the other half in Sierra.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
 
 Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
  
-%   \pmnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
+%   \pnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
 %tts = max( map on Sierra, map on Hotel)+max( time tansfer from Sierra to Hotel, time transfer from Hotel to Sierra)+max(reduce on Sierra, reduce on Hotel)..
 %Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
 %experiments repeated thrice.. }
@@ -643,10 +645,10 @@ correspondingly, less time-to-solution with the aligner.
 %As the number of input sequences increased the time to solution also increased linearly for both SEQAL and local-PMR. 
 %The time to solution decreased by an average of 43.39\% with 95\% confidence interval of 3.03\%. The Map phase of Local-PMR is on an average of 64\% of Map phase of SEQAL application, and is reduced by an average of 35.7\%
 %The reduce phase is very less compared to seqal applicaiton because there is not sort involved in reduce phase.
-%\pmnote{( why is that?? i dont see any reason to have a sort before reduce starts)) we do sort intermediate data before shuffled.}
+%\pnote{( why is that?? i dont see any reason to have a sort before reduce starts)) we do sort intermediate data before shuffled.}
 %The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves sort )
 %
-%\pmnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
+%\pnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why SEQAL performed better.. since, it needs understanding of how SEQAL actually works.
 
 \subsubsection{Scale-across, Extensibility, and Parallelism Support}
 The scale-across over multiple clusters and the ease of extensibility are two important advantages with the PMR as indicated with the benchmarking results.  The ease of extensibility is particularly demonstrated with two aligners, BWA and Bowtie support.  One of the important reasons why multiple aligners are needed is because of the difficulty of validation of an aligner used.  It is well studied that each aligner implements different strategies to deal with the requirement of computational loads, memory usage, and sensitivity associated with decision on algorithms and computational implementations of indexing, search, and match tasks\cite{mapping-survey}   Indeed, the decision of an aligner affects not only alignment results but also scientific discovery with downstream analysis aiming genome variation study, transcriptome analysis, and DAN-protein interactions. Therefore, it is not overstated to emphasize the importance of supporting multiple tools as well as providing an effective means for implementing such tools within a reasonably short development period for infrastructure of NGS data. 
