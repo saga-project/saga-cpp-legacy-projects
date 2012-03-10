@@ -140,7 +140,7 @@
 
 \maketitle
 \begin{abstract} 
-\pnote{Next-generation DNA sequencing machines are generating enormous amount of sequencing data, placing unprecedented demands on the requirements of computational resources. MapReduce is proven as an effective programming model to exploit the computational resources efficiently for NGS data analysis.  A traditional single MapReduce achieves parallelism at job(map and reduce) level, whilst most of the workflows requires parallelism at MapReduce level i.e executing multiple MapReduce instances concurrently, where a single cluster does not provide enough resources to deliver significant performance gain \cite{ecmls11-mr-autodock}. Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward in all cases. For example in CrossBow, SoapSNP is used as reduce phase and merging multiple SoapSNP output data might effect the statistical semantics of data. The output of SoapSNP analysis could be very large as 60 times than the genome size \cite{soap_snp}, which is a ballooning application\cite{weissman-mr-11} and the global reduce is an overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and has been proved to be an effective solution for ballooning applications and also doesn't need a global reduce function. SAGA Pilot-MapReduce(PMR) is flexible, infrastructure-independent, distributed runtime environment for MapReduce. We analyze the scalability, extensibility and usability of PMR on multiple clusters comparing with traditional Hadoop based applications like SEQAL and CrossBow. Our experimental evaluation show that PMR scaled efficiently exhibiting multiple levels of parallelism.}
+\pnote{Next-generation DNA sequencing machines are generating enormous amount of sequencing data, placing unprecedented demands on the requirements of computational resources. MapReduce is proven as an effective programming model to exploit the computational resources efficiently for NGS data analysis.  A traditional single MapReduce achieves parallelism at job(map and reduce) level, whilst most of the workflows requires parallelism at MapReduce level i.e executing multiple MapReduce instances concurrently, where a single cluster does not provide enough resources to deliver significant performance gain \cite{ecmls11-mr-autodock}. Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward in all cases. For example in CrossBow, SoapSNP is used as reduce phase and merging multiple SoapSNP output data might effect the statistical semantics of data. The output of SoapSNP analysis could be very large as 60 times than the genome size \cite{soap_snp}, which is a ballooning application\cite{weissman-mr-11} and the global reduce is an overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and has been proved to be an effective solution for ballooning applications and also doesn't need a global reduce function. SAGA Pilot-MapReduce(PMR) is flexible, infrastructure-independent, distributed runtime environment for MapReduce. We analyze the scalability and extensibility of PMR on multiple clusters comparing with traditional Hadoop based applications like SEQAL and CrossBow. Our experimental evaluation show that PMR scaled efficiently exhibiting multiple levels of parallelism.}
 
   Although localization of Next-Generation Sequencing (NGS) data is
   suitable for many analysis and usage scenarios, it is not
@@ -226,7 +226,7 @@ advances, tools and services, and scalable cyberinfrastructure and
 middleware.
 
 Indeed, it is still common to find many biologists who have sequencing
-data sets and want to pursue their biological/biomedical queries in a
+data sets and want to pursue biological/biomedical queries in a
 timely fashion but are puzzled by the proliferation of tools with
 different algorithms and computational requirements including the
 installation, maintenance, and update of the software tools.
@@ -392,53 +392,64 @@ and analytics.
   such as Amazon EC2.}
 
 \section{Materials and Methods}\label{sec:materials_and_methods} \pnote{can be shortened.. redundant data}
-\subsection{NGS Data Sets and Target Analyses}
-\subsubsection{Data Sets}
-For this work, we used the paired-end sequence RNA-Seq data from the Flemington lab, which had originated from a Human Burkitt's lymphoma cell line\cite{erik_2010}.  The read length is 100 for both directions of paired-end data, and the total size of each data set is about 20.1 GB containing 70,927,422 reads.  For experiments of this work that use a varying size of sequencing data, we simply take the required amount of reads by partitioning the entire data.  For example, 2 GB input size implies 1 GB for one end and 1 GB for the other end data for dealing with paired-end data.  The file format of sequencing data is fasta and all manipulation of sequencing data was conducted by in-house python scripts and freely available tools such as samtools\cite{samtools}.  
-\pnote{section 2.1.1 and 2.2.1 should go into experimentation section; It has more relavance in results section}. 
+In this section we explain the materials and methods used for our NGS data analysis used by PMR and other Hadoop based applications.
 
+\subsection{NGS Data Sets}
+We used paired-end RNA-Seq data from the Flemington lab, which was originated from a Human Burkitt's lymphoma cell line\cite{erik_2010}. The read length is 100 for both directions of paired-end data, and the total size of each data set is about 20.1 GB containing 70,927,422 reads.  For varying size of sequencing data experiments, we chunked the required amount of reads by partitioning the entire data.  For example, 2 GB paired end data implies 1 GB for one end and 1 GB for the other end.  The file format of sequencing data is fasta and all manipulation of sequencing data was conducted by in-house python scripts and samtools\cite{samtools}.  
 
-\subsubsection{DNA Sequence Alignment}
+\subsection{HPC Resources}
+For this work, we used two Futuregrid systems, Sierra and Hotel.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  In brief, two systems are multi-node clusters and equipped with the PBS job scheduler and Hadoop, implying that the systems are appropriate to test our PMR and to compare our results with Hadoop-based tools. Hadoop version 0.20.2 was used with the two FutureGrid machines. A replication factor of 2 and default chunk size of 128 MB is used. 
 
-The short reads alignment and the de-novo assembly are the required first steps in every pipeline software tool aiming biological discovery with sequencing data from NGS platforms.  Considering the fact that the de-novo assembly remains still challenging at this moment primarily arising from the complications with the short length of sequencing reads from NGS machines, in a practical sense, alignment or mapping is taken as the first task in most of cases.  In fact, for RNA-Seq data analysis, in particular with eukaryote genomes, the spliced aligner such as TopHat\cite{pepke2009} is needed. In this work, we consider the alternative strategy such that the non-spliced aligner is used and later splicing events are detected separately, justifying the use of non-spliced aligners such as BWA and Bowtie for the RNA-Seq data.  The reference genome used with these aligners is hg19.
+\subsection{Target NGS Analysis}
+In this section we present the important steps of DNA sequencing considered for our work. 
 
-\subsubsection{Other Data Analyses}
+\subsubsection{Short Read Alignment}
+The short reads alignment and the de-novo assembly are the required first steps in every pipeline software tool aiming biological discovery with sequencing data from NGS platforms.  Considering the fact that the de-novo assembly remains still challenging at this moment, because of the complications with the short length of sequencing reads from NGS machines, in practical sense,  read alignment or mapping is considered as the first task of most of the NGS workflows.\pnote{ Is this required???In fact, for RNA-Seq data analysis, in particular with eukaryote genomes, the spliced aligner such as TopHat\cite{pepke2009} is needed. In this work, we consider the alternative strategy such that the non-spliced aligner is used and later splicing events are detected separately, justifying the use of non-spliced aligners such as BWA and Bowtie for the RNA-Seq data.} We consider non-spliced aligner tools, Bowtie and BWA tools to align short reads onto human reference genome hg19.
 
-After alignment of sequenced reads onto the reference genome, a duplicate read removal step might be required because sample preparation processes before sequencing might contain artifacts stemming from high-throughtput read amplification; many duplicates introduced are not relevant to true biological conditions. characterizing our framework, we compare our results with the SEQAL tool of SEAL package since SEQAL aims to carry out the read alignment and duplicate read removal.  SEQAL uses BWA for the alignment and implements the same criteria as the Picard MarkDuplicates command\cite{seal2011,seal_2011_mapred} or the duplicate read removal.  On the other hand, information about aligned reads is essential for many downstream analyses such as genome variation study, transcriptome analysis, complex functional genomics and pathway analysis.  For example, Crossbow, the tool which we used for comparative study, aims to SNP finding along with aligned results\cite{langmead2009}.  Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool \pnote{ can we change this} is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.
+\subsubsection{Post-Alignment}
+\textit{Duplicate read removal} step might be required  after short read alignment, because sample preparation processes before sequencing might contain artifacts stemming from high-throughtput read amplification; many duplicates introduced are not relevant to true biological conditions. SEQAL is a Hadoop MapReduce application which implements the alignment in map phase using BWA aligner and the same criteria as the Picard MarkDuplicates\cite{seal2011,seal_2011_mapred} for duplicate read removal in reduce phase.
+
+On the other hand, information about aligned reads is essential for many downstream analyses such as SNP finding, genome variation study, transcriptome analysis, complex functional genomics and pathway analysis.
+Crossbow is Hadoop streaming MapReduce application which performs alignment in the map phase using Bowtie aligner and  performs SNP finding in the reduce phase.\cite{langmead2009}. 
+
+%Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool \pnote{ can we change this} is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
 
 \subsection{Experiments: Motivation and Configuration}
 
+%The primary goal of this work is to use a PMR-based tool that is capable
+%of tasks combining the alignment and various downstream analysis for
+%genome structure studies, genotyping, transcriptome analysis,
+%DNA-protein interaction, and sequencing data process such as duplicate
+%read removal.  Our experiments primarily target the comparison of our
+%PMR-based approach with two other Hadoop-based approaches, SEQAL (tool
+%for alignment and duplicate read removal) and Crossbow (tool for alignment
+%and SNP finding) that use slightly different Hadoop-based
+%approaches.(see Table~\ref{table:mr-comparison}).  Unlike such
+%Hadoop-based approaches to MapReduce, we show how a PMR supports
+%scalability across multiple distributed infrastructure including HPC
+%grids and Clouds.
 
-
-A primary goal of this work is to use a PMR-based tool that is capable
-of tasks combining the alignment and various downstream analysis for
-genome structure studies, genotyping, transcriptome analysis,
-DNA-protein interaction, and sequencing data process such as duplicate
-read removal.  Our experiments primarily target the comparison of our
-PMR-based approach with two other Hadoop-based approaches, SEQAL (tool
-for alignment and duplicate read removal) and Crossbow (tool for alignment
-and SNP finding) that use slightly different Hadoop-based
-approaches.(see Table~\ref{table:mr-comparison}).  Unlike such
-Hadoop-based approaches to MapReduce, we show how a PMR supports
-scalability across multiple distributed infrastructure including HPC
-grids and Clouds.
-
-The primary aim of the comparative experiments with SEQAL and Crossbow
-are:
-
+The primary goal of our work is to provide a scalable and extensible MapReduce runtime framework capable of supporting various steps of sequencing procedure. 
+Our experiments primarily target the comparison of our PMR-based approach with Hadoop api based SEQAL (tool for alignment and duplicate removal) and Hadoop streaming based Crossbow (tool for alignment and SNP finding) (see Table 1) to:
 \begin{itemize}
-\item Pros and cons of Hadoop-based approaches
-\item Validate scalability via PMR and understand importance of the
-  support for scale-across.
-\item Demonstrate PMR as a viable solution to (i) combine fine-grained
-  and coarse-grained parallel approaches, (ii) support effective and
-  efficient distributed data scenarios for NGS data analysis
-\item Demonstrate importance of extensibility for multiple tool
-  supports
+\item{Validate PMR extensibility to support multiple NGS analytic tools}
+\item{Validate PMR scalability to support multiple distributed cyberinfrastructures}
+\item{Validate PMR support for fine and coarse grained parallellism}.
 \end{itemize}
 
-\subsubsection{HPC Resources}
-For this work, we used two Futuregrid systems, Sierra and Hotel.  More details on the specification of these machines can be found from the web page of Futuregrid\cite{futuregrid_url}.  In brief, two systems are multi-node clusters and equipped with the PBS job scheduler and Hadoop, implying that the systems are appropriate to test our PMR and to compare our results with Hadoop-based tools.
+%The primary aim of the comparative experiments with SEQAL and Crossbow are:
+%\begin{itemize}
+%\item Pros and cons of Hadoop-based approaches
+%\item Validate scalability via PMR and understand importance of the
+%  support for scale-across.
+%\item Demonstrate PMR as a viable solution to (i) combine fine-grained
+%  and coarse-grained parallel approaches, (ii) support effective and
+%  efficient distributed data scenarios for NGS data analysis
+%\item Demonstrate importance of extensibility for multiple tool
+%  supports
+
+
+
 
 \subsubsection{MapReduce-based NGS Data Analytics using Pilot-based SAGA-MapReduce (PMR)}
 The two combined steps such as alignment and duplicate read removal or alignment and SNP finding are attractive targets for  parallelizing tasks by using MapReduce; the read alignment step is conducted as a Map phase and duplicate read removal or SNP finding as a Reduce phase.  Note that a certain kind of combination for designing a MapReduce-based tool is immediately conceivable for other advanced downstream analyses such as transcript quantification or peak calling for other advanced NGS protocols.  The development for such tools will be announced in the future works.
