@@ -574,45 +574,66 @@ E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\
 \end{table}
 
 In the case of Hadoop-based MapReduce tools, we set the number of
-workers per a node ($N_{W/node}$), \jhanote{need better notation..}the number of mappers ($N_M$) and
-the number of reducers ($N_R$) via Hadoop configuration or tool
-configuration.  These number should be carefully chosen along with the
-parameters for the size of resource, i.e., the number of nodes
-($N_{node}$) and the given number of cores in a node.  For example,
-the memory size of a node wold limit a possible choice for
-$N_{W/node}$ since such multiple workers in a node might need more
-memories than the total memory of the node and consequently fail to
-run.  Importantly, note that such parameters dictate the parallelism
-of a target task with MapReduce configuration as well as fine-grained
-parallelism that might be implemented in tasks for Map or Reduce
-phases.  For the input data partitioning, if not specified
-differently, the default chunk size of 128MB was used, which
-corresponds to nearly 292,763 reads.  For example, the size of 2 GB
-input is broken into 16 files (8 files for each end data) and
-importantly results in 8 Map phase tasks.  Note that in the case of
-SEQAL that uses the different format, the chunking process generates
-the same amount of reads per file.  This chunk size is directly
-related to the number of Mappers $N_M$ for the alignment task since
-$N_M$ is determined as the ratio of the size of input($S_I$) over this
-chunk.  For the relation between parameters used for the experimental
-set-up, see the examples in Table\ref{table:exp-description}.
+workers per a node ($N_{W/node}$), \jhanote{need better notation..}the
+number of mappers ($N_M$) and the number of reducers ($N_R$) via
+Hadoop configuration or tool configuration.  These number should be
+carefully chosen along with the parameters for the size of resource,
+i.e., the number of nodes ($N_{node}$) and the given number of cores
+in a node.  For example, the memory size of a node wold limit a
+possible choice for $N_{W/node}$ since such multiple workers in a node
+might need more memories than the total memory of the node and
+consequently fail to run.  
+
+Such parameters dictate the degree of parallelism of a target task
+with MapReduce configuration as well as fine-grained parallelism that
+might be implemented in tasks for Map or Reduce phases.  For the input
+data partitioning, if not specified differently, the default chunk
+size of 128MB was used, which corresponds to nearly 292,763 reads.
+For example, the size of 2 GB input is broken into 16 files (8 files
+for each end data), and results in 8 Map phase tasks.  Note that in
+the case of SEQAL which uses a different format, the chunking process
+generates the same amount of reads per file.  This chunk size is
+directly related to the number of Mappers $N_M$ for the alignment task
+since $N_M$ is determined as the ratio of the size of input($S_I$)
+over this chunk.  For the relation between parameters used for the
+experimental set-up, see examples in Table\ref{table:exp-description}.
 %$N_{W_{node}}$
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pnote{refer to reference paper}  Thus, total 8 workers were used.
 
-PMR set-up is as follows.  Similar to the Hadoop-based MapReduce tools, the configuration requires to set $N_{node}$, $N_W$, and the size of BigJobs that is a task container in our Pilot framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that $N_W$ has no limitation with the size of a node since multiple-node worker is possible when a tool executed by a work supports multi-node parallel implementation such as MPI.  Thus, with PMR, we set $N_W$, instead $N_{W/node}$.  Since BWA and Bowtie have an option for multi-threading, with PMR, we can provide the configuration for the option as ON or OFF to understand the impact of such fine-grained parallelism along with coarse-grained parallelism with the MapReduce framework.  Note that SEQAL and Crossbow turn off this option as default.  Also, multiple clusters can be used for MapReduce. For example, the half of workers are assigned with Hotel and the other half in Sierra.  For a single system set up, like the two Hadoop-based MapReduce tools, all workers are now running in the system.  
+PMR set-up is as follows: Similar to the Hadoop-based MapReduce tools,
+the configuration requires to set $N_{node}$, $N_W$, and the size of
+BigJobs that is a task container in our Pilot
+framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that
+$N_W$ has no limitation with the size of a node since multiple-node
+worker is possible when a tool executed by a work supports multi-node
+parallel implementation such as MPI.  Thus, with PMR, we set $N_W$,
+instead $N_{W/node}$.  Since BWA and Bowtie have an option for
+multi-threading, with PMR, we can provide the configuration for the
+option as ON or OFF to understand the impact of such fine-grained
+parallelism along with coarse-grained parallelism with the MapReduce
+framework.  Note that SEQAL and Crossbow turn off this option as
+default.  Also, multiple clusters can be used for MapReduce. For
+example, half of the workers are assigned to Hotel, and the other half
+to Sierra.  For a single system set up, like the two Hadoop-based
+MapReduce tools, all workers run on a given system.
 
-Data management is an important component for any tools processing distributed data with parallel strategies and the efficiency of data transfer should be considered when a MapReduce-based tool is assessed.  Whereas Hadoop-based approaches relies upon HDFS and TCP/IP-based communication between data nodes, PMR uses SAGA Advert coordination among workers via Pilot framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR, indeed, is flexible and extensible for scaling across multiple clusters without the global file system support.  
+Data management is an important component for tools processing
+distributed data; the efficiency of data transfer should be considered
+when a MapReduce-based tool is assessed.  Whereas Hadoop-based
+approaches rely upon HDFS and TCP/IP-based communication between data
+nodes, PMR uses SAGA Advert coordination among workers via Pilot
+framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR provides the
+ability to scale across multiple clusters without the global file
+system support.
  
 %   \pnote{chunksize = number of lines of fastq file ( number of sequences (292763 * 4 ) since in fastq each sequence is of 4 lines..
 %tts = max( map on Sierra, map on Hotel)+max( time tansfer from Sierra to Hotel, time transfer from Hotel to Sierra)+max(reduce on Sierra, reduce on Hotel)..
 %Graph : x axis- (2,4,8 input sizes) with chunk size 292763 sequences, number of workers=8, reduces=8.
 %experiments repeated thrice.. }
  
-For the experiments with PMR using distributed resources, we assume
-that all input and required data are stored initially on a single
-cluster to process and measure the time for distributing data.
-
-
+For experiments with PMR using distributed resources, we assume that
+all input and required data are stored initially on a single cluster
+to process and measure the time for distributing data.
 
 \section{Results}\label{sec:results}
 
