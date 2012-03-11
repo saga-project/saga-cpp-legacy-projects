@@ -416,51 +416,49 @@ Crossbow is Hadoop streaming MapReduce application which performs alignment in t
 
 \subsection{Experiments: Motivation and Configuration}
 
-%The primary goal of this work is to use a PMR-based tool that is capable
-%of tasks combining the alignment and various downstream analysis for
-%genome structure studies, genotyping, transcriptome analysis,
-%DNA-protein interaction, and sequencing data process such as duplicate
-%read removal.  Our experiments primarily target the comparison of our
-%PMR-based approach with two other Hadoop-based approaches, SEQAL (tool
-%for alignment and duplicate read removal) and Crossbow (tool for alignment
-%and SNP finding) that use slightly different Hadoop-based
-%approaches.(see Table~\ref{table:mr-comparison}).  Unlike such
-%Hadoop-based approaches to MapReduce, we show how a PMR supports
-%scalability across multiple distributed infrastructure including HPC
-%grids and Clouds.
+The primary goal of our work is to provide a scalable and extensible
+MapReduce runtime framework capable of supporting various steps of
+sequencing procedure.
 
-The primary goal of our work is to provide a scalable and extensible MapReduce runtime framework capable of supporting various steps of sequencing procedure. 
-Our experiments primarily target the comparison of our PMR-based approach with Hadoop api based SEQAL (tool for alignment and duplicate removal) and Hadoop streaming based Crossbow (tool for alignment and SNP finding) (see Table 1) to:
+Our experiments primarily target the comparison of PMR-based approach
+with Hadoop API based SEQAL (tool for alignment and duplicate removal)
+and Hadoop streaming based Crossbow (tool for alignment and SNP
+finding) (see Table 1) to:
 \begin{itemize}
 \item{Validate PMR extensibility to support multiple NGS analytic tools}
 \item{Validate PMR scalability to support multiple distributed cyberinfrastructures}
 \item{Validate PMR support for fine and coarse grained parallellism}.
 \end{itemize}
 
-%The primary aim of the comparative experiments with SEQAL and Crossbow are:
-%\begin{itemize}
-%\item Pros and cons of Hadoop-based approaches
-%\item Validate scalability via PMR and understand importance of the
-%  support for scale-across.
-%\item Demonstrate PMR as a viable solution to (i) combine fine-grained
-%  and coarse-grained parallel approaches, (ii) support effective and
-%  efficient distributed data scenarios for NGS data analysis
-%\item Demonstrate importance of extensibility for multiple tool
-%  supports
-
-
 \subsubsection{NGS Data Analytics using PMR}
-The two combined steps such as alignment and duplicate read removal or
-alignment and SNP finding are attractive targets for parallelizing
-tasks by using MapReduce; the read alignment step is conducted as a
-Map phase and duplicate read removal or SNP finding as a Reduce phase.
+
+The two combined steps of alignment and duplicate read removal, or
+alignment and SNP-finding are amenable to task-level parallelism as
+used by MapReduce; the read alignment step is conducted as a Map
+phase, and duplicate read removal or SNP finding as the Reduce phase.
 Note that a certain kind of combination for designing a
 MapReduce-based tool is immediately conceivable for other advanced
 downstream analyses such as transcript quantification or peak calling
 for other advanced NGS protocols.  The development for such tools will
-be announced in the future works.
+be discussed in the future works.
 
-The schematic workflow and architecture for running PMR is presented in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure computational tasks of the map phase and the reduce phase including the number of workers, available fine-grained parallelism options of software tools used for each phase, and configurations for Pilot Job (BigJob).  Note that we can choose many different combinations of these configurations (i.e. associated with parallel options with used software tools, and Pilot and MapReduce levels) for different strategies that tune the parallelism for a target analysis (in which map and reduce phases are decoupled, of course) differently by carefully considering fine-grained and coarse-grained parallelism levels.  Below, we describe more details on the parameters that we vary for a specific experiment.  Also, we consider the simple scenario with the Pilot configuration; we only create one PilotJob per each resource. For more details on the use of dynamic Pilot-based job execution, refer our previous publications\cite{dare-ecmls11,dare-tg11,repex_ptrsa}.    
+The schematic workflow and architecture for running PMR is presented
+in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure
+computational tasks of the map phase and the reduce phase including
+the number of workers, available fine-grained parallelism options of
+software tools used for each phase, and configurations for Pilot Job
+(BigJob).  Note that we can choose many different combinations of
+these configurations (i.e. associated with parallel options with used
+software tools, and Pilot and MapReduce levels) for different
+strategies that tune the parallelism for a target analysis (in which
+map and reduce phases are decoupled, of course) differently by
+carefully considering fine-grained and coarse-grained parallelism
+levels.  Below, we describe more details on the parameters that we
+vary for a specific experiment.  Also, we consider the simple scenario
+with the Pilot configuration; we only create one PilotJob per each
+resource. For more details on the use of dynamic Pilot-based job
+execution, refer our previous
+publications\cite{dare-ecmls11,dare-tg11,repex_ptrsa}.
 
 As shown in Fig.~\ref{fig:arch-pj-saga-mr}, PMR implements a MapReduce task with the Pilot framework\cite{pmr2012} with the following workflow. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.  Note that this unit of workflow can be extended to scenarios of hierarchical MR or distributed MR\cite{pmr2012}.  
 
@@ -698,66 +696,97 @@ Even though it is feasible for other tools such as SEQAL or Crossbow to handle s
 
 
 \section{Discussion}\label{sec:discussions}
-\textit{Computational Challenges for NGS data analysis, processing, and downstream analysis}
 
-In the last several years, every area of biology and biomedical fields
-has witnessed a paradigm change with DNA sequencing data generated by
-NGS
+% \textit{Computational Challenges for NGS data analysis, processing,
+%   and downstream analysis}
+
+DNA sequencing data generated by NGS
 platforms\cite{metzker2010,1000genome,wang2009-natrevgen,alex2009,mcpherson2009}.
-Most importantly, these high-throughput technologies were able to
-provide the thorough information about an entire genome or
-statistically meaningful number of genomes of same species or related
-ones with enormously affordable cost, resulting in an influx of
-unprecedented amount of data.  While there have been algorithmic
-advances and a plethora of new software tools particularly leveraged
-by user-friendly interface via web-based tools, GUI tools, or computing environments \cite{galaxy}, the holistic infrastructure
-development is lagging behind the community-wise demand.  One of
-important conner stones for such development is to support scalable
-computational tasks or distributed data management.  MapReduce is a
+has resulted in a fundamental change in the amount of data that needs
+to be analyzed. Such high-throughput technologies are able to provide
+information about an entire genome or statistically meaningful number
+of genomes of same species or related speices.
+
+% In the last several years, every area of biology and biomedical
+% fields has witnessed a paradigm change with DNA sequencing data
+% generated by NGS
+% platforms\cite{metzker2010,1000genome,wang2009-natrevgen,alex2009,mcpherson2009}.
+% Most importantly, these high-throughput technologies were able to
+% provide the thorough information about an entire genome or
+% statistically meaningful number of genomes of same species or
+% related ones with enormously affordable cost, resulting in an influx
+% of unprecedented amount of data.
+
+While there have been algorithmic advances and a plethora of new
+software tools t by user-friendly interface via web-based tools, GUI
+tools, or computing environments \cite{galaxy}, the end-to-end
+development of scalable infrastructure is lagging.  MapReduce is a
 widely employed programming model for parallelization of a large data
-process, and as reported by others with the tools listed in
-Table~\ref{table:mr-comparison}, we observed that PMR based on
-MapReduce provided the efficient methods for dealing with the required
+process; as reported by others with the tools listed in
+Table~\ref{table:mr-comparison}, we observed that an efficient 
+runtime environment for MapReduce such as that provided by PMR 
+enables efficient methods for dealing with the required
 scalability of NGS data analysis which comprises short reads alignment
 and other following analysis such as duplicate read removal and SNP
 finding.
 
 %First, as shown in  Fig.~\ref{fig:read-size} and Fig.~\ref{fig:scale-p-saga-mr}. the Map phase, read alignment, takes significantly more time than the task with the %Reduce phase, duplicate read removal or other steps such as chunking input dta.  Secondly, the Reduce phase task, like the Map phase task, i.e. read alignment, additive.  %Here, the term additive means $f(X + Y) = f(X) + f(Y)$ where $X$ and $Y$ are input variables and $f$ represents the Map or the Reduce function.  On the contrary, SNP f%inding or other advanced NGS analysis are not in this type of analysis.   
 
+% \textit{PMR, a viable solution for scale-across and extensible
+%   framework for NGS data analytics}
 
-\textit{PMR, a viable solution for scale-across and extensible framework for NGS data analytics}
+\textit{PMR -- A viable solution for scale-across and extensible NGS
+  analytics:} In fact, not only is PMR a viable solution for
+scale-across and extensible framework for NGS data analytics, it
+provides some unique features, viz., support for distributed data
+analysis and multiple tools that can each exploit multiple levels of
+parallelism.  In other words, PMR provides a runtime environment with
+which minimally modified, yet standalone target tools are executed in
+multiple network-connected infrastructures and the overall workflow
+can be dynamically optimized by exploiting multiple levels of
+parallelism. Furthermore, as indicated by results for BWA and Bowtie
+for alignment, PMR allows further extensions of existing
+implementation with other complementary tools or a flexible pipeline
+development.  In fact, our primary goal behind this work is to develop
+an integrative pipeline service for RNA-Seq data, and our development
+presented in this work is indicative of preliminary progresses toward
+such a goal.
 
-PMR is a unique framework combining the MapReduce framework and the Pilot-based framework for distributed task and data management\cite{pmr2012}.  Considering the usefulness of data parallelization and processing for sizable NGS data and its analysis that might need the utilization of distributed compute resources and data storage, this combination of two frameworks implemented in PMR is the key aspect that positions PMR as a viable framework for a diverse set of NGS data analytics and downstream analyses.  In addition, the Pilot framework of PMR provides a runtime environment with which minimally modified standalone target tools are executed in multiple network-connected infrastructures and the overall workflow can be dynamically optimized by exploiting multiple levels of parallelism strategies as shown with our results.    Furthermore, as indicated in the results to show the support of multiple tools (BWA and Bowtie for alignment), the design strategy behind PMR is to allow an effective development cycle for further extensions of of existing implementation with other complementary tools or a flexible pipeline development.  In fact, our primary goal behind this work is to develop an integrative pipeline service for RNA-Seq data, and our development presented in this work is indicative of preliminary progresses toward such a goal. 
+\textit{PMR vs. Hadoop-based MapReduce tools: }The open source Hadoop
+provides an ideal environment for the tools based on the MapReduce
+programming model.  Perhaps, the ease of installation with commodity
+hardware and the robust stability with fault-resilency and easy
+scalability could propel a wide acceptance of Hadoop.  Nonetheless,
+Hadoop-based approaches find many hurdles in distributed contexts and
+scenarios: for example, when scaling across multiple
+clusters\cite{weissman-mr-11}, the execution of applications across
+multi-nodes such as one using MPI, and the solutions involving the
+limitations imposed by a current Hadoop implementation need to be
+addressed.
 
-\textit{PMR vs. Hadoop-based MapReduce tools}
-
-The open source Hadoop provides an ideal environment for the tools
-based on the MapReduce programming model.  Perhaps, the ease of
-installation with commodity hardware and the robust stability with
-fault-resilency and easy scalability could propel a wide acceptance of
-Hadoop.  Nonetheless, Hadoop-based approaches find many huddles when
-the scalability across multiple clusters\cite{weissman-mr-11}, the
-execution of applications across multi-nodes such as one using MPI,
-and the solutions resolving limitations imposed by a current Hadoop
-implementation need to be addressed.  For example, due to the issue of
-scalability with Hadoop for a large scale problem, already discussions
-and suggestions for the next-generation Hadoop have been circulated in
-the community\cite{ng-hadoop-url}.  Indeed, as evidenced with the
-comparison of our PMR-based read alignment and a following analysis
-with two Hadoop-based tools, Crossbow and SEAQL, distinctive
-advantages of our PMR-based implementation are clearly demonstrated
-for such issues.
+For example, due to limited scalability with Hadoop, discussions and
+suggestions for the next-generation Hadoop are being circulated in the
+community\cite{ng-hadoop-url}.\jhanote{What suggestions are these? Why
+  are they relevant here?}  But as evidenced with the comparison of
+our PMR-based read alignment and a following analysis with two
+Hadoop-based tools -- Crossbow and SEAQL, PMR-based implementations
+demonstrate scalability advantages over Hadoop-based approaches.
 
 %It was reported that the overall performance of Hadoop-based MapReduce is determined by the unknown network performance and the connectivity between the data storage and the compute which are determined by characteristics of the cluster Hadoop is installed.  The tight coupling between the MapReduce applications with underlying Hadoop causes unnecessary complexity when the optimization or the design of parallel execution is required.  Secondly, it is not trivial to scale across different clusters.  Many issues on the connectivity between two separate clusters including firewalls, different security policies, and potentially different administration structure are making difficult to extend Hadoop with other cluster systems.  Thirdly, it is a still ongoing concern that Hadoop's current implementation has obstacles from the scalability issue with the design with Namenode and Job tracker.   The open source Hadoop is implemented with a job and task tracker: the job tracker is the central manager that dispatches map and reduce tasks to the nodes(nodes could be from multiple clusters) of the Hadoop cluster. On each node the task tracker is responsible for executing the respective tasks. The main limitation of this architecture is the fact that it intermixes both cluster resource management and application-level task managements. Thus, it is e.g. not easily possible to integrate Hadoop with another resource management tool, e.g. PBS or Torque. Also, the job tracker represents a single point of failure and scalability bottleneck. Another limitation is the latencies between machines should not be so big as HDFS uses Avro - an RPC-style protocol for communications.
 %
 %Collectively, PMR has edges in terms of flexibility and non-Hadoop-based architecture
 
 
-\textit{DARE and beyond}
-
-PMR-based NGS tools, implemented and scrutinized in this work, were developed in conjunction with our development of the runtime environment for dynamic applications, Dynamic Application Runtime Environment (DARE)\cite{dare-tg11,dare-ecmls11}.  DARE is our strategically important component for the development of Science Gateway for NGS data analytics and downstream analysis.  Under the design strategy of DARE-based gateways, PMR-based tools were conceived to be a main category of supporting execution patterns for parallel and distributed task and data management.  
-
-
+\textit{DARE and beyond: }PMR-based NGS tools, implemented and
+scrutinized in this work, were developed in conjunction with our
+development of the runtime environment for dynamic applications,
+Distributed Application Runtime Environment
+(DARE)~\cite{dare-tg11,dare-ecmls11}.  DARE is a strategically
+important component for the development of Science Gateway for NGS
+data analytics and downstream analysis.  Under the design strategy of
+DARE-based gateways, PMR-based tools were conceived to be a main
+category of supporting execution patterns for parallel and distributed
+task and data management.
 
 
 \section*{Acknowledgement}
