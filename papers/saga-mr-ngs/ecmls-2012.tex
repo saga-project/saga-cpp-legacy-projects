@@ -434,33 +434,43 @@ finding) (see Table 1) to:
 
 The two combined steps of alignment and duplicate read removal, or
 alignment and SNP-finding are amenable to task-level parallelism as
-used by MapReduce; the read alignment step is conducted as a Map
-phase, and duplicate read removal or SNP finding as the Reduce phase.
-Note that a certain kind of combination for designing a
-MapReduce-based tool is immediately conceivable for other advanced
-downstream analyses such as transcript quantification or peak calling
+provided/used by MapReduce; the read alignment step is conducted as a
+Map phase, and duplicate read removal or SNP finding as the Reduce
+phase.  MapReduce-based tool can also be used for other advanced
+downstream analyses, such as transcript quantification or peak calling
 for other advanced NGS protocols.  The development for such tools will
-be discussed in the future works.
+logically follow this work.
 
-The schematic workflow and architecture for running PMR is presented
-in Fig.~\ref{fig:arch-pj-saga-mr}.  As indicated, we need to configure
-computational tasks of the map phase and the reduce phase including
-the number of workers, available fine-grained parallelism options of
-software tools used for each phase, and configurations for Pilot Job
-(BigJob).  Note that we can choose many different combinations of
-these configurations (i.e. associated with parallel options with used
-software tools, and Pilot and MapReduce levels) for different
-strategies that tune the parallelism for a target analysis (in which
-map and reduce phases are decoupled, of course) differently by
-carefully considering fine-grained and coarse-grained parallelism
-levels.  Below, we describe more details on the parameters that we
-vary for a specific experiment.  Also, we consider the simple scenario
-with the Pilot configuration; we only create one PilotJob per each
-resource. For more details on the use of dynamic Pilot-based job
-execution, refer our previous
-publications\cite{dare-ecmls11,dare-tg11,repex_ptrsa}.
+% The schematic workflow and architecture for running PMR is presented
+% in Fig.~\ref{fig:arch-pj-saga-mr}.  
 
-As shown in Fig.~\ref{fig:arch-pj-saga-mr}, PMR implements a MapReduce task with the Pilot framework\cite{pmr2012} with the following workflow. 1.PMR launches Map tasks on N clusters using the Pilot framework. 2. After the Map stage, PMR exchanges Intermediate data between clusters using Pilot-Data of Pilot framework  3. Finally, PMR launches Reduce tasks on N clusters using Pilot framework.  Note that this unit of workflow can be extended to scenarios of hierarchical MR or distributed MR\cite{pmr2012}.  
+% Also, we consider the simple scenario
+% with the Pilot configuration; we only create one PilotJob per each
+% resource. For more details on the use of dynamic Pilot-based job
+% execution, refer our previous
+% publications\cite{dare-ecmls11,dare-tg11,repex_ptrsa}.
+
+Fig.~\ref{fig:arch-pj-saga-mr} illustrates the MapReduce flow using
+PMR~\cite{pmr2012}: 1.~PMR launches Map tasks on N clusters using the
+Pilot framework. 2.~After the Map stage, PMR exchanges Intermediate
+data between clusters using Pilot-Data of Pilot framework 3.~Finally,
+PMR launches Reduce tasks on N clusters using Pilot framework.  Note
+that this unit of workflow can be extended to scenarios of
+hierarchical MR or distributed MR\cite{pmr2012}.
+
+As indicated, we need to configure computational tasks of the map
+phase\jhanote{Please be consistent: either use ``Map'' phase or use
+  ``map'' phase} and the reduce \jhanote{similiary please use reduce
+  or Reduce..} phase including the number of workers, available
+fine-grained parallelism options of software tools used for each
+phase, and configurations for Pilot Job. Note that we can choose many
+different combinations of these configurations (i.e. associated with
+parallel options with used software tools, and Pilot and MapReduce
+levels) for different strategies that tune the parallelism for a
+target analysis (in which map and reduce phases are decoupled, of
+course) differently by carefully considering fine-grained and
+coarse-grained parallelism levels.  Below, we describe more details on
+the parameters that we vary for a specific experiment.
 
 \begin{center}
 \begin{table*}[ht]
@@ -511,21 +521,37 @@ Among the software tools compared in ~\ref{table:mr-comparison}, we
 chose SEQAL of the SEAL package and Crossbow for the comparison.  Note
 that these two tools along with other tools such as Cloudburst and
 GATK are different from each other with respect to the usage mode of
-MapReduce and the design strategies behind each tool for parallelism,
-in particular, aiming NGS data processing and management as summarized
-in Table~\ref{table:mr-comparison}.  Importantly, SEQAL and Crossbow
-are Hadoop-based tools but differ in that the former is designed
-conventionally with implementing Map and Reduce functions whereas the
+MapReduce and the parallel strategies they employ, in particular, for
+NGS data processing and management as summarized in
+Table~\ref{table:mr-comparison}.  Importantly, SEQAL and Crossbow are
+Hadoop-based tools but differ in that the former is designed
+by implementing Map and Reduce functions, whereas the
 latter uses Hadoop-streaming.  In the case of Crossbow, the overall
-analysis is taken with 4 steps.  Each step is an independent
-Hadoop-streaming task.  The first step is for pre-processing and the
+analysis is comprised of 4 steps, where each step is an independent
+Hadoop-streaming task. The first step is for pre-processing and the
 last one is for post-processing. The second one is for the alignment
 and the third one is for SNP finding, which uses slightly modified
 Bowtie and SOAPsnp.
 
-For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2 was used with the two FutureGrid machines.  For SEQAL experiment, SEAL version 0.2.3 was used and for Crossbow experiments, we used version 1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.  For SEQAL and Crossbow experiment, the replication factor for Hadoop configuration is set  to 2.  If not specified, all options for aligners and external tools as well as SEQAL and Crossbow setting are default as suggested.  For example, SEQAL does not support the multi-threading option of BWA, whereas Crossbow sets up the default option for Bowtie, "--mm" to support running many concurrent Bowtie processes on a node while sharing the memory index to avoid memory overhead effectively.  
+For the two applications, SEQAL and Crossbow, Hadoop version 0.20.2
+was used with the two FutureGrid machines.  For SEQAL experiment, SEAL
+version 0.2.3 was used; for Crossbow experiments, version
+1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.
+\jhanote{Please be consistent with upper case: use either upper
+or lower for all tools!}
 
-The input file format for SEQAL is prq format.  To convert a fasta format sequence file to this format, we use SEAL, a software tool containing SEQAL as a part that has a file conversion capacity between qseq/fastq and prq format.  
+For SEQAL and Crossbow experiment, the replication factor for Hadoop
+configuration is set to 2.  If not specified, all options for aligners
+and external tools as well as SEQAL and Crossbow setting are default
+as suggested.  For example, SEQAL does not support the multi-threading
+option of BWA, whereas Crossbow sets up the default option for Bowtie,
+"--mm" to support running many concurrent Bowtie processes on a node
+while sharing the memory index to avoid memory overhead effectively.
+
+The input file format for SEQAL is prq format.  To convert a fasta
+format sequence file to this format, we use SEAL, a software tool
+containing SEQAL as a part that has a file conversion capacity between
+qseq/fastq and prq format.
 
 \begin{table}
 \small
@@ -547,7 +573,29 @@ E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\
     \label{table:exp-description} 
 \end{table}
 
-In the case of Hadoop-based MapReduce tools, we set the number of workers per a node ($N_{W/node}$), the number of mappers ($N_M$) and the number of reducers ($N_R$) via Hadoop configuration or tool configuration.  These number should be carefully chosen along with the parameters for the size of resource, i.e., the number of nodes ($N_{node}$) and the given number of cores in a node.  For example, the memory size of a node wold limit a possible choice for $N_{W/node}$ since such multiple workers in a node might need more memories than the total memory of the node and consequently fail to run.  Importantly, note that such parameters dictate the parallelism of a target task with MapReduce configuration as well as fine-grained parallelism that might be implemented in tasks for Map or Reduce phases.  For the input data partitioning, if not specified differently, the default chunk size of 128MB was used, which corresponds to nearly 292,763 reads.  For example, the size of 2 GB input is broken into 16 files (8 files for each end data) and importantly results in 8 Map phase tasks.  Note that in the case of SEQAL that uses the different format, the chunking process generates the same amount of reads per file.  This chunk size is directly related to the number of Mappers $N_M$ for the alignment task since  $N_M$ is determined as the ratio of the size of input($S_I$) over this chunk.   For the relation between parameters used for the experimental set-up, see the examples in Table\ref{table:exp-description}. 
+In the case of Hadoop-based MapReduce tools, we set the number of
+workers per a node ($N_{W/node}$), \jhanote{need better notation..}the number of mappers ($N_M$) and
+the number of reducers ($N_R$) via Hadoop configuration or tool
+configuration.  These number should be carefully chosen along with the
+parameters for the size of resource, i.e., the number of nodes
+($N_{node}$) and the given number of cores in a node.  For example,
+the memory size of a node wold limit a possible choice for
+$N_{W/node}$ since such multiple workers in a node might need more
+memories than the total memory of the node and consequently fail to
+run.  Importantly, note that such parameters dictate the parallelism
+of a target task with MapReduce configuration as well as fine-grained
+parallelism that might be implemented in tasks for Map or Reduce
+phases.  For the input data partitioning, if not specified
+differently, the default chunk size of 128MB was used, which
+corresponds to nearly 292,763 reads.  For example, the size of 2 GB
+input is broken into 16 files (8 files for each end data) and
+importantly results in 8 Map phase tasks.  Note that in the case of
+SEQAL that uses the different format, the chunking process generates
+the same amount of reads per file.  This chunk size is directly
+related to the number of Mappers $N_M$ for the alignment task since
+$N_M$ is determined as the ratio of the size of input($S_I$) over this
+chunk.  For the relation between parameters used for the experimental
+set-up, see the examples in Table\ref{table:exp-description}.
 %$N_{W_{node}}$
 %The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pnote{refer to reference paper}  Thus, total 8 workers were used.
 
