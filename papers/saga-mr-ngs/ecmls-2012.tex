@@ -44,6 +44,7 @@
 \usepackage{ifpdf}
 \usepackage{hyperref}
 \usepackage[numbers, compress]{natbib}
+\usepackage{array}
 
 \begin{document}
 
@@ -140,7 +141,7 @@
 
 \maketitle
 \begin{abstract} 
-\pnote{Next-generation DNA sequencing machines are generating enormous amount of sequencing data, placing unprecedented demands on the requirements of computational resources. MapReduce is proven as an effective programming model to exploit the computational resources efficiently for NGS data analysis.  A traditional single MapReduce achieves parallelism at job(map and reduce) level, whilst most of the workflows requires parallelism at MapReduce level i.e executing multiple MapReduce instances concurrently, where a single cluster does not provide enough resources to deliver significant performance gain \cite{ecmls11-mr-autodock}. Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward in all cases. For example in CrossBow, SoapSNP is used as reduce phase and merging multiple SoapSNP output data might effect the statistical semantics of data. The output of SoapSNP analysis could be very large as 60 times than the genome size \cite{soap_snp}, which is a ballooning application\cite{weissman-mr-11} and the global reduce is an overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and has been proved to be an effective solution for ballooning applications and also doesn't need a global reduce function. SAGA Pilot-MapReduce(PMR) is flexible, infrastructure-independent, distributed runtime environment for MapReduce. We analyze the scalability and extensibility of PMR on multiple clusters comparing with traditional Hadoop based applications like Seqal and CrossBow. Our experimental evaluation show that PMR scaled efficiently exhibiting multiple levels of parallelism.}
+\pnote{Next-generation DNA sequencing machines are generating enormous amount of sequencing data, placing unprecedented demands on the requirements of computational resources. MapReduce is proven as an effective programming model to exploit the computational resources efficiently for NGS data analysis.  A traditional single MapReduce achieves parallelism at job(map and reduce) level, whilst most of the workflows requires parallelism at MapReduce level i.e executing multiple MapReduce instances concurrently, where a single cluster does not provide enough resources to deliver significant performance gain \cite{ecmls11-mr-autodock}. Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward in all cases. For example in Crossbow, SOAPsnp is used as reduce phase and merging multiple SOAPsnp output data might effect the statistical semantics of data. The output of SOAPsnp analysis could be very large as 60 times than the genome size \cite{soap_snp}, which is a ballooning application\cite{weissman-mr-11} and the global reduce is an overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and has been proved to be an effective solution for ballooning applications and also doesn't need a global reduce function. SAGA Pilot-MapReduce(PMR) is flexible, infrastructure-independent, distributed runtime environment for MapReduce. We analyze the scalability and extensibility of PMR on multiple clusters comparing with traditional Hadoop based applications like Seqal and Crossbow. Our experimental evaluation show that PMR scaled efficiently exhibiting multiple levels of parallelism.}
 
   Although localization of Next-Generation Sequencing (NGS) data is
   suitable for many analysis and usage scenarios, it is not
@@ -372,7 +373,7 @@ and analytics.
 %\includegraphics[scale=0.45]{figures/align-dup.pdf} 
 \includegraphics[scale=0.35]{figures/F1_1.pdf} 
 \hfill{}
-\caption{\small PMR architecture and the workflow for a MapReduce task: The compute and data units are basic blocks of scheduling in Pilot abstractions ~\cite{pstar11}. In our NGS analysis, the compute units in map phase are the alignment tasks, data units in the shuffle phase refer intermediate data units generated and compute units in reduce phase could be either duplicate read removal or SoapSNP tasks.}
+\caption{\small PMR architecture and the workflow for a MapReduce task: The compute and data units are basic blocks of scheduling in Pilot abstractions ~\cite{pstar11}. In our NGS analysis, the compute units in map phase are the alignment tasks, data units in the shuffle phase refer intermediate data units generated and compute units in reduce phase could be either duplicate read removal or SOAPsnp tasks.}
   \label{fig:arch-pj-saga-mr} 
 \end{figure*}
 \end{center}
@@ -478,12 +479,12 @@ the parameters that we vary for a specific experiment.
 \hfill{}
 \begin{tabular}{|l|l|c|c|c|c|c|c|}
 \hline
-  & \textbf{PMR}\cite{pmr2012} & \textbf{Seqal}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
+  &\centering\textbf{PMR}\cite{pmr2012} & \textbf{Seqal}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
 %\cline{3-9}
  \hline 
-Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop   & Hadoop-based & MR-based Structured \\ 
-Stretegy  & Distributed MR & MR  & Streaming  & MR & Programming  \\
-& & (Pydoop) &  & & Framework  \\ \hline
+ Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop   & Hadoop-based & MR-based Structured \\ 
+Strategy  & Distributed MR & MR  & Streaming  & MR & Programming  \\
+& & (Pydoop) &  & & Framework \\ \hline
   
 Hadoop & No & Yes & Yes\footnote[1] & Yes & No \\ 
 Requirement  & & & &  &\\ \hline  
@@ -536,7 +537,7 @@ Bowtie and SOAPsnp.
 For the two applications, Seqal and Crossbow, Hadoop version 0.20.2
 was used with the two FutureGrid machines.  For Seqal experiment, Seal
 version 0.2.3 was used; for Crossbow experiments, version
-1.1.2 that contains bowtie version 0.12.7 and soapsnp version 1.02.
+1.1.2 that contains Bowtie version 0.12.7 and SOAPsnp version 1.02.
 \jhanote{Please be consistent with upper case: use either upper
 or lower for all tools!}
 
@@ -574,13 +575,13 @@ E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\
 \end{table}
 
 In the case of Hadoop-based MapReduce tools, we set the number of
-workers per a node ($N_{W/node}$), \jhanote{need better notation..}the
+workers per a node ($N_{W}/node$), \jhanote{need better notation..}the
 number of mappers ($N_M$) and the number of reducers ($N_R$) via
 Hadoop configuration or tool configuration.  These number should be
 carefully chosen along with the parameters for the size of resource,
 i.e., the number of nodes ($N_{node}$) and the given number of cores
 in a node.  For example, the memory size of a node wold limit a
-possible choice for $N_{W/node}$ since such multiple workers in a node
+possible choice for $N_{W}/node$ since such multiple workers in a node
 might need more memories than the total memory of the node and
 consequently fail to run.  
 
@@ -607,7 +608,7 @@ framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that
 $N_W$ has no limitation with the size of a node since multiple-node
 worker is possible when a tool executed by a work supports multi-node
 parallel implementation such as MPI.  Thus, with PMR, we set $N_W$,
-instead $N_{W/node}$.  Since BWA and Bowtie have an option for
+instead $N_{W}/node$.  Since BWA and Bowtie have an option for
 multi-threading, with PMR, we can provide the configuration for the
 option as ON or OFF to understand the impact of such fine-grained
 parallelism along with coarse-grained parallelism with the MapReduce
@@ -665,7 +666,7 @@ The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matte
 \begin{figure}
  \centering
 \includegraphics[scale=0.50]{figures/pj-smr-scale.pdf}
-\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate read removal.  The number of Workers per node, $N_{W/node}$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
+\caption{\small PMR scalability of a MapReduce-based computation for read alignment and duplicate read removal.  The number of Workers per node, $N_{W}/node$ is set to 2.   The input read file is 10GB, the number of Reducers is set to 8, The number of reads in a chunk is 625000. BWA is used for read alignment}
 \alnote{I thought we don't include PMR only data}
   \label{fig:scale-p-saga-mr} 
 \end{figure}
