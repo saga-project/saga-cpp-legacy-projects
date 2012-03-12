@@ -245,17 +245,13 @@ cross-cutting and integrated solutions leveraging algorithmic
 advances, tools and services, and scalable cyberinfrastructure and
 middleware.
 
-Indeed, it is still common to find many biologists who have sequencing
-data sets and want to pursue biological/biomedical queries in a
-timely fashion but are puzzled by the proliferation of tools with
-different algorithms and computational requirements including the
-installation, maintenance, and update of the software tools.
 
-The use of parallelism -- task-level, data-parallelism, continues to
-hold promise. In fact, the programming model of MapReduce tries to
-exploit parallelism effectively.  Several tools using MapReduce have
-been already introduced for NGS data analysis such as read alignment
-onto a reference genome~\cite{cloudburst,
+The use of parallelism -- task-level, thread-level and
+data-parallelism, continues to hold promise. In fact, the programming
+model of MapReduce tries to exploit task-level and data parallelism
+effectively.  Several tools using MapReduce have been already
+introduced for NGS data analysis such as read alignment onto a
+reference genome~\cite{cloudburst,
   gatk,langmead2009,seal2011,langmead2010, taylor2010}.  MapReduce
 implementations on Cloud environments has been widely touted as an
 efficient solution for big data
@@ -286,12 +282,23 @@ The focus of our work is to demonstrate that existing approaches can
 be extended to support distributed data scenarios with simple but
 effective changes in their execution and runtime environments.
 
-Hierarchical MapReduce can be a viable solution proposed in \cite{ecmls11-mr-autodock}, but developing a global reduce is not easy and straight forward in all cases. For example in Crossbow \cite{langmead2010}, SOAPsnp is used as reduce phase and merging multiple SOAPsnp output data might effect the statistical semantics of data. The output of SOAPsnp analysis could be very large as 60 times than the genome size\cite{soap_snp} and the global reduce is an additional overhead for these applications as more amount of data need to processed in the global reduce phase. Pilot-MapReduce \cite{pmr2012} is a distributed solution and circumvents use of a global reduce providing an efficient and scalable solution for MapReduce applications.
+Hierarchical MapReduce can be a viable solution proposed in
+\cite{ecmls11-mr-autodock}, but developing a global reduce is not easy
+and straight forward in all cases. For example in Crossbow
+\cite{langmead2010}, SOAPsnp is used as reduce phase and merging
+multiple SOAPsnp output data might effect the statistical semantics of
+data. The output of SOAPsnp analysis could be very large as 60 times
+than the genome size\cite{soap_snp} and the global reduce is an
+additional overhead for these applications as more amount of data need
+to processed in the global reduce phase. Pilot-MapReduce
+\cite{pmr2012} is a distributed solution and circumvents use of a
+global reduce providing an efficient and scalable solution for
+MapReduce applications.
 
 
 Specifically, we demonstrate the use of a Pilot-based SAGA-MapReduce
 with which NGS read alignments and subsequent analysis can be
-conducted in a distribute yet scalable fashion. Such Pilot-based
+conducted in a distributed, yet scalable fashion. Such Pilot-based
 SAGA-MapReduce, herein referred to as PMR, can be thought of as the
 capability resulting from writing MapReduce using SAGA to support task
 and data distribution, whilst exploiting the capabilities of a
@@ -315,24 +322,31 @@ revolutionary NGS techniques such as RNA-Seq.  It is instructive to
 contrast the flexible and extensible support for such tools to other
 approaches using Hadoop-based MapReduce
 implementations~\cite{cloudburst,langmead2009,seal2011,langmead2010}.
+
+Indeed, it is still common to find many biologists who have sequencing
+data sets and want to pursue biological/biomedical queries in a
+timely fashion but are puzzled by the proliferation of tools with
+different algorithms and computational requirements including the
+installation, maintenance, and update of the software tools.
+
 \jhanote{Say something about tooling, something about integrated the
   concurrency also increased. and extensible environment}
 
-To demonstrate the capabilities with PMR, we investigate the
-comparative experiments to the two known MapReduce-based tools, Seqal
-in the Seal package and Crossbow~\cite{seal2011,langmead2010}.  The
-two tools were developed for carrying out two different analyses; the
-alignment step was implemented as the first step with BWA and Bowtie,
-respectively but the second analysis is duplicate read removal for
-Seqal whereas SNP finding for Crossbow.  This comparison provides
-clear evidence for promising features with PMR for NGS data analysis
-tools combining the read alignment and successive tasks.  Those
-features include i) scalability across multiple heterogeneous
-infrastructures ii) framework supporting a quick turnaround of
-development cycles and extensions iii) effectiveness for a big data
-problem with distributed data, implying that distributed
-cyberinfrastructure would be another viable compute and data
-management environment for high-throughput DNA sequencing data.
+To demonstrate the extensibility of PMR, we analyze and compare two
+known MapReduce-based tools, Seqal in the Seal package and
+Crossbow~\cite{seal2011,langmead2010}.  The two tools were developed
+for carrying out two different analyses; the alignment step was
+implemented as the first step with BWA and Bowtie, respectively but
+the second analysis is duplicate read removal for Seqal whereas SNP
+finding for Crossbow.  The comparison provides a promise for PMR tools
+combining the read alignment and successive tasks.  Those features
+include, i) scalability across multiple heterogeneous infrastructures
+ii) framework supporting extensions iii) effectiveness for
+data-intensive problem with distributed data. Points (i) to (iii)
+imply that PMR provides a viable compute and data management
+environment for high-throughput DNA sequencing data whilst using
+distributed cyberinfrastructure effectively.
+
 
 Before we present the contribution and outline of the paper, we
 clarify our usage of the different types of scaling that this paper
@@ -371,16 +385,16 @@ application can utilize.
 %  of small clusters with limited number of nodes that cannot unleash
 %  the full power of MapReduce." - {Hierarchical mapreduce} }
 
-The paper is organized as follows. In the following
+The paper is organized as follows. In
 Section~\ref{sec:materials_and_methods}, the data sets we used for
-this work and experimental methods are presented.  
+this work and experimental methods are presented.
 %In Section~\ref{sec:experiments}, we describe the rational and experimental details for this paper. 
 After that, in Section~\ref{sec:results}, results for parallel performance
 measurements and comparison of our results with Seqal and Crossbow
 which represents applications that use the open source Hadoop-based
 MapReduce\cite{hadoop-url, taylor2010,seal_2011_mapred,seal2011} are
-presented.  Finally, in Section~\ref{sec:discussions}, we will give
-discussions and conclude this paper with remarks focusing on
+presented.  Finally, in Section~\ref{sec:discussions}, we 
+discuss and conclude this paper with remarks focusing on
 implications of our experiments for development of biological
 information infrastructure around NGS data for a short term goal of
 RNA-Seq data analysis and for a long term goal for an integrative
