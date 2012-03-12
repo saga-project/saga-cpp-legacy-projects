@@ -275,8 +275,7 @@ programming models as currently implemented and executed, will prove
 inadequate when faced with the challenge of distributed data; this
 will be true of analytical approaches and tools that depend upon these
 programming models. We thus posit that there is an emerging downstream
-(analysis) problem in the field of NGS. \pnote{we dont have distributed data example, but we can specify
-that PMR is an option for distributed data analysis, by showing 1st paper as reference}
+(analysis) problem in the field of NGS. 
 
 The focus of our work is to demonstrate that existing approaches can
 be extended to support distributed data scenarios with simple but
@@ -357,11 +356,6 @@ tasks that can be concurrently executed \& managed; {\it scale-across}
 is a measure of the number of distinct compute resources that an
 application can utilize.
 
-% \pnote{ Doesn't scale-up and scale-out mean same thing as per above
-%   description??  In Fig 3, as the number of nodes or cores increase,
-%   the runtime decreases- so its scales-up well.  The concurrency of
-%   tasks, increase with number of cores.. Figure -3 again shows that.
-%   I mean both are related to the number of workers used.  }
 
 \jhanote{Unfortunately, users cannot directly deploy a MapReduce
   framework such as Hadoop on top of these clusters to form a single
@@ -373,17 +367,6 @@ application can utilize.
   make multiple clusters act collaboratively as one so it can more
   efficiently run MapReduce.''}
 
-%\pnote{Why do we need a distributed mapreduce framework to process
-% distributed data on multiple frameworks?  1. To process the data on
-%  a single cluster takes more time and getting shared HPC resources to
-%  process that huge is also difficult. So distributing the data( Which
-%  can be a one time setup) to multiple clusters allows the flexibility
-%  to use more computation and process the data quickly.  2. "Although
-%  commercial clouds can provide virtually unlimited computation and
-%  storage resources on-demand, due to financial, security and possibly
-%  other concerns, many researchers still run experiments on a number
-%  of small clusters with limited number of nodes that cannot unleash
-%  the full power of MapReduce." - {Hierarchical mapreduce} }
 
 The paper is organized as follows. In
 Section~\ref{sec:materials_and_methods}, the data sets we used for
@@ -456,7 +439,7 @@ Duplicate read removal step might be required  after short read alignment, becau
 On the other hand, information about aligned reads is essential for many downstream analyses such as SNP finding, genome variation study, transcriptome analysis, complex functional genomics and pathway analysis.
 Crossbow is Hadoop streaming MapReduce application which performs alignment in the map phase using Bowtie aligner and  performs SNP finding in the reduce phase.\cite{langmead2009}. 
 
-%Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool \pnote{ can we change this} is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
+%Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
 
 \subsection{Experiments: Motivation and Configuration}
 
@@ -488,39 +471,6 @@ PMR provides a simple framework which can be easily deployed on multiple cluster
 The default input split/chunk size used by Hadoop based applications is 128MB. In the PMR based applications,we make sure the right amount of chunk size is specified so that the number of map tasks are equal in both Hadoop and Pilot MR approaches. The chunk size  for PMR is considered as number of reads. The number of mappers($N_M$) depend on the size of input($S_I$) and chunk size. The number of reduces($N_R$) is set to 8 in our experiments. For the relation between parameters used for the experimental set-up, see examples in Table\ref{table:exp-description}.
 
 The intermediate data management affects the performance of NGS tools in distributed data processing. PMR uses Pilot-Data which transfer the intermediate data in parallel and scale across multiple clusters. Hadoop depends on HDFS and TCP/IP based communication between data nodes. 
-
-%\subsubsection{NGS Data Analytics using PMR}
-
-\pnote{ Merged--The two combined steps of alignment and duplicate read removal, or
-alignment and SNP-finding are amenable to task-level parallelism as
-provided/used by MapReduce; the read alignment step is conducted as a
-map phase, and duplicate read removal or SNP finding as the reduce
-phase.  MapReduce-based tool can also be used for other advanced
-downstream analyses, such as transcript quantification or peak calling
-for other advanced NGS protocols.  The development for such tools will
-logically follow this work.}
-
-% The schematic workflow and architecture for running PMR is presented
-% in Fig.~\ref{fig:arch-pj-saga-mr}.  
-
-% Also, we consider the simple scenario
-% with the Pilot configuration; we only create one PilotJob per each
-% resource. For more details on the use of dynamic Pilot-based job
-% execution, refer our previous
-% publications\cite{dare-ecmls11,dare-tg11,repex_ptrsa}.
-
-\pnote{PMR provide flexibility to configure the required computational resources and NGS analytic tool specific options for the map and reduce tasks. The NGS analytic tool specific options could be the arguments to the tools, for example Bowtie uses -p option to specify the number of threads which can be used to exploit the fine grain parallelism. }
-%fine-grained parallelism options supported by the NGS analytic tools
-%For the experiments, we need to configure computational tasks required for map and reduce phases which includes the number of workers,
-%fine-grained parallelism options of software tools used for each
-%phase, and configurations for Pilot Job. Note that we can choose many
-%different combinations of these configurations (i.e. associated with
-%parallel options with used software tools, and Pilot and MapReduce
-%levels) for different strategies that tune the parallelism for a
-%target analysis (in which map and reduce phases are decoupled, of
-%course) differently by carefully considering fine-grained and
-%coarse-grained parallelism levels.  Below, we describe more details on
-%the parameters that we vary for a specific experiment.
 
 \begin{center}
 \begin{table*}[ht]
@@ -567,42 +517,6 @@ Multiple Tools  &      &  &  &  &   \\ \hline
 \end{center}
 
 %\subsubsection{Comparing  Seqal and Crossbow}
-\pnote{Among the software tools compared in Table ~\ref{table:mr-comparison}, we
-choose Seqal of the Seal package and Crossbow for the comparison.  Note
-that these two tools along with other tools such as Cloudburst and
-GATK are different from each other with respect to the usage mode of
-MapReduce and the parallel strategies they employ, in particular, for
-NGS data processing and management as summarized in
-Table~\ref{table:mr-comparison}.  Importantly, Seqal and Crossbow are
-Hadoop-based tools but differ in that the former is designed
-by implementing map and reduce functions, whereas the
-latter uses Hadoop-streaming.  In the case of Crossbow, the overall
-analysis is comprised of 4 steps, where each step is an independent
-Hadoop-streaming task. The first step is for pre-processing and the
-last one is for post-processing. The second one is for the alignment
-and the third one is for SNP finding, which uses slightly modified
-Bowtie and SOAPsnp.}
-
-\pnote{For the two applications, Seqal and Crossbow, Hadoop version 0.20.2
-was used with the two FutureGrid machines.  For Seqal experiment, Seal
-version 0.2.3 was used; for Crossbow experiments, version
-1.1.2 that contains Bowtie version 0.12.7 and SOAPsnp version 1.02.}
-
-%\jhanote{Please be consistent with upper case: use either upper
-%or lower for all tools!}\jkimnote{I think we have to follow what the developer prefers, for example, SOAPsnp or BWA are  more like trade marks for these tools. I do not have any preference for %SEQAL, though}\pnote{addressed}
-
-\pnote{For Seqal and Crossbow experiment, the replication factor for Hadoop
-configuration is set to 2.  If not specified, all options for aligners
-and external tools as well as Seqal and Crossbow setting are default
-as suggested.  For example, Seqal does not support the multi-threading
-option of BWA, whereas Crossbow sets up the default option for Bowtie,
-"--mm" to support running many concurrent Bowtie processes on a node
-while sharing the memory index to avoid memory overhead effectively.}
-
-\pnote{The input file format for Seqal is prq format.  To convert a fastq
-format sequence file to this format, we use Seal, a software tool
-containing Seqal as a part that has a file conversion capacity between
-qseq/fastq and prq format.}
 
 \begin{table}
 \small
@@ -624,63 +538,7 @@ E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\
     \label{table:exp-description} 
 \end{table}
 
-\pnote{In the case of Hadoop-based MapReduce tools, we set the number of
-workers per a node ($N_{W}/node$), \jhanote{need better notation..}the
-number of mappers ($N_M$) and the number of reducers ($N_R$) via
-Hadoop configuration or tool configuration.  These number should be
-carefully chosen along with the parameters for the size of resource,
-i.e., the number of nodes ($N_{node}$) and the given number of cores
-in a node.  For example, the memory size of a node wold limit a
-possible choice for $N_{W}/node$ since such multiple workers in a node
-might need more memories than the total memory of the node and
-consequently fail to run.}  
 
-\pnote{Such parameters dictate the degree of parallelism of a target task
-with MapReduce configuration as well as fine-grained parallelism that
-might be implemented in tasks for map or reduce phases.  For the input
-data partitioning, if not specified differently, the default chunk
-size of 128MB was used, which corresponds to nearly 292,763 reads.
-For example, the size of 2 GB input is broken into 16 files (8 files
-for each end data), and results in 8 map phase tasks.  Note that in
-the case of Seqal which uses a different format, the chunking process
-generates the same amount of reads per file.  This chunk size is
-directly related to the number of Mappers $N_M$ for the alignment task
-since $N_M$ is determined as the ratio of the size of input($S_I$)
-over this chunk.  For the relation between parameters used for the
-experimental set-up, see examples in Table\ref{table:exp-description}.}
-%$N_{W_{node}}$
-%The configuration , we set the number of nodes as 4, and the maximum map and reduce tasks is set to be 2.  We found that if the number of tasks is set to be more than 2, the issue with memory size occurred.  \pnote{refer to reference paper}  Thus, total 8 workers were used.
-
-\pnote{merged--PMR set-up is as follows: Similar to the Hadoop-based MapReduce tools,
-the configuration requires to set $N_{node}$, $N_W$, and the size of
-BigJobs that is a task container in our Pilot
-framework\cite{pmr2012,saga_bigjob_condor_cloud,pstar11}.  Note that
-$N_W$ has no limitation with the size of a node since multiple-node
-worker is possible when a tool executed by a work supports multi-node
-parallel implementation such as MPI.  Thus, with PMR, we set $N_W$,
-instead $N_{W}/node$.  Since BWA and Bowtie have an option for
-multi-threading, with PMR, we can provide the configuration for the
-option as ON or OFF to understand the impact of such fine-grained
-parallelism along with coarse-grained parallelism with the MapReduce
-framework.  Note that Seqal and Crossbow turn off this option as
-default.  Also, multiple clusters can be used for MapReduce. For
-example, half of the workers are assigned to Hotel, and the other half
-to Sierra.  For a single system set up, like the two Hadoop-based
-MapReduce tools, all workers run on a given system.}
-
-\pnote{Data management is an important component for tools processing
-distributed data; the efficiency of data transfer should be considered
-when a MapReduce-based tool is assessed.  Whereas Hadoop-based
-approaches rely upon HDFS and TCP/IP-based communication between data
-nodes, PMR uses SAGA Advert coordination among workers via Pilot
-framework (see Fig.~\ref{fig:arch-pj-saga-mr}).  PMR provides the
-ability to scale across multiple clusters without the global file
-system support.}
-
- 
-\pnote{merged--For experiments with PMR using distributed resources, we assume that
-all input and required data are stored initially on a single cluster
-to process and measure the time for distributing data.}
 
 \section{Experiments and Evaluation}\label{sec:results}
 
@@ -698,7 +556,7 @@ the first experiment shown in the Fig~\ref{fig:read-size}, not
 surprisingly the total runtime increased linearly as the input read
 size increased. 
 
-% thus showing PMR \textit{scales-out}\pnote{n tasks over n cores} well
+% thus showing PMR \textit{scales-out} well
 % as the number of compute tasks increase.
 
 Fig ~\ref{fig:scale-p-saga-mr} shows how PMR \textit{scales-up}. PMR
@@ -813,12 +671,11 @@ Extending PMR to support new NGS analytic tools involve development of simple ma
 The Hadoop streaming supports this types of functionality but still involves complexity of managing computational resources to maintain hadoop cluster.
 The PMR liberates the user from the complex task of maintaining and acquiring computational resources and executing map and reduce tasks on them.
 
-\subsection{Granularity} \pnote{please correct if i am not correct}
+\subsection{Granularity} 
 PMR manages multiple levels of parallelisms and optimize them for the
 efficient execution to lower time-to-solutions. BWA and Bowtie have a
 fine-grained parallelism option with the multi-threading support
-option.  In Fig. \ref{fig:mulit-parallel} \pnote{ figure will be
-  updated with more data}, we showed how such an option could affect
+option.  In Fig. \ref{fig:mulit-parallel}, we showed how such an option could affect
 on the performance.  Even though it is feasible for other tools such
 as Seqal or Crossbow to handle such options, our approach to combine
 the Pilot and the MapReduce framework provides capability of utilizing
@@ -856,8 +713,6 @@ across many NGS data analytics.  Recently, the Seal package was
 announced in which Seqal is a utility for the alignment and duplicate
 read removal.
 
-\pnote{Merged---In spite of the commonality that MapReduce is the core programming model for the tools, they differ in several aspects depending upon the need of Hadoop, the way to utilize Hadoop, the level of flexibility for the extension of tools for alternative tasks or the multiple tool support for different aligners, for example, and whether the multiple cluster support is possible.
-Interestingly, the cross-domain support over multiple clusters with the MapRedue framework, specifically via so called hierarchical MapReduce, was recently suggested for the AutodDock tool.  We note that this docking application belongs, in contrast to our applications that are mostly loosely-coupled, to pleasingly parallel and thus faces a different bur simpler type of challenges, compared to ours\cite{ecmls11-mr-autodock}. To demonstrate the distinctive strategies and features of PMR-based tools, we compare the performance with Seqal and Crossbow in the followings. }
 
 \begin{figure}
  \centering
@@ -869,35 +724,6 @@ Interestingly, the cross-domain support over multiple clusters with the MapRedue
   \label{fig:comp_with_seqal_1} 
 \end{figure}
 
-%\subsubsection{Performance Comparison}
-%In Fig.~\ref{fig:comp_with_seqal_1}, we compared directly the time-to-solution between Seqal and two scenarios with PMR, one with a single cluster and the other with two clusters.  In %Fig.~\ref{fig:comp_with_seqal_2}, also how each step contributes for the total runtime is presented with the case of 8 GB input.  
-
-\pnote{Merged---Notably, Seqal takes more time on the overall run time, and the most
-contributing cause for benchmark difference comes from the map phase.
-We contribute this result with the situation of the Hadoop
-configuration with the FutureGrid systems.  The tmp directory accessed
-by workers of each node is configured by Hadoop, but the size of a tmp
-directory is limited with the fast and local attached disk space and
-thus a remote file system is configured as the tmp data directory.
-This situation is likely to enforce most of users, a non-expert on
-Hadoop system, and results in the performance loss with File I/O.  The
-similar observation was also indicated with the comparison of
-Crossbow.}
-
-\pnote{Merged----Another important aspect which can be inferred from results shown in
-Fig.~\ref{fig:comp_with_seqal_1} is that whereas Seqal is limited by a
-single cluster with Hadoop, PMR can be easily scale-across over
-multiple clusters. The distributed-PMR, which uses the two cluster
-systems, Hotel and Sierra, is indeed performing well against the
-local-PMR in spite of the low network connectivity between two
-clusters compared to a intra-cluster network connection.  The overhead
-arising from the connection between two clusters is indicated in
-Fig.~\ref{fig:comp_with_seqal_1}(lower) by showing the longer time for
-shuffling in the case of "distributed-PMR".}
-
-\pnote{Merged---Note that the direct comparison of the reduce phase is not straightforward due to the potentially different implementation between Seqal and ours in spite of the fact that we used the same criteria of the duplicate read removal of Seqal\cite{seal_2011_mapred}.  In any event, unlike the reduce phase, the map phase of Seqal and our PMR tool are almost comparable since the same aligner, BWA is used and all parameters (see Table~\ref{table:exp-description}) for configuring a MapReduce task are same in the comparison. }
-
-
 
 \begin{figure} 
  \centering
@@ -906,29 +732,8 @@ shuffling in the case of "distributed-PMR".}
   \label{fig:tool_comp} 
 \end{figure}
 
-%number of nodes=4, number of workers/node=2,reduces=8, number of reads/chunk=292763; ********DMR provides scale-across********** as two machines Sierra and Hotel are used.
-
-\pnote{merged--Another Hadoop-based tool, Crossbow, uses Bowtie as a aligner and
-utilizes Hadoop-Streaming\cite{hadoop-url}.  We summarize the result
-of measuring the times of alignment step calculations and present in
-Fig.~\ref{fig:tool_comp}.  The tendency shown with the comparison of
-Seqal to PMR is also observed with the comparison with Crossbow; the
-longer runtime with the Hadoop-Streaming-based tool regardless of the
-use of a different aligner, Bowtie.  It is well-known that Bowtie is
-extremely efficient in computation of alignment and the results found,
-correspondingly, less time-to-solution with the aligner.}
 
 
-%As the number of input sequences increased the time to solution also increased linearly for both Seqal and local-PMR. 
-%The time to solution decreased by an average of 43.39\% with 95\% confidence interval of 3.03\%. The map phase of Local-PMR is on an average of 64\% of map phase of Seqal application, and is reduced by an average of 35.7\%
-%The reduce phase is very less compared to seqal applicaiton because there is not sort involved in reduce phase.
-%\pnote{( why is that?? i dont see any reason to have a sort before reduce starts)) we do sort intermediate data before shuffled.}
-%The reduce phase is average of 8.85\% of reduce phase of seqal  ( it involves sort )
-%
-%\pnote{how to explain performance of PMR ??}..One of the performance bottlneck for PMR is coordination system used... we used redis as coordination system... which is proved best ,when compared to other coordination systems{Pstar reference}. I think we can compare the results.. but cant say why Seqal performed better.. since, it needs understanding of how Seqal actually works.
-
-\pnote{merged---\subsubsection{Scale-across, Extensibility, and Parallelism Support}
-The scale-across over multiple clusters and the ease of extensibility are two important advantages with the PMR as indicated with the benchmarking results.  The ease of extensibility is particularly demonstrated with two aligners, BWA and Bowtie support.  One of the important reasons why multiple aligners are needed is because of the difficulty of validation of an aligner used.  It is well studied that each aligner implements different strategies to deal with the requirement of computational loads, memory usage, and sensitivity associated with decision on algorithms and computational implementations of indexing, search, and match tasks\cite{mapping-survey}   Indeed, the decision of an aligner affects not only alignment results but also scientific discovery with downstream analysis aiming genome variation study, transcriptome analysis, and DAN-protein interactions. Therefore, it is not overstated to emphasize the importance of supporting multiple tools as well as providing an effective means for implementing such tools within a reasonably short development period for infrastructure of NGS data. }
 
 
 \begin{figure} 
@@ -938,8 +743,7 @@ The scale-across over multiple clusters and the ease of extensibility are two im
   \label{fig:mulit-parallel} 
 \end{figure}
 
-\pnote{merged--Last but not the least, PMR has an advantage to manage multiple levels of parallelisms and optimize them for the efficient execution to lower time-to-solutions.  BWA and Bowtie have a fine-grained parallelism option with the multi-threading support option.   In Fig. \ref{fig:mulit-parallel}, we showed how such an option could affect on the performance.  
-Even though it is feasible for other tools such as Seqal or Crossbow to handle such options, our approach to combine the Pilot framework and the MapReduce framework is easily capable of utilizing the fine-grained parallelism along with the parallelism provided by MapReduce.  One important discussion in this line of direction is that our PMR is also able to optimize the multiple levels of parallelism when a standalone executable run by MapReduce is an MPI application.  Previously, we reported the usefulness of our Pilot-Job framework for such a situation\cite{repex_ptrsa}.  Note that it is not straightforward or impossible for Hadoop-based approaches to deal with multi-node applications.}
+
 
 
 \section{Discussion}\label{sec:discussions}
