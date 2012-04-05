@@ -1,0 +1,62 @@
+----------------------- REVIEW 1 ---------------------
+PAPER: 12
+TITLE: Understanding MapReduce-based Next-Generation Sequencing Alignment on Distributed Cyberinfrastructure
+AUTHORS: Pradeep Kumar Mantha, Shantenu Jha, Joohyun Kim, Andre Luckow and Nayong Kim
+
+OVERALL RATING: -2 (reject)
+REVIEWER'S CONFIDENCE: 4 (expert)
+
+The abstract states an interesting dilemma relating to more active storage/distributed storage of NextGenSequence (NGS) data and how this led to developing Pilot-based MapReduce (PMR).  From the paper this seems to be a map-reduce abstraction for the SAGA pilot framework that has been used before for next-gen analysis (e.g., BFAST, last year in this workshop).
+
+PMR sounds interesting and is a strong motivation of this framework, but unfortunately PMR is under review at another conference and in my opinion should not count as novelty here.  What remains is experimental results with three mostly serial bioinformatics mappers and their map0reduce implementations.  The authors aim to look "scale up", "scale out" and "scale-across".  These results, at best, are promising but very weak given lots of inconsistencies.  I outline suggestions/concerns below.
+
+Scale up.  The authors look at 32 mapper processes on what appear to be three configurations: 4 nodes with 4 workers (2 cores per worker), 4 nodes with 8 workers (1 core per worker), 8 nodes with 8 workers.  It was unclear from the legend of Figure 2 how the extra 32 workers help in the third configuration.  Also, the last column in Table 2 does not match the legend as all nodes have 8 cores (and therefore 8 cores are only available with one worker per node?).  Figures 2 and 3 do not have entries in Table 2 (specifically the 16 node job).
+
+I don't think the Seqal comparisons are fair in that they use a shared filesystem (and scaling issues therein). It seems a little forced for comparison as there is the bottleneck of I/O for this tool.  On one hand you can view this as an advantage of their tool but I would expect similar "caching" for PMR (but maybe I am wrong) if they have the same number of chunks.
+
+Extensibility.  MapReduce in a traditional bioinformatics framework is useful because 1) it is a supportable scatter-gather framework on different platforms and 2) some of these platforms are commercial clouds (e.g., EC2)
+
+I can see where the authors are coming from with respect to the advantages of pilot jobs/ad hoc clouds but this is not described/tested in the paper; they only run on a few nodes they obtain from FutureGrid.  Further, I'm not convinced the map and reduce functional paradigm is better than, for example, something based on a straight-up master worker framework like some of the recent bioinformatics work with tools like Makeflow (to name only one).  The authors extend the framework to multiple tools but they still require a shared filesystem, which in practice severely limits "scale across" (see below and a bunch of recent papers)
+
+Comparison of tools.  The Seqal results in Fig4 are clearly biased in that the underlying file system was different.  Figure 5 was more problematic as it was unclear what crossbow they were comparing to.  Ideally, they should have used the latest one that does the same work as their pipeline.  In one part of the manuscript, they refer to it being also run using a shared FS and that the reduce step was not implemented.  With this in mind, what version was here and what does it mean that Crossbow is competitive with PMR for small collections of reads.  I would have much preferred discussion of the results (that differ from the previously submitted PMR framework) rather than an advertisement for PMR in the discussion.
+
+The authors should compare with the emerging GATK framework (although in theory assuming JVMs on SAGA the map-reduce-like framework could run on theirs)
+
+Discussion.  The paper does not discuss how the reference genome is distributed and how/when it is indexed.  This is a concern for smaller data sets and large genomes (although the granularity here of ~1 hour jobs should make this negligible).
+
+The authors should not discuss "scale across" as they only used one platform (FutureGrid) and many of their comparisons relied on a shared file system given limitations of the disks.  This would be fixed by using more cores (32 max is relatively low, especially as "common" servers are approaching 16+ cores).  Also, how data is transferred can be important especially when the clusters are present at different institutions (say with Condor).
+
+There is also little data on "scale out" (32 cores only on up to 4 nodes?)  For example, in this workshop a year ago there was a paper looking at a purely distributed file system framework based on "makeflow" and "work queue" that ran on up to 300 cores with 195X speedup with a similar map (megablast instead of a BW-based aligner) but a more complicated workflow.  Looking at the makeflow website this has been applied to BWA also and Weaver seems to be proposed as an abstraction similar to PMR (which as I understand is just a map and reduce running on SAGA?.  Their scaling seems heavily based on a hybrid distributed/multicore platform that I guess is a plus, but this puts restrictions on the type of systems usable for good performance.
+
+In short, promising start -- especially when PMR is published -- but the authors should focus on scale up (more than 32 cores), showing scale across, and performing a better comparison with the state of the art such that current mapreduce tools are clearly run in a comparison (as opposed to edits) and that they use HDFS as intended.  Increasing the granularity such that the files can fit could help, maybe.
+
+
+----------------------- REVIEW 2 ---------------------
+PAPER: 12
+TITLE: Understanding MapReduce-based Next-Generation Sequencing Alignment on Distributed Cyberinfrastructure
+AUTHORS: Pradeep Kumar Mantha, Shantenu Jha, Joohyun Kim, Andre Luckow and Nayong Kim
+
+OVERALL RATING: 0 (borderline paper)
+REVIEWER'S CONFIDENCE: 4 (expert)
+
+The authors demonstrate how Pilot-based MapReduce can be used for accelerating large genomics applications by porting existing genomics MapReduce applications to the Pilot framework. The main advantages of Pilot over a standard Hadoop framework are improved flexibility in resource management and distributed operations. 
+
+The paper is well written, and the authors demonstrate the platform is useful for genomics. However, the paper has 2 substantial flaws that limit its impact: (1) The performance measurements made against a vanilla Hadoop installation (Figures 4 & 5) should be completely redone using proper Hadoop system. (2) The authors should implement the reduce phase of Crossbow to truly measure the capability of distributed PMR. Without the reduce phase, the system is effectively a distributed batch scheduling system and does not demonstrate that distributed shuffle of large datasets is feasible. Until these two flaws are corrected, their major conclusions (PMR is a viable solution for scale-across NGS, and that PMR has advantages over Hadoop) are not proven.
+
+It would also be useful for the paper to describe a few more details of Pilot and SAGA -- most significantly, are they open source and freely available so that they can be deployed as easily as Hadoop can be? What other requirements do they have? Finally, Table 1 should be updated - Crossbow is very extensible, and the Crossbow code forms the basis for the RNAseq analysis pipeline Myrna published in 2010: http://genomebiology.com/2010/11/8/R83
+
+
+----------------------- REVIEW 3 ---------------------
+PAPER: 12
+TITLE: Understanding MapReduce-based Next-Generation Sequencing Alignment on Distributed Cyberinfrastructure
+AUTHORS: Pradeep Kumar Mantha, Shantenu Jha, Joohyun Kim, Andre Luckow and Nayong Kim
+
+OVERALL RATING: 2 (accept)
+REVIEWER'S CONFIDENCE: 2 (medium)
+
+This manuscript partially describes a Pilot-based MapReduce (PMR).
+
+The authors describe a novel implementation of MapReduce using " Pilot task and data management". Unfortunately most of the interesting details are hidding in reference [16[ which is submitted to another venue. This makes the review kind of ... hard.
+
+Overall the authors describe much needed improvements of the Hadoop MapReduce implementation. The authors have convinced this reviewer that their implementation  is more efficient.
+
