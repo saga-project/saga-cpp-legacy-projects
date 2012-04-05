@@ -30,6 +30,8 @@ namespace saga_pm
         ad_      = saga::advert::directory (ad_url_, saga::advert::CreateParents 
                                                    | saga::advert::ReadWrite );
 
+        std::cout << "advert root: " << ad_url_ << std::endl;
+
         // pick up existing worker ads
         std::vector <saga::url> entries = ad_.list ();
 

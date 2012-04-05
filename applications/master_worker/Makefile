@@ -11,3 +11,7 @@ SAGA_LIB     = saga_pm_master_worker
 
 include $(SAGA_LOCATION)/share/saga/make/saga.application.mk
 
+all::
+	@rm -f $(SAGA_LIBNAME).$(SAGA_VERSION)
+	@ln -s $(SAGA_LIBNAME) $(SAGA_LIBNAME).$(SAGA_VERSION)
+

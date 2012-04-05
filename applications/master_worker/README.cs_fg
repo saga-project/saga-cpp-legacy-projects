@@ -3,7 +3,8 @@ Using the SAGA based Master/Worker abstraction on FutureGrid
 ============================================================
 
  *FIRST* - please skim the README to understand what parts 
-           are covered there, then return here
+           are covered there, then return here.  This file 
+           *only* covers the FG specific parts!
 
 
 Build/install the MasterWorker abstraction:
@@ -14,10 +15,16 @@ Build/install the MasterWorker abstraction:
  want to write on your own.  The SAGA CSA installations are documented
  here: 
 
-   http://www.saga-project.org/documentation/deployment/xsede-fg
+   https://github.com/saga-project/saga-deployments/wiki
 
- The REAME files linked on the page above contains the environment
- settings you will need to set in order to use SAGA on those machines.
+
+ You can load the SAGA environment, like with this example on 
+ india.futuregrid.org:
+
+   eval `grep export /N/soft/SAGA/README.saga-1.6.gcc-4.1.2.india`
+
+ The following steps will the install the master-worker components:
+
 
    # create installation tree (feel free to choose a different location)
    mkdir $HOME/install
@@ -29,23 +36,15 @@ Build/install the MasterWorker abstraction:
    make -C example
 
    # install library and examples
-   cp libsaga_pm_master_worker.so              $HOME/install/lib/
+   cp libsaga_pm_master_worker.*               $HOME/install/lib/
    cp example/rsh/mw_rsh_master                $HOME/install/bin/
    cp example/rsh/mw_rsh_worker                $HOME/install/bin/
    cp example/hello_world/mw_helloworld_master $HOME/install/bin/
    cp example/hello_world/mw_helloworld_worker $HOME/install/bin/
 
    # make sure your environment is set so that the code can be run.
-   echo 'export PATH=$PATH:$HOME/install/bin/'                       >> $HOME/.profile
-   echo 'export LD_LIBRRAY_PATH=$LD_LIBRRAY_PATH:$HOME/install/lib/' >> $HOME/.profile
-
-   # you can also load the SAGA environment at that point
-   echo 'eval "grep export [CSA_LOCATION]/README.saga-1.6.gcc-4.1.2.[host]"`
-   # in the above line, you need to replace CSA_LOCATION with the SAGA
-   # installation root dir (usually /N/soft/SAGA/ on futuregrid), and 
-   # [host] with the hostname you are on (india, sierra etc).  Make sure that
-   # the thus created README file exists!
-
+   echo 'export PATH=$PATH:$HOME/install/bin/'                       >> $HOME/.bash_profile
+   echo 'export LD_LIBRRAY_PATH=$LD_LIBRRAY_PATH:$HOME/install/lib/' >> $HOME/.bash_profile
 
  The above preparations need to be repeated on all hosts which you intent
  use for the M/W ensemble.
@@ -54,7 +53,7 @@ Build/install the MasterWorker abstraction:
 Master/Worker distribution
 --------------------------
 
- There are two distribution components to the MW sbatrction:
+ There are two distribution components to the MW abstraction:
 
   - running workers on remote machines
   - coordinating between master and worker (local to remote machine)
@@ -103,22 +102,29 @@ Master/Worker distribution
 
      export SAGA_MW_ADVERT_URL="advert://SAGA:SAGA_client@advert.cct.lsu.edu:8080/home/merzky/master_worker/"
 
-   For FutureGrid runs, please adjust the url so that it is
-   unique for *you*.
+   For FutureGrid runs, please adjust the path element of the url so 
+   that it is unique for *you*.
 
 
 Running the examples
 --------------------
 
- With the settings from above, you should be able to run the MW examples on FG:
+ With the settings from above, you should be able to run the MW examples on FG, 
+ like this:
 
-   # source ~/.profile
-   # mw_helloworld_master
-
- Which will result in something like this:
     
-   merzky@thinkie:~/saga/applications/master_worker/example/hello_world$ ./mw_helloworld_master
-   hello world
-   hello thinkie
+   # source $HOME/.bash_profile
+   # mw_rsh_master
+   advert root   : advert://localhost/home/merzky/master_worker//merzky/
+   worker rm url : fork://localhost
+   command : /bin/date
+   Thu Apr  5 10:27:22 CEST 2012
+   command : /bin/hostname
+   thinkie
+   command : touch /tmp/hello_rsh_worker
+   command : ls -l /tmp/hello_rsh_worker -rw-r--r-- 1 merzky merzky 0 2012-04-05 10:27 /tmp/hello_rsh_worker
+   command : quit
 
+ The example above uses a local advert service (see README), and runs a worker
+ on localhost.
 
