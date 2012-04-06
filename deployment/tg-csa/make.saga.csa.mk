@@ -1,15 +1,15 @@
 
-# this makefile supportes the CSA deployment procedure on different DCIs.  
+# this makefile supports the CSA deployment procedure on different DCIs.  
 # It requires the environment variable CSA_LOCATION to be set (will complain
 # otherwise), and needs 'wget', 'svn co', and the usual basic SAGA compilation
-# requirements (compiler, linker etc).  Boost, sqlite3 and postgresql are
+# requirements (compiler, linker etc.).  Boost, sqlite3 and postgresql are
 # installed in external/.  We also expect the SAGA version to be set as
 # CSA_SAGA_VERSION, which should be available as release tag in svn.  Otherwise,
 # we are going to install trunk.   Finally, CSA_SAGA_CHECK will not install
 # anything, but print status information for an existing deployment.
 #
 # NOTE: this makefile should only be used in conjunction with csa_deploy.pl, 
-# and won't be of much use oherwise...
+# and won't be of much use otherwise...
 #
 
 ifndef CSA_LOCATION
@@ -19,20 +19,33 @@ endif
 # get rid of symlinks in CSA_LOCATION
 CSA_TMP_LOCATION  = $(shell cd $(CSA_LOCATION) && pwd -P)
 CSA_LOCATION     := $(CSA_TMP_LOCATION)
-ESA               = $(CSA_ESA)
+
+ifdef CSA_ESA
+	CSA_ROOT        = $(CSA_LOCATION)/csa/
+	CSA_EXT_DIR     = $(CSA_LOCATION)/external/
+	CSA_SRC_DIR     = $(CSA_LOCATION)/src/
+	CSA_TGT_DIR     = $(CSA_LOCATION)/saga-esa/
+	CSA_SUFFIX      = .esa
+else
+	CSA_ROOT        = $(CSA_LOCATION)/csa/
+	CSA_EXT_DIR     = $(CSA_LOCATION)/external/
+	CSA_SRC_DIR     = $(CSA_LOCATION)/src/
+	CSA_TGT_DIR     = $(CSA_LOCATION)/saga/
+#	CSA_SUFFIX      =
+endif
 
 
 # never ever build parallel
 .NOTPARALLEL:
 
-SRCDIR         = $(CSA_LOCATION)/src/
-EXTDIR         = $(CSA_LOCATION)/external/
+SRCDIR         = $(CSA_SRC_DIR)
+EXTDIR         = $(CSA_EXT_DIR)
 
 HOSTNAME       = $(shell hostname)
 DATE           = $(shell date '+%M:%H-%d.%m.%Y')
-LOG            = $(CSA_LOCATION)/csa/test/test.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)
+LOG            = $(CSA_ROOT)/test/test.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(CSA_SUFFIX)
 
-# to be call'ed by individual tests.  the first check expects the call to
+# to be call'ed by individual tests.  The first check expects the call to
 # succeed, the second expects it to fail (like running /bin/false).  
 # Parameters:
 #  $1: module to check
@@ -74,7 +87,7 @@ CXX        = g++
 # find out gcc version
 #
 # gcc --version is stupidly formatted.  Worse, that format is inconsistent over
-# different distrubution channels.  Thus this detour to get the version directly
+# different distribution channels.  Thus this detour to get the version directly
 # via gcc compiler macros:
 #
 CC_VERSION   = $(shell (rm -f cpp_version ; make cpp_version ; ./cpp_version) | tail -n 1)
@@ -87,17 +100,19 @@ MAKE_VERSION = $(shell make --version | head -1)
 # report setup
 #
 ifdef CSA_SAGA_CHECK
-$(shell echo "time stamp                $(DATE)"             1>&2 | tee -a $(LOG))
-$(shell echo "csa  location             $(CSA_LOCATION)"     1>&2 | tee -a $(LOG))
-$(shell echo "saga version              $(CSA_SAGA_VERSION)" 1>&2 | tee -a $(LOG))
-$(shell echo "make version              $(MAKE_VERSION)"     1>&2 | tee -a $(LOG))
-$(shell echo "compiler version          $(CC_NAME)"          1>&2 | tee -a $(LOG))
+$(shell echo "time stamp                $(DATE)"                 1>&2 | tee -a $(LOG))
+$(shell echo "csa  location             $(CSA_LOCATION)"         1>&2 | tee -a $(LOG))
+$(shell echo "csa  target               $(CSA_TGT_DIR)"          1>&2 | tee -a $(LOG))
+$(shell echo "saga version              $(CSA_SAGA_VERSION)"     1>&2 | tee -a $(LOG))
+$(shell echo "make version              $(MAKE_VERSION)"         1>&2 | tee -a $(LOG))
+$(shell echo "compiler version          $(CC_NAME)"              1>&2 | tee -a $(LOG))
 else
-$(shell echo "time stamp                $(DATE)"             1>&2 )
-$(shell echo "csa  location             $(CSA_LOCATION)"     1>&2 )
-$(shell echo "saga version              $(CSA_SAGA_VERSION)" 1>&2 )
-$(shell echo "make version              $(MAKE_VERSION)"     1>&2 )
-$(shell echo "compiler version          $(CC_NAME)"          1>&2 )
+$(shell echo "time stamp                $(DATE)"                 1>&2 )
+$(shell echo "csa  location             $(CSA_LOCATION)"         1>&2 | tee -a $(LOG))
+$(shell echo "csa  target               $(CSA_TGT_DIR)"          1>&2 | tee -a $(LOG))
+$(shell echo "saga version              $(CSA_SAGA_VERSION)"     1>&2 )
+$(shell echo "make version              $(MAKE_VERSION)"         1>&2 )
+$(shell echo "compiler version          $(CC_NAME)"              1>&2 )
 endif
 
 
@@ -180,25 +195,30 @@ endif
 # create the basic directory infrastructure, documentation, etc
 #
 .PHONY: base
-base:: $(CSA_LOCATION)/src/ $(CSA_LOCATION)/external/ $(CSA_LOCATION)/csa/
+base:: $(CSA_SRC_DIR) $(CSA_TGT_DIR) $(CSA_EXT_DIR) $(CSA_ROOT)
 ifdef CSA_SAGA_CHECK
 	@rm -f $(LOG)
-	@$(call CHECK, $@, install, test -d $(CSA_LOCATION)/src/ && test -d $(CSA_LOCATION)/external/ && test -d $(CSA_LOCATION)/csa/)
+	@$(call CHECK, $@, install, test -d $(CSA_SRC_DIR) && test -d $(CSA_EXT_DIR) && test -d $(CSA_ROOT))
 endif
 
-$(CSA_LOCATION)/src/:
+$(CSA_SRC_DIR):
 ifndef CSA_SAGA_CHECK
-	@mkdir $@
+	@mkdir -p $@
 endif
 
-$(CSA_LOCATION)/external/:
+$(CSA_TGT_DIR):
 ifndef CSA_SAGA_CHECK
-	@mkdir $@
+	@mkdir -p $@
+endif
+
+$(CSA_EXT_DIR):
+ifndef CSA_SAGA_CHECK
+	@mkdir -p $@
 endif
 
 # always do an svn up, on check
-.PHONY: $(CSA_LOCATION)/csa/ 
-$(CSA_LOCATION)/csa/:
+.PHONY: $(CSA_ROOT) 
+$(CSA_ROOT):
 ifdef CSA_SAGA_CHECK
 	@test -d $@ || $(SVNCO) https://svn.cct.lsu.edu/repos/saga-projects/deployment/tg-csa $@
 	@test -d $@ && cd $@ && $(SVNUP)
@@ -212,16 +232,16 @@ endif
 
 ########################################################################
 # python
-PYTHON_VERSION  = 2.7.1
-PYTHON_SVERSION = 2.7
-PYTHON_LOCATION = $(CSA_LOCATION)/external/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
-PYTHON_PATH     = $(PYTHON_LOCATION)/bin
-PYTHON_MODPATH  = $(PYTHON_LOCATION)/lib/$(PYTHON_SVERSION)/site-packages/
-PYTHON_CHECK    = $(PYTHON_PATH)/python
-PYTHON_SRC      = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
-SAGA_ENV_VARS  += PYTHON_LOCATION=$(PYTHON_LOCATION)
-SAGA_ENV_LIBS  += $(PYTHON_LOCATION)/lib/
-SAGA_ENV_BINS  += $(PYTHON_LOCATION)/bin/
+PYTHON_VERSION   = 2.7.1
+PYTHON_SVERSION  = 2.7
+PYTHON_LOCATION  = $(CSA_EXT_DIR)/python/$(PYTHON_VERSION)/gcc-$(CC_VERSION)/
+PYTHON_PATH      = $(PYTHON_LOCATION)/bin
+PYTHON_MODPATH   = $(PYTHON_LOCATION)/lib/$(PYTHON_SVERSION)/site-packages/
+PYTHON_CHECK     = $(PYTHON_PATH)/python
+PYTHON_SRC       = http://python.org/ftp/python/$(PYTHON_VERSION)/Python-$(PYTHON_VERSION).tar.bz2
+SAGA_ENV_VARS   += PYTHON_LOCATION=$(PYTHON_LOCATION)
+SAGAPY_ENV_LIBS += $(PYTHON_LOCATION)/lib/
+SAGA_ENV_BINS   += $(PYTHON_LOCATION)/bin/
 
 .PHONY: python
 python:: base $(PYTHON_CHECK)$(FORCE)
@@ -231,7 +251,7 @@ endif
 
 $(PYTHON_CHECK)$(FORCE):
 ifndef CSA_SAGA_CHECK
-	@echo "python                    installing ($(PYTHON_CHECK))"
+	@echo "python                    installing"
 	@cd $(SRCDIR) ; $(WGET) $(PYTHON_SRC)
 	@cd $(SRCDIR) ; tar jxvf Python-$(PYTHON_VERSION).tar.bz2
 	@cd $(SRCDIR)/Python-$(PYTHON_VERSION)/ ; \
@@ -241,13 +261,13 @@ endif
 
 ########################################################################
 # boost
-BOOST_LOCATION  = $(CSA_LOCATION)/external/boost/1.44.0/$(CC_NAME)/
+BOOST_LOCATION  = $(CSA_EXT_DIR)boost/1.44.0/$(CC_NAME)/
 BOOST_CHECK     = $(BOOST_LOCATION)/include/boost/version.hpp
 BOOST_SRC       = http://garr.dl.sourceforge.net/project/boost/boost/1.44.0/boost_1_44_0.tar.bz2
 SAGA_ENV_VARS  += BOOST_LOCATION=$(BOOST_LOCATION)
 SAGA_ENV_LIBS  += $(BOOST_LOCATION)/lib/
 
-SAGA_ENV_LDPATH = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
+SAGA_ENV_LDPATH = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS) $(SAGAPY_ENV_LIBS),:$(d)))
 SAGA_ENV        = PATH=$(SAGA_ENV_PATH):$(MYPATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: boost
@@ -272,7 +292,7 @@ endif
 
 ########################################################################
 # postgresql
-POSTGRESQL_LOCATION = $(CSA_LOCATION)/external/postgresql/9.0.2/$(CC_NAME)/
+POSTGRESQL_LOCATION = $(CSA_EXT_DIR)postgresql/9.0.2/$(CC_NAME)/
 POSTGRESQL_CHECK    = $(POSTGRESQL_LOCATION)/include/pg_config.h
 POSTGRESQL_SRC      = http://ftp7.de.postgresql.org/ftp.postgresql.org/source/v9.0.2/postgresql-9.0.2.tar.bz2
 SAGA_ENV_VARS      += POSTGRESQL_LOCATION=$(POSTGRESQL_LOCATION)
@@ -295,7 +315,7 @@ endif
 
 ########################################################################
 # sqlite3
-SQLITE3_LOCATION = $(CSA_LOCATION)/external/sqlite3/3.6.13/$(CC_NAME)/
+SQLITE3_LOCATION = $(CSA_EXT_DIR)sqlite3/3.6.13/$(CC_NAME)/
 SQLITE3_CHECK    = $(SQLITE3_LOCATION)/include/sqlite3.h
 SQLITE3_SRC      = http://www.sqlite.org/sqlite-amalgamation-3.6.13.tar.gz
 SAGA_ENV_VARS   += SQLITE3_LOCATION=$(SQLITE3_LOCATION)
@@ -320,7 +340,7 @@ endif
 #
 # saga-core
 #
-SAGA_LOCATION   = $(CSA_LOCATION)/saga/$(CSA_SAGA_VERSION)/$(CC_NAME)/
+SAGA_LOCATION   = $(CSA_TGT_DIR)/$(CSA_SAGA_VERSION)/$(CC_NAME)/
 SAGA_CORE_CHECK = $(SAGA_LOCATION)/include/saga/saga.hpp
 SAGA_ENV_VARS  += SAGA_LOCATION=$(SAGA_LOCATION)
 SAGA_ENV_LIBS  += :$(SAGA_LOCATION)/lib/
@@ -359,7 +379,8 @@ endif
 SAGA_PYTHON_CHECK    = $(SAGA_LOCATION)/share/saga/config/python.m4 
 SAGA_PYTHON_MODPATH  = $(SAGA_LOCATION)/lib/python$(PYTHON_SVERSION)/site-packages/
 
-SAGA_ENV_LDPATH      = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS),:$(d)))
+SAGA_ENV_LDPATH      = $(call nospace, $(foreach d,$(SAGA_ENV_LIBS) $(SAGAPY_ENV_LIBS),:$(d)))
+SAGAPY_ENV_LDPATH    = 
 SAGA_ENV             = PATH=$(SAGA_ENV_PATH):$(MYPATH) LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH $(SAGA_ENV_VARS)
 
 .PHONY: saga-binding-python
@@ -613,7 +634,7 @@ endif
 # 
 # TEST_ENV                 = /usr/bin/env
 # TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
-# TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH
+# TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$(SAGAPY_ENV_LDPATH):$$LD_LIBRARY_PATH
 # 
 # .PHONY: saga-client-bigjob
 # saga-client-bigjob:: base $(SC_BIGJOB_CHECK)$(FORCE)
@@ -649,17 +670,21 @@ BJ_SETUPTOOLS_GIT_URL= "http://pypi.python.org/packages/source/s/setuptools-git/
 BIGJOB_EGGS          = $(shell ls -d $(SAGA_PYTHON_MODPATH)/BigJob-*-py2.7.egg 2> /dev/null)
 BIGJOB_EGG           = $(shell echo $(BIGJOB_EGGS) | sort -n | tail -n 1 | rev | cut -f 1 -d '/' | rev)
 BIGJOB_VERSION       = $(shell echo $(BIGJOB_EGG)                        | rev | cut -f 2 -d '-' | rev)
-SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(SAGA_PYTHON_MODPATH)/$(BIGJOB_EGG)/
+BIGJOB_MODPATH      := $(SAGA_PYTHON_MODPATH)/$(BIGJOB_EGG)/
+SAGA_PYTHON_MODPATH := $(SAGA_PYTHON_MODPATH):$(BIGJOB_MODPATH)
+
+hallo:
+	@echo BIGJOB_MODPATH = $(BIGJOB_MODPATH)
 
 # $(warning bigjob-version: $(BIGJOB_VERSION))
 # $(warning bigjob-eggs   : $(BIGJOB_EGGS))
 # $(warning bigjob-egg    : $(BIGJOB_EGG))
-# $(warning bigjob-mod    : $(SAGA_PYTHON_MODPATH))
+# $(warning bigjob-mod    : $(BIGJOB_MODPATH))
 
 TEST_ENV                 = /usr/bin/env
 TEST_ENV                += PATH=$(PYTHON_LOCATION)/bin/:$(SAGA_LOCATION)/bin/:$(MYPATH)
 TEST_ENV                += PYTHONPATH=$(SAGA_PYTHON_MODPATH):$(PYTHON_MODPATH)
-TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$$LD_LIBRARY_PATH
+TEST_ENV                += LD_LIBRARY_PATH=$(SAGA_ENV_LDPATH):$(SAGAPY_ENV_LDPATH):$$LD_LIBRARY_PATH
 
 .PHONY: saga-client-bigjob
 saga-client-bigjob:: base $(SC_BIGJOB_CHECK)$(FORCE)
@@ -690,16 +715,38 @@ endif
 #
 # create some basic documentation about the installed software packages
 #
-CSA_README_SRC   = $(CSA_LOCATION)/csa/doc/README.stub
-CSA_README_CHECK = $(CSA_LOCATION)/csa/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(ESA)
-CSA_MODULE_SRC   = $(CSA_LOCATION)/csa/mod/module.stub
-CSA_MODULE_CHECK = $(CSA_LOCATION)/csa/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(ESA)
+CSA_SHELLRC_SRC   = $(CSA_ROOT)/env/saga-env.stub
+CSA_SHELLRC_CHECK = $(CSA_ROOT)/env/saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(CSA_SUFFIX).sh
+CSA_README_SRC    = $(CSA_ROOT)/doc/README.stub
+CSA_README_CHECK  = $(CSA_ROOT)/doc/README.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(CSA_SUFFIX)
+CSA_MODULE_SRC    = $(CSA_ROOT)/mod/module.stub
+CSA_MODULE_CHECK  = $(CSA_ROOT)/mod/module.saga-$(CSA_SAGA_VERSION).$(CC_NAME).$(HOSTNAME)$(CSA_SUFFIX)
 
 .PHONY: documentation
-documentation:: base $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE) permissions
+documentation:: base $(CSA_SHELLRC_CHECK)$(FORCE) $(CSA_README_CHECK)$(FORCE) $(CSA_MODULE_CHECK)$(FORCE) permissions
 ifdef CSA_SAGA_CHECK
 	@$(call CHECK, $@, readme, test -e $(CSA_README_CHECK))
 	@$(call CHECK, $@, module, test -e $(CSA_MODULE_CHECK))
+endif
+
+$(CSA_SHELLRC_CHECK)$(FORCE): $(CSA_SHELLRC_SRC)
+ifndef CSA_SAGA_CHECK
+	@echo "SHELLRC                   creating"
+	@cp -fv $(CSA_SHELLRC_SRC) $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_VERSION###|$(CSA_SAGA_VERSION)|ig;'          $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_LOCATION###|$(SAGA_LOCATION)|ig;'            $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_LDLIBPATH###|$(SAGA_ENV_LDPATH)|ig;'         $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_PATH###|$(SAGA_ENV_PATH)|ig;'                $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_MODPATH###|$(SAGA_PYTHON_MODPATH)|ig;'       $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###PYTHON_PATH###|$(PYTHON_LOCATION)/bin/|ig;'       $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###PYTHON_MODPATH###|$(PYTHON_MODPATH)|ig;'          $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYTHON###|$(PYTHON_LOCATION)/bin/python|ig;' $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYLOCATION###|$(PYTHON_LOCATION)|ig;'        $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYVERSION###|$(PYTHON_VERSION)|ig;'          $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_SHELLRC_CHECK)
+	@$(SED) -i -e 's|###BIGJOB_MODPATH###|$(BIGJOB_MODPATH)|ig;'          $(CSA_SHELLRC_CHECK)
 endif
 
 $(CSA_README_CHECK)$(FORCE): $(CSA_README_SRC)
@@ -719,7 +766,8 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_README_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_README_CHECK)
-	@cp -fv $(CSA_README_CHECK) $(CSA_LOCATION)
+	@$(SED) -i -e 's|###BIGJOB_MODPATH###|$(BIGJOB_MODPATH)|ig;'          $(CSA_README_CHECK)
+	@cp -fv $(CSA_README_CHECK) $(CSA_TGT_DIR)/
 endif
 	
 $(CSA_MODULE_CHECK)$(FORCE): $(CSA_MODULE_SRC)
@@ -739,13 +787,14 @@ ifndef CSA_SAGA_CHECK
 	@$(SED) -i -e 's|###SAGA_PYSVERSION###|$(PYTHON_SVERSION)|ig;'        $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CSA_LOCATION###|$(CSA_LOCATION)|ig;'              $(CSA_MODULE_CHECK)
 	@$(SED) -i -e 's|###CC_NAME###|$(CC_NAME)|ig;'                        $(CSA_MODULE_CHECK)
+	@$(SED) -i -e 's|###BIGJOB_MODPATH###|$(BIGJOB_MODPATH)|ig;'          $(CSA_MODULE_CHECK)
 endif
 
 .PHONY: permissions
 permissions:
 ifndef CSA_SAGA_CHECK
 	@echo "fixing permissions"
-	-@$(CHMOD) -R a+rX $(SAGA_LOCATION)
-	-@$(CHMOD) -R a+rX $(EXTDIR)
-	-@$(CHMOD)    a+rX $(CSA_LOCATION)
+	@-$(CHMOD) -R a+rX $(SAGA_LOCATION)
+	@-$(CHMOD) -R a+rX $(EXTDIR)
+	@-$(CHMOD)    a+rX $(CSA_LOCATION)
 endif
