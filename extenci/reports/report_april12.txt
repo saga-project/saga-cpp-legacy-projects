@@ -1,0 +1,62 @@
+STAGE-1 - Using OSG' s native pilot jobs with BigJob/P* API: Providing
+the BigJob Pilot-Job API (now P* API:
+http://saga-project.github.com/BigJob/doc/pilot.api-module.html) to
+Condor / glidein-WMS via SAGA. In this scenario, jobs (work-units) are
+directly submitted through the P* API to the WMS system.
+
+The STAGE-1 development (right figure) has been used for extensive
+tests with BFAST genome-matching as well as prototype Cactus
+applications. Concurrent runs on OSG and XSEDE were conducted and a
+scale-up / scale-out up to 25000 cores on XSEDE over 3 sites has been
+achieved.
+
+This was the first attempt to implement the BigJob / P* API on top of
+another Pilot-Job system apart of our own BigJob pilot-job
+system. During the experiments, we encountered the following problems
+listed below:
+
+- No control over Condor Pilot-Jobs (this is done on system level by
+  WMS). This renders part of the P* API (application-level resource
+  reservation) as useless.
+- Limited control over data placement and data scheduling / affinities
+- Big-Data use-cases not feasible
+- Remote-submission to OSG/WMS not possible. This makes
+  interoperability runs inflexible (application has to run on
+  engage-submit3)
+
+We mainly attribute these problems to OSGs approach of hiding many
+resource management aspects from the application-level and encapsulate
+it further down on system-level (i.e, WMS). STAGE-1 was important to
+understand both, the limitations of our model and pilot-job interfaces
+as well as the limitations and peculiarities of the Open Science Grid
+infrastructure.  While the software developed in STAGE-1 could
+probably be used to accomplish the formal goals of ExTENCI phase 1, it
+seems limited in elegance and practical usability. Over the last
+month, we have started working on OSG/BigJob STAGE-2.
+
+STAGE-2 - Using BigJob pilot-jobs on top of OSG/WMS: Integrating the
+Big-Job pilot-job system with OSG/WMS. While STAGE-1 only implemented
+the BigJob/P* API on top of OSG, STAGE-2 goes one step further and
+integrates the BigJob pilot-job system with OSG (center figure). This
+involves running BigJob resource agents within Condor jobs. While the
+agents are still submitted via SAGA/Condor to the glidein-WMS system,
+the application workload binding is now decoupled, which allows better
+control over job and data placement.
+
+This approach also simplifies concurrent execution on OSG and XSEDE
+(which uses BigJob as well - see left figure): while in the STAGE-1
+case the workload had to be split up into OSG and XSEDE workloads
+a-priori and then fed into the different systems (OSG/WMS and
+XSEDE/BigJob), this is not necessary anymore. Workloads are moved into
+one single central "pool" from which agents on both infrastructures
+can now pull work-units as needed.
+
+We believe that this approach is more flexible and crucial for the
+successful delivery of our proposed ExTENCI-2 work items, like
+advanced scheduling capabilities.
+
+It is also important to mention, that STAGE-2 doesn't affect the
+application track of our work package. Since the API will stay the
+same as in STAGE-1, portal and command-line applications can be moved
+seamlessly from one implementation to the other. STAGE-1 software will
+stay available on engage-submit3 until STAGE-2 becomes available.
