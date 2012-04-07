@@ -41,10 +41,11 @@
 \usepackage{listings} 
 \usepackage{enumerate}
 \usepackage{paralist}
-\newif\ifdraft
-%\drafttrue
 
+\newif\ifdraft
+\drafttrue
 \ifdraft
+
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
@@ -305,14 +306,14 @@ extensibility, scalability and performance; for example, we discuss
 the usability of \pilot-abstractions in designing dynamic execution
 workflows which involves multiple MapReduce computations.
 
-\pnote{The key take-aways of this paper are:
-\begin{itemize}
-	\item MapReduce simplifies the construction of data-parallel applications.
-	\item Pilot-Abstraction enable the clean separation of resource management concerns and MapReduce.
-	\item The Pilot/SAGA-based approach enables a maximum of portability, interoperability and code-reuse.
-	\item Hadoop is designed for cluster/local environment, but not for a high degree of distribution.
-	\item Future work: dynamic execution.
-\end{itemize}  - repetitive? }
+% \pnote{The key take-aways of this paper are:
+% \begin{itemize}
+% 	\item MapReduce simplifies the construction of data-parallel applications.
+% 	\item Pilot-Abstraction enable the clean separation of resource management concerns and MapReduce.
+% 	\item The Pilot/SAGA-based approach enables a maximum of portability, interoperability and code-reuse.
+% 	\item Hadoop is designed for cluster/local environment, but not for a high degree of distribution.
+% 	\item Future work: dynamic execution.
+% \end{itemize}  - repetitive? }
 
 Before we proceed further, it is critical to emphasize that it is not
 the aim of this paper to suggest PMR as a replacement to Hadoop.
@@ -495,9 +496,10 @@ affinity requirements of the application.
 \label{sec-pilot-mr}
 %\alnote{We should only use PilotMapReduce to refer to our framework - SAGA does not need to be in the name and mentioned all the time}
 
-% \jhanote{Not sure why we have the first instanc of ``\pilotmapreduce''
-%   in ``\emph''. Also we toggle between PMR and
-%   ``\pilotmapreduce''. Please be consistent} \alnote{ok removed emph}
+% \jhanote{Not sure why we have the first instanc of
+%   ``\pilotmapreduce'' in ``\emph''. Also we toggle between PMR and
+%   ``\pilotmapreduce''. Please be consistent} \alnote{ok removed
+%   emph}
   
 
 \pilotmapreduce (PMR) is a \pilot-based implementation of the
@@ -506,12 +508,13 @@ framework from the actual management of the compute, data and network
 resources. By decoupling job scheduling and monitoring from the
 resource management, PMR can efficiently re-use the resource
 management and late-binding capabilities of BigJob and BigData. PMR
-exposes an easy-to-use interface, which provides the
-\jhanote{Need to talk about the following sentence/claim...} \alnote{yes, we should add some example code} complete
-functionality needed by any MapReduce algorithm, while hiding the more
-complex functionality, such as chunking of the input, sorting the
-intermediate results, managing and coordinating the map \& reduce
-tasks, etc., these are generically implemented by the framework.
+exposes an easy-to-use interface, which provides the \jhanote{Need to
+  talk about the following sentence/claim...} \alnote{yes, we should
+  add some example code} complete functionality needed by any
+MapReduce algorithm, while hiding the more complex functionality, such
+as chunking of the input, sorting the intermediate results, managing
+and coordinating the map \& reduce tasks, etc., these are generically
+implemented by the framework.
 
 
 
@@ -556,12 +559,10 @@ pilots for this application workflow: % \jhanote{Worth noting that
 \begin{compactenum}[A.]
 \item Initially, the MR manager allocates a set of compute and data
   resources by starting one (or most often a set of) compute and data
-  pilots on different resources 
-  %(step 1 and 2 in  figure~\ref{fig:figures_mapreduce-pilotdata}). 
-  In general, on each
-  resource one compute and one data pilot is co-located. The data
-  pilot is either created with reference to local input data or the
-  input data is moved to the data pilot after its creation.
+  pilots on different resources.  In general, on each resource one
+  compute and one data pilot is co-located. The data pilot is either
+  created with reference to local input data or the input data is
+  moved to the data pilot after its creation.
 
 \item \textbf{Chunking:} The input data is {\it chunked}. BigJob is
   used as general abstraction for executing CUs. Thus, the MR-Manager
@@ -605,12 +606,12 @@ pilots for this application workflow: % \jhanote{Worth noting that
 % \jhanote{The mapping from the Chunking/Mapping/Shuffling stages to the
 %   diagram steps is a bit hard to grasp. For example although we talk
 %   about chunking, we find a mention of step 5/6..}
-\alnote{yes, since both aspects are a bit orthogonal. The figure shows
-  how compute and data units are managed via Pilot abstractions. The
-  phases are more about what the MR framework does in the CUs and
-  where DUs need to be moved. Should we remove the steps from the
-  enumeration?} \jhanote{Maybe remove the steps for now and if time
-  permits discuss them separately/lately?}
+% \alnote{yes, since both aspects are a bit orthogonal. The figure shows
+%   how compute and data units are managed via Pilot abstractions. The
+%   phases are more about what the MR framework does in the CUs and
+%   where DUs need to be moved. Should we remove the steps from the
+%   enumeration?} \jhanote{Maybe remove the steps for now and if time
+%   permits discuss them separately/lately?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
 late-binding of compute and data units. The API also allows the expression and
@@ -920,8 +921,8 @@ reduces to 8 for both Hadoop and \pilotmapreduce; further, the default
 chunk size of 128\,MB is used. A HDFS replication factor of 2 is used.
 
 The runtime of PMR includes the time to chunk input data, running the
-mapping CUs, shuffling (which again comprises of sorting and the
-intermediate data transfer, and finally running the reduce CUs.
+mapping CUs, shuffling (which in-turn comprises of sorting and the
+intermediate data transfer), and finally running the reduce CUs.
 Figure~\ref{fig:figures_wc_pmr_hmr} shows the results. The runtime of
 Hadoop MapReduce includes the time to load input source data into HDFS and
 MapReduce runtime.
@@ -939,51 +940,46 @@ MapReduce runtime.
 The time to solution increased linearly as data size increased; the
 performance of both Hadoop and PMR is comparable up to 8\,GB. However,
 for the largest volumes of input data we examined, PMR shows a better
-performance than Hadoop. In particular, the setup, map and shuffle phase in the 
-Hadoop case are longer. Both the map and shuffle phase are the most  
-data-intensive phases -- Word Count needs to read all input files and generates 
-intermediate data with the size of about 200\,\% of the input data. The worse 
-performance of Hadoop indicates a potential issue with HDFS. PMR relies mostly 
-on the shared file system for handling the intermediate data.
-\jhanote{Can we say why?}\alnote{Pradeep: did we use the 
-tmp directory of the shared file system in the 16 GB case? Could be again a 
-sub-optimal Hadoop deployment.}\pnote{Yes- the /tmp directory of the data node is pointed to 
-a shared file system; as andre mentioned, the map phase involves huge amounts of data(nearly 200%) to be written to the
-disk. }
+performance than Hadoop. In particular, the setup, map and shuffle
+phase in the Hadoop case are longer. Both the map and shuffle phase
+are the most data-intensive phases -- Word Count needs to read all
+input files and generates intermediate data with the size of about
+200\,\% of the input data. The worse performance of Hadoop indicates a
+potential issue with HDFS. PMR relies mostly on the shared file system
+for handling the intermediate data.
 
-% the
-% results indicate that the shuffle phase is critical in particular if
-% larger volumes of data need to be sorted and moved as in the Word
-% Count application where the intermediate data is about 200\,\% of the
-% input data.
+% \jhanote{Can we say why?}\alnote{Pradeep: did we use the tmp directory
+%   of the shared file system in the 16 GB case? Could be again a
+%   sub-optimal Hadoop deployment.}\pnote{Yes- the /tmp directory of the
+%   data node is pointed to a shared file system; as andre mentioned,
+%   the map phase involves huge amounts of data(nearly 200\%) to be
+%   written to the disk.}
 
-% The total runtime increased linearly as data size increased for both the MapReduces. Hadoop is optimized and performs well with shared file systems.
-
-% greater than Map phase time of Local-PMR because Hadoop MR involves preparing input splits and starting the map tasks, whereas in Pilot MapReduce, chunk time is considered seperatly and Map phase involves submitting of map compute units. The chunking time of distributed-Pilot MapReduce is less when compared to Local-PMR, since the data is halved and distributed to two machines. \pnote{ Andre::question::Hadoop uses logical splitting of files, where as PMR chunks the files physically, wiritng to disk, this is a performance bottlneck. Is acessing a single file, by many parallel subjobs cause problems?}. The shuffle phase is considered only in Hadoop MapReduce, where as the exchange is involved in Pilot MapReduce. The input to the reduce phase in all the three MapReduce increased linearly with input data. In local-PMR is < 1sec as the data is moved within cluster using SAGA file adaptor. In distributed PMR, the time to exchange data between India and Hotel also increased linearly with input data size. The Reduce phase is high for Pilot MR since the reduce compute units has to read intermediate data from the disk and write output data to the disk, where as in Hadoop MapReduce reduce phase, the intermediate data is available in memory and write the output to HDFS.
-
-
-
-\alnote{Not sure whether we should mention these - these issues are well-known: Observed performance issues:
-1) HDFS performs better when nodes local data directory is used.. But performance degrades if shared storage is used. 			
-2) when a single node is used to launch all workers, hadoop fails with lot of memory problems, whereas PMR successfully completed all tasks.			
-reasons for this problem}
+\alnote{Not sure whether we should mention these - these issues are
+  well-known: Observed performance issues: 1) HDFS performs better
+  when nodes local data directory is used.. But performance degrades
+  if shared storage is used.  2) when a single node is used to launch
+  all workers, hadoop fails with lot of memory problems, whereas PMR
+  successfully completed all tasks.  reasons for this problem}
 
 %http://tech.backtype.com/the-dark-side-of-hadoop+J204		
 \upp\upp
 \subsection{Characterizing Genome Sequencing}
 
 In this section, we compare and contrast GS/PMR and SEQAL. For both
-applications, we utilize the same set of input data comprising of different
-sizes of read files and the reference genome. SEQAL, however, expects the input
-data in a different format (prq instead of fastq); thus, the data was previously
-converted to meet the SEQAL requirements. For PMR, the fastq files from
-sequencing machines are directly used; further, a custom chunk script is used to
-chunk the fastq files based on the number of reads. We make sure that the chunk
-size for both SEQAL and PMR is equal. For both frameworks, a total of 4 nodes on
-FutureGrid Sierra machine, 8 reduces, 2 workers/node, default chunk size of
-128\,MB is used. For Hadoop based SEQAL, the replication factor of two is used.
-Since SEQAL and GS/PMR utilize different duplicate removal tools in the reduce
-phase, we focus our investigation on the map phase.
+applications, we utilize the same input data comprising of different
+sizes of read files and the reference genome. SEQAL, however, expects
+the input data in a different format (\texttt{prq} instead of
+\texttt{fastq}); data was converted to meet the SEQAL
+requirements. For PMR, the fastq files from sequencing machines are
+directly used; further, a custom chunk script is used to chunk the
+fastq files based on the number of reads. The chunk size for both
+SEQAL and PMR are equal. For both GS/PMR and SEQAL, a total of 4 nodes
+on FutureGrid Sierra machine, 8 reduces, 2 workers/node, default chunk
+size of 128\,MB is used. For Hadoop based SEQAL, the replication
+factor of two is used.  Since SEQAL and GS/PMR utilize different
+duplicate removal tools in the reduce phase, we focus our
+investigation on the map phase.
 
 %  to compare scalability of PMR across clusters, we are
 % interested in only in the execution of map phase. SEQAL provides an option to
@@ -1000,27 +996,31 @@ using a shared file system.\upp}
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
-Figure~\ref{fig:gs_seq_pmr} shows the results of both applications. In the setup
-time of SEQAL, Hadoop copies the reference genome archive to all the nodes and
-extracts it so it is available locally. In comparison to Word Count both GS
-applications are more compute intensive, i.\,e.\ the ratio between computation
-in the map phase and the size of the input data is significant larger. Notably,
-SEQAL requires a longer time-to-completion than GS/PMR. Both the map and reduce
-phase of SEQAL are longer. While the map phase of SEQAL relies on the same BWA
-implementation as GS/PMR, the reduce phase uses Picard's rmdump~\cite{picard}
-for duplicate removal, which has a significant longer runtime than the duplicate
-removal process in the reduce phase of GS/PMR.
-\jhanote{Is the
-  following for the Map phase or true for all phases?} \alnote{added sentence on 
-analysis of both phases}
-This is mainly caused by a non-optimal configuration of Hadoop: The local disks
-available on FutureGrid is too small for the used input data; thus, HDFS had
-to be configured to utilize a shared, distributed file system, which
-leads to a non-optimal performance during the I/O intensive map
-phase. The difference in the reduce phase mainly originate from the
-different implementations of the duplicate removal process in SEQAL
-and GS/PMR.
+Figure~\ref{fig:gs_seq_pmr} shows the results \jhanote{results of
+  what?} of both applications.
 
+The time taken to copy the reference genome archive to all the Hadoop
+nodes and extract it so it is available locally is included in the
+SEQAL set-up time. In comparison to Word Count both GS applications
+are more compute intensive, i.\,e.\ the ratio between computation in
+the map phase and the size of the input data is significantly
+larger. Furthermore, SEQAL has greater time-to-completion than
+GS/PMR. Both the map and reduce phase of SEQAL are longer. While the
+map phase of SEQAL relies on the same BWA implementation as GS/PMR,
+the reduce phase uses Picard's rmdump~\cite{picard} for duplicate
+removal, which has a significant longer runtime than the duplicate
+removal process in the reduce phase of GS/PMR.  
+This is mainly caused by a
+non-optimal configuration of Hadoop: The local disks available on
+FutureGrid is too small for the used input data; thus, HDFS had to be
+configured to utilize a shared, distributed file system, which leads
+to a non-optimal performance during the I/O intensive map phase. The
+difference in the reduce phase mainly originate from the different
+implementations of the duplicate removal process in SEQAL and GS/PMR.
+
+\jhanote{Is the
+  following for the Map phase or true for all phases?} \alnote{added
+  sentence on analysis of both phases} 
 \alnote{Pradeep: Please elaborate a bit on the differences}
 \upp\upp
 \subsection{Distributed MapReduce}
@@ -1161,7 +1161,8 @@ checking in as time is up..}
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/gs_hihmr_dpmr.pdf}
-\caption{GS/PMR Using Hierarchical and Distributed PMR\upp\upp\upp} 	
+                \caption{GS/PMR using Hierarchical and Distributed
+                  PMR\upp\upp\upp}
 \label{fig:gs_hihmr_dpmr}
 \end{figure}		
 
