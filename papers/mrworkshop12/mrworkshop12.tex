@@ -409,26 +409,31 @@ and resource management providing a high degree of flexibility and extensibility
 \section{Pilot Abstractions}
 \label{sec-pilot-impl}
 
-Pilot-abstractions provide effective management of compute and data units and the relationships between them(affinities).  They liberate 
-the applications from the challenging  requirement of assigning/scheduling the compute or data unit onto a particular resource.
+\jhanote{BJ was defined 3 times!. Pilot-Data and pilot data was used..}
 
 \subsection{Pilot Abstractions for Compute}
-The abstraction of a {\emph \pilotjob} (PJ) generalizes the reoccurring concept of
-utilizing a placeholder job as a container for a set of compute tasks;
-instances of that placeholder job are commonly referred to as Pilot-Jobs or
-pilots. The PJ provides applications (user) level control and management of
-the set of allocated resources. 
 
-BigJob (BJ) is a SAGA-based PJ framework. BJ has been designed to be general-purpose and extensible. 
-While BJ has been originally built for HPC infrastructures, such as XSEDE and FutureGrid, it is generally also usable in other environments. 
-This extensibility mainly arises from the usage of SAGA as a common API for accessing distributed resources. 
-SAGA provides a simple, POSIX-style API to the most common grid functions at a sufficiently high-level of abstraction 
-so as to be independent of the diverse and dynamic grid environments.~\cite{pstar-2012}
+The abstraction of a {\emph \pilotjob} (PJ) generalizes the
+reoccurring concept of utilizing a placeholder job as a container for
+a set of compute tasks; instances of that placeholder job are commonly
+referred to as Pilot-Jobs or pilots. The PJ provides applications
+(user) level control and management of the set of allocated resources.
+
+BigJob (BJ) is a SAGA-based PJ framework. BJ has been designed to be
+general-purpose and extensible.  While BJ has been originally built
+for HPC infrastructures, such as XSEDE and FutureGrid, it is generally
+also usable in other environments.  This extensibility mainly arises
+from the usage of SAGA as a common API for accessing distributed
+resources.  SAGA provides a simple, POSIX-style API to the most common
+grid functions at a sufficiently high-level of abstraction so as to be
+independent of the diverse and dynamic grid
+environments.~\cite{pstar-2012}
 
 \subsection{Pilot Abstractions for Data}
-Analogous to \pilotjobs, {\emph Pilot-Data}(PD)
-provides late-binding capabilities for data by separating the allocation of
+Analogous to \pilotjobs, {\it Pilot-Data} (PD) abstraction provides
+late-binding capabilities for data by separating the allocation of
 physical storage and application-level data units~\cite{pstar-2012}.
+
 
 \begin{figure}[htbp]
 	\centering
@@ -437,59 +442,73 @@ physical storage and application-level data units~\cite{pstar-2012}.
 	\label{fig:figures_bigdata}
 \end{figure}
 
-{\it BigData (BD)} is an implementation of the Pilot-Data abstraction. BigData
-is designed to work together with \emph{BigJob (BJ)}~\cite{bigjob_web} -- a
-SAGA-based Pilot-Job implementation. Figure~\ref{fig:figures_bigdata} gives an
-overview of the architecture. The system consists similarly to BigJob of two
-components: the BD-Manager and the BD-Agents deployed on the physical resources.
-The coordination scheme used is again M/W with some intelligence that is located
-de-centrally at the BD-Agent. As communication mechanism the SAGA Advert Service
-is used, in a similar push/pull mode as for BJ.
+{\it BigData (BD)} is an implementation of the Pilot-Data
+abstraction. BigData is designed to work together with
+BigJob~\cite{bigjob_web} -- a SAGA-based Pilot-Job implementation.
+Figure~\ref{fig:figures_bigdata} provides an overview of the
+architecture of BigData. Similar to BigJob, it is comprised of two
+components: the BD-Manager and the BD-Agents, which are deployed on
+the physical resources.  The coordination scheme used is Master-Worker
+(MW), with some decentralized intelligence located at the BD-Agent.
+Analagous to BJ, the the SAGA Advert Service \jhanote{not described or
+  referenced} provides the communication mechanism in a push/pull
+mode.
 
 The BD-Manager is responsible for (i) meta-data management, i.\,e.\ it
-keeps track of the pilot stores that a pilot data object is associated
-with, (ii) for scheduling data movements and data replications (taking
-into account the application requirements defined via affinities), and
-(iii) for managing data movements activities. For this purpose, it can rely
-on external service, e.\,g.\ Globus Online for data transfer management.  
-Similar to BigJob, an agent on each resource is used to manage the physical 
-storage on a resource.  
+keeps track of the pilot stores \jhanote{pilot stores are undefined!?}
+that a pilot data object \jhanote{pilot data object undefined} is
+associated with, (ii) for scheduling data movement and data
+replication (taking into account the application requirements defined
+via affinities), and (iii) for managing data movements activities. For
+this purpose, it can rely on external service, e.\,g.\ Globus Online
+for data transfer management.  Similar to BigJob, an agent on each
+resource is used to manage the physical storage on a resource.
 
-A particular critical requirement for data-intensive application, is
-the management of affinity between CUs and also between DUs and
-DUs. The BD scheduler supports preliminary affinity-aware
-scheduling: both BigJob and BigData are tightly integrated to
-efficiently support compute- and data-related aspects of dynamic
-execution. 
+\jhanote{I think this paragraph should be zapped. (i) We have not
+  defined DU and CU yet. (ii) not do I see mention of a BD
+  Scheduler. This makes sense after a discussion of affinities} A
+critical requirement for data-intensive application, is the management
+of affinity between CUs and also between DUs and DUs. The BD scheduler
+supports preliminary affinity-aware scheduling: both BigJob and
+BigData are tightly integrated to efficiently support compute- and
+data-related aspects of dynamic execution.
 
 \upp
 \subsection{Pilot-API and Affinities}
 \label{sec-affinities}
 
-The Pilot-API is an {\it interoperable} and {\it extensible} API which exposes the core functionalities
-of a \pilot framework via a unified interface providing a common API that can be used across multiple 
-distinct production cyber infrastructures.
- The API provides three core classes: the
-\texttt{PilotComputeService} for the management of Pilot-Jobs,
-\texttt{PilotDataService} for the management of Pilot-Data and the
-\texttt{ComputeDataService} for the management of \texttt{ComputeUnits} (CUs)
-and \texttt{DataUnits} (DUs). A CU represents a primary self-containing piece
-of work, while a DU represents a logical set for data~\cite{pstar-2012}.
+The Pilot-API is an {\it interoperable} and {\it extensible} API which
+exposes the core functionalities of a \pilot framework via a unified
+interface providing a common API that can be used across multiple
+distinct production cyber infrastructures.  The API provides three
+core classes: the \texttt{PilotComputeService} for the management of
+Pilot-Jobs, \texttt{PilotDataService} for the management of Pilot-Data
+and the \texttt{ComputeDataService} for the management of
+\texttt{ComputeUnits} (CUs) and \texttt{DataUnits} (DUs). A CU
+represents a primary self-containing piece of work, while a DU
+represents a logical set for data~\cite{pstar-2012}.
 
-% \subsection{Affinities}
+The Pilot-API promotes \emph{affinities} as a first class
+characteristic for describing relationships between data and/or
+compute supporting dynamic decision making. Unfortunately, most
+production infrastructure lack system-level support for affinities,
+e.\,g.\ resource localities cannot be introspected. Data storage in
+particular in distributed settings, such as in the XSEDE or the EGI
+environment, is often a black box for the application with unknown
+quality of services, i. e. the application usually does not know what
+bandwidths and latencies it can expect. To address these deficiency
+the Pilot-API introduces affinities on application-level: applications
+can associate compute and data units as well as resources (the
+\pilots) with affinity labels. The BigJob and BigData runtime will
+then ensure that CUs and DUs are placed with respect to the affinity
+requirements of the application.
 
-The Pilot-API promotes \emph{affinities} as a first class characteristic for
-describing relationships between data and/or compute supporting dynamic decision
-making. Unfortunately, most production infrastructure lack system-level support
-for affinities, e.\,g.\ resource localities cannot be introspected. Data storage
-in particular in distributed settings, such as in the XSEDE or the EGI
-environment, is often a black box for the application with unknown quality of
-services, i. e. the application usually does not know what bandwidths and
-latencies it can expect. To address these deficiency the Pilot-API introduces 
-affinities on application-level: applications can associate compute and data 
-units as well as resources  (the \pilots) with affinity labels. The BigJob and 
-BigData runtime will then ensure that CUs and DUs are placed with respect to the 
-affinity requirements of the application.
+Thus, the combined Pilot-abstraction provides effective management of
+compute and data units and the relationships between them
+(affinities).  They liberate the applications from the challenging
+requirement of assigning/scheduling the compute or data unit onto a
+particular resource.
+
 
 \upp
 \section{Pilot-MapReduce -- A Pilot-based MapReduce Implementation}
