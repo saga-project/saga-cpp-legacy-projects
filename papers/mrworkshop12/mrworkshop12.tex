@@ -47,7 +47,7 @@
 \ifdraft
 
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
-\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
 \newcommand{\pnote}[1]{ {\textcolor{magenta} { ***pradeep: #1 }}}
 \newcommand{\note}[1]{ {\textcolor{red} { ***Note: #1 }}}
@@ -282,10 +282,11 @@ pilots. In this paper, we present \emph{BigData (BD)}, an extension of
 the BigJob framework (BJ)~\cite{bigjob_web} to data. Both BigJob and
 BigData provide a full implementation of the Pilot-API and enable the
 management of resources, compute \& data units as well as the
-relationships between them. Specifically, the Pilot-API promotes
-affinities as a first class characteristic for describing such
-relationships between compute and data elements and to support dynamic
-decision making. 
+relationships \jhanote{what kind of relationship? haven't we already
+  introduced the notion of affinity?}  between them. Specifically, the
+Pilot-API promotes affinities as a first class characteristic for
+describing such relationships between compute and data elements and to
+support dynamic decision making.
 
 % Pilot-Data provides an abstraction
 % for expressing and managing relationships between data units and/or compute
@@ -602,15 +603,20 @@ pilots for this application workflow: % \jhanote{Worth noting that
 
 \item \textbf{Chunking:} The input data is {\it chunked}. BigJob is
   used as general abstraction for executing CUs. Thus, the MR-Manager
-  executes a set of chunk compute units via BJ.\label{stp:chunking} 
-  % The execution of
-  %   the chunk CUs is captured in step 5 and 6 in
-  %   figure~\ref{fig:figures_mapreduce-pilotdata}. 
-\item \textbf{Mapping:} The frameworks assigned a set of {\it map} CUs
-  to the chunks created in step~\ref{stp:chunking}. Again, BJ is used
-  for managing the CUs. BJ and BD ensures that CUs and DUs are
-  co-located. The execution of the map CUs is done analogous to the
-  chunk CUs. % (step 5/6).
+  executes a set of chunk compute units via BJ.\label{stp:chunking}
+  \jhanote{I'm not clear what ``executes a set of chunk compute
+    units'' means? Plus the two previous sentence should be merged
+    into 1 sentence?} \jhanote{I'm confused: isn't chunking all about
+    data? why are we getting into executing CUs? shouldn't DUs be
+    introduced in the chunking phase? currenlty no mention of DUs?}
+\item \textbf{Mapping:} The frameworks assigned \jhanote{assigned or
+  assign?} a set of {\it map} CUs to the chunks created in
+  step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ
+  and BD ensures that CUs and DUs are co-located. \jhanote{there is no
+    mention of DUs so far. Where/how does this happen?}The execution
+  of the map CUs is done analogous to the chunk CUs.  \jhanote{Also,
+    how are the chunks related to/assigned to DUs? that is unclear
+    from description}
 	
 \item \textbf{Shuffling:} %\pnote{partitioning and sorting of
   % map output is part of map task}. \alnote{Hadoop Definitive Guide:
@@ -619,17 +625,20 @@ pilots for this application workflow: % \jhanote{Worth noting that
   % shuffle.'' - I would prefer to work with this definition since it
   % encapsulates this intermediate step very well. Rather then
   % including it in the mapping phase (even if it might be done
-  % partially by the mapper process.) }
-  After the processing is finished the output data is sorted and
-  partitioned into multiple DU. Then, data is moved from the map CUs
-  to the location of the reduce CUs. For each reduce task a Data Unit
-  containing the necessary input files is created and submitted to
-  BigData. % (step 3/4 in figure~\ref{fig:figures_mapreduce-pilotdata})
+  % partially by the mapper process.) } After the processing
+  \jhanote{processing of what? Undefined..}is finished the output data
+  is sorted and partitioned into multiple DU. Then, data is moved from
+  the map CUs to the location of the reduce CUs. \jhanote{shouldn't it
+    be from the location of the map CUs to the location of the reduce
+    CUs?} For each reduce task a Data Unit containing the necessary
+  input files is created and submitted to BigData. % (step 3/4 in
+  figure~\ref{fig:figures_mapreduce-pilotdata})
 		
   % \alnote{We need to introduce what we mean by a distributed PMR.}
 	
 \item \textbf{Reducing:} The {\it reduce} tasks are prepared and
-  executed via BJ on the DUs representing the intermediate data.
+  executed via BJ \jhanote{isn't this obvious: tasks are executed via
+    the BJ?} on the DUs representing the intermediate data.
   % (step  5/6 in figure~\ref{fig:figures_mapreduce-pilotdata}).  
   The management of the data transfers is done by BJ and BD. For this
   purpose, each reduce CU reference a certain DU as dependency.
@@ -649,17 +658,18 @@ pilots for this application workflow: % \jhanote{Worth noting that
 %   permits discuss them separately/lately?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
-late-binding of compute and data units. The API also allows the expression and
-management of relationships between data units and/or compute units. BigJob and
-BigData provide an implementation of the Pilot-API. Both frameworks ensure that
-the data and compute affinity requirements of the MapReduce applications are met
-for each step of the MapReduce workflow. For example, in the shuffle phase PMR
-generates a DU and CU for each reduce task. The DUs and CUs are then submitted
-to BigJob and BigData framework, which handles the scheduling, transfer of the
-DU and execution of the CU. PMR assigns a resource affinity to each DU and CU.
-BJ and BD then ensure that each CU is co-located to the right DU.
-% \jhanote{we don't elaborate how/why.}\alnote{example on how affinity are used 
-% added.}
+late-binding of compute and data units. \jhanote{How so?} The API also
+allows the expression and management of relationships between data
+units and/or compute units. BigJob and BigData provide an
+implementation of the Pilot-API. Both frameworks ensure that the data
+and compute affinity requirements of the MapReduce applications are
+met for each step of the MapReduce workflow. For example, in the
+shuffle phase PMR \jhanote{we were talking about both frameworks, now
+  suddenly talking about PMR?!} generates a DU and CU for each reduce
+task. The DUs and CUs are then submitted to BigJob and BigData
+framework, which handles the scheduling, transfer of the DU and
+execution of the CU. PMR assigns a resource affinity to each DU and
+CU.  BJ and BD then ensure that each CU is co-located to the right DU.
 
 \upp
 \subsection{Compute and Data Management}
