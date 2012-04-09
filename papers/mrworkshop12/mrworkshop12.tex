@@ -1031,15 +1031,15 @@ applications, we utilize the same input data comprising of different
 sizes of read files and the reference genome. SEQAL, however, expects
 the input data in a different format (\texttt{prq} instead of
 \texttt{fastq}); data was converted to meet the SEQAL
-requirements. For PMR, the fastq files from sequencing machines are
-directly used; further, a custom chunk script is used to chunk the
-fastq files based on the number of reads. The chunk size for both
-SEQAL and PMR are equal. For both GS/PMR and SEQAL, a total of 4 nodes
-on FutureGrid Sierra machine, 8 reduces, 2 workers/node, default chunk
-size of 128\,MB is used. For Hadoop based SEQAL, the replication
-factor of two is used.  Since SEQAL and GS/PMR utilize different
-duplicate removal tools in the reduce phase, we focus our
-investigation on the map phase.
+requirements. For PMR, \jhanote{shouldn't this be GS/PMR?} the fastq
+files from sequencing machines are directly used; further, a custom
+chunk script is used to chunk the fastq files based on the number of
+reads. The chunk size for both SEQAL and PMR are equal. For both
+GS/PMR and SEQAL, a total of 4 nodes on FutureGrid Sierra machine, 8
+reduces, 2 workers/node, default chunk size of 128\,MB is used. For
+Hadoop based SEQAL, the replication factor of two is used.  Since
+SEQAL and GS/PMR utilize different duplicate removal tools in the
+reduce phase, we focus our investigation on the map phase.
 
 %  to compare scalability of PMR across clusters, we are
 % interested in only in the execution of map phase. SEQAL provides an option to
@@ -1050,9 +1050,10 @@ investigation on the map phase.
 \begin{figure}[ht]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/gs_seq_pmr.pdf}
-\caption{SEQAL and GS/PMR: GS/PMR provides a marginal better performance that 
-SEQAL. The overhead of SEQAL is mainly attributed to the used HDFS configuration 
-using a shared file system.\upp} 	
+\caption{SEQAL and GS/PMR: GS/PMR provides a marginal better
+  performance that SEQAL. The overhead of SEQAL is mainly attributed
+  to the used HDFS configuration using a shared file
+  system.\jhanote{needs fixing: double ``used''}\upp }
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
@@ -1069,14 +1070,19 @@ GS/PMR. Both the map and reduce phase of SEQAL are longer. While the
 map phase of SEQAL relies on the same BWA implementation as GS/PMR,
 the reduce phase uses Picard's rmdump~\cite{picard} for duplicate
 removal, which has a significant longer runtime than the duplicate
-removal process in the reduce phase of GS/PMR.  
-This is mainly caused by a
-non-optimal configuration of Hadoop: The local disks available on
-FutureGrid is too small for the used input data; thus, HDFS had to be
-configured to utilize a shared, distributed file system, which leads
-to a non-optimal performance during the I/O intensive map phase. The
+removal process in the reduce phase of GS/PMR.  \jhanote{We just said
+  above that we will focus on the map phase after stating that the
+  reduce phases are different. So why are we now discussing reduce
+  phases?}  \jhanote{Also not sure How/why the previous follow from
+  subsequent sentence?}  This is mainly caused by a non-optimal
+configuration of Hadoop: The local disks available on FutureGrid is
+too small for the used input data; thus, HDFS had to be configured to
+utilize a shared, distributed file system, which leads to a
+non-optimal performance during the I/O intensive map phase. The
 difference in the reduce phase mainly originate from the different
-implementations of the duplicate removal process in SEQAL and GS/PMR.
+implementations of the duplicate removal process in SEQAL and
+GS/PMR. \jhanote{this is a repeat of an earlier statement! No details
+  of reduce phase in GS/PMR provided!}
 
 \jhanote{Is the
   following for the Map phase or true for all phases?} \alnote{added
