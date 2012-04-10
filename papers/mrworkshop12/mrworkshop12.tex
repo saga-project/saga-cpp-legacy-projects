@@ -31,6 +31,7 @@
 \usepackage[numbers, sort, compress]{natbib}
 \usepackage{xspace}
 \usepackage{color}
+\usepackage[usenames,dvipsnames]{xcolor}
 %\usepackage{hyperref}
 %\usepackage{mdwlist}
 \usepackage{url}
@@ -50,6 +51,8 @@
 \newcommand{\jhanote}[1]{ {\textcolor{red} { ***SJ: #1 }}}
 \newcommand{\alnote}[1]{ {\textcolor{blue} { ***andreL: #1 }}}
 \newcommand{\pnote}[1]{ {\textcolor{magenta} { ***pradeep: #1 }}}
+\newcommand{\secrev}[1]{ {\textcolor{Bittersweet} { ***reviewer2: #1 }}}
+\newcommand{\thirdrev}[1]{ {\textcolor{Bittersweet} { ***reviewer3: #1 }}}
 \newcommand{\note}[1]{ {\textcolor{red} { ***Note: #1 }}}
 \else
 \newcommand{\terminology}[1]{}
@@ -69,6 +72,7 @@
 \newcommand{\pilotjobs}{Pilot-Jobs\xspace}
 \newcommand{\pilotcompute}{Pilot-Compute\xspace}
 \newcommand{\pilotmapreduce}{Pilot-MapReduce\xspace}
+\newcommand{\mrmg}{MR-Manager\xspace}
 \newcommand{\computeunit}{Compute Unit\xspace}
 \newcommand{\computeunits}{Compute Units\xspace}
 \newcommand{\cu}{CU\xspace}
@@ -308,14 +312,6 @@ extensibility, scalability and performance; for example, we discuss
 the usability of \pilot-abstractions in designing dynamic execution
 workflows which involves multiple MapReduce computations.
 
-% \pnote{The key take-aways of this paper are:
-% \begin{itemize}
-% 	\item MapReduce simplifies the construction of data-parallel applications.
-% 	\item Pilot-Abstraction enable the clean separation of resource management concerns and MapReduce.
-% 	\item The Pilot/SAGA-based approach enables a maximum of portability, interoperability and code-reuse.
-% 	\item Hadoop is designed for cluster/local environment, but not for a high degree of distribution.
-% 	\item Future work: dynamic execution.
-% \end{itemize}  - repetitive? }
 
 Before we proceed further, it is critical to emphasize that it is not
 the aim of this paper to suggest PMR as a replacement to Hadoop.
@@ -342,7 +338,7 @@ conclusion and future work are given in Section~\ref{sec-conclusion}.
 \label{sec:related_work}
 The MapReduce programming model~\cite{Dean:2004:MSD:1251254.1251264}
 and the distributed file system (Google File System
-(GFS)~\cite{Ghemawat:2003:GFS:1165389.945450}) it is based on was
+(GFS)~\cite{Ghemawat:2003:GFS:1165389.945450}) were
 originally pioneered by Google. Apache Hadoop~\cite{hadoop} is an open
 source implementation of MapReduce. Hadoop also includes an
 implementation of a distributed file system -- the Hadoop File System
@@ -361,6 +357,8 @@ distributed file system and only a small amount of local storage, which
 not optimal for the performance of Hadoop. Running Hadoop on multiple resources 
 is in principal possible, firewall regulations often prohibit such deployment on 
 many infrastructures in practice.
+\thirdrev{1) it does not say specifically why HADOOP "is not suited" for distributed data. in fact we have seen HADOOP used for cross-data center deployments , which means longer network delays between parts of the cluster, and is indeed an example of *distributed* data. accordingly it does not highlight what it does specifically to overcome the potential disadvantages of HADOOP}
+\pnote{addressed in the above para} 
 
 Sector/Sphere~\cite{Gu_Grossman_2009} is a parallel data processing framework
 consisting of an distributed file system (Sector) and a data processing engine
@@ -407,7 +405,6 @@ and resource management providing a high degree of flexibility and extensibility
 
 %data flow oriented frameworks
 
-% Twitter Storm - \pnote{ Andre- Could you please add information about twitter storm}
 
 \upp
 \section{Pilot Abstractions}
@@ -517,6 +514,10 @@ then ensure that CUs and DUs are placed with respect to the affinity
 requirements of the application. For this purpose an affinity-aware 
 scheduler is used.
 
+\secrev{ In introduction, it is mentioned that Pilot-API promotes affinities as a first class characteristic for describing the relationship between compute and data elements. However, the paper misses to give the details about affinities, particularly about the way they are computed, and the algorithm that assigns the CUs to DUs based on the computed affinities.}
+\pnote{can we refer P* paper - if not we need to describe the algorithm that assigns the CUs to DUs}
+
+
 %The BD scheduler is  affinity-aware: both BigJob and
 %BigData are tightly integrated to efficiently support compute- and
 %data-related aspects of dynamic execution.
@@ -566,9 +567,9 @@ implemented by the framework.
 \pilotmapreduce introduces a clean separation of concerns between
 compute and data management on the one hand, with their scheduling in
 a distributed context. The pilot abstraction enable the easy
-acquisition of both compute and storage resources. The MR manager can
+acquisition of both compute and storage resources. The \mrmg can
 focus on orchestrating this resource pool. This architecture can also
-efficiently support workloads that currently cannot be support well
+efficiently support workloads that currently not supported well
 enough by Hadoop, e.\,g.\ iterative
 applications. Figure~\ref{fig:figures_mapreduce-pilotdata} shows the
 architecture of the \pilotmapreduce framework.
@@ -594,22 +595,26 @@ pilots for this application workflow: % \jhanote{Worth noting that
 %   steps..}\alnote{changed enumeration list to A., B. referencing steps
 %   in fig.}
 \begin{compactenum}[A.]
-\item Initially, the MR manager allocates a set of compute and data
+\item Initially, the \mrmg allocates a set of compute and data
   resources by starting one (or most often a set of) compute and data
   pilots on different resources.  In general, on each resource one
   compute and one data pilot is co-located. The data pilot is either
   created with reference to local input data or the input data is
   moved to the data pilot after its creation.
+\pnote{ Do we need data pilot initially? since we place the compute pilot on the resource where input data is present}
 
-\item \textbf{Chunking:} The input data is {\it chunked}. BigJob is
-  used as general abstraction for executing CUs. Thus, the MR-Manager
-  executes a set of chunk compute units via BJ.\label{stp:chunking}
+\item \textbf{Chunking:} \pnote{commented - The input data on each resource is {\it chunked}. BigJob is
+  used as general abstraction for executing CUs}. The \mrmg
+  executes a set of compute units on each resource to chunk the input data via compute pilot(BJ).\label{stp:chunking}
+  
   \jhanote{I'm not clear what ``executes a set of chunk compute
     units'' means? Plus the two previous sentence should be merged
     into 1 sentence?} \jhanote{I'm confused: isn't chunking all about
     data? why are we getting into executing CUs? shouldn't DUs be
     introduced in the chunking phase? currenlty no mention of DUs?}
-\item \textbf{Mapping:} The frameworks assigned \jhanote{assigned or
+\pnote{ - We didn't use any data pilot yet - since we launch the compute pilots on the resource where input data is present. So no data units since we are not using any PD yet}
+
+\item \textbf{Mapping:} The framework \pnote{MR-Manager?} assign \jhanote{assigned or
   assign?} a set of {\it map} CUs to the chunks created in
   step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ
   and BD ensures that CUs and DUs are co-located. \jhanote{there is no
@@ -625,10 +630,14 @@ pilots for this application workflow: % \jhanote{Worth noting that
   % shuffle.'' - I would prefer to work with this definition since it
   % encapsulates this intermediate step very well. Rather then
   % including it in the mapping phase (even if it might be done
-  % partially by the mapper process.) } After the processing
-  \jhanote{processing of what? Undefined..}is finished the output data
-  is sorted and partitioned into multiple DU. Then, data is moved from
-  the map CUs to the location of the reduce CUs. \jhanote{shouldn't it
+  % partially by the mapper process.) } 
+   After the map phase \jhanote{processing of what? Undefined..} is completed the output data
+  is sorted and partitioned.  %into multiple DU. Then, data is moved from
+  % the location of map CUs to the location of the reduce CUs. 
+  The \mrmg prepares the DUs which comprises group of sorted, partitioned map output files, related to a reduce task and then submit the
+DUs to BigData. Thus \mrmg specifies the affinity  between intermediate DUs and reduce compute units.
+
+\jhanote{shouldn't it
     be from the location of the map CUs to the location of the reduce
     CUs?} For each reduce task a Data Unit containing the necessary
   input files is created and submitted to BigData. % (step 3/4 in
@@ -760,7 +769,7 @@ destination node.}
 \upp
 \subsection{Distributed MapReduce}
 \label{sec:pmr-distributed} \jhanote{I propose we change this to Distributed and 
-Hierarchical MapReduce to be consistent with 5.4. ok?}
+Hierarchical MapReduce to be consistent with 5.4. ok?} \pnote { fine for me }
 
 An increasing amount of data that scientific applications need to
 operate on is distributed. Often data generation
@@ -1031,7 +1040,7 @@ applications, we utilize the same input data comprising of different
 sizes of read files and the reference genome. SEQAL, however, expects
 the input data in a different format (\texttt{prq} instead of
 \texttt{fastq}); data was converted to meet the SEQAL
-requirements. For PMR, \jhanote{shouldn't this be GS/PMR?} the fastq
+requirements. For GS/PMR, \jhanote{shouldn't this be GS/PMR?} \pnote{addressed} the fastq
 files from sequencing machines are directly used; further, a custom
 chunk script is used to chunk the fastq files based on the number of
 reads. The chunk size for both SEQAL and PMR are equal. For both
@@ -1052,13 +1061,14 @@ reduce phase, we focus our investigation on the map phase.
 		\includegraphics[width=0.47\textwidth]{figures/gs_seq_pmr.pdf}
 \caption{SEQAL and GS/PMR: GS/PMR provides a marginal better
   performance that SEQAL. The overhead of SEQAL is mainly attributed
-  to the used HDFS configuration using a shared file
-  system.\jhanote{needs fixing: double ``used''}\upp }
+  to the usage of shared file system for configuring HDFS.
+\jhanote{needs fixing: double ``used''}\upp }
+\pnote{addressed}
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
-Figure~\ref{fig:gs_seq_pmr} shows the results \jhanote{results of
-  what?} of both applications.
+Figure~\ref{fig:gs_seq_pmr} shows the comparative results \jhanote{results of
+  what?} \pnote{addressed} of both SEQAL and GS/PMR applications.
 
 The time taken to copy the reference genome archive to all the Hadoop
 nodes and extract it so it is available locally is included in the
@@ -1093,6 +1103,7 @@ GS/PMR. \jhanote{this is a repeat of an earlier statement! No details
 \subsection{Characterizing Distributed and Hierarchical MapReduce}
 
 \jhanote{I changed the title of this subsection. Please confirm if OK}
+\pnote{fine for me}
 
 In this section, we evaluate the performance and scalability of the
 (i) distributed and (ii) hierarchical PMR configuration (see
