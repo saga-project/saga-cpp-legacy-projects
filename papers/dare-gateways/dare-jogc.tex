@@ -1231,12 +1231,13 @@ uncoupled and loosely-coupled ensembles, Master-Worker, MapReduce etc.
 
 %{\it DARE-based Science Gateways: Four-layered Architecture: }
 
-As illustrated in Fig.~\ref{fig:dare-arch}, a typical gateway needs an
-access mechanism for dealing with user interactions including the
-authentication and authorization processes, the ability to c perform
-user requests, job, and data management, and middleware that provides
-these capabilities in an integrated fashion on a range of compute
-resources on which scientific applications are executed.
+As illustrated in Fig.~\ref{fig:dare-arch}, a typical gateway needs a
+user interface for everything from authentication and authorization
+to the ability to submit user requests, jobs, and data management. 
+Ideally these capabilities are implemented as integrated middleware on
+a range of hetrogenuous compute resources. The user interface simply
+interfaces the middleware, glossing over details of function calls,
+language syntax and so on.
 
 % \yyenote{The following sentence needs improvement: what do we mean by
 %   maximizing the capacity of DARE?}\jkimnote{i made a change} 
@@ -1245,80 +1246,115 @@ resources on which scientific applications are executed.
 % Fig.~\ref{fig:dare-arch} is to maximize the strength of DARE for
 % gateway applications.
 
+Thus DARE based science gateways are typically organized in levels.
 Levels L2 and L3, are common to all gateways, and are decoupled from
-access level (L1) and resource layer (L4), and thus there is a modular
-architecture in the development. Additionally, the development and
-implementation of a broad range of execution patterns that are
-facilitated by pilot abstractions for distributed tasks and data are
-effectively achieved (which are the core features from DARE levels,
-L3) without knowing the details of high- level characteristics of
-services that is solely defined in L2.
+access level (L1) and resource layer (L4). Development is therefore
+modular and layered. Adding support for a new resource, for example
+OpenStack based clouds in L4, is as simple as adding the required SAGA
+adaptors in L3. No changes need to be made at L1 or L2. Similarly,
+adding more execution patterns and workflows in L2 is decoupled
+from the runtime system in L3 and the resources involved in L4.
+
+% Additionally, the development and
+% implementation of a broad range of execution patterns that are
+% facilitated by pilot abstractions for distributed tasks and data are
+% effectively achieved (which are the core features from DARE levels,
+% L3) without knowing the details of high- level characteristics of
+% services that is solely defined in L2.
 
 \subsection{User Interface Level ($L1$)}
-\jhanote{I think this entire paragraph can go?} Depending upon the
-type of UI, i.e. Web-based or vanilla command line UI, three-tier or
-two-tier gateways are possible. For example, if access mechanism is
-through a web browser or a remote client, the overall architecture
-could be built as a three-tier architecture in which a user desktop, a
-server that contains middleware comprising L2 and L3, and back-end
-resources are independent to each other. Currently, the use of web UI
-is a default for a user access. On the other hand, if Command Line
-Interface (CLI) is preferred, the overall architecture would be
-two-tier, since there exists no need of a system for a remote user.
- 
-The current prototype of DARE-based gateway architecture using
-Web-based UI is built upon the open source web application framework,
-pylons~\cite{bigjob_cloudcom10}. \yyenote{The following needs revisiting and rewording} Using pylons benefits primarily with its
-full-fledged web application framework capabilities allowing
-lightweight, extensible, and efficient web technologies, which is
-hardly achievable with other various Java-based approaches and other
-web application frameworks that might be more powerful but unnecessarily
-heavyweight for tasks required for Science Gateways. Compared to them,
-pylons is widely proven with its efficacy for building a web
-application and high-quality features for a web application.  The
-Model-View-Controller (MVC) architecture model that underlies the
-pylons web application framework \cite{bigjob_cloudcom10} is very effective
-and advantageous in many ways. For example, database creation,
-management, and transaction are extremely simple and robust to
-facilitate authentication steps and job/data creation and management
-by storing or retrieving related data. Additionally, UI
-creation/development and the connection between server-side services
-(provided by the Services Layer) and UI-based user interactions are
-also surprisingly simpler compared to other existing approaches,
-requiring less programming efforts. For example, it is well
-appreciated that for a science gateway development, the utilization of
-databases and server-side programming are non-trivial tasks. Finally,
-its python root is a plus factor that is easily integrated into the
-middleware including DARE core that are also written as python
-scripts.
+% \yyenote{The paper is about web based science gateways. We should not be talking about the command line}
+% \jhanote{I think this entire paragraph can go?} Depending upon the
+% type of UI, i.e. Web-based or vanilla command line UI, three-tier or
+% two-tier gateways are possible. For example, if access mechanism is
+% through a web browser or a remote client, the overall architecture
+% could be built as a three-tier architecture in which a user desktop, a
+% server that contains middleware comprising L2 and L3, and back-end
+% resources are independent to each other. Currently, the use of web UI
+% is a default for a user access. On the other hand, if Command Line
+% Interface (CLI) is preferred, the overall architecture would be
+% two-tier, since there exists no need of a system for a remote user.
+The current prototype web user interface is built on top of
+Pylons~\cite{pylons_website}. The Pylons project is a collection of
+Python based web frameworks that are lightweight and easy to use. Pylons
+uses the common Model-Viewer-Controller design pattern and is written
+in Python and thus easily interfaces with DARE. Pylons handles everything
+from user authentication, database creation/management,
+and data storage/retrieval. Creating a user interface is straightforward
+and ``connecting'' the user interface to the server-side services in DARE
+was surprisingly simple.
+
+
+% Using pylons benefits primarily with its
+% full-fledged web application framework capabilities allowing
+% lightweight, extensible, and efficient web technologies, which is
+% hardly achievable with other various Java-based approaches and other
+% web application frameworks that might be more powerful but unnecessarily
+% heavyweight for tasks required for Science Gateways. 
+% Compared to them,
+% pylons is widely proven with its efficacy for building a web
+% application and high-quality features for a web application~\yyenote{Any citation to this? it is a bold claim and needs some support}.
+
+% The
+% Model-View-Controller (MVC) architecture model that underlies the
+% pylons web application framework \cite{bigjob_cloudcom10} is very effective
+% and advantageous in many ways. For example, database creation,
+% management, and transaction are extremely simple and robust to
+% facilitate authentication steps and job/data creation and management
+% by storing or retrieving related data. Additionally, UI
+% creation/development and the connection between server-side services
+% (provided by the Services Layer) and UI-based user interactions are
+% also surprisingly simpler compared to other existing approaches,
+% requiring less programming efforts. For example, it is well
+% appreciated that for a science gateway development, the utilization of
+% databases and server-side programming are non-trivial tasks~\yyenote{previous sentence is awkward. Did this appear somewhere else and was lifted for this section}. Finally,
+% its python root is a plus factor that is easily integrated into the
+% middleware including DARE core that are also written as python
+% scripts.
 
 
 \subsection{Applications, Capabilities and Services Level ($L2$)}
 
-It is a developer's responsibility to find the optimal logic,
-usage-mode for the target scientific application. The Application
-Layer's role is to support this responsibility, i.e., implementing the
-logic and usage-mode. Thus it is an important component of the
-development and uptake of the gateway. As we will discuss, the
-middleware Levels (i.e. L2 and L3) also mitigates developmental
-hassles due to reliance on DARE, i.e. the SAGA/SAGA-based runtime
-environment framework.
+% \yyenote{what does the following even mean}
+% It is a developer's responsibility to find the optimal logic,
+% usage-mode for the target scientific application.
 
-The services provided by the gateway and their implementation of
-execution patterns and distributed modes for tasks and data are
-decided with L2. Note that the development of this level varies with
-target services, but could be efficient by abstracting various
-execution patterns and task/data management that constitute
-collectively the execution of dynamic applications. Such abstractions
-are implemented in L3 and facilitate the development of
-L2. Furthermore, we categorized into three kinds of services (Types,
-I, II and III), based upon level of complexity, scientists' usage
-mode, and required software tools associated with the services
-provided via the DARE-based gateway, which provides the starting point
-of a target service with its general characteristics. In other words,
-this categorization also reflects characteristic features of such
-services with respect to execution patterns of tasks supported by
-DARE.
+The application layer implements the logic necessary for pattern
+execution. In other words it implements the logic necessary to
+create jobs of single standalone applications, piplelines and
+dyanmic workflows. It does not run scripts on resources but is
+a necessary abstraction over the actual runtime systems. 
+
+The application layer is where execution patterns are prepared for the
+runtime system to execute. Three categories of patterns are available
+to users, Types I, II and III. Type I is the simple, standalone tool. 
+Type II is a linear pipeline of tools and type III is a dynamic workflow.
+A combination of early life sciences focus and gradual development
+led to this categorization. It is also a natural and convenient
+breakdown of available services.
+
+% The Application Layer's role is to support this responsibility, i.e., implementing the
+% logic and usage-mode. Thus it is an important component of the
+% development and uptake of the gateway. As we will discuss, the
+% middleware Levels (i.e. L2 and L3) also mitigates developmental
+% hassles due to reliance on DARE, i.e. the SAGA/SAGA-based runtime
+% environment framework.
+
+% The services provided by the gateway and their implementation of
+% execution patterns and distributed modes for tasks and data are
+% decided with L2. Note that the development of this level varies with
+% target services, but could be efficient by abstracting various
+% execution patterns and task/data management that constitute
+% collectively the execution of dynamic applications. Such abstractions
+% are implemented in L3 and facilitate the development of
+% L2. Furthermore, we categorized into three kinds of services (Types,
+% I, II and III), based upon level of complexity, scientists' usage
+% mode, and required software tools associated with the services
+% provided via the DARE-based gateway, which provides the starting point
+% of a target service with its general characteristics. In other words,
+% this categorization also reflects characteristic features of such
+% services with respect to execution patterns of tasks supported by
+% DARE.
 
 \begin{table}[!h]
 \centering
@@ -1339,48 +1375,43 @@ NGS Example & BFast, BWA,  & MACS, TopHat-Fusion,  &   Novel Service for
 \label{table:three-type-service}
 \end{table}
 
-In brief, Type I \& II represent services that enable a user to run
-either: a standalone application, an independent execution of
-multiple tools, or a pipelined execution of multiple tools.
+% In brief, Type I \& II represent services that enable a user to run
+% either: a standalone application, an independent execution of
+% multiple tools, or a pipelined execution of multiple tools.
 
-\jhanote{Most of Tools in tables~\ref{table:four-applications} and
-  ~\ref{table:three-type-service} irrespective of their provisioning
-  as Type II/III are provided as a minimum as a Type I service}.
+% \jhanote{Most of Tools in tables~\ref{table:four-applications} and
+%   ~\ref{table:three-type-service} irrespective of their provisioning
+%   as Type II/III are provided as a minimum as a Type I service}.
 
+Table~\ref{table:three-type-service} shows some of the common life sciences
+applications currently being used and their respective pattern types. All
+of these applications can be used independently as standalone Type I services.
 
-A program developed as a single standalone application needs generally
+In general, a program developed as a single standalone application needs
 less effort and is in many cases straightforward to integrate with
-DARE; these are typically provided as Type I service. In contrast,
+DARE. These are typically provided as Type I service. In contrast,
 Type II services are built by incorporating different individual
 tools/applications, and linked so that the output of one is
 pre-determined as the input of another, i.e., provided as pipelines.
-
-With the support using DARE, Type I \& II services have advanced
-features such as utilizing distributed data-storage resources or
-distributed data management resources are available. In general, all
-services will benefit from the seamless integration of capabilities
-defined and supported in L3, e.g., pilot-job and pilot-data
-abstraction from the L3 \cite{pstar11}.
-
-Therefore, making a pipeline available as Type II services provides
+Making a pipeline available as Type II services provides
 two major advantages: availability of multiple tools that are used in
 conjunction with each other in one location, and the enhanced
 capability to utilize scalable resources such as TG/XSEDE and other
 HPC and Cloud resources.
 
 On the other hand, Type III services aim to support more complex
-execution, both in the type of workflows supported as well as more
-sophisticated execution. This is in contrast to Type I and Type II
-services that aim to serve stand-alone and pipelined tools with
-advanced CI capabilities -- scalable production infrastructure and
-integrative efficient pipelines, but are limited for a static workflow
-implemented before the beginning of services.
+service, both in the type of workflows supported as well as more
+sophisticated execution. In contrast Type I and Type II
+services aim to serve stand-alone and pipelined tools with
+advanced cyberinfrastructure capabilities, scalable production infrastructure and
+integrative efficient pipelines. They are however limited to static execution:
+once the job submission scripts are in, nothing can be changed.
 
 Additionally, pipelines offered as Type II may often require greater
 runtime flexibility, i.e., different stages may run on different
 resources which may not be determined until execution time; these
 ``dynamic'' Type II pipelines will be thus offered as Type III
-services. Thus the specific resources that are utilized in the
+services. The specific resources that are utilized in the
 execution phase are determined dynamically -- either through delayed
 binding or are refined/optimized after the initial resource
 assignment.
@@ -1401,18 +1432,18 @@ Type III services obviously can run Type II workflows.
 
 L3 represents the core of the DARE framework. In a nutshell, it
 integrates the application-level capabilities (L2, support for Type
-I/II/III) with the HPDC infrastructure (resources/L4) layer.  The DARE
-runtime level in turn achieves this via a critical dependence upon
-SAGA; the challenges in building a scalable distributed gateway are
-greatly mitigated by SAGA and/or SAGA-based frameworks, as the
+I/II/III services) with the HPDC infrastructure (resources/L4) layer. The DARE
+runtime level in turn achieves this via a critical dependence on
+SAGA. The challenges in building a scalable distributed gateway are
+greatly mitigated by SAGA and/or SAGA-based frameworks. The
 SAGA-runtime system has the responsibility to make middleware specific
 dispatches.
 
-DARE exposes support for a range of execution patterns, which in turn
-can use the pilot-job/data abstractions.  Application-level
-capabilities can be provided via these execution patterns, or use the
-pilot abstractions directly; or possibly use the SAGA
-job/file/replica/advert functionality directly.
+% DARE exposes support for a range of execution patterns, which in turn
+% can use the pilot-job/data abstractions. Application-level
+% capabilities can be provided via these execution patterns, or use the
+% pilot abstractions directly; or possibly use the SAGA
+% job/file/replica/advert functionality directly.
 
 % and we describe here some backgrounds for its development and the
 % relation with SAGA and SAGA-based pilot job abstraction, SAGA-BigJob.
@@ -1420,8 +1451,8 @@ job/file/replica/advert functionality directly.
 
 The SAGA-BigJob supports dynamic configuration changes, thus it is
 relatively easy to optimize the usage of target resources for a given
-computational workload and their execution characteristics, such as
-pleasingly parallel, loosely-coupled, or even multiple instances of
+computational workload and their execution characteristics. Examples include
+embarassingly parallel, loosely-coupled, or even multiple instances of
 tightly-coupled applications. Thus once the desired configuration has
 been determined, a gateway developer can easily construct an optimized
 runtime environment for a given target application capable of
@@ -1429,16 +1460,16 @@ utilizing distributed resources without any application or
 infrastructure refactoring.
 
 Furthermore, it is important to consider data movement requirements,
-since the movement of large data sets such as input, output, and
-temporary files is increasingly becoming a major challenge.  For
-example, we have recently analyzed the date-volumes that need to be
-moved around, and demonstrated some of the challenges and solutions
-(for the BFAST~\cite{dare-ecmls11} -- as an NGS application
-prototype).  At the moment, GridFTP and scp are used as the primary
-protocols for data transfer; however support for Globus-Online is
+since the movement of large data sets (input, output, and
+temporary files) is a major challenge. We have recently analyzed the
+date-volumes that need to be moved around, and demonstrated some of the challenges and solutions
+for BFAST~\cite{dare-ecmls11}, an NGS application
+prototype~\yyenote{What was the conclusion of the analysis of the challenges and solutions from BFAST. Can somebody 
+add a sentence here saying what we concluded please}. At the moment, GridFTP and scp are used as the primary
+protocols for data transfer. Support for Globus-Online is
 imminent. As we will discuss in \S4, typical data-volumes for NGS
 applications can easily exceed 100GB; data-movement services need
-to and can managed these volumes.
+to and can managed these volumes.~\yyenote{I am keeping the previous sentence but do we actually make good on this promise. Where do we disucss this in the paper. Please confirm}
 
 
 It is worth noting that SAGA supports different transfer protocols
@@ -1486,37 +1517,44 @@ infrastructure such as clouds~\cite{bigjob_cloudcom10,saga_bigjob_condor_cloud}.
 
 \subsection{Resources Level ($L4$)} 
 
+
 While the utilization of distributed heterogeneous resources should be
-one of the important motivations for a science gateway development,
+one of the important motivations for a science gateway development~\yyenote{No. Why should it be?
+The important movitation in science gateway development is to simply the interface to compute
+resources. The fact that dare supports distributed runs is a bonus, not a primary motivation.},
 most gateways currently rely on the approaches in which multiple
 resource utilization is limited, presumably, only for supporting
-pleasingly-parallel multiple tasks.  SAGA/SAGA-based frameworks enable
-distributed scale-out across multiple production grade resources.
+embarassingly-parallel multiple tasks.~\yyenote{I say delete all the previous paragraph}
 
+SAGA and SAGA-based frameworks enable distributed scale-out across multiple production grade resources.
 These production grade resources include grids of large systems such
 as Ranger, Kraken and Lonestar as well as HPC clouds on FutureGrid and
 vendor solutions such as Amazon's EC2. A basic design principle that
-the architecture adheres to is future-proofing through extensibility
+the runtime system adheres to is future-proofing through extensibility
 and abstraction. When adding a new computing platform, only a small
 amount of code has to be written as a SAGA adaptor to enable access to
 that platform.
 
-Various SAGA adaptors contribute to achieve interoperability for
-inter-HPC-grids, HPC-cloud, and other hybrid resources. There is also
-the capacity to develop new developers complete with full
-documentation~\cite{saga_url}.  In addition, SAGA-BigJob adds the
-capability to support various adaptive executions as already shown
-with scientific applications such as Replica Exchange Molecular
-Dynamics, hybrid CFD-MD, and NGS data
-analytics~\cite{saga-royalsoc,ko-efficient,dare-ecmls11}.
+To cement support for different resources in L4, SAGA was deployed
+publicly on XSEDE. The installations are available for anyone and everyone
+to use: no private or shared accounts, no special permissions. Ranger,
+Lonestar, Kraken, Trestles, Steele as well as most FutureGrid machines
+have SAGA installations that are maintained and kept up to date by
+the SAGA team and supporting XSEDE personnel. Furthermore, several virtual machine images with
+SAGA installations are available publicly on EC2. Any science
+gateway developer can in principle and practice use these installations
+for their DARE based science gateway.
 
-It is important to note that SAGA is deployed in publicly accessible
-local installations on Ranger, Lonestar, Kraken, Steele and other
-XSEDE resources. SAGA is also a part of the software stack on
-FutureGrid machines. Furthermore, several virtual machine images with
-SAGA installations are available publicly on EC2. These installations
-are constantly updated, maintained and tested for quality of service
-and to detect any grid or cloud service outages.
+
+% Various SAGA adaptors contribute to achieve interoperability for
+% inter-HPC-grids, HPC-cloud, and other hybrid resources. There is also
+% the capacity to develop new developers complete with full
+% documentation~\cite{saga_url}.  In addition, SAGA-BigJob adds the
+% capability to support various adaptive executions as already shown
+% with scientific applications such as Replica Exchange Molecular
+% Dynamics, hybrid CFD-MD, and NGS data
+% analytics~\cite{saga-royalsoc,ko-efficient,dare-ecmls11}.
+
 
 % \jkimnote{the following paragraph needs to be shorten or moved into
 %   the Services Layer?}  The access layer is connected to service layer
@@ -1543,7 +1581,14 @@ and to detect any grid or cloud service outages.
 % submission and files/folders movement across different machines very
 % simple and easily usable.
 
- \begin{table}
+ \section{EXAMPLES OF DARE-BASED GATEWAYS FOR LIFE SCIENCES}
+
+\jhanote{Some text here..}
+
+\subsection{DARE-NGS}
+
+
+\begin{table}
 \centering
 \scriptsize
  \begin{tabular}{|c|c|c|c|c|c|c|} 
@@ -1596,13 +1641,6 @@ HG &127& R/QB	&	128/128&8/16 & -&7582 \\
 
   \label{table:NGS-Distributed} 
 \end{table}
-
-
-\section{EXAMPLES OF DARE-BASED GATEWAYS FOR LIFE SCIENCES}
-
-\jhanote{Some text here..}
-
-\subsection{DARE-NGS}
 
 The DARE-NGS gateway % (\url{http://dare.cct.lsu.edu/gateways/ngs})
 is a prototype gateway built upon the DARE framework and focusing on
