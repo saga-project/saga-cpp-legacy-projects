@@ -393,9 +393,9 @@ collaboratively as one so it can more efficiently run MapReduce \cite{ecmls11-mr
 Hierarchical MapReduce as proposed in~\cite{ecmls11-mr-autodock} is
 often a viable solution to the distributed data problem, but
 developing a global reduce is not easy and straight forward in all
-cases. For example in Crossbow \cite{langmead2010}, SOAPsnp is used as
-reduce phase and merging multiple SOAPsnp output data might effect the
-statistical semantics of data. The output of SOAPsnp analysis could be
+cases. For example in Crossbow \cite{langmead2010}, SNP finding is the final step of the
+whole genome resequencing analysis and merging multiple SNP finding output data might effect the
+statistical semantics of data. The output of SoapSNP, used for SNP finding in Crossbow, could be
 very large as 60 times than the genome size\cite{soap_snp} and the
 global reduce is an additional overhead for these applications as more
 amount of data need to processed in the global reduce
@@ -461,6 +461,12 @@ test our PMR and to compare our results with Hadoop-based
 tools. Hadoop version 0.20.2 was used with the two FutureGrid
 machines. A replication factor of 2 and default chunk size of 128 MB
 is used.
+
+\subsection{File Systems}
+
+In our experiments, both PMR and Hadoop are executed on a shared file system.
+A shared file system is a common file system accessible for all the compute nodes on a single cluster.
+Hadoop performs well when compute node local disks are used to build HDFS, but due to limited local disk space of compute nodes we utilized shared file system to build HDFS.
 
 \subsection{Pilot-MapReduce (PMR)}
 
@@ -534,12 +540,14 @@ Seqal is a Hadoop MapReduce application which implements the alignment
 in map phase using BWA aligner and the same criteria as the Picard
 MarkDuplicates~\cite{seal2011,seal_2011_mapred} for duplicate read
 removal in reduce phase.  On the other hand, information about aligned
-reads is essential for many downstream analyses such as SNP finding,
+reads is essential for many downstream analyses such as SNP finding, 
 genome variation study, transcriptome analysis, complex functional
-genomics and pathway analysis.  Crossbow is a Hadoop streaming-based
-MapReduce application which performs alignment in the map phase using
-Bowtie aligner and performs SNP finding in the reduce
-phase~\cite{langmead2009}.
+genomics and pathway analysis. 
+% Crossbow is a Hadoop streaming-based
+%MapReduce application which performs alignment in the map phase using
+% Bowtie aligner and performs SNP finding in the reduce phase
+Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for genome resequencing analysis.
+Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming based MapReduce application and the output of each step is stored in HDFS and read from HDFS by next step. In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has zero reduces.  
 
 %Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
 
@@ -552,8 +560,10 @@ phase~\cite{langmead2009}.
 \rev{Discussion.  The paper does not discuss how the reference genome is distributed and how/when it is indexed.  This is a concern for smaller data sets and large genomes (although the granularity here of ~1 hour jobs should make this negligible).}
 
 Our experiments compare PMR-based approach with Hadoop API based Seqal
-(tool for alignment and duplicate removal) and Hadoop streaming based
-Crossbow (tool for alignment and SNP finding) (see Table 1) to:
+%(tool for alignment and duplicate removal) 
+and Hadoop streaming based Crossbow 
+%(tool for alignment and SNP finding) 
+(see Table 1) to:
 
 \begin{itemize}
 
@@ -572,10 +582,12 @@ and GATK (as summarized in Table~\ref{table:mr-comparison}), in terms
 of usage and the type of parallelism they employ for NGS data
 processing and management.
 
-Seqal performs short read alignment using BWA aligner in map phase and
-duplicate read removal in reduce phase.  Crossbow performs short read
-alignment using Bowtie aligner in map phase and SNP finding in reduce
-phase using SOAPsnp. For our experiments, Seqal part of Seal package
+%Seqal performs short read alignment using BWA aligner in map phase and
+%duplicate read removal in reduce phase.  Crossbow performs short read
+%alignment using Bowtie aligner in map phase and SNP finding in reduce
+%phase using SOAPsnp. \pnote{repeated}
+
+For our experiments, Seqal part of Seal package
 of version 0.2.3 version and Crossbow package of version 1.1.2 is
 used. Crossbow 1.1.2 uses Bowtie 0.12.7v and SOAPsnp 1.02v
 tools. Default configuration or execution options are used for both
@@ -593,15 +605,12 @@ custom map script which performs short read alignment using BWA
 aligner and reduce script to perform duplicate read removal based on
 the same criteria provided in~\cite{seal_2011_mapred}. But the reduce
 phase implementation significantly vary from the seqal
-implementation's. PMR based approach for Crossbow involves development
-of a custom map script which performs short read alignment using
-Bowtie aligner.
+implementation's. PMR based approach for Crossbow  alignment step 
+involves development of a custom map script which performs short read alignment using
+Bowtie aligner. 
 
-We did not implement the reduce phase of Crossbow, since we are
-interested in comparing the scalability of PMR at map phase level as
-shown in \jhanote{This sentence is broken at a critical
-  juncture. Needs fixing!!!}. We will investigate and compare the
-reduce phase performance in future work.
+\pnote{commented -Currently, we focused only on comparision of PMR based approach with alignment step of Crossbow, 
+we will investigate and compare the SNP finding step performance in our future work.}
 
 When executing Hadoop based MapReduce NGS tools on production
 cyberinfrastructure, we request a set of nodes to start the Hadoop
@@ -822,7 +831,7 @@ are same in the comparison.
  \begin{figure}
  \centering
 %\includegraphics[scale=0.50]{figures/pj-smr-tts.pdf} 
-\includegraphics[scale=0.50]{figures/scale-out-bw.pdf} 
+\includegraphics[scale=0.50]{figures/scale-out-bw1.pdf} 
 \caption{\small Need of a scalable solution with increment of data
   volume.  Read size dependent time-to-solution is measured for
   MapReduce tasks of read alignment and duplicate read removal.  The
@@ -948,9 +957,11 @@ alignment and duplicate read removal.
 \begin{figure}
  \centering
 %\includegraphics[scale=0.50]{figures/seqalvslocalpmr.pdf}
-\includegraphics[scale=0.50]{figures/seqalvslocalpmr-bw.pdf}
+%\includegraphics[scale=0.50]{figures/seqalvslocalpmr-bw.pdf}
 %\includegraphics[scale=0.52]{figures/8GB_phasewisetimes.pdf}
-\includegraphics[scale=0.52]{figures/8GB_phasewisetimes-bw.pdf}
+%\includegraphics[scale=0.52]{figures/8GB_phasewisetimes-bw.pdf}
+\includegraphics[scale=0.54]{figures/gs_seq_pmr_dpmr.pdf}
+%\includegraphics[scale=0.50]{figures/seqal_lprm_dpmr-full.pdf}
 
 
 \caption{\small Comparison of the total time-to-solution for a MapReduce-based computation of alignment and duplicate read removal (upper).  Dissected elapsed times for each step of the results with 8 GB (lower). Hadoop-based Seqal is compared to Local-PMR vs. distributed-PMR.  BWA is the aligner for the map phase.  The size of input is 8 GB.  For this experiment, the number of Nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, the number of Reducers, $N_R$ is 8, and the number of reads in each chunk is 292,763. For the distributed-PMR, two machines of FutureGrid, Sierra and Hotel were used, whereas Sierra was used for other cases.}
@@ -965,13 +976,16 @@ alignment and duplicate read removal.
 \begin{figure} 
  \centering
 %\includegraphics[scale=0.40]{figures/map_comp.pdf}
-\includegraphics[scale=0.40]{figures/map_comp_bw.pdf}
+%\includegraphics[scale=0.40]{figures/map_comp_bw.pdf}
+\includegraphics[scale=0.40]{figures/seqal_lpmr_dpmr.pdf}
+\includegraphics[scale=0.46]{figures/cb_lpmr_dpmr.pdf}
 \caption{\small  Comparison of runtimes for the Map phase. The map phase of Seqal, Local-PMR(BWA), distributed-PMR(BWA), Local-PMR(Bowtie), distributed-PMR(Bowtie), and Crossbow(Bowtie) are compared.  The aligner used for each case is indicated in a parenthesis.  For this experiment, the number of nodes, $N_{node}$ is 4, the number of Workers, $N_W$ is 8, and the number of reads in each chunk is 292,763.  For the distributed-PMR, two machines of FutureGrid, Sierra and Hotel were used, whereas Sierra was used for other cases.}
   \label{fig:tool_comp} 
 
 \rev{I can see where the authors are coming from with respect to the advantages of pilot jobs/ad hoc clouds but this is not described/tested in the paper; they only run on a few nodes they obtain from FutureGrid.  Further, I'm not convinced the map and reduce functional paradigm is better than, for example, something based on a straight-up master worker framework like some of the recent bioinformatics work with tools like Makeflow (to name only one).  The authors extend the framework to multiple tools but they still require a shared filesystem, which in practice severely limits "scale across" (see below and a bunch of recent papers)}
 \rev{ Figure 5 was more problematic as it was unclear what crossbow they were comparing to.  Ideally, they should have used the latest one that does the same work as their pipeline.  In one part of the manuscript, they refer to it being also run using a shared FS and that the reduce step was not implemented.  With this in mind, what version was here and what does it mean that Crossbow is competitive with PMR for small collections of reads.  I would have much preferred discussion of the results (that differ from the previously submitted PMR framework) rather than an advertisement for PMR in the discussion.}
 \secrev{(2) The authors should implement the reduce phase of Crossbow to truly measure the capability of distributed PMR. Without the reduce phase, the system is effectively a distributed batch scheduling system and does not demonstrate that distributed shuffle of large datasets is feasible. Until these two flaws are corrected, their major conclusions (PMR is a viable solution for scale-across NGS, and that PMR has advantages over Hadoop) are not proven.}
+\pnote{The distributed PMR in pmr-2012 can be used here?}
 \end{figure}
 
 
