@@ -59,6 +59,8 @@
 \newcommand{\alnote}[1]{}
 \newcommand{\pnote}[1]{}
 \newcommand{\jhanote}[1]{}
+\newcommand{\secrev}[1]{}
+\newcommand{\thirdrev}[1]{}
 \newcommand{\note}[1]{}
 \fi
 
@@ -407,9 +409,9 @@ contrast to previous approaches \pilotmapreduce heavily relies on \pilot
 abstractions for de-coupling the MapReduce runtime, application-level scheduling 
 and resource management providing a high degree of flexibility and extensibility.
 
-% \jhanote{I realized that we don't formally reference hierarchical
-%   mapreduce work -- Ref.~\cite{ecmls11-mr-autodock} in ECMLS'11 by
-%   Judy Qiu et al}\alnote{done}
+\jhanote{I realized that we don't formally reference hierarchical
+  mapreduce work -- Ref.~\cite{ecmls11-mr-autodock} in ECMLS'11 by
+  Judy Qiu et al}\alnote{done}
 
 %data flow oriented frameworks
 
@@ -418,7 +420,7 @@ and resource management providing a high degree of flexibility and extensibility
 \section{Pilot Abstractions}
 \label{sec-pilot-impl}
 
-
+\jhanote{BJ was defined 3 times!. Pilot-Data and pilot data was used..}
 
 The P* model~\cite{pstar-2012} aims to provide a unified model for describing
 and analyzing \pilotjob implementations. Figure~\ref{fig:figures_pstar} shows
@@ -641,7 +643,7 @@ distributed scenario this will be the default flow, because we then also have to
 manage the input data.}
 
 \item \textbf{Chunking:} \pnote{commented - The input data on each resource is
-{\it chunked}.} The \mrmg executes a \cu on each resource, which splits the
+{\it chunked}.} The \mrmg executes one \cu on each resource, which splits the
 input data on the respective resource with respect to the defined chunk
 size.\label{stp:chunking} \alnote{how many chunking CUs are there? 1 per
 resource?} Each chunk is stored in a new DU. BigJob and BigData -- in particular
@@ -658,13 +660,12 @@ on the resource where input data is present. So no data units since we are not
 using any PD yet} \alnote{As mention above: I think we should describe the final 
 scenario with distributed (and not) pre-staged input data}
 
-\item \textbf{Mapping:} The \mrmg then assigns a {\it map} CUs to each chunk 
-created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ
-and BD ensures that each CUs is co-located with an appropriate DU taking into account data localities and minimizing the amount of data movements. % \jhanote{there is no
-% mention of DUs so far. Where/how does this happen?} \alnote{added DU
-% creation part to chunk phase, so it should be clearer now.}  The
-% execution of the map CUs is done analogous to the chunk CUs via
-% BigJob.
+\item \textbf{Mapping:} The \mrmg then assigns a {\it map} CU to each chunk 
+created in step~\ref{stp:chunking}. Again, BJ is used for managing the map CUs. BJ
+and BD ensures that each CU is co-located with an appropriate DU taking into account data localities and minimizing the amount of data movements. \jhanote{there is no
+    mention of DUs so far. Where/how does this happen?} \alnote{added DU 
+    creation part to chunk phase, so it should be clearer now.}
+% The execution of the map CUs is done analogous to the chunk CUs via BigJob.
 \jhanote{Also,how are the chunks related to/assigned to DUs? that is unclear
     from description}\alnote{removed sentence. We were probably referring to the fact the the CU is executed via the pilot}
 	
@@ -676,7 +677,7 @@ and BD ensures that each CUs is co-located with an appropriate DU taking into ac
   % encapsulates this intermediate step very well. Rather then
   % including it in the mapping phase (even if it might be done
   % partially by the mapper process.) } 
-   After the map phase \jhanote{processing of what? Undefined..} is completed
+   After the map phase \jhanote{processing of what? Undefined..} \pnote{addressed}is completed
    the output data is sorted and partitioned. For each partition a \du is
    created. Each partition is then processed by a reduce task. For this purpose, 
    the \mrmg assigns each reduce CU to a DU. Each DU comprises of a
@@ -714,23 +715,21 @@ and BD ensures that each CUs is co-located with an appropriate DU taking into ac
 %   permits discuss them separately/lately?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
-late-binding of compute and data units decoupling resource assignment
-from resource usage. Using BJ and BD, PMR can allocate both storage
-and compute resources, which can then be flexibly utilized for
-executing map and reduce tasks as well as for storing both
-intermediate and output data. % \jhanote{How
-% so?} \alnote{added some more explanation.} 
-The API also allows the expression and management of relationships
-between data units and/or compute units. BigJob and BigData provide an
-implementation of the Pilot-API. These frameworks ensure that the data
-and compute affinity requirements of the MapReduce applications are
-met for each step of the MapReduce workflow. For example, in the
-shuffle phase for each reduce task a DU and CU is generated. These are
-then submitted to BigJob and BigData framework, which handles the
-scheduling, transfer of the DU and execution of the CU. PMR assigns a
-resource affinity to each DU and CU. BJ and BD then ensure that each
-CU is co-located to the right DU.
-
+late-binding of compute and data units decoupling resource assignment from
+resource usage. Using BJ and BD, PMR can allocate both storage and compute
+resources, which can then be flexibly utilized for executing map and reduce
+tasks as well as for storing both intermediate and output data. \jhanote{How
+so?} \alnote{added some more explanation.} The API also allows the expression
+and management of relationships between data units and/or compute units. BigJob
+and BigData provide an implementation of the Pilot-API. Both frameworks ensure
+that the data and compute affinity requirements of the MapReduce applications
+are met for each step of the MapReduce workflow. For example, in the shuffle
+phase PMR \jhanote{we were talking about both frameworks, now suddenly talking
+about PMR?!} generates a DU and CU for each reduce task. The DUs and CUs are
+then submitted to BigJob and BigData framework, which handles the scheduling,
+transfer of the DU and execution of the CU. PMR assigns a resource affinity to
+each DU and CU. BJ and BD then ensure that each CU is co-located to the right
+DU.
 \upp
 \subsection{Compute and Data Management}
 The PMR relies on the master/worker coordination model, i.\,e.\ a
@@ -821,8 +820,8 @@ destination node.}
 
 \upp
 \subsection{Distributed and Hierarchical MapReduce}
-\label{sec:pmr-distributed}%  \jhanote{I propose we change this to Distributed and 
-% Hierarchical MapReduce to be consistent with 5.4. ok?} \pnote { fine for me }
+\label{sec:pmr-distributed} \jhanote{I propose we change this to Distributed and 
+Hierarchical MapReduce to be consistent with 5.4. ok?} \pnote { fine for me }
 
 An increasing amount of data that scientific applications need to
 operate on is distributed. Often data generation
@@ -1055,22 +1054,19 @@ MapReduce runtime.
 \label{fig:figures_wc_pmr_hmr}
 \end{figure}		
 	
-The time to solution increased linearly as data size increased; the performance
-of both Hadoop and PMR is comparable up to 8\,GB. However, for the largest
-volumes of input data we examined, PMR shows a better performance than Hadoop.
-In particular, the setup, map and shuffle phase in the Hadoop case are longer.
-Both the map and shuffle phase are the most data-intensive phases -- Word Count
-needs to read all input files and generates intermediate data with the size of
-about 200\,\% of the input data. Hadoop shows the worst shuffle performance. A
-reason is that we were unfortunately not able to run HDFS in an optimal
-configuration due to a lack of local storage on the FG machine. Thus, HDFS was
-configured to utilize a shared file system.
-%  PMR relies mostly on the shared
-% file system for handling the intermediate data. 
-% \jhanote{the last
-%   statement is not obvious. It is confusing too.. because earlier we
-%   talk about how PMR avoids bottlenecks traditionally associated with
-%   Hadoop/HDFS}\alnote{rephrased}
+The time to solution increased linearly as data size increased; the
+performance of both Hadoop and PMR is comparable up to 8\,GB. However,
+for the largest volumes of input data we examined, PMR shows a better
+performance than Hadoop. In particular, the setup, map and shuffle
+phase in the Hadoop case are longer. Both the map and shuffle phase
+are the most data-intensive phases -- Word Count needs to read all
+input files and generates intermediate data with the size of about
+200\,\% of the input data. The relatively worse performance of Hadoop
+indicates a potential issue with HDFS. PMR relies mostly on the shared
+file system for handling the intermediate data. \jhanote{the last
+  statement is not obvious. It is confusing too.. because earlier we
+  talk about how PMR avoids bottlenecks traditionally associated with
+  Hadoop/HDFS}
   
 
 % \jhanote{Can we say why?}\alnote{Pradeep: did we use the tmp directory
@@ -1096,7 +1092,7 @@ applications, we utilize the same input data comprising of different
 sizes of read files and the reference genome. SEQAL, however, expects
 the input data in a different format (\texttt{prq} instead of
 \texttt{fastq}); data was converted to meet the SEQAL
-requirements. For GS/PMR, the fastq
+requirements. For GS/PMR, \jhanote{shouldn't this be GS/PMR?} \pnote{addressed} the fastq
 files from sequencing machines are directly used; further, a custom
 chunk script is used to chunk the fastq files based on the number of
 reads. The chunk size for both SEQAL and PMR are equal. For both
@@ -1117,15 +1113,14 @@ reduce phase, we focus our investigation on the map phase.
 		\includegraphics[width=0.47\textwidth]{figures/gs_seq_pmr.pdf}
 \caption{SEQAL and GS/PMR: GS/PMR provides a marginal better
   performance that SEQAL. The overhead of SEQAL is mainly attributed
-  to the usage of shared file system for HDFS.}
-% \jhanote{needs fixing: double ``used''}\upp }
-% \pnote{addressed}
+  to the usage of shared file system for configuring HDFS.
+\jhanote{needs fixing: double ``used''}\upp }
+\pnote{addressed}
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
-Figure~\ref{fig:gs_seq_pmr} shows the comparative results % \jhanote{results of
-%   what?} \pnote{addressed}
-of both SEQAL and GS/PMR applications.
+Figure~\ref{fig:gs_seq_pmr} shows the comparative results \jhanote{results of
+  what?} \pnote{addressed} of both SEQAL and GS/PMR applications.
 
 The time taken to copy the reference genome archive to all the Hadoop
 nodes and extract it so it is available locally is included in the
@@ -1145,11 +1140,11 @@ removal process in the reduce phase of GS/PMR.  \jhanote{We just said
 configuration of Hadoop: The local disks available on FutureGrid is
 too small for the used input data; thus, HDFS had to be configured to
 utilize a shared, distributed file system, which leads to a
-non-optimal performance during the I/O intensive map phase. The
+non-optimal performance during the I/O intensive map phase. \pnote{ removed duplicate --The
 difference in the reduce phase mainly originate from the different
 implementations of the duplicate removal process in SEQAL and
-GS/PMR. \jhanote{this is a repeat of an earlier statement! No details
-  of reduce phase in GS/PMR provided!}
+GS/PMR} \jhanote{this is a repeat of an earlier statement! No details
+  of reduce phase in GS/PMR provided!} \pnote{addressed}
 
 \jhanote{Is the
   following for the Map phase or true for all phases?} \alnote{added
@@ -1457,6 +1452,7 @@ symmetrically.  \upp
   i.e., PMR is not only elegant from an abstraction point of view but
   also from an engineering and deployment point of view. Thoughts?}
 
+
 \alnote{decrease font size of bib...}
 
 % The following two commands are all you need in the
@@ -1464,7 +1460,7 @@ symmetrically.  \upp
 % produce the bibliography for the citations in your paper.
 \bibliographystyle{abbrv}
 %\bibliographystyle{unsrt}
-\bibliography{pilotjob,saga,saga-related,mrbib}  % sigproc.bib is the name of the Bibliography in this case
+{\footnotesize\bibliography{pilotjob,saga,saga-related,mrbib} } % sigproc.bib is the name of the Bibliography in this case
 % You must have a proper ".bib" file
 %  and remember to run:
 % latex bibtex latex latex
