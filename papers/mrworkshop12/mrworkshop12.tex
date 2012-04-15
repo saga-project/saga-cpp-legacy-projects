@@ -336,27 +336,27 @@ conclusion and future work are given in Section~\ref{sec-conclusion}.
 
 \section{Related and Background Work}
 \label{sec:related_work}
-The MapReduce programming model~\cite{Dean:2004:MSD:1251254.1251264}
-and the distributed file system (Google File System
-(GFS)~\cite{Ghemawat:2003:GFS:1165389.945450}) were
-originally pioneered by Google. Apache Hadoop~\cite{hadoop} is an open
-source implementation of MapReduce. Hadoop also includes an
-implementation of a distributed file system -- the Hadoop File System
-(HDFS)~\cite{Borthakur:2007fk}. In addition the Hadoop ecosystems
-includes several other projects, such as HBase (a system also inspired
-by Google's BigTable), Hive, Pig and Zookeeper. The main limitation of
-Hadoop MapReduce is that it forces applications into a very rigid
-model. Hadoop e.\,g.\ is well suited for running a single MapReduce
-application, but very limited in terms of extensibility, e.\,g.\ it
-cannot efficiently run an ensemble of MapReduce simulations or support
-a pipeline of multiple iterative MapReduce tasks. Also, the deployment of Hadoop 
-on HPC resources remains a challenge: the deployment in user-space is a complex 
-and error-prone a MapReduce and further requires the user to reload the data 
-every time Hadoop is initialized. Also, HPC resources often have shared 
-distributed file system and only a small amount of local storage, which 
-not optimal for the performance of Hadoop. Running Hadoop on multiple resources 
-is in principal possible, firewall regulations often prohibit such deployment on 
+The MapReduce programming model~\cite{Dean:2004:MSD:1251254.1251264} and the
+distributed file system (Google File System
+(GFS)~\cite{Ghemawat:2003:GFS:1165389.945450}) were originally pioneered by
+Google. Apache Hadoop~\cite{hadoop} is an open source implementation of
+MapReduce. Hadoop also includes an implementation of a distributed file system
+-- the Hadoop File System (HDFS)~\cite{Borthakur:2007fk}. In addition the
+Hadoop ecosystems includes several other projects, such as HBase (a system
+also inspired by Google's BigTable), Hive, Pig and Zookeeper. The main
+limitation of Hadoop MapReduce is that it forces applications into a very
+rigid model. Hadoop e.\,g.\ is well suited for running a single MapReduce
+application, but very limited in terms of extensibility, e.\,g.\ it cannot
+efficiently run an ensemble of MapReduce simulations or support a pipeline of
+multiple iterative MapReduce tasks. Also, the deployment of Hadoop on HPC
+resources remains a challenge: the deployment in user-space is a complex and
+error-prone a MapReduce and further requires the user to reload the data every
+time Hadoop is initialized. Also, HPC resources often have shared distributed
+file system and only a small amount of local storage, which not optimal for
+the performance of Hadoop. Running Hadoop on multiple resources is in
+principal possible, firewall regulations often prohibit such deployment on
 many infrastructures in practice.
+
 \thirdrev{1) it does not say specifically why HADOOP "is not suited" for distributed data. in fact we have seen HADOOP used for cross-data center deployments , which means longer network delays between parts of the cluster, and is indeed an example of *distributed* data. accordingly it does not highlight what it does specifically to overcome the potential disadvantages of HADOOP}
 \pnote{addressed in the above para} 
 
@@ -377,6 +377,14 @@ the form of data flow graphs, where the vertices represent the computational
 tasks that can be paralleled on a set of computational resources and the links
 between vertices tell Dryad what other vertices need to complete before a
 particular vertex can start.
+
+Several attempts have been made to deploy MapReduce on distributed data and
+resources. Weissman et\,al.~\cite{weissman-mr-11} explore different Hadoop
+configurations to accommodate different distributed resource configurations. 
+Qiu et\,al.~\cite{ecmls11-mr-autodock} propose a hierarchical
+MapReduce configuration that implements the Map-Reduce-Global Reduce pattern 
+using GFarm~\cite{Mikami:2011:UGF:2082076.2082106} on top of Hadoop addressing a 
+main limitation of distributed Hadoop deployments. 
 
 SAGA-MapReduce~\cite{Sehgal:2011:UAI:1945091.1945329} is a SAGA-based
 MapReduce implementation that utilizes the SAGA-API for accessing system-level
@@ -401,7 +409,7 @@ and resource management providing a high degree of flexibility and extensibility
 
 \jhanote{I realized that we don't formally reference hierarchical
   mapreduce work -- Ref.~\cite{ecmls11-mr-autodock} in ECMLS'11 by
-  Judy Qiu et al}
+  Judy Qiu et al}\alnote{done}
 
 %data flow oriented frameworks
 
@@ -412,12 +420,27 @@ and resource management providing a high degree of flexibility and extensibility
 
 \jhanote{BJ was defined 3 times!. Pilot-Data and pilot data was used..}
 
-\alnote{add P* figure}
+The P* model~\cite{pstar-2012} aims to provide a unified model for describing
+and analyzing \pilotjob implementations. Figure~\ref{fig:figures_pstar} shows
+the elements of the P* model. The P* model defines common elements of both
+compute and data pilot implementations. Pilot abstractions for both compute and
+data are the foundation of the \pilotmapreduce. In this section we give an
+overview of the Pilot-API, which exposes the elements of the P* model to the
+applications as well as the implementation of the BigJob and BigData framework.
 
-Pilot abstractions for both compute and data are the foundation of the 
-\pilotmapreduce. In this section we give an overview of the Pilot-API,
-which exposes pilot capabilites to the applications as well as the 
-implementation of the Pilot-API in the BigJob and BigData framework.
+
+\begin{figure}[t]
+	\upp\upp
+    \centering
+    \includegraphics[width=0.45\textwidth]{figures/pstar_model_single.pdf}
+    \caption{ \textbf{P* Model: Elements and
+        Interactions:} The pilot manager (PM) is the central entity of a \pilot 
+     framework. It has two functions: it manages 1) Pilots (step 1-3) and 2) the 
+     execution of \cus.}
+	\upp\upp
+    \label{fig:figures_pstar}
+\end{figure}
+
 
 The Pilot-API is an {\it interoperable} and {\it extensible} API which
 exposes the core functionalities of a \pilot framework via a unified
@@ -767,7 +790,7 @@ destination node.}
 
 
 \upp
-\subsection{Distributed MapReduce}
+\subsection{Distributed and Hierarchical MapReduce}
 \label{sec:pmr-distributed} \jhanote{I propose we change this to Distributed and 
 Hierarchical MapReduce to be consistent with 5.4. ok?} \pnote { fine for me }
 
@@ -1388,7 +1411,7 @@ symmetrically.  \upp
 \jhanote{I know space is tight but we should also consider reminding
   the reader about in the conclusion, why the PMR approach (especially
   in the case of HMR) is better than a shared file system approach...
-  For example, I quote from Judy's paper on HMR: `` There are two
+  For example, I quote from Judy's paper on HMR~\cite{ecmls11-mr-autodock}: `` There are two
   weaknesses in the Gfarm solution. First, the Gfarm file system in
   the cross-cluster sense only accesses the front nodes of
   clusters. If there is no shared file system in a local cluster, the
