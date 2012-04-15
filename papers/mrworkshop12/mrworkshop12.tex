@@ -44,7 +44,7 @@
 \usepackage{paralist}
 
 \newif\ifdraft
-\drafttrue
+%\drafttrue
 \ifdraft
 
 \newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
@@ -81,7 +81,7 @@
 \newcommand{\css}{Compute Services\xspace}
 \newcommand{\pcs}{Pilot Compute Service\xspace}
 \newcommand{\dataunit}{Data Unit\xspace}
-\newcommand{\dataunits}{Data Unit\xspace}
+\newcommand{\dataunits}{Data Units\xspace}
 \newcommand{\du}{DU\xspace}
 \newcommand{\dus}{DUs\xspace}
 \newcommand{\pilotdata}{Pilot-Data\xspace}
@@ -176,36 +176,36 @@
   applications is increasing exponentially. Often, this data is  
   distributed;
   thus, the ability to analyze data by localizing it will yield
-  limited returns. Therefore, an efficient processing of large distributed
+  limited returns. Thus, an efficient processing of large distributed
   datasets is required, whilst ideally not introducing fundamentally
   new programming models or methods. For example, extending MapReduce
   -- a proven effective programming model for processing large
-  datasets, to work more effectively on distributed data and on
+  datasets -- to work more effectively on distributed data and on
   different infrastructure (such as non-Hadoop, general-purpose
   clusters) is desirable. We posit that this can be achieved with an
   effective and efficient runtime environment and without refactoring
   MapReduce itself.  MapReduce on distributed data requires effective
   distributed coordination of computation (map and reduce) and data,
   as well as distributed data management (in particular the transfer
-  of intermediate data units).  To address these requirements, we
+  of intermediate data).  To address these requirements, we
   design and implement \pilotmapreduce (PMR) -- a flexible,
   infrastructure-indepen\-dent runtime environment for MapReduce.  PMR
   is based on \pilot abstractions for both compute (Pilot-Jobs) and
   data (Pilot-Data): it utilizes Pilot-Jobs to couple the map phase
   computation to the nearby source data, and Pilot-Data to move
   intermediate data using parallel data transfers to the reduce
-  computation phase.  We analyze the effectiveness of PMR over
+  phase.  We analyze the effectiveness of PMR over
   applications with different characteristics (e.\,g.\ different
   volumes of intermediate and output data). Our experimental
-  evaluations show that the Pilot abstraction for data movement across
-  multiple clusters is promising, and can %provide % minimizes overall
-  lower the execution time span of the entire MapReduce execution. We
+  evaluations show that the Pilot abstractions are both powerful and flexible 
+  in particular on distributed clusters, and can 
+  lower the execution time. We
   also investigate the performance of PMR with distributed data using
   a Word Count and a genome sequencing application over different
   MapReduce configurations. Our experiments show that PMR provides the
   desired flexibility in the deployment and configuration of MapReduce
   runs to address specific application characteristics and achieve an
-  optimal performance, both locally and over wide-area multiple
+  optimal performance, both locally and over multiple
   clusters.
 % We analyze the effectiveness of PMR for different applications based
 % upon the ratio of data-aggregation between phases as well as single
@@ -219,13 +219,13 @@
 %data transfers of source data to the single cluster.
 
 % A category with the (minimum) three required fields
-\category{D.1.2}{Software}{MapReduce}
+%\category{D.1.2}{Software}{MapReduce}
 %A category including the fourth, optional field follows...
-\category{J.3}{Computer Applications}{Bioinformatics, Mapping}
+%\category{J.3}{Computer Applications}{Bioinformatics, Mapping}
 
 % \terms{Design, Experimentation, Performance}
 
-\keywords{Pilot-Jobs, Data-Intensive, MapReduce, Genome Sequencing, BWA,  Distributed Computing}% NOT required for Proceedings
+%\keywords{Pilot-Jobs, MapReduce, Genome Sequencing}% NOT required for Proceedings
 \upp
 \section{Introduction}
 
@@ -241,7 +241,7 @@ volumes of data produced by these scientific applications is
 increasing rapidly, driven by advanced technologies (e.\,g.\
 increasing compute capacity and higher resolution sensors) and
 decreasing costs for computation, data acquisition and
-storage~\cite{hey2009}. The number of scientific applications that
+storage~\cite{hey2009}. The number of applications that
 either currently utilize, or need to utilize large volumes of
 potentially distributed data is immense. The challenges faced by these
 applications are interoperability, efficiently managing compute tasks,
@@ -363,15 +363,13 @@ many infrastructures in practice.
 
 Sector/Sphere~\cite{Gu_Grossman_2009} is a parallel data processing framework
 consisting of an distributed file system (Sector) and a data processing engine
-(Sphere). In contrast to Hadoop, Sphere is able to execute arbitrary 
-user-defined function on a stream of data. Hadoop in contrast operates on top 
-of file system chunks.
+(Sphere). In contrast to Hadoop, which operates of file chunks, Sphere can 
+execute arbitrary user-defined functions on a stream of data. 
 
 Twister~\cite{Ekanayake:2010:TRI:1851476.1851593} is a 
 MapReduce addressing particularly the requirement for supporting iterative 
 MapReduce jobs. Twister allows the flexible composition of applications by 
 specifying map and reduce tasks and the data flow between these tasks. 
-
 Dryad~\cite{Isard:2007:DDD:1272998.1273005} provides distributed execution of
 coarse-grain data-parallel applications. The entire execution is represented in
 the form of data flow graphs, where the vertices represent the computational
@@ -379,13 +377,11 @@ tasks that can be paralleled on a set of computational resources and the links
 between vertices tell Dryad what other vertices need to complete before a
 particular vertex can start.
 
-Several attempts have been made to deploy MapReduce on distributed data and
-resources. Weissman et\,al.~\cite{weissman-mr-11} explore different Hadoop
+Several proposal for deploying MapReduce and Hadoop on distributed data and
+resources exist: Weissman et\,al.~\cite{weissman-mr-11} explore different Hadoop
 configurations to accommodate different distributed resource configurations. 
 Qiu et\,al.~\cite{ecmls11-mr-autodock} propose a hierarchical
-MapReduce configuration that implements the Map-Reduce-Global Reduce pattern 
-using GFarm~\cite{Mikami:2011:UGF:2082076.2082106} on top of Hadoop addressing a 
-main limitation of distributed Hadoop deployments. 
+MapReduce configuration that implements the Map-Reduce-Global Reduce pattern on top of distributed resources. For management of the distributed data the implementation relies on GFarm~\cite{Mikami:2011:UGF:2082076.2082106}. 
 
 SAGA-MapReduce~\cite{Sehgal:2011:UAI:1945091.1945329} is a SAGA-based
 MapReduce implementation that utilizes the SAGA-API for accessing system-level
@@ -463,34 +459,33 @@ a set of compute tasks; instances of that placeholder job are commonly
 referred to as Pilot-Jobs or pilots. The PJ provides application-
 (user-) level control and management of the set of allocated resources.
 
-BigJob (BJ) is a SAGA-based PJ framework that implements the Pilot-API. 
-BJ has been designed to be general-purpose and extensible.  While BJ 
-has been originally built for HPC infrastructures, such as XSEDE and 
-FutureGrid, it is generally also usable in other environments, such 
-as OSG.  This extensibility mainly arises
-from the usage of SAGA as a common API for accessing distributed
-resources.  SAGA provides a simple, POSIX-style API to the most common
-grid functions at a sufficiently high-level of abstraction so as to be
-independent of the diverse and dynamic grid environments~\cite{pstar-2012}.
+BigJob (BJ) is a SAGA-based PJ framework that implements the Pilot-API. BJ has
+been designed to be general-purpose and extensible. While BJ has been originally
+built for HPC infrastructures, such as XSEDE and FutureGrid, it is generally
+also usable in other environments, such as OSG. This extensibility mainly arises
+from the usage of SAGA as a common API for accessing distributed resources.
+% SAGA provides a simple, POSIX-style API to the most common
+% grid functions at a sufficiently high-level of abstraction so as to be
+% independent of the diverse and dynamic grid environments~\cite{pstar-2012}.
 
 \subsection{BigData: A \pilotdata Implementation}
 
-Analogous to \pilotjobs, {\it Pilot-Data} (PD) abstraction provides
-late-binding capabilities for data by separating the allocation of
-physical storage and application-level data units~\cite{pstar-2012}.
-For this purpose, the API defines the {\it \pilotdata (PD)} and 
-{\it \dataunit (DU)} entity: A \pd function as a 
+Analogous to \pilotjobs, {\it Pilot-Data} (PD) abstraction provides late-binding
+capabilities for data by separating the storage allocation and application-level
+\dataunits~\cite{pstar-2012}. For this purpose, the API defines the {\it
+\pilotdata (PD)} and {\it \dataunit (DU)} entity: A \pd function as a
 placeholder object that reserves storage spaces for a set of \dus.
 
 \begin{figure}[htbp]
+	\upp\upp\upp\upp\upp\upp
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/bigdata.pdf}
-	\caption{BigData Architecture and Interactions\upp}
+	\caption{BigData Architecture and Interactions\upp\upp\upp}
 	\label{fig:figures_bigdata}
 \end{figure}
 
 {\it BigData (BD)} is an implementation of the Pilot-Data
-abstraction. BigData is designed to work together with
+abstraction. BigData is designed as an extension of 
 BigJob~\cite{bigjob_web} -- a SAGA-based Pilot-Job implementation.
 Figure~\ref{fig:figures_bigdata} provides an overview of the
 architecture of BigData. Similar to BigJob, it is comprised of two
@@ -538,11 +533,15 @@ then ensure that CUs and DUs are placed with respect to the affinity
 requirements of the application. 
 
 In the case of PMR, the frameworks assigns each output file of a map task to a
-reduce partition. For each reduce partition a DU the respective files is
-created. Then, PMR submits the reduce CUs and DUs using the Pilot-API. The
+reduce partition. For each reduce partition a DU containing the respective files
+is created. Then, PMR submits the reduce CUs and DUs using the Pilot-API. The
 affinity-aware scheduler assigns CUs and DUs to appropriate resources taking
 into account data localities and minimizing the amount of necessary data
 movements, i.\,e.\ if possible a CU is always moved to a DU.
+The Pilot-API and BigJob/BigData provide an effective way
+to manage both compute and data units and the relationships between
+them liberating the applications from the challenging
+task of assigning/scheduling/managing Compute and \dataunits.
 
 %\secrev{ In introduction, it is mentioned that Pilot-API promotes
 %  affinities as a first class characteristic for describing the
@@ -558,11 +557,6 @@ movements, i.\,e.\ if possible a CU is always moved to a DU.
 %BigData are tightly integrated to efficiently support compute- and
 %data-related aspects of dynamic execution.
 
-In summary, the Pilot-API and BigJob/BigData provide an effective way
-to manage both compute and data units and the relationships between
-them (affinities). They liberate the applications from the challenging
-requirement of assigning/scheduling the compute or data unit onto a
-particular resource.
 
 
 \upp
@@ -876,10 +870,10 @@ system typically requires a lot of manual effort.
 	%\label{fig:figures_hierachical-mapreduce}}
 	\caption{\pilotmapreduce Deployment Scenarios: In the
           distributed scenario (left), the mapping tasks are run close
-          to the data, the reduced tasks are then run on a single
-          resource. In the hierarchical scenario (right) two complete
+          to the data; reduced tasks are then run on a single
+          resource. In the hierarchical scenario (right) two full
           MapReduce runs are
-          conducted. \label{fid:distributed-mapreduce-overview}}
+          conducted. \label{fid:distributed-mapreduce-overview}\upp\upp}
 \end{figure}
 
 
@@ -957,8 +951,8 @@ out to multiple resources to support scenarios (ii) and (iii).
 In this section we analyze the performance and scalability of
 \pilotmapreduce and compare it to Hadoop MapReduce using different
 applications. For this purpose we run several experiments on
-FutureGrid~\cite{fg}. We run the experiment on the following
-FutureGrid resources: India, Sierra and Hotel. Each experiment is
+FutureGrid (FG)~\cite{fg}. We run the experiment on the following
+FG resources: India, Sierra and Hotel. Each experiment is
 repeated at least three times. For our Hadoop experiments, we use
 Hadoop 0.20.2. At the begin of each run a Hadoop cluster is started
 via the Torque resource management system on a specified number of
@@ -1056,7 +1050,7 @@ MapReduce runtime.
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/wc_pmr_hmr.pdf}
                 \caption{PMR vs. Hadoop (Word Count): The performance
-                  of Hadoop and PMR is comparable. The runtime of each
+                  of Hadoop and PMR is comparable. The runtime 
                   increases with the input data size. Hadoop tasks
                   have a notable higher startup time.\upp}
 \label{fig:figures_wc_pmr_hmr}
@@ -1103,11 +1097,11 @@ applications, we utilize the same input data comprising of different
 sizes of read files and the reference genome. SEQAL, however, expects
 the input data in a different format (\texttt{prq} instead of
 \texttt{fastq}); data was converted to meet the SEQAL
-requirements. For GS/PMR, the fastq
+requirements. For GS/PMR, the \texttt{fastq}
 files from sequencing machines are directly used; further, a custom
-chunk script is used to chunk the fastq files based on the number of
+chunk script is used to chunk the \texttt{fastq} files based on the number of
 reads. The chunk size for both SEQAL and PMR are equal. For both
-GS/PMR and SEQAL, a total of 4 nodes on FutureGrid Sierra machine, 8
+GS/PMR and SEQAL, a total of 4 nodes on FG Sierra machine, 8
 reduces, 2 workers/node, default chunk size of 128\,MB is used. For
 Hadoop based SEQAL, the replication factor of two is used.  
 % Since
@@ -1141,28 +1135,32 @@ input data is significantly larger. Furthermore, SEQAL has greater
 time-to-completion than GS/PMR. Both the map and reduce phase of SEQAL
 are longer. While the map phase of SEQAL relies on the same BWA
 implementation as GS/PMR, the reduce phase uses Picard's
-rmdump~\cite{picard} for duplicate removal, which has a significant
+\texttt{rmdump}~\cite{picard} for duplicate removal, which has a significant
 longer runtime than the duplicate removal process in the reduce phase
-of GS/PMR. \jhanote{We just said above that we will focus on the map
-  phase after stating that the reduce phases are different. So why are
-  we now discussing reduce phases?}  \jhanote{Also not sure How/why
-  the previous follow from subsequent sentence?} \alnote{removed the
-  sentence that states that we focus on the reduce phase. Would
-  propose to analyze and explain the data in the figure which
-  incl. the reduce phase. Will remove redundancies.}  \jhanote{Andre
-  to fix} This is mainly caused by a non-optimal configuration of
-Hadoop: The local disks available on FutureGrid is too small for the
-used input data; thus, HDFS had to be configured to utilize a shared,
-distributed file system, which leads to a non-optimal performance
-during the I/O intensive map phase. The difference in the reduce phase
-mainly originate from the different implementations of the duplicate
-removal process in SEQAL and GS/PMR. \jhanote{this is a repeat of an
-  earlier statement! No details of reduce phase in GS/PMR provided!}
+of GS/PMR. 
+% \jhanote{We just said above that we will focus on the map
+%   phase after stating that the reduce phases are different. So why are
+%   we now discussing reduce phases?}  \jhanote{Also not sure How/why
+%   the previous follow from subsequent sentence?} \alnote{removed the
+%   sentence that states that we focus on the reduce phase. Would
+%   propose to analyze and explain the data in the figure which
+%   incl. the reduce phase. Will remove redundancies.}  \jhanote{Andre
+%   to fix} 
+A reason for the slower runtime of SEQAL in the map phase is the non-optimal
+Hadoop configuration: As described, the local disks available on FG are too
+small; thus, HDFS had to be configured to utilize a shared, distributed file
+system, which leads to a non-optimal performance during the I/O intensive map
+phase.
 
-\jhanote{Is the following for the Map phase or true for all phases?}
-\alnote{added sentence on analysis of both phases} \alnote{Pradeep:
-  Please elaborate a bit on the differences} \upp\upp \jhanote{AL to
-  clear up all of 5.3}
+% The difference in the reduce phase
+% mainly originate from the different implementations of the duplicate
+% removal process in SEQAL and GS/PMR. \jhanote{this is a repeat of an
+%   earlier statement! No details of reduce phase in GS/PMR provided!}
+
+% \jhanote{Is the following for the Map phase or true for all phases?}
+% \alnote{added sentence on analysis of both phases} \alnote{Pradeep:
+%   Please elaborate a bit on the differences} \upp\upp \jhanote{AL to
+%   clear up all of 5.3}
 
 \subsection{Characterizing Distributed and Hierarchical MapReduce}
 
@@ -1210,7 +1208,7 @@ configurations, we use 8 nodes. The initial input data of 16\,GB is
 equally distributed on these two machines. For the single resource
 Hadoop configuration, half of the input data needs to be moved from
 Sierra to Hotel prior to running the actual MapReduce
-job. Unfortunately, the FutureGrid firewall rules prohibited the usage
+job. Unfortunately, the FG firewall rules prohibited the usage
 of a distributed Hadoop setup.
 
 Figure~\ref{fig:allmrs_rands} shows the results. For natural language
@@ -1272,21 +1270,21 @@ data needs to be loaded into HDFS, which represents another overhead.
 % to move the input files to the single Hadoop resource.
 
 
-\begin{figure}[ht]
+\begin{figure}[t]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/allmrs_rands.pdf}
-\caption{Word Count on 16\,GB Data Using Hadoop, Hierarchical Hadoop, Distributed PMR  and Hierarchical PMR\upp} 	
+\caption{Word Count on 16\,GB Data Using Hadoop, Hierarchical Hadoop, Distributed PMR  and Hierarchical PMR} 	
 \label{fig:allmrs_rands}
 \end{figure}		
 
 \upp\upp
 \subsubsection*{Genome Sequencing}
 
-\begin{figure}[ht]
+\begin{figure}[t]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/gs_hihmr_dpmr.pdf}
                 \caption{GS/PMR using Hierarchical and Distributed
-                  PMR\upp\upp\upp}
+                  PMR\upp\upp}
 \label{fig:gs_hihmr_dpmr}
 \end{figure}		
 
@@ -1395,7 +1393,7 @@ performance with respect to the characteristics of different
 applications. Hadoop, in contrast, is very inflexible in supporting
 different kind of MapReduce configurations, due to deployment
 challenges (e.\,g.\ we were not able to run Hadoop across more than
-two machines on FutureGrid due to firewall issues) as well as runtime
+two machines on FG due to firewall issues) as well as runtime
 limitations.
 
 % \alnote{\textbf{For Analysis:} In distributed-PMR on m clusters with n
