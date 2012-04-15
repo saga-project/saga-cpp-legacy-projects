@@ -635,27 +635,37 @@ pilots for this application workflow: % \jhanote{Worth noting that
   compute and one data pilot is co-located. The data pilot is either
   created with reference to local input data or the input data is
   moved to the data pilot after its creation.
-\pnote{ Do we need data pilot initially? since we place the compute pilot on the resource where input data is present}
+\pnote{Do we need data pilot initially? since we place the compute pilot on the
+resource where input data is present} \alnote{I think when we move to the
+distributed scenario this will be the default flow, because we then also have to
+manage the input data.}
 
-\item \textbf{Chunking:} \pnote{commented - The input data on each resource is {\it chunked}. BigJob is
-  used as general abstraction for executing CUs}. The \mrmg
-  executes a set of compute units on each resource to chunk the input data via compute pilot(BJ).\label{stp:chunking}
+\item \textbf{Chunking:} \pnote{commented - The input data on each resource is
+{\it chunked}.} The \mrmg executes a \cu on each resource, which splits the
+input data on the respective resource with respect to the defined chunk
+size.\label{stp:chunking} \alnote{how many chunking CUs are there? 1 per
+resource?} Each chunk is stored in a new DU. BigJob and BigData -- in particular
+the \texttt{ComputeDataService} -- are used as the common abstraction for
+managing the \computeunits and \dataunits.
   
   \jhanote{I'm not clear what ``executes a set of chunk compute
     units'' means? Plus the two previous sentence should be merged
     into 1 sentence?} \jhanote{I'm confused: isn't chunking all about
     data? why are we getting into executing CUs? shouldn't DUs be
-    introduced in the chunking phase? currenlty no mention of DUs?}
-\pnote{ - We didn't use any data pilot yet - since we launch the compute pilots on the resource where input data is present. So no data units since we are not using any PD yet}
+    introduced in the chunking phase? currently no mention of DUs?}
+\pnote{ - We didn't use any data pilot yet - since we launch the compute pilots 
+on the resource where input data is present. So no data units since we are not 
+using any PD yet} \alnote{As mention above: I think we should describe the final 
+scenario with distributed (and not) pre-staged input data}
 
-\item \textbf{Mapping:} The framework \pnote{MR-Manager?} assign \jhanote{assigned or
-  assign?} a set of {\it map} CUs to the chunks created in
-  step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ
-  and BD ensures that CUs and DUs are co-located. \jhanote{there is no
-    mention of DUs so far. Where/how does this happen?}The execution
-  of the map CUs is done analogous to the chunk CUs.  \jhanote{Also,
-    how are the chunks related to/assigned to DUs? that is unclear
-    from description}
+\item \textbf{Mapping:} The \mrmg then assigns a {\it map} CUs to each chunk 
+created in step~\ref{stp:chunking}. Again, BJ is used for managing the CUs. BJ
+and BD ensures that each CUs is co-located with an appropriate DU taking into account data localities and minimizing the amount of data movements. \jhanote{there is no
+    mention of DUs so far. Where/how does this happen?} \alnote{added DU 
+    creation part to chunk phase, so it should be clearer now.}
+% The execution of the map CUs is done analogous to the chunk CUs via BigJob.
+\jhanote{Also,how are the chunks related to/assigned to DUs? that is unclear
+    from description}\alnote{removed sentence. We were probably referring to the fact the the CU is executed via the pilot}
 	
 \item \textbf{Shuffling:} %\pnote{partitioning and sorting of
   % map output is part of map task}. \alnote{Hadoop Definitive Guide:
@@ -665,11 +675,14 @@ pilots for this application workflow: % \jhanote{Worth noting that
   % encapsulates this intermediate step very well. Rather then
   % including it in the mapping phase (even if it might be done
   % partially by the mapper process.) } 
-   After the map phase \jhanote{processing of what? Undefined..} is completed the output data
-  is sorted and partitioned.  %into multiple DU. Then, data is moved from
-  % the location of map CUs to the location of the reduce CUs. 
-  The \mrmg prepares the DUs which comprises group of sorted, partitioned map output files, related to a reduce task and then submit the
-DUs to BigData. Thus \mrmg specifies the affinity  between intermediate DUs and reduce compute units.
+   After the map phase \jhanote{processing of what? Undefined..} is completed
+   the output data is sorted and partitioned. For each partition a \du is
+   created. Each partition is then processed by a reduce task. For this purpose, 
+   the \mrmg assigns each reduce CU to a DU. Each DU comprises of a
+   group of sorted, partitioned map output files. \cus and \dus are then
+   submitted through the \texttt{ComputeDataService} of BJ and BD. The 
+   affinity-aware scheduler ensure that \cus are assigned to local \dus minimizing the amount
+   of necessary data transfers.
 
 \jhanote{shouldn't it
     be from the location of the map CUs to the location of the reduce
@@ -680,13 +693,12 @@ DUs to BigData. Thus \mrmg specifies the affinity  between intermediate DUs and 
   % \alnote{We need to introduce what we mean by a distributed PMR.}
 	
 \item \textbf{Reducing:} The {\it reduce} tasks are prepared and
-  executed via BJ \jhanote{isn't this obvious: tasks are executed via
-    the BJ?} on the DUs representing the intermediate data.
+  executed on the DUs representing the intermediate data.
   % (step  5/6 in figure~\ref{fig:figures_mapreduce-pilotdata}).  
   The management of the data transfers is done by BJ and BD. For this
   purpose, each reduce CU reference a certain DU as dependency.
 	
-	\item The \pilots are terminated.
+\item The \pilots are terminated.
 
 \end{compactenum}
 
@@ -701,50 +713,53 @@ DUs to BigData. Thus \mrmg specifies the affinity  between intermediate DUs and 
 %   permits discuss them separately/lately?}
 
 The Pilot-API provides a well-defined abstraction for supporting the
-late-binding of compute and data units. \jhanote{How so?} The API also
-allows the expression and management of relationships between data
-units and/or compute units. BigJob and BigData provide an
-implementation of the Pilot-API. Both frameworks ensure that the data
-and compute affinity requirements of the MapReduce applications are
-met for each step of the MapReduce workflow. For example, in the
-shuffle phase PMR \jhanote{we were talking about both frameworks, now
-  suddenly talking about PMR?!} generates a DU and CU for each reduce
-task. The DUs and CUs are then submitted to BigJob and BigData
-framework, which handles the scheduling, transfer of the DU and
-execution of the CU. PMR assigns a resource affinity to each DU and
-CU.  BJ and BD then ensure that each CU is co-located to the right DU.
-
+late-binding of compute and data units decoupling resource assignment from
+resource usage. Using BJ and BD, PMR can allocate both storage and compute
+resources, which can then be flexibly utilized for executing map and reduce
+tasks as well as for storing both intermediate and output data. \jhanote{How
+so?} \alnote{added some more explanation.} The API also allows the expression
+and management of relationships between data units and/or compute units. BigJob
+and BigData provide an implementation of the Pilot-API. Both frameworks ensure
+that the data and compute affinity requirements of the MapReduce applications
+are met for each step of the MapReduce workflow. For example, in the shuffle
+phase PMR \jhanote{we were talking about both frameworks, now suddenly talking
+about PMR?!} generates a DU and CU for each reduce task. The DUs and CUs are
+then submitted to BigJob and BigData framework, which handles the scheduling,
+transfer of the DU and execution of the CU. PMR assigns a resource affinity to
+each DU and CU. BJ and BD then ensure that each CU is co-located to the right
+DU.
 \upp
 \subsection{Compute and Data Management}
 The PMR relies on the master/worker coordination model, i.\,e.\ a
 central MapReduce-Manager is responsible for coordinating the
 MapReduce workers, which in turn are responsible for executing map and
-reduce tasks. The MapReduce-Manager utilizes BigJob and BigData for executing
-mapper and reduce tasks (Listing~\ref{lst:pcs_creation}).
+reduce tasks. The MapReduce-Manager utilizes BigJob and BigData and in 
+particular the central \texttt{ComputeDataService} for executing
+mapper and reduce tasks. % (Listing~\ref{lst:pcs_creation}).
 
-\alnote{Can we do a MR specific example?}
-
-\lstset{
-language=Python,
-frame=single,
-captionpos=b,
-stringstyle=\ttfamily,
-basicstyle=\scriptsize\ttfamily
-}
-\noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{Pilot Compute Creation:} Instantiation of a Pilot Job using Pilot Compute Description}, label={lst:pcs_creation}]
-pcs = PilotComputeService()
-cds = ComputeDataService()
-pjd ={"service_url":"pbs-ssh://sierra.futuregrid.org", 
-"number_of_processes": '8',
-"walltime":10, 
-"processes_per_node:'8',
-"affinity_datacenter_label":'sierra',
-"affinity_machine_label":'sierra'}
-pj=pcs.create_pilot(pilot_compute_description=pjd)
-cds.add_pilot_compute_service(pcs)
-\end{lstlisting}
-\end{minipage}
+% \alnote{Can we do a MR specific example?}
+% 
+% \lstset{
+% language=Python,
+% frame=single,
+% captionpos=b,
+% stringstyle=\ttfamily,
+% basicstyle=\scriptsize\ttfamily
+% }
+% \noindent\begin{minipage}{0.47 \textwidth}
+% \begin{lstlisting}[caption={\textbf{Pilot Compute Creation:} Instantiation of a Pilot Job using Pilot Compute Description}, label={lst:pcs_creation}]
+% pcs = PilotComputeService()
+% cds = ComputeDataService()
+% pjd ={"service_url":"pbs-ssh://sierra.futuregrid.org", 
+% "number_of_processes": '8',
+% "walltime":10, 
+% "processes_per_node:'8',
+% "affinity_datacenter_label":'sierra',
+% "affinity_machine_label":'sierra'}
+% pj=pcs.create_pilot(pilot_compute_description=pjd)
+% cds.add_pilot_compute_service(pcs)
+% \end{lstlisting}
+% \end{minipage}
 
 Similarly, Hadoop also utilizes a job and task tracker: the job
 tracker is the central manager that dispatches map and reduce tasks to
@@ -764,33 +779,34 @@ provides flexibility to manage the relationship between data and
 compute units, but also allows {\it parallel} data transfers between
 machines and between data units.  BigData is used for moving the
 intermediate output files of the mapper tasks to the resource where
-the reduce compute units are executed.  Listing~\ref{lst:pds_creation}
-illustrates the creation of a new Pilot-Data at the location of the
-reduce task.
+the reduce compute units are executed. 
+%  Listing~\ref{lst:pds_creation}
+% illustrates the creation of a new Pilot-Data at the location of the
+% reduce task.
 
 
-\alnote{Can we do a MR specific example? Showing the co-placement of compute and 
-data}
-
-\lstset{
-language=Python,
-frame=single,
-captionpos=b,
-stringstyle=\ttfamily,
-basicstyle=\scriptsize\ttfamily
-}
-\noindent\begin{minipage}{0.47 \textwidth}
-\begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
-pds = PilotDataService()
-pd_desc=
-{"service_url":"ssh://india.futuregrid.org/pilotdata",
-"size":100,
-"affinity_datacenter_label":'india',
-"affinity_machine_label":'india'}
-pd=pds.create_pilot( pilot_data_description=pd_desc)
-cds.add_pilot_data_service(pds)
-\end{lstlisting}
-\end{minipage}
+% \alnote{Can we do a MR specific example? Showing the co-placement of compute and 
+% data}
+% 
+% \lstset{
+% language=Python,
+% frame=single,
+% captionpos=b,
+% stringstyle=\ttfamily,
+% basicstyle=\scriptsize\ttfamily
+% }
+% \noindent\begin{minipage}{0.47 \textwidth}
+% \begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
+% pds = PilotDataService()
+% pd_desc=
+% {"service_url":"ssh://india.futuregrid.org/pilotdata",
+% "size":100,
+% "affinity_datacenter_label":'india',
+% "affinity_machine_label":'india'}
+% pd=pds.create_pilot( pilot_data_description=pd_desc)
+% cds.add_pilot_data_service(pds)
+% \end{lstlisting}
+% \end{minipage}
 
 \alnote{\textbf{removed for now - maybe add later for analysis of perf:} Similarly, Hadoop uses mapred.reduce.parallel.copies parameter to set
 the number of parallel transfers run by reduce during the
