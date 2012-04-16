@@ -493,42 +493,6 @@ Distributed PMR in Ref. with respect to the type of workload or data aggregation
 \item{Finally,PMR launches reduce tasks on a cluster using the Pilot-Job of Pilot framework.}
 \end{itemize}
 
-\subsection{Target NGS Analysis}
-
-In this section we present the important steps of DNA sequencing that
-we consider for our work.
-
-\subsubsection{Short Read Alignment}
-
-Short reads alignment and the de-novo assembly are the required first
-steps in every pipeline software tool that aims to analyze sequencing
-data from NGS platforms.  De-novo assembly still remains a challenge,
-because of complications arising from the short length of sequencing
-reads from NGS machines. In most of situations, read alignment (or mapping process)
-is the first task of NGS workflows, and two Hadoop-based tools, Seqal and Crossbow provided two mapping tools, BWA and Bowtie, respectively. 
-
-In general, for RNA-Seq data analysis, in particular with eukaryote
-genomes, the spliced aligner such as TopHat~\cite{pepke2009} is
-used. In our work, we consider an alternative strategy, to use a
-non-spliced aligner and later splicing events are detected separately,
-justifying the use of non-spliced aligners such as BWA and Bowtie for
-the RNA-Seq data.  These non-spliced aligner tools mapped reads onto human reference genome hg19.
-
-\subsubsection{Post-Alignment}
-Duplicate read removal step might be required after short read
-alignment, because sample preparation processes before sequencing
-might contain artifacts stemming from high-throughput read
-amplification; many duplicates introduced are not relevant to true
-biological conditions. 
-
-Seqal is a Hadoop MapReduce application which implements the alignment
-in map phase using BWA aligner and a duplicate removal step using the same criteria as the Picard
-MarkDuplicates~\cite{seal2011,seal_2011_mapred} in reduce phase. 
-
-Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for DNA sequencing analysis.
-Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming-based MapReduce application and the output of each step is stored in HDFS and read from HDFS by the next step.  In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has a dummy reducer.  
-
-
 \begin{center}
 \begin{table*}[ht]
 {\small
@@ -574,6 +538,85 @@ Multiple Tools  &      &  &  &  &   \\
 \end{table*}
 \end{center}
 
+
+\subsection{Target NGS Analysis}
+
+In this section we present the important steps of DNA sequencing that
+we consider for our work.
+
+\subsubsection{Short Read Alignment}
+
+Short reads alignment and the de-novo assembly are the required first
+steps in every pipeline software tool that aims to analyze sequencing
+data from NGS platforms.  De-novo assembly still remains a challenge,
+because of complications arising from the short length of sequencing
+reads from NGS machines. In most of situations, read alignment (or mapping process)
+is the first task of NGS workflows, and two Hadoop-based tools, Seqal and Crossbow provided two mapping tools, BWA and Bowtie, respectively. 
+
+In general, for RNA-Seq data analysis, in particular with eukaryote
+genomes, the spliced aligner such as TopHat~\cite{pepke2009} is
+used. In our work, we consider an alternative strategy, to use a
+non-spliced aligner and later splicing events are detected separately,
+justifying the use of non-spliced aligners such as BWA and Bowtie for
+the RNA-Seq data.  These non-spliced aligner tools mapped reads onto human reference genome hg19.
+
+\subsubsection{Post-Alignment}
+Duplicate read removal step might be required after short read
+alignment, because sample preparation processes before sequencing
+might contain artifacts stemming from high-throughput read
+amplification; many duplicates introduced are not relevant to true
+biological conditions. 
+
+Seqal is a Hadoop MapReduce application which implements the alignment
+in map phase using BWA aligner and a duplicate removal step using the same criteria as the Picard
+MarkDuplicates~\cite{seal2011,seal_2011_mapred} in reduce phase. 
+
+Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for DNA sequencing analysis.
+Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming-based MapReduce application and the output of each step is stored in HDFS and read from HDFS by the next step.  In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has a dummy reducer.  
+
+
+
+\begin{center}
+\begin{table*}[ht]
+\small
+\hfill{}
+ \begin{tabular}{|c|c|c|c|c|} 
+ \hline 
+
+ \textbf{Case} &  \textbf{ \# of  Nodes ($N_{node})$ :}  &  \textbf{\# of Workers} &   \textbf{\# of Mappers} & \  \textbf{Related Experiments} \\
+ \textbf{E($N_{node}$, $N_W$,  $N_M$)} &  \textbf{Total \# of cores} &   ($N_W$)  & ($N_M)$  &  \textbf{ in Figure (case)}  \\
+ \hline
+  \hline
+E(2,4,13) &2 : 16 & 4 & 13 & Fig 6(2 nodes) \\
+E(4,8,32) & 4 : 32 & 8 & 32 & Fig 3(4 nodes) \\
+E(4,8,13) & 4 : 32 & 8 & 13 & Fig 5(2GB read size), Fig 4(upper-2GB read size) \\
+E(4,8,25) & 4 : 32 & 8 & 25 & Fig 5(4GB read size), Fig 6(4 nodes), Fig 4(upper-4GB read size) \\ 
+E(4,8,50) & 4 : 32 & 8 & 50 & Fig 5(8GB read size), Fig 4(upper-8GB read size), Fig 4(lower)\\ 
+E(8,16,32) & 8 : 64 & 16 & 32 & Fig 3(8 nodes)\\ 
+E(8,16,50) & 8 : 64& 16 & 50 & Fig 6(8 nodes)\\ 
+E(16,32,32) & 16 : 128 & 32 & 32 & Fig 2(10GB read size), Fig 3(16 nodes)\\ 
+E(16,32,64) & 16 : 128 & 32 & 64 & Fig 2(20GB read size)\\ 
+E(16,32,128) & 16 : 128 & 32 & 128 & Fig 2(40GB read size)\\ 
+
+%Case & \# of  & \# of &  \# of & \# of & \# of  \\
+%E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & available  \\
+%$N_M$, $N_R$,  & &  & ers & ers & cores per\\
+%$S_I$ (GB)) & ($N_{node})$& ($N_W$) & ($N_M) $ & ($N_R$) & Worker \\
+%\hline
+%E(4, 4, 32, 8, 8) &4 &  4 & 32  & 8 & 8 \\
+%E(4, 8, 32, 8, 8) & 4 & 8 & 32 & 8 & 4 \\
+%E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\ 
+
+ \hline
+ \end{tabular}
+ \hfill{}
+
+\rev{Also, the last column in Table 2 does not match the legend as all nodes have 8 cores (and therefore 8 cores are only available with one worker per node?).  Figures 2 and 3 do not have entries in Table 2 (specifically the 16 node job).}
+
+ \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the three parameters in E($N_{node}$,$N_W$,$N_M$).  The related experiments in figures are illustrated in this table.  Note that all nodes for this study have 8 cores, 8 reducers and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
+    \label{table:exp-description} 
+\end{table*}
+\end{center}
 
 
 %Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
@@ -684,126 +727,6 @@ communication between data nodes.
 
 %\subsubsection{Comparing  Seqal and Crossbow}
 
-\begin{center}
-\begin{table*}[ht]
-\small
-\hfill{}
- \begin{tabular}{|c|c|c|c|c|} 
- \hline 
-
- \textbf{Case} &  \textbf{ \# of  Nodes ($N_{node})$ :}  &  \textbf{\# of Workers} &   \textbf{\# of Mappers} & \  \textbf{Related Experiments} \\
- \textbf{E($N_{node}$, $N_W$,  $N_M$)} &  \textbf{Total \# of cores} &   ($N_W$)  & ($N_M)$  &  \textbf{ in Figure (case)}  \\
- \hline
-  \hline
-E(2,4,13) &2 : 16 & 4 & 13 & Fig 6(2 nodes) \\
-E(4,8,32) & 4 : 32 & 8 & 32 & Fig 3(4 nodes) \\
-E(4,8,13) & 4 : 32 & 8 & 13 & Fig 5(2GB read size), Fig 4(upper-2GB read size) \\
-E(4,8,25) & 4 : 32 & 8 & 25 & Fig 5(4GB read size), Fig 6(4 nodes), Fig 4(upper-4GB read size) \\ 
-E(4,8,50) & 4 : 32 & 8 & 50 & Fig 5(8GB read size), Fig 4(upper-8GB read size), Fig 4(lower)\\ 
-E(8,16,32) & 8 : 64 & 16 & 32 & Fig 3(8 nodes)\\ 
-E(8,16,50) & 8 : 64& 16 & 50 & Fig 6(8 nodes)\\ 
-E(16,32,32) & 16 : 128 & 32 & 32 & Fig 2(10GB read size), Fig 3(16 nodes)\\ 
-E(16,32,64) & 16 : 128 & 32 & 64 & Fig 2(20GB read size)\\ 
-E(16,32,128) & 16 : 128 & 32 & 128 & Fig 2(40GB read size)\\ 
-
-%Case & \# of  & \# of &  \# of & \# of & \# of  \\
-%E($N_{node}$,$N_W$,  & Nodes & Worker   & Mapp- & Reduc- & available  \\
-%$N_M$, $N_R$,  & &  & ers & ers & cores per\\
-%$S_I$ (GB)) & ($N_{node})$& ($N_W$) & ($N_M) $ & ($N_R$) & Worker \\
-%\hline
-%E(4, 4, 32, 8, 8) &4 &  4 & 32  & 8 & 8 \\
-%E(4, 8, 32, 8, 8) & 4 & 8 & 32 & 8 & 4 \\
-%E (8, 8, 32, 8, 8) & 8 & 8 & 32 & 8 & 8 \\ 
-
- \hline
- \end{tabular}
- \hfill{}
-
-\rev{Also, the last column in Table 2 does not match the legend as all nodes have 8 cores (and therefore 8 cores are only available with one worker per node?).  Figures 2 and 3 do not have entries in Table 2 (specifically the 16 node job).}
-
- \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the three parameters in E($N_{node}$,$N_W$,$N_M$).  The related experiments in figures are illustrated in this table.  Note that all nodes for this study have 8 cores, 8 reducers and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
-    \label{table:exp-description} 
-\end{table*}
-\end{center}
-
-\section{Experiments and Evaluation}\label{sec:results}
-
-We evaluate the performance of the PMR-based applications in the
-context of scalability at different levels and extensibility to
-multiple tools.  Each experiment is repeated at least three times.
-
-\subsection{Scalability}
-
-PMR runtime involves time taken to chunk the input data, map, shuffle
-and reduce phase times.  The scalability characteristics of PMR, for
-different levels of parallelism and granularity were evaluated using
-applications specified in Section~\ref{sec:materials_and_methods}.  
-
-In the first experiment shown in the Fig~\ref{fig:read-size}, not
-surprisingly the total runtime increased linearly as the input read
-size increased. PMR \textit{scales-out} well as the number of compute tasks increase on 16 nodes(128 cores).
-
-Fig ~\ref{fig:scale-p-saga-mr} shows how PMR \textit{scales-up}. PMR
-scales-up well as the runtime decreases with increase in number of
-nodes.
-
-In both, the map phase (read alignment) is a single dominant step for
-the overall time-to-solution, and the reduce task (duplicate read
-removal) is relatively less compute intensive task. The intermediate
-data is managed by Pilot-Data which parallelizes the intermediate data
-transfers between map and reduce phases in a cluster or between
-clusters, which improves performance of PMR.
-
-Fig ~\ref{fig:comp_with_seqal_1} shows the comparison of different
-configurations of PMR with Seqal application.  The setup phase for Seqal involves
-copying of the reference archieve to all the data nodes and extracts it so it is available locally,
-whereas the setup phase for PMR involves chunking of data. Notably, Seqal takes more time than other configurations of PMR because of the reason that
-HDFS is build on shared file system. The local disks of compute nodes available on FutureGrid are
-too small for the used input data; thus, HDFS had to be configured to
-utilize a shared file system, which leads to a
-non-optimal performance during the I/O intensive map phase.
-
-
-Hadoop is a prominent framework for doing MapReduce computations but it is
-designed for cluster/local environment, but not for a high degree of
-distribution. Unfortunately, Hadoop cannot be executed on more than
-one cluster on Futuregrid, because of firewall issues.Hierarchical MapReduce~\cite{ecmls11-mr-autodock} provides a viable
-solution to use multiple clusters for MapReduce programming model and
-then combine the final output with a global reduce function. Designing
-global reduce is not easy and straightforward in all cases. For
-example in Crossbow application, combining reduce outputs of multiple
-SoapSNP's using a global reduce might effect the semantics of the
-final data. The distributed PMR could be a viable solution for running
-MapReduce programming model on multiple clusters without a global filesystem between the clusters. Distributed PMR
-is executed on Sierra and Hotel, where the number of workers and the
-input data is distributed equally between the machines.
-
-Distributed PMR performs significantly better than Hadoop Seqal, but
-it is slower than local PMR; this is attributable to the overhead of
-distributing tasks between the machines.  But this overhead is
-significantly less important than the advantages of
-\textit{scaling-across} is considered which allows concurrent usage of
-multiple cluster resources. The other reason is that the time taken to transfer intermediate data from Hotel to Sierra by Pilot-Data, which is produced by the map phase on Hotel.
- Once the entire intermediate data is available the reduce phase is executed on Sierra. 
-
-Note that the direct comparison of the reduce phase is not obvious due to the different implementations between Seqal and our custom scripts for duplicate read removal tasks \jhanote{what is ours. please
- replace with whatever ours is!!}\pnote{addressed}, in spite of the fact that the same
-criteria of duplicate read removal of Seqal\cite{seal_2011_mapred} was
-used. The map phase of Seqal and PMR tool are almost comparable since
-the same aligner, BWA is used and all parameters (see
-Table~\ref{table:exp-description}) for configuring a MapReduce task
-are set to be same for the comparison.
-
-%The computation of read alignment and duplicate read removal represents an
-%interesting and simple category of computational tasks among NGS data
-%analysis that could be benefitted by employing the MapReduce
-%programming model.  We implement such a MapReduce task with PMR.  The
-%main findings with this analysis are as follows.  First, as shown in
-%Fig.~\ref{fig:read-size}, the scalability is critically required as
-%the input data size increases.  Not surprisingly, the results shown in
-%Fig~\ref{fig:scale-p-saga-mr} suggests that the parallel strategy with
-%MapReduce could be a viable solution for increasingly demanding large
-%data sets.
 
  \begin{figure}
  \centering
@@ -822,6 +745,76 @@ are set to be same for the comparison.
 \rev{There is also little data on "scale out" (32 cores only on up to 4 nodes?)  For example, in this workshop a year ago there was a paper looking at a purely distributed file system framework based on "makeflow" and "work queue" that ran on up to 300 cores with 195X speedup with a similar map (megablast instead of a BW-based aligner) but a more complicated workflow.  Looking at the makeflow website this has been applied to BWA also and Weaver seems to be proposed as an abstraction similar to PMR (which as I understand is just a map and reduce running on SAGA?.  Their scaling seems heavily based on a hybrid distributed/multicore platform that I guess is a plus, but this puts restrictions on the type of systems usable for good performance.}
 
 \end{figure}
+
+\section{Experiments and Evaluation}\label{sec:results}
+
+We evaluate the performance of the PMR-based applications in the
+context of scalability at different levels and extensibility to
+multiple tools.  Each experiment is repeated at least three times.
+
+\subsection{Scalability}
+
+The total runtime for a PMR task comprises the steps to chunk input data, map, shuffle
+and reduce phase times.  The scalability characteristics of PMR, for
+different levels of parallelism and granularity were evaluated using
+applications specified in Section~\ref{sec:materials_and_methods}.  
+
+
+
+
+Fig~\ref{fig:read-size}, not surprisingly, shows the increment of required total runtime as the input read size increase, indicating the need of a scalable solution such as MapReduce .  With this experiment, we also found that PMR \textit{scales-out} well as the number of compute tasks is increased over 16 nodes(128 cores).
+
+Meanwhile, Fig ~\ref{fig:scale-p-saga-mr} shows how PMR \textit{scales-up}. PMR
+scales-up well as the runtime decreases with increase in number of nodes.
+
+In both experiments, the map phase (read alignment) appears to be a single dominant step for
+the overall time-to-solution, whereas the reduce task (duplicate read
+removal), along with other tasks, is a relatively less compute intensive task.  The intermediate
+data is managed by Pilot-Data which parallelizes the intermediate data
+transfers between map and reduce phases within a cluster or between
+clusters..
+
+In Fig ~\ref{fig:comp_with_seqal_1}, we compare results using different
+configurations of PMR along with results using Seqal.   The setup phase for Seqal involves
+tasks for copying of the reference information to all the data nodes and extracting them to allow the reference available locally, whereas the setup phase for PMR involves chunking of data.  
+
+Notably, Seqal takes more time than Local or Distributed PMRs.   This is, in our FutureGrid environment, because we are forced to have HDFS with the shared file system. The local disk of compute nodes available on FutureGrid is too small for dealing with input data and other produced data sets, resulting in that HDFS had to be configured to use a shared file system and therefore a
+non-optimal performance during the I/O intensive map phase.
+
+Hadoop is a prominent framework for carrying out MapReduce computations but it is
+designed primarily for a single cluster/local environment, but not straightforward for its deployment with a high degree of distributed heterogeneous resources.  For example, Hadoop cannot be executed on more than one cluster on Futuregrid, because of firewall issues. 
+
+The Distributed PMR, on the other hand, supports the capability of running
+MapReduce programming model on multiple clusters without a global filesystem between the clusters.  In our experiments, Distributed PMR is executed on Sierra and Hotel, where the number of workers and the input data is distributed equally between the machines.
+
+Distributed PMR performs less than Local PMR; this is apparently due to the overhead of
+distributing tasks between two clusters.  The other reason is that the time taken to transfer intermediate data from Hotel to Sierra by Pilot-Data, which is produced by the map phase on Hotel.
+
+Nonetheless, the observed overhead is not significant, and considering the advantages of
+\textit{scaling-across} that allows the concurrent usage of multiple cluster resources, Distributed PMR could be a valuable option for achieving the scalable solution.   
+
+In the case of Distributed PMR, once entire intermediate data are produced, the reduce phase is executed on Sierra. 
+
+Note that a direct comparison of the reduce phase is not obvious due to the different implementations between Seqal and our custom scripts for duplicate read removal tasks \jhanote{what is ours. please
+ replace with whatever ours is!!}\pnote{addressed}, in spite of the fact that the same
+criteria of duplicate read removal of Seqal\cite{seal_2011_mapred} was
+used for our implementation.  The map phase of Seqal and PMR are almost comparable since
+the same aligner, BWA is used and all parameters (see
+Table~\ref{table:exp-description}) for configuring a MapReduce task
+are set to be same for the comparison.
+
+%The computation of read alignment and duplicate read removal represents an
+%interesting and simple category of computational tasks among NGS data
+%analysis that could be benefitted by employing the MapReduce
+%programming model.  We implement such a MapReduce task with PMR.  The
+%main findings with this analysis are as follows.  First, as shown in
+%Fig.~\ref{fig:read-size}, the scalability is critically required as
+%the input data size increases.  Not surprisingly, the results shown in
+%Fig~\ref{fig:scale-p-saga-mr} suggests that the parallel strategy with
+%MapReduce could be a viable solution for increasingly demanding large
+%data sets.
+
+
 
 
 %The good scalability with PMR shown in Fig~\ref{fig:scale-p-saga-mr}, as a matter of fact, appears to be helped by the characteristic nature of the target computational tasks.  The map phase, the read alignment is a single dominant step for the overall time-to-solution, and the %read alignment task is the most prominent example among a variety of NGS data analysis tasks that is suitable for data parallelization as well as task parallelization.  Note that the reduce phase task, duplicate read removal is also easy for parallelization primarily due to the fact %that to remove the duplicates needs only the local information, i.e. a single key or a small number of keys from the map phase results.  Despite of the simple nature, read alignment and duplicate read removal does provide an understanding of challenges for MapReduce-based %approaches for NGS data analytics.  For example, unlike the well-know word count problem, the map phase produces high volume of data size, indicating the low-aggregation problem, compared to the high-aggregation problem of the word counting\cite{weissman-mr-11}.  I%ndeed, the data management along with this feature should be considered carefully as indicated in Fig.~\ref{fig:read-size} with the 40 GB case that shows a significant portion of the processing time for chunking data.  Note that 40 GB is the entire data set from the RNA-Seq %experiment of interest.  Nonetheless, we note that the data management between the map phase and the reduce phase is reasonably handled by the Pilot framework for a single cluster or even a case for utilizing a couple of clusters as presented later.
@@ -847,15 +840,14 @@ are set to be same for the comparison.
 \rev{ "what remains is experimental results with three mostly serial bioinformatics and their mapreduce implementations?  - can we include some mpi mapping applications
 - novoalign/parallel bwa "}
 
-
-We investigate the extensibility of PMR with two aligners -- BWA and
+The extensibility of PMR is demonstrated with two aligners -- BWA and
 Bowtie.  One of the important reasons why multiple aligners are needed
-is because of the difficulty of validation of an aligner used.  It is
+is because of the difficulty of validation of an aligner used\cite{mapping-survey}.  It is
 well studied that each aligner implements different strategies to deal
 with the requirement of computational loads, memory usage, and
 sensitivity associated with decision on algorithms and computational
 implementations of indexing, search, and match
-tasks\cite{mapping-survey}.
+tasks.
 
 Indeed, the decision of which aligner affects not only alignment
 results but also investigate downstream analysis that aim to study
@@ -878,9 +870,9 @@ and can support multiple NGS analytic tools.
 
 Extending PMR to support new NGS analytic tools involve development of
 simple map and reduce wrapper scripts to the tools. The wrapper
-scripts could be developed in any language.  Hadoop streaming supports
-this types of functionality but still involves complexity of managing
-computational resources to maintain hadoop cluster.  PMR liberates the
+scripts could be developed in any language.  To some extent, Hadoop streaming supports
+this types of extensibility but still requires complexity of managing
+computational resources to maintain Hadoop cluster.  PMR liberates the
 user from the complex task of maintaining and acquiring computational
 resources and executing map and reduce tasks on them.
 
@@ -901,11 +893,11 @@ MapReduce. The fine grain parallelism provided by Pilot-Job framework is demonst
 One of the advantages of PMR is it doesn't impose any restriction on
 number of compute nodes that can be assigned to a particular map or
 reduce task. This leads to a natural and native support for MPI-based
-NGS tools. For example NovoalignMPI~\cite{novo-align} is a message
+NGS tools. For example,  NovoalignMPI~\cite{novo-align} is a message
 passing version of Novoalign, with claims of a more accurate aligner,
 allows a single alignment process to use multiple compute nodes. The
 MPI versions of Novoalign are more beneficial when large computing
-infrastructures are available. Hadoop doesn't provide flexibility to
+infrastructures are available.  Hadoop doesn't provide flexibility to
 assign multiple compute nodes to a single compute task, thus leading
 to an impedance mismatch between Hadoop MR and MPI based NGS analytic
 tools.
