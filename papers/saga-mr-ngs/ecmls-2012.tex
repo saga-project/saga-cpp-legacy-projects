@@ -533,6 +533,54 @@ MarkDuplicates~\cite{seal2011,seal_2011_mapred} in reduce phase.
 Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for DNA sequencing analysis.
 Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming-based MapReduce application and the output of each step is stored in HDFS and read from HDFS by the next step.  In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has a dummy reducer.  
 
+
+\begin{center}
+\begin{table*}[ht]
+{\small
+\hfill{}
+\begin{tabular}{|l|l|c|c|c|c|c|c|}
+\hline
+  &\centering \textbf{PMR}\cite{pmr2012} & \textbf{Seqal}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
+%\cline{3-9}
+ \hline 
+ Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop   & Hadoop-based & MR-based Structured \\ 
+Strategy  & Distributed MR & MR  & Streaming  & MR & Programming  \\
+& & (Pydoop) &  & & Framework \\ \hline
+  
+Hadoop & No & Yes & Yes\footnote[1] & Yes & No \\ 
+Requirement  & & & &  &\\ \hline  
+    
+Multiple  Cluster & Yes  & Limited   & Limited  & Limited  & Limited \\
+Support &  & by Hadoop &  by Hadoop & by Hadoop  & by JVM   \\ \hline
+
+Multiple Node & Support & Not allowed  & Not allowed  & Not allowed & Not  \\
+Task Supprt &  & by Hadoop & by Hadoop & by Hadoop & Easy  \\ \hline
+Distributed Job and  & Advert Service  & Hadoop/HDFS & Hadoop/HDFS & Hadoop/HDFS & Java \\ 
+Data Coordination &(SAGA) &  & & & Framework\\ \hline
+
+
+Primary Aligner &  BWA, Bowtie,  &  BWA & Bowtie & RMAP &  BWA \\
+& and Others (coming) &  &  &  &  \\ \hline
+Multiple Aligner  & Straightforward & Not Straight- & Possible & Not Straight-  & Straight-  \\ 
+Support &  & forward &   & forward  & forward \\\hline
+Primary Tasks & Alignment/Duplicate  & Alignment/ & Alignment/ & Alignment &Various\\
+  &  Removal & Duplicate & SNP Discovery & & NGS Data  \\  
+           & (and Extensible &  Removal & &  & \& Downstream  \\
+           & for RNA-Seq) & & &  & Analysis \\ \hline  
+Extensibility for Supporting  &  High  & Medium &  Low & Low & High      \\
+Multiple Tools  &      &  &  &  &   \\ 
+(e.g. Multiple Aligners) & & & & & \\ \hline
+\hline
+\end{tabular}}
+\hfill{}
+\caption{Feature comparison of PMR with other tools for NGS data analysis that primarily provide a parallelism support using the MapReduce framework.  $^{1}${The feature of Crossbow that can run with a desktop environment without Hadoop is not considered in the scope of this work due to the lack of scalability support.} }
+ \label{table:mr-comparison}
+\secrev{Finally, Table 1 should be updated - Crossbow is very extensible, and the Crossbow code forms the basis for the RNAseq analysis pipeline Myrna published in 2010: http://genomebiology.com/2010/11/8/R83}
+\end{table*}
+\end{center}
+
+
+
 %Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
 
 \subsection{Experiments: Motivation and Configuration}
@@ -631,57 +679,13 @@ is set to 8 in our experiments. For the relation between parameters
 used for the experimental set-up, see examples in
 Table\ref{table:exp-description}.
 
-PMR based applications directly use the fastq format files and no
+Our PMR-based pipelines directly use the fastq format files and no
 preprocessing required.  The intermediate data management affects the
 performance of NGS tools in distributed data processing. PMR uses
 Pilot-Data which transfer the intermediate data in parallel and across
 multiple clusters. Hadoop depends on HDFS and TCP/IP based
 communication between data nodes.
 
-\begin{center}
-\begin{table*}[ht]
-{\small
-\hfill{}
-\begin{tabular}{|l|l|c|c|c|c|c|c|}
-\hline
-  &\centering \textbf{PMR}\cite{pmr2012} & \textbf{Seqal}\cite{seal2011} & \textbf{Crossbow}\cite{langmead2009} & \textbf{CloudBurst}\cite{cloudburst} & \textbf{GATK}\cite{gatk} \\ \hline
-%\cline{3-9}
- \hline 
- Key Parallelism   & Pilot-based   &  Hadoop-based/  &  Hadoop   & Hadoop-based & MR-based Structured \\ 
-Strategy  & Distributed MR & MR  & Streaming  & MR & Programming  \\
-& & (Pydoop) &  & & Framework \\ \hline
-  
-Hadoop & No & Yes & Yes\footnote[1] & Yes & No \\ 
-Requirement  & & & &  &\\ \hline  
-    
-Multiple  Cluster & Yes  & Limited   & Limited  & Limited  & Limited \\
-Support &  & by Hadoop &  by Hadoop & by Hadoop  & by JVM   \\ \hline
-
-Multiple Node & Support & Not allowed  & Not allowed  & Not allowed & Not  \\
-Task Supprt &  & by Hadoop & by Hadoop & by Hadoop & Easy  \\ \hline
-Distributed Job and  & Advert Service  & Hadoop/HDFS & Hadoop/HDFS & Hadoop/HDFS & Java \\ 
-Data Coordination &(SAGA) &  & & & Framework\\ \hline
-
-
-Primary Aligner &  BWA, Bowtie,  &  BWA & Bowtie & RMAP &  BWA \\
-& and Others (coming) &  &  &  &  \\ \hline
-Multiple Aligner  & Straightforward & Not Straight- & Possible & Not Straight-  & Straight-  \\ 
-Support &  & forward &   & forward  & forward \\\hline
-Primary Tasks & Alignment/Duplicate  & Alignment/ & Alignment/ & Alignment &Various\\
-  &  Removal & Duplicate & SNP Discovery & & NGS Data  \\  
-           & (and Extensible &  Removal & &  & \& Downstream  \\
-           & for RNA-Seq) & & &  & Analysis \\ \hline  
-Extensibility for   &  High  & Medium &  Low & Low & High      \\
-Multiple Tools  &      &  &  &  &   \\ \hline
-
-\hline
-\end{tabular}}
-\hfill{}
-\caption{Feature comparison of PMR with other tools for NGS data analysis that primarily provide a parallelism support using the MapReduce framework.  $^{1}${The feature of Crossbow that can run with a desktop environment without Hadoop is not considered in the scope of this work due to the lack of scalability support.} }
- \label{table:mr-comparison}
-\secrev{Finally, Table 1 should be updated - Crossbow is very extensible, and the Crossbow code forms the basis for the RNAseq analysis pipeline Myrna published in 2010: http://genomebiology.com/2010/11/8/R83}
-\end{table*}
-\end{center}
 
 %\subsubsection{Comparing  Seqal and Crossbow}
 
