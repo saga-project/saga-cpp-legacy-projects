@@ -437,10 +437,10 @@ data set is about 20.1 GB containing 70,927,422 reads.  For varying
 size of sequencing data experiments, we chunked the required amount of
 reads by partitioning the entire data.  For example, 2 GB paired end
 data implies 1 GB for one end and 1 GB for the other end.  The file
-format of sequencing data is fasta and all manipulation of sequencing
-data was conducted by in-house python scripts and
+format of sequencing data is fastq and all manipulation of sequencing
+data was conducted by in-house python scripts and other tools such as
 samtools~\cite{samtools}. The reference genome is indexed based on the alignment tool
-used and pre-staged to the machines before read mapping is performed.
+used (BWA and Bowtie) and pre-staged to the machines before read mapping is performed.
 
 \subsection{HPC Resources}
 
@@ -448,9 +448,8 @@ For this work, we used two Futuregrid systems -- Sierra and Hotel.
 More details on the specification of these machines can be found from
 the web page of Futuregrid~\cite{futuregrid_url}.  In brief, two
 systems are multi-node clusters and equipped with the PBS job
-scheduler and Hadoop, implying that the systems are appropriate to
-test our PMR and to compare our results with Hadoop-based
-tools. Hadoop version 0.20.2 was used with the two FutureGrid
+scheduler.  For each cluster, Hadoop is also installed.  Overall, the systems are appropriate to
+test our PMR (single or multiple-clusters scenarios) and to compare our PMR implementations with Hadoop-based tools. Hadoop version 0.20.2 was used with the two FutureGrid
 machines. A replication factor of 2 and default chunk size of 128 MB
 is used.
 
@@ -507,40 +506,32 @@ we consider for our work.
 \subsubsection{Short Read Alignment}
 
 Short reads alignment and the de-novo assembly are the required first
-steps in every pipeline software tool that aims to support sequencing
+steps in every pipeline software tool that aims to analyze sequencing
 data from NGS platforms.  De-novo assembly still remains a challenge,
 because of complications arising from the short length of sequencing
-reads from NGS machines. In practical sense, read alignment or mapping
-is considered as the first task of most of the NGS
-workflows. 
+reads from NGS machines. In most of situations, read alignment (or mapping process)
+is the first task of NGS workflows, and two Hadoop-based tools, Seqal and Crossbow provided two mapping tools, BWA and Bowtie, respectively. 
 
-Generally for RNA-Seq data analysis, in particular with eukaryote
+In general, for RNA-Seq data analysis, in particular with eukaryote
 genomes, the spliced aligner such as TopHat~\cite{pepke2009} is
 used. In our work, we consider an alternative strategy, to use a
 non-spliced aligner and later splicing events are detected separately,
 justifying the use of non-spliced aligners such as BWA and Bowtie for
-the RNA-Seq data. We consider non-spliced aligner tools, Bowtie and
-BWA tools to align short reads onto human reference genome hg19.
+the RNA-Seq data.  These non-spliced aligner tools mapped reads onto human reference genome hg19.
 
 \subsubsection{Post-Alignment}
 Duplicate read removal step might be required after short read
 alignment, because sample preparation processes before sequencing
-might contain artifacts stemming from high-throughtput read
+might contain artifacts stemming from high-throughput read
 amplification; many duplicates introduced are not relevant to true
 biological conditions. 
 
 Seqal is a Hadoop MapReduce application which implements the alignment
-in map phase using BWA aligner and the same criteria as the Picard
-MarkDuplicates~\cite{seal2011,seal_2011_mapred} for duplicate read
-removal in reduce phase.  On the other hand, information about aligned
-reads is essential for many downstream analyses such as SNP finding, 
-genome variation study, transcriptome analysis, complex functional
-genomics and pathway analysis. 
-% Crossbow is a Hadoop streaming-based
-%MapReduce application which performs alignment in the map phase using
-% Bowtie aligner and performs SNP finding in the reduce phase
-Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for genome resequencing analysis.
-Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming based MapReduce application and the output of each step is stored in HDFS and read from HDFS by next step. In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has zero reduces.  
+in map phase using BWA aligner and a duplicate removal step using the same criteria as the Picard
+MarkDuplicates~\cite{seal2011,seal_2011_mapred} in reduce phase. 
+
+Crossbow ~\cite{langmead2009} is a scalable software automatic pipeline, combines Alignment and SNP finding tools for DNA sequencing analysis.
+Crossbow contains 4 steps - preprocessing, Alignment, SNP finding and postprocessing.  Each step is a Hadoop streaming-based MapReduce application and the output of each step is stored in HDFS and read from HDFS by the next step.  In our experiments we focused on Crossbow alignment which uses Bowtie aligner in map phase and has a dummy reducer.  
 
 %Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
 
@@ -587,20 +578,16 @@ tools. Default configuration or execution options are used for both
 the packages.
 
 Preprocessing is a common step for both Seqal and Crossbow. The input
-file format for Seqal is prq format.  We use PairReadsQSeq tool of
-Seal package to convert qseq/fasta format files to prq
-format. Crossbow also performs preprocessing on input fast files and
-then performs alignment, snp finding. 
+file format for Seqal is prq format.  We use the PairReadsQSeq tool of
+the Seal package to convert qseq/fastq format files to prq
+format. Crossbow also performs preprocessing on input fastq files and
+then performs alignment and snp finding. 
 
-We developed a PMR based NGS applications which are similar to Seqal
-and Crossbow. PMR based approach for Seqal involves developing a
-custom map script which performs short read alignment using BWA
-aligner and reduce script to perform duplicate read removal based on
-the same criteria provided in~\cite{seal_2011_mapred}. But the reduce
-phase implementation significantly vary from the seqal
-implementation's. PMR based approach for Crossbow  alignment step 
-involves development of a custom map script which performs short read alignment using
-Bowtie aligner. 
+We developed a PMR based pipeline which implements the similar capabilities of Seqal
+and Crossbow.  The PMR based pipeline for Seqal capabilities has a
+custom script for the map phase which performs short read alignment using BWA
+aligner and a script for the reduce phase to perform duplicate read removals~\cite{seal_2011_mapred}.  Note that our reduce
+phase implementation differs from the Seqal implementation's since ours are in-house scripts.  The PMR based pipeline aiming to provide the similar capabilities of Crossbow has an alignment step supporting Bowtie aligner and implements SNP finding with samtools.  Note that Crossbow uses SOAPsnp along with Bowtie alignment.   SOAPsnp accepts the output format of SOAPaligner as a default, but Crossbow modified Bowtie for generating outputs that can be accepted by SOAPsnp.  Because of that, we do not compare SNF finding step in this work.
 
 \pnote{commented -Currently, we focused only on comparision of PMR based approach with alignment step of Crossbow, 
 we will investigate and compare the SNP finding step performance in our future work.}
@@ -627,11 +614,11 @@ time) required to run the MapReduce, nature of the map or reduce task
 
 There is no limitation on the number of cores that can be assigned to
 a map/reduce task, where as Hadoop places a hard-limit on the number
-of cores on a map task as the number of cores per node. This affects
+of cores on a map task as the number of cores per node.   This affects
 the performance of the MPI based NGS tools which scale-up well. For
 example NovoalignMPI~\cite{novo-align} is a message passing version of
 Novoalign, with claims of being one of the most accurate aligners,
-allows a single alignment process to spread across mutliple compute
+allows a single alignment process to spread across multiple compute
 nodes.
 
 The default input split/chunk size used by Hadoop based applications
@@ -644,7 +631,7 @@ is set to 8 in our experiments. For the relation between parameters
 used for the experimental set-up, see examples in
 Table\ref{table:exp-description}.
 
-PMR based applications directly use the fasta format files and no
+PMR based applications directly use the fastq format files and no
 preprocessing required.  The intermediate data management affects the
 performance of NGS tools in distributed data processing. PMR uses
 Pilot-Data which transfer the intermediate data in parallel and across
