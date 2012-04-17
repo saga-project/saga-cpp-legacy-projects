@@ -428,6 +428,7 @@ information infrastructure around NGS data.
 
 \section{Materials and Methods}\label{sec:materials_and_methods} 
 \secrev{It would also be useful for the paper to describe a few more details of Pilot and SAGA -- most significantly, are they open source and freely available so that they can be deployed as easily as Hadoop can be? What other requirements do they have?}
+\pnote{In whole paper - we used saga.. but no reference :P; PMR has a reference in this section below}
 
 In this section we explain the materials and methods used for our NGS data analysis used by PMR and other Hadoop based applications.
 
@@ -537,6 +538,7 @@ Multiple Tools  &      &  &  &  &   \\
 \caption{Feature comparison of PMR with other tools for NGS data analysis that primarily provide a parallelism support using the MapReduce framework.  $^{1}${The feature of Crossbow that can run with a desktop environment without Hadoop is not considered in the scope of this work due to the lack of scalability support.} }
  \label{table:mr-comparison}
 \secrev{Finally, Table 1 should be updated - Crossbow is very extensible, and the Crossbow code forms the basis for the RNAseq analysis pipeline Myrna published in 2010: http://genomebiology.com/2010/11/8/R83}
+\pnote{ Joohyun - can you address this. I didn't find response even in the letter to editor }
 \end{table*}
 \end{center}
 
@@ -614,6 +616,7 @@ E(16,32,128) & 16 : 128 & 32 & 128 & Fig 2(40GB read size)\\
  \hfill{}
 
 \rev{Also, the last column in Table 2 does not match the legend as all nodes have 8 cores (and therefore 8 cores are only available with one worker per node?).  Figures 2 and 3 do not have entries in Table 2 (specifically the 16 node job).}
+\addr{updated the table}
 
  \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the three parameters in E($N_{node}$,$N_W$,$N_M$).  The related experiments in figures are illustrated in this table.  Note that all nodes for this study have 8 cores, 8 reducers and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
     \label{table:exp-description} 
@@ -627,8 +630,8 @@ E(16,32,128) & 16 : 128 & 32 & 128 & Fig 2(40GB read size)\\
 \hfill{}
  \begin{tabular}{|c|c|c|c|c|} 
  \hline 
- \textbf{Figure} &  \textbf{Experiment( \# of  Nodes: Total \# of cores, \# of Workers, \# of Mappers) [case]}  \\
-&\textbf{E($N_{node}$:\# cores, $N_W$,  $N_M$) [case]}  \\
+ \textbf{Figure} &  \textbf{Experiment( \# of  Nodes: Total \# of Cores, \# of Workers, \# of Mappers) [case]}  \\
+&\textbf{E($N_{node}$:\# Cores, $N_W$,  $N_M$) [case]}  \\
  \hline
   \hline
 Fig 2 & E(16:128,32,32) [10GB read size] \\
@@ -653,8 +656,13 @@ Fig 6 &E(2:16,4,50) [2 nodes] \\
  \hline
  \end{tabular}
  \hfill{}
+ \caption{Description of experimental cases examined in this paper for understanding scalability, impact of parallelism strategy, and performance comparison.  A experiment will be described with the three parameters in E($N_{node}$,$N_W$,$N_M$).  The related experiments in figures are illustrated in this table.  Note that all nodes for this study have 8 cores, 8 reducers and the number of cores per Worker is determined by the total number of cores divided by the number of Workers in a node.}
+\pnote{ Both Table 2 and 3 represent same data.. Joohyun/Shantenu - Please decide which one to keep either 2 or 3 and comment the other one }
+    \label{table:exp-description} 
 \end{table*}
 \end{center}
+
+
 
 
 %Interestingly, Crossbow uses Bowtie aligner and thus our PMR-based tool is extended to utilize Bowtie, in addition to BWA for the comparison with Crossbow.  Note that Bowtie is well-known for its %efficiency in memory requirement and computation, but the current version do not support gapped alignment whereas BWA does.}
@@ -666,6 +674,7 @@ Fig 6 &E(2:16,4,50) [2 nodes] \\
 % sequencing procedure.
 
 \rev{Discussion.  The paper does not discuss how the reference genome is distributed and how/when it is indexed.  This is a concern for smaller data sets and large genomes (although the granularity here of ~1 hour jobs should make this negligible).}
+\addr{addressed in section 2.1}
 
 Our experiments compare PMR-based approach with Hadoop API based Seqal
 %(tool for alignment and duplicate removal) 
@@ -679,6 +688,7 @@ and Hadoop streaming based Crossbow
     distributed cyberinfrastructure using various NGS analytic tools}
 
 \rev{The authors should not discuss "scale across" as they only used one platform (FutureGrid) and many of their comparisons relied on a shared file system given limitations of the disks.  This would be fixed by using more cores (32 max is relatively low, especially as "common" servers are approaching 16+ cores).  Also, how data is transferred can be important especially when the clusters are present at different institutions (say with Condor).}
+\addr{ we stated our own definition of scale across and ignore this. Shantenu - can we be more explicit in defining scale-across? }
 
 \item{Investigate extensibility to support multiple NGS analytic
     tools}
@@ -712,10 +722,7 @@ and Crossbow.  The PMR based pipeline for Seqal capabilities has a
 custom script for the map phase which performs short read alignment using BWA
 aligner and a script for the reduce phase to perform duplicate read removals~\cite{seal_2011_mapred}.  Note that our reduce
 phase implementation differs from the Seqal implementation's since ours are in-house scripts.  The PMR based pipeline aiming to provide the similar capabilities of Crossbow has an alignment step supporting Bowtie aligner and implements SNP finding with samtools.  Note that Crossbow uses SOAPsnp along with Bowtie alignment.   SOAPsnp accepts the output format of SOAPaligner as a default, but Crossbow modified Bowtie for generating outputs that can be accepted by SOAPsnp.  Because of that, we do not compare SNF finding step in this work.
-
-\pnote{commented -Currently, we focused only on comparision of PMR based approach with alignment step of Crossbow, 
-we will investigate and compare the SNP finding step performance in our future work.}
-
+ 
 When executing Hadoop based MapReduce NGS tools on production
 cyberinfrastructure, we request a set of nodes to start the Hadoop
 cluster. Once required resources are obtained, we set the number of
@@ -779,8 +786,12 @@ communication between data nodes.
   alignment.}
   \label{fig:read-size} 
 \rev{Scale up.  The authors look at 32 mapper processes on what appear to be three configurations: 4 nodes with 4 workers (2 cores per worker), 4 nodes with 8 workers (1 core per worker), 8 nodes with 8 workers. It was unclear from the legend of Figure 2 how the extra 32 workers help in the third configuration.  Also, the last column in Table 2 does not match the legend as all nodes have 8 cores (and therefore 8 cores are only available with one worker per node?).  Figures 2 and 3 do not have entries in Table 2 (specifically the 16 node job).}
+\addr{misunderstood experimental setup - should be clear now}
 
 \rev{There is also little data on "scale out" (32 cores only on up to 4 nodes?)  For example, in this workshop a year ago there was a paper looking at a purely distributed file system framework based on "makeflow" and "work queue" that ran on up to 300 cores with 195X speedup with a similar map (megablast instead of a BW-based aligner) but a more complicated workflow.  Looking at the makeflow website this has been applied to BWA also and Weaver seems to be proposed as an abstraction similar to PMR (which as I understand is just a map and reduce running on SAGA?.  Their scaling seems heavily based on a hybrid distributed/multicore platform that I guess is a plus, but this puts restrictions on the type of systems usable for good performance.}
+\addr{misunderstood experimental setup - should be clear now }
+\pnote{Joohyun/shantenu will mention about makeflow vs PJ in the letter to editor or can we just have a one-two sentences describing the differences.. reference ~\cite{makeflow} can be used. #26}
+
 
 \end{figure}
 
@@ -869,14 +880,13 @@ are set to be same for the comparison.
   is 625000. BWA is used for read alignment}
 \alnote{I thought we don't include PMR only data}
 \rev{ The authors look at 32 mapper processes on what appear to be three configurations: 4 nodes with 4 workers (2 cores per worker), 4 nodes with 8 workers (1 core per worker), 8 nodes with 8 workers.}
+\addr{misunderstood experiment - should be clear now}
 
   \label{fig:scale-p-saga-mr} 
 \end{figure}
 
 \subsection{Extensibility}
 
-\rev{ "what remains is experimental results with three mostly serial bioinformatics and their mapreduce implementations?  - can we include some mpi mapping applications
-- novoalign/parallel bwa "}
 
 The extensibility of PMR is demonstrated with two aligners -- BWA and
 Bowtie.  One of the important reasons why multiple aligners are needed
@@ -977,6 +987,7 @@ Hadoop-based Seqal is compared to local-PMR vs. distributed-PMR.  For this exper
 \rev{The Seqal results in Fig4 are clearly biased in that the underlying file system was different.}
   \label{fig:comp_with_seqal_1} 
 \secrev{However, the paper has 2 substantial flaws that limit its impact: (1) The performance measurements made against a vanilla Hadoop installation (Figures 4 \& 5) should be completely redone using proper Hadoop system.}
+\addr{ we mentioned the reason why we didn't use default configuration and what changes we did in section 2.3}
 \end{figure}
 
 
@@ -991,8 +1002,10 @@ Hadoop-based Seqal is compared to local-PMR vs. distributed-PMR.  For this exper
 
 \rev{I can see where the authors are coming from with respect to the advantages of pilot jobs/ad hoc clouds but this is not described/tested in the paper; they only run on a few nodes they obtain from FutureGrid.  Further, I'm not convinced the map and reduce functional paradigm is better than, for example, something based on a straight-up master worker framework like some of the recent bioinformatics work with tools like Makeflow (to name only one).  The authors extend the framework to multiple tools but they still require a shared filesystem, which in practice severely limits "scale across" (see below and a bunch of recent papers)}
 \rev{ Figure 5 was more problematic as it was unclear what crossbow they were comparing to.  Ideally, they should have used the latest one that does the same work as their pipeline.  In one part of the manuscript, they refer to it being also run using a shared FS and that the reduce step was not implemented.  With this in mind, what version was here and what does it mean that Crossbow is competitive with PMR for small collections of reads.  I would have much preferred discussion of the results (that differ from the previously submitted PMR framework) rather than an advertisement for PMR in the discussion.}
+\addr{we mentioned the reason why we didn't use default configuration and what changes we did in section 2.3, the version of crossbow is mentioned in 2.6 section, we didn't talk anything about SNP finding, which is our futurework}
 \secrev{(2) The authors should implement the reduce phase of Crossbow to truly measure the capability of distributed PMR. Without the reduce phase, the system is effectively a distributed batch scheduling system and does not demonstrate that distributed shuffle of large datasets is feasible. Until these two flaws are corrected, their major conclusions (PMR is a viable solution for scale-across NGS, and that PMR has advantages over Hadoop) are not proven.}
-\pnote{The distributed PMR in pmr-2012 can be used here?}
+\addr{We revised our manuscript to explain why the proper Hadoop system is practically impossible with FutureGrid we used for this work.  And, also, we revised to describe why the experiment with the SNP finding step (the third Hadoop streaming step in Crossbow pipeline) is not compared to ours.  First of all, using SOAPsnp, as Crossbow is implemented, for PMR is hindered due to the fact that SOAPsnp accepts only the output format from SOAPaligner.  Crossbow developers modified their own software Bowtie for producing the formatted output working with SOAP developers, we think.  Secondly, we implemented the SNP finding with SAMTools, a main tool used in the 1000 Genome project for small scale genome structure variation discovery.  Due to the different tool, we believe the comparison for SNP finding step is not in a right category this paper focuses.  In the future work, the comparison with biological consequences will be made, instead. }
+
 \end{figure}
 
 
@@ -1006,6 +1019,7 @@ Hadoop-based Seqal is compared to local-PMR vs. distributed-PMR.  For this exper
 
 \section{Discussion}\label{sec:discussions}
 \rev{In short, promising start -- especially when PMR is published -- but the authors should focus on scale up (more than 32 cores), showing scale across, and performing a better comparison with the state of the art such that current mapreduce tools are clearly run in a comparison (as opposed to edits) and that they use HDFS as intended.  Increasing the granularity such that the files can fit could help, maybe.}
+\addr{misunderstood experiment - should be clear now}
 
 % \textit{Computational Challenges for NGS data analysis, processing,
 %   and downstream analysis}
