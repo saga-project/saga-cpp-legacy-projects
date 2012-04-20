@@ -225,8 +225,44 @@ I have this somewhat ready, will flesh out tomorrow
 afternoon. 
 
 \section{Methodological Solution and Technology}
+
 \subsection{SAGA: Simple API for Grid Applications}
-\todo{AM}
+ \label{ssec:saga}
+ \todo{AM}
+
+ XSEDE is inherently a very complex infrastructure.  Given the wide
+ range of user groups and application use cases it aims to address,
+ and the large number and the diversity of participating resource
+ providers, this is to be expected.  Complex systems are though
+ usually very difficult to use, as that complexity and the underlying
+ resource diversity often translates into complicated user tools and
+ interfaces.  The relatively clean architecture of XSEDE is, to some
+ extent, addressing this problem, but is, in itself and at this point
+ in time, a moving target.
+
+ The Simple API for Grid Applications (SAGA) aims to address a part of
+ that problem, by providing a well defined and stable API, which
+ exposes those operations which are required on application level, but
+ encapsulates the complexity of translating them into the respective
+ operations on the XSEDE infrastructure.  In other words: SAGA tries
+ to move the complexity of dealing with distributed
+ cyberinfrastructures like XSEDE out of the application, and into the
+ SAGA implementation layer, while providing the semantics necessary to
+ efficiently implement distributed applications which can utilize
+ XSEDE.
+
+ SAGA is standardized in the Open Grid Forum.  It is comprised of a
+ core API, which defines the overall API structure, and a set of API
+ packages, covering topics like job submission and management, file
+ access and movement, and the coordination of distributed application
+ components.  Multiple implementations of SAGA exist, most notably a
+ C++/Python implementation from LSU, which is deployed on all major
+ XSEDE clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure
+ python implementation (Bliss) is expected to replace it later in
+ 2012 -- Bliss' development and testing is specifically targeting
+ XSEDE and FutureGrid as target platforms.
+
+
 
 \subsection{BigJob: SAGA Pilot-Job Implementation}
 \todo{PM}
@@ -236,7 +272,49 @@ afternoon.
 \mrnote{SW description of SAGA, SW description of BigJob}
 
 \subsection{CSA Deployment on XSEDE Machines}
-\todo{AM}
+ \label{ssec:csa}
+ \todo{AM}
+
+ SAGA and BigJob are deployed on all major XSEDE machines (ranger,
+ kraken, lonestar, trestles, blacklight, steele) and FutureGrid hosts
+ (india, sierra, hotel, alamo).  While it is possible to install and
+ use SAGA and BigJob in the users home directory, it is a significant
+ effort to do so, and even more effort to configure and maintain that
+ installation over time. On the other hand, as SAGA is a community
+ level software (as opposed to a XSEDE project deliverable or system
+ level software), it is not part of the default XSEDE software stack.
+
+ XSEDE is continuing the TeraGrid model of providing Community
+ Software Areas (CSA) to communities, which basically is a system
+ level area to install software packages which are shared within a
+ larger community.  For the reasons listed above, we are using the CSA
+ approach to deploy, configure and maintain SAGA on XSEDE and
+ FutureGrid resources.
+
+ The installation and update is semi-automatic: a set of deployment
+ scripts can be used to manually trigger the update on all (or
+ individual) XSEDE resources, for all or a subset of the supported
+ components.  The set of supported components includes the SAGA core
+ libraries, different API packages, the respectively supported
+ middleware adaptors for the machines, the python bindings, and the
+ bigjob package and its dependencies.  Each installation is
+ automatically creating a README which describes the installed
+ components, and documents the settings required to use the
+ installation (environment settings like \texttt{LD\_LIBRARY\_PATH} etc).  A
+ 'module' file is also generated, and on some hosts symlinked into the
+ systems default module path -- on all other hosts, our deployment
+ wiki documents how to use the CSA module file.
+
+ After each installation, a set of unit tests is run \textit{on the
+ target machines} to ensure that not only the deployed version is
+ viable, but more important, that it is correctly installed and
+ configured for that target host.  The unit tests range from basic
+ (low-level) environment testing, to application level test runs of a
+ BigJob application.  The test README, module file and test results
+ are all committed to the central SAGA code repository, and
+ (partially) used to document the current state of deployment on the
+ SAGA deployment wiki.
+
 
 %\begin{table}
 %\begin{tabular}{| c | c | c |}
