@@ -266,44 +266,52 @@ available.
  \label{ssec:saga}
  \todo{AM}
 
- XSEDE is inherently a very complex infrastructure.  Given the wide
- range of user groups and application use cases it aims to address,
- and the large number and the diversity of participating resource
- providers, this is to be expected.  Complex systems are though
- usually very difficult to use, as that complexity and the underlying
- resource diversity often translates into complicated user tools and
- interfaces.  The relatively clean architecture of XSEDE is, to some
- extent, addressing this problem, but is, in itself and at this point
- in time, a moving target.
+XSEDE is inherently a very complex infrastructure.  Given the wide
+range of user groups and application use cases it aims to address,
+and the large number and the diversity of participating resource
+providers, this is to be expected.  Complex systems are though
+usually very difficult to use, as that complexity and the underlying
+resource diversity often translates into complicated user tools and
+interfaces.  The relatively clean architecture of XSEDE is, to some
+extent, addressing this problem, but is, in itself and at this point
+in time, a moving target.
 
- The Simple API for Grid Applications (SAGA) aims to address a part of
- that problem, by providing a well defined and stable API, which
- exposes those operations which are required on application level, but
- encapsulates the complexity of translating them into the respective
- operations on the XSEDE infrastructure.  In other words: SAGA tries
- to move the complexity of dealing with distributed
- cyberinfrastructures like XSEDE out of the application, and into the
- SAGA implementation layer, while providing the semantics necessary to
- efficiently implement distributed applications which can utilize
- XSEDE.
+The Simple API for Grid Applications (SAGA) aims to address a part of
+that problem, by providing a well defined and stable API, which
+exposes those operations which are required on application level, but
+encapsulates the complexity of translating them into the respective
+operations on the XSEDE infrastructure.  In other words: SAGA tries
+to move the complexity of dealing with distributed
+cyberinfrastructures like XSEDE out of the application, and into the
+SAGA implementation layer, while providing the semantics necessary to
+efficiently implement distributed applications which can utilize
+XSEDE.
 
- SAGA is standardized in the Open Grid Forum.  It is comprised of a
- core API, which defines the overall API structure, and a set of API
- packages, covering topics like job submission and management, file
- access and movement, and the coordination of distributed application
- components.  Multiple implementations of SAGA exist, most notably a
- C++/Python implementation from LSU, which is deployed on all major
- XSEDE clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure
- python implementation (Bliss) is expected to replace it later in
- 2012 -- Bliss' development and testing is specifically targeting
- XSEDE and FutureGrid as target platforms.
+SAGA is standardized in the Open Grid Forum.  It is comprised of a
+core API, which defines the overall API structure, and a set of API
+packages, covering topics like job submission and management, file
+access and movement, and the coordination of distributed application
+components.  Multiple implementations of SAGA exist, most notably a
+C++/Python implementation from LSU, which is deployed on all major
+XSEDE clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure
+python implementation (Bliss) is expected to replace it later in
+2012 -- Bliss' development and testing is specifically targeting
+XSEDE and FutureGrid as target platforms.
 
 
 
 \subsection{BigJob: SAGA Pilot-Job Implementation}
 \todo{PM}
-The abstraction of a Pilot-Job (PJ) generalizes the reoccurring concept of utilizing a placeholder job as a container for a set of compute tasks; instances of that placeholder job are commonly referred to as Pilot-Jobs or pilots. The PJ provides application- (user-) level control and management of the set of allocated resources.
-BigJob (BJ) is a SAGA-based PJ framework that implements the Pilot-API. BJ has been designed to be general purpose and extensible. While BJ has been originally built for HPC infrastructures, such as XSEDE and FutureGrid, it is generally also usable in other environments, such as OSG. This extensibility mainly arises from the usage of SAGA as a common API for accessing distributed resources. ~\cite{saga_bigjob_condor_cloud, pstar11}
+The abstraction of a Pilot-Job (PJ) generalizes the reoccurring concept
+of utilizing a placeholder job as a container for a set of compute tasks;
+instances of that placeholder job are commonly referred to as Pilot-Jobs or
+pilots. The PJ provides application- (user-) level control and management of the
+set of allocated resources. BigJob (BJ) is a SAGA-based PJ framework that
+implements the Pilot-API. BJ has been designed to be general purpose and
+extensible. While BJ has been originally built for HPC infrastructures, such as
+XSEDE and FutureGrid, it is generally also usable in other environments, such as
+OSG. This extensibility mainly arises from the usage of SAGA as a common API for
+accessing distributed resources. ~\cite{saga_bigjob_condor_cloud, pstar11}
 
 
 \section{SAGA and BigJob on XSEDE}
@@ -371,51 +379,40 @@ This section describes the deployment, testing, and documentation of SAGA and Bi
 
 \subsection{Developments and Setbacks}
 
+The obvious challenges reappear with every distributed ECSS project that spans
+multiple resources: the different user environments, the different shells, the
+different invocation order of startup profiles on both login and compute nodes
+of the different machines (lonestar, ranger, kraken, trestles). A major
+complication is the differences in system versions of Python. Most machines
+have an older version of Python supplemented by a Python module. The Python
+module did not typically include the tools required to easilly install
+user-side python modules. Therefore, a fresh installation of Python is always
+present in the shared CSA space. A similar issue is encountered with GCC
+compiler versions as well.
 
-\yyenote{I will contribute to the set backs. SJ How full do you want
-  the description of the setbacks? } \jhanote{If not in gory detail,
-  at least bullet point everything that we encountered. Later onwards
-  if we can come up with some classification of the problems
-  encountered that will be good/helpful}
-\mrnote{Yaakoub, do you want me to 'smith this or will you be adding more? }
+A slightly more intricate issue is the use of custom ``mpirun'' wrappers. On
+ranger/lonestar it is ``ibrun'', on kraken it is ``aprun''. These wrappers
+massage the nodelist files, aggregate important environment variables to launch
+with the application and so on. Modifications have to be made the launch
+mechanism in BigJob to account for the use of these scripts.
 
-Must include the following:
-\begin{itemize}
- \item Setting up user environments differs from one machine to another. This
-includes the type of shell, the startup profile file names, the startup
-procedure in which the startup profile files are loaded on front and back ends
-of the machine
- \item System installations of Python are almost always old, and Python does not
-lend itself to modular user-side installations. Therefore an entire Python
-installation is required in the CSA as opposed to using the system or
-python-in-a-module (a-la-can)
- \item GCC compilers can be out of date on aging machines, this means we have
-to rely on the gcc software stack and risk having to compile everything from MPI
-to Amber
- \item Custom mpirun wrappers cause issues: ibrun on ranger/lonestar and aprun
-on kraken. Interfaces to these wrappers have to be hardcoded in the BigJob
-manager. It is important to note that the most problematic issue is the hostfile
-management and mpd boot (if any). For this reason, we find ourselves using
-OpenMPI as opposed to mvapich at the cost of lower performance for
-per-simulation large core counts (over 256)
- \item Supercomputers are not uniform. File paths are not uniform. Deployment
-and usage instructions therefore cannot be uniform. This makes the entire
-process confusing and frustrating to novice users. We understand not much can
-be done about this.
- \item more to follow once I have thought of it
+\yyenote{The following contains a jab at gram}
+Job submission is another interesting issue. Lonestar and ranger user SGE,
+Kraken and Trestles use PBS. While SAGA retains the ability to submit jobs
+through the GRAM~\cite{gram} job adaptor, it is an un-necessary burden on
+users. Furthermore, when GRAM submitted jobs fial, they generate a very lenghty
+error report without much useful information. Both projects needed an
+immediate, clear, and fail safe mechanism to submit jobs and this lead to the
+development of the \textit{pbs-ssh} and \textit{sge-ssh} plugins to support
+both PBS and SGE. The plugins enable local/remote launch of BigJob agents using
+traditional PBS/SGE script over SAGA ssh job adaptors.
 
-% pmantha- kind of motivation for plugin development.
-\item SAGA job adaptors provide an uniform access to heterogenous resources and BigJob uses the job adaptors 
-to launch the BigJob agents on both local and remote resources. While SAGA job adaptors are designed to support 
-standard job submission, scheduling systems and their configurations, some of the resources have their custom 
-configurations and lack necessary job submission capabilities, which limits the distributed and extensibility capabilities 
-of SAGA BigJob on XSEDE. We overcome, the problem by developing plugins combining SAGA adaptors with traditional 
-job submission capabilities, which are supported by all the infrastructures without affecting BigJob usage and introducing 
-new adaptors or job submission methods. 
-
-We developed plugins \textit{pbs-ssh} and \textit{sge-ssh} to support both PBS and SGE scheduling systems hiding internal details
-from the users. The plugins enable local/remote launch of BigJob agents using traditional PBS/SGE script over SAGA ssh job adaptors. 
-\end{itemize}
+The last issue is a user-side issue. The more diverse the machines and their
+environments are, the more diverse the documentation and the higher the entry
+barrier. For example Kraken requires the initialization of a ``myproxy'' for
+successful job submission, whereas ranger and lonestar do not. These small  but
+critical differences can mean the difference between a successfull several
+thousand core jobs or a week of waiting in the queue to exit on an error.
 
 
 \subsection{Testing and Documentation Process}
@@ -424,17 +421,57 @@ from the users. The plugins enable local/remote launch of BigJob agents using tr
   Interaction with chemists to address their issues and formulate
   scripts to accomodate their needs}
 
-The code for SAGA and BigJob is stored in a git repository. As a result, a github wiki was utilized as a means of storing user guides for each of the individual XSEDE machines. The BigJob wiki stores all information about the installation and configuration of BigJob. Only users of the BigJob development group can edit this wiki. This wiki is public and can be shared amongst all collaborators. Public wikis also serve as a way to promote other people to use and try BigJob for their scientific needs.
+The source code for SAGA and BigJob is stored in a git repository~\yyenote{Can
+we mention it?}. A github wiki is used as a means of storing
+user guides for each of the individual XSEDE machines. The BigJob wiki stores
+all information about the installation and configuration of BigJob. Only users
+of the BigJob development group can edit this wiki. This wiki is public and can
+be shared amongst all collaborators. Public wikis also serve as a way to promote
+other people to use and try BigJob for their scientific needs.
 
-A BigJob CSA release is the result of a production pipeline. Any newly developed codes and bug fixes are created in branches. After review, this code is merged onto the master branch of the git repository. The main developer is responsible for determining when a new version of BigJob will be released. 
+A BigJob CSA release is the result of a production pipeline. Any newly developed
+codes and bug fixes are created in branches. After review, this code is merged
+onto the master branch of the git repository. The main developer is responsible
+for determining when a new version of BigJob will be released. 
 
-Members of the BigJob development team then checkout the candidate release version from git and test on XSEDE resources. Each machine has at least two machine specific examples in the git repository. These are example BigJob scripts that run a job in both single and multiple communication (i.e. MPI) mode. The first script simply runs a shell /bin/date command. Since the ECSS project supports molecular dynamics simulations, the second script runs a real Assisted Model Building with Energy Refinement (AMBER) MD simulation. These scripts test the basic functionality of BigJob using the CSA installations and serve as the basis for our testing process.
+Members of the BigJob development team then checkout the candidate release
+version from git and test on XSEDE resources. Each machine has at least two
+machine specific examples in the git repository. These are example BigJob
+scripts that run a job in both single and multiple communication (i.e. MPI)
+mode. The first script simply runs a shell ``/bin/date`` command. Since the ECSS
+project supports molecular dynamics simulations, the second script runs a real
+AMBER MD simulation. These scripts test the basic functionality of BigJob using
+the CSA installations and serve as the basis for testing process.
 
-After testing is complete, the python code is pushed to the Python Package Index (\textit{pypi}). This code is then installed into the CSA spaces allocated on all machines using the pypi package. Another round of testing is then completed to verify that the CSA installations are working and no changes to the users' environment are required. Any corresponding documentation on the github wiki is updated to reflect the changes.
+\yyenote{We do not say much about how/what we test for. It is worth mentioning
+since MR put a lot of effort into it. Also mention that any changes do not
+impact users...}
+After testing is complete, the python code is pushed to the Python Package Index
+(\textit{pypi}). This code is then installed into the CSA space using the pypi
+package. Another round of testing is then completed to verify that the CSA
+installations are working and no changes to the users' environment are required.
+Any corresponding documentation on the github wiki is updated to reflect the
+changes.
 
-In addition to this release process, the BigJob team is engaged with members of the ECSS team in order to resolve any system-level issues that may arise. These issues may include but are not limited to differences in schedulers or MPI protocols. Additionally, the scientific collaborators use the wiki as a starting point to run their applications on XSEDE machines. The scripts and associated documentation explain how to use BigJob with their own applications simply by specifiying the job decsription.
+In addition to this release process, the BigJob team is engaged with members
+of the ECSS team in order to resolve any system-level issues that may arise.
+These issues may include but are not limited to differences in schedulers or MPI
+protocols~\yyenote{Please clarify: there are no MPI protocols, do you mean
+implementations?}. Additionally, the scientific collaborators use the wiki as a
+starting point to run their applications on XSEDE machines. The scripts and
+associated documentation explain how to use BigJob with their own applications
+simply by specifiying the job decsription.~\yyenote{Should mention that in the
+future a place for them to share scripts and workflows}
 
-If these end users encounter any issues, the BigJob team works with the ECSS team to resolve the problems. In order to provide the fastest possible response time, a mailing list was utilized as a means of communication between the ECSS members, the BigJob development team, and any users of BigJob. The researchers also may have custom needs for their workflows, such as task restarts after a given number of time steps. If any questions arise during their implementation, the BigJob team is available to fully assist the researchers. This assistance may include the creation of custom scripts by the BigJob team for the researchers to use.
+If the end users encounter any issues, the BigJob team works with the ECSS
+consultants to resolve the problems. In order to provide the fastest possible
+response time, a mailing list is used as a primary means of communication
+between the ECSS consultants, the BigJob development team, and any users of
+BigJob. The researchers also may have custom needs for their workflows, such as
+task restarts after a given number of time steps~\yyenote{sentence needs
+better tie-in}. If any questions arise during their implementation, the BigJob
+team is available to fully assist the researchers. This assistance may include
+the creation of custom scripts by the BigJob team for the researchers to use.
 
 
 \section{Initial Results} 
@@ -442,7 +479,36 @@ If these end users encounter any issues, the BigJob team works with the ECSS tea
 \mrnote{Show work from chemists (if
   available), Applicability of BigJob to other applications beyond RE
   / chemists}
-\yyenote{I will get the list}
+
+\yyenote{Charles Laughton Sent this. Not sure if we can include it though (not
+ECSS)}
+On Lonestar I have been running the following:
+
+2 BigJobs each of 1200 cores total, running 100 sub jobs each of 12 cores, for
+24 hrs
+5 BigJobs each of 2400 cores total, running 50 sub jobs each of 48 cores, for 24
+hrs
+
+On Ranger:
+
+1 BigJob of 2400 cores total, running 50 sub jobs each of 48 cores, for 24 hrs
+
+On Kraken:
+
+1 BigJob of 1800 cores total, running 50 sub jobs each of 36 cores, for 24 hrs
+
+The purpose of these simulations has been to provide benchmark data in support
+of a joint UK/US call for proposals due in the summer of this year (funded by
+NSF and EPSRC). The aim has been to generate a range of datasets of increasing
+complexity and covering a range of areas of biomolecular science that
+investigate the question as to how effective a large ensemble of relatively
+short MD trajectories can be in sampling conformational space, when compared to
+the sampling obtained with a small number of much longer trajectories. The
+datasets have also provided the raw material to test the performance of a range
+of advanced data-mining tools being developed as part of this US-UK
+collaboration.
+
+
 
 %\section{Conclusions and Future Work}
 \section{Discussions and Lessons Learnt}
@@ -454,8 +520,16 @@ If these end users encounter any issues, the BigJob team works with the ECSS tea
 \yyenote{Obviously i will contribute here.}
 
 The most effective aspect of this project is undoubtedly the overlap of the two
-ECSS projects in terms of tools, infrastructure both software and hardware.
-Added to that the familiarity of the ECSS staff with the scientific 
+ECSS projects in terms of tools and infrastructure (software and hardware).
+Added to that the familiarity of the ECSS staff with the scientific problem.
+The ECSS consultants were however intimately familiar with SAGA and BigJob. The
+strong collaboration between system administrators and tool developers ensures
+rapid functionality development and bottlenecks/show-stopper-bugs are identified
+very early in the development cycle and squashed immediately. In fact, only one
+thing comes to mind in terms of improving the ECSS projects. That would be
+having an ECSS consultant whose research overlaps with the scientific aims of
+both projects.
+
 
 
 \section{Acknowledgments}
