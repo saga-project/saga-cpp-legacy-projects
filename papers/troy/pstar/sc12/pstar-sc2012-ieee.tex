@@ -1766,7 +1766,7 @@ each \cu.  % \jhanote{how does his different from
   OSG:} Running 128 BFAST match tasks on 128 cores. Each experiment is
   repeated at least 3 times. The longer runtimes on EGI and OSG are
   mainly caused by the longer queuing times and necessity to stage-in files.}
-	\label{fig:perf_perf-bfast-bj}
+\label{fig:perf_perf-bfast-bj}
 \end{figure}
 
 %\jhanote{need to be consistent with case vs scenario}
@@ -1811,7 +1811,7 @@ XSEDE::Kraken.
 In B1 and B2, no file staging is used. On EGI and OSG resources, however, no
 shared filesystem is available; thus, files need to be transferred to the
 executing system for B3 and B4. For each \cu, the reference genome, the
-index files and one read file need to be staged (3.38\,GB) -- which consumes
+index files and one read file need to be staged (1.9\,GB) -- which consumes
 more than 50\,\% of the overall runtime. Thus, the runtime on these two
 infrastructures is about 4-5 times longer than on Kraken and India. If file
 staging is not considered, OSG shows the best performance. \amnote{The amounts
@@ -1938,33 +1938,44 @@ set, e.\,g.\ by utilizing more resources at the same time.
 \subsection{Data Management and Pilot-Data}
 \label{sec:experiment-pilotdata}
 
+A particular challenge when running data-intensive tasks is the management of
+data. As seen in Figure~\ref{fig:perf_interop_128-bfast-interop}, file staging
+quickly becomes a bottleneck with a sufficiently high number of CUs as all CUs
+share the incoming bandwidth. Also, I/O contention on the shared file systems
+leads to an increasing compute time.
 
 \begin{figure}[htbp]
 	\centering
-		\includegraphics[width=0.4\textwidth]{../perf/sc/download-concurrent-cus.pdf}
-	\caption{Download and BFAST Runtime with increasing number of concurrent CUs}
+		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus.pdf}
+	\caption{Pilot-Data: Using Pilot-Data the staging time can be 
+	significantly improved due to a reduction of the overall data transfer volume from 243\,GB to 24\,GB.}
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
 
 Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an increasing
-number of CUs, the stage-in of the files becomes a bottleneck.
+number of CUs, the naive way of moving files (without Pilot Data becomes a 
+bottleneck), which is reflected in a runtime of >4 hours for 128 CUs. While 
+the download time increases linearly with the number of CUs, the compute time 
+remains almost constant at ~15\,min.
 
-Either scale-out or optimize data transfers
+There are two options to address this issue: either scale-out the computation 
+to multiple resource (see section~\ref{sec:experiment-interop}) or optimize 
+data transfers using pilot data. Using Pilot Data the overall amount of data 
+that needs to be transferred for a 128 CU scenario is reduced from 243\,GB to 
+24\,GB.
 
-Challenges:
-
-disk space issues: we are forced to scale-out even smaller problem sets 
-io issues
 
 
 Future Work:
 
-optimizations (parallel queuing and transfering)
+optimizations (parallel queuing and transferring)
 
 
 
 \section{P* as a Model for Pilot-Data}
 \label{sec:pilot-data}
+\alnote{Should we merge this with section 2... At least we need to 
+move it before the performance section}
 
 \note{Reviewer Comment: Perhaps the most interesting component of the research 
 is the generalization of the model to data, beyond computing jobs. This 
