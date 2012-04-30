@@ -307,6 +307,222 @@ available.
 
 \section{Methodological Solution and Technology}
 
+
+\subsection{SAGA: Standards-based Access to the Resources Layer}
+
+The Simple API for Grid Applications (SAGA)~\cite{saga_url} is an
+implementation of an Open Grid Forum (OGF) Technical Specification
+that provides a common and consistent high-level API for the most
+commonly required functionality to construct distributed applications.
+It also provides a high-level API to construct tools and frameworks to
+support distributed applications. The functional areas that are
+supported by SAGA include job-submission, file transfer and access, as
+well as support for data streaming and distributed coordination. SAGA
+provides both a syntactic and semantic unification via a single
+interface to access multiple, semantically distinct middleware
+distributions.
+
+%SAGA is an API that provides the basic functionality for developing
+%distributed applications, tools and frameworks. 
+
+The key advantages of the development using SAGA include, but are not
+limited to: i) to provide a general-purpose, commonly used yet
+standardized functionality, while hiding complexity of heterogeneity
+of back-end resources, ii) to provide building blocks for constructing
+higher-level functionality and abstractions, iii) to provide the means
+for developing broad range of distributed applications such as
+gateways, workflows, application management systems, and runtime
+environments. Interestingly, SAGA provides an integrated, light-weight
+approach to support scripting for building distributed applications.
+
+Different aspects of SAGA appeal to different groups. The
+standardization of SAGA as an OGF Standard is important because it
+makes it more likely that production infrastructures, like NSF XSEDE,
+EU PRACE and Open Science Grid, will support SAGA. Having SAGA
+deployed and tested on these systems makes it readily available for
+users and developers of national Cyberinfrastructure projects. The
+fact that SAGA is an OGF technical specification also makes SAGA
+highly appealing to application frameworks, services and tool
+developers, which is quite understandable, as it not only simplifies
+their development but also makes for scalable, extensible and
+sustainable development. Users find the simple and extensible
+interface providing the basic abstractions required for distributed
+computing is very appealing to add their own ``functionality'' to a
+core base of functionality. Furthermore, SAGA is now part of the
+``official'' access layer for the \$121M NSF TG/XSEDE
+project~\cite{XSEDE}, as well as for the world largest distributed
+infrastructure EGI~\cite{EGI}
+
+The SAGA API provides the base abstractions upon which tools and
+frameworks that provide higher-level functionality can be
+implemented. Ref.~\cite{saga_url} discusses distributed application
+frameworks and run-time systems that SAGA has been used to develop
+successfully. 
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.44\textwidth]{./figs/saga-architecture-1}
+\caption{\textbf{SAGA Overview: } SAGA is an OGF technical
+  specification that provides a common interface to heterogeneous DCI
+  -- hitherto typically Grid systems.  The implementation of the
+  SAGA\cite{saga_url} specification consists of a high-level {\it
+    API}, the SAGA {\it Engine} providing that API, and backend,
+  system-specific {\it Adaptors}.  The engine is a lightweight,
+  highly-configurable dynamic library that manages call dispatching
+  and the dynamic runtime loading of the middleware adaptors.  Each of
+  these adaptors implements the functionality of a specific functional
+  package (e.g., job adaptors, file adaptors) for a specific
+  middleware system. Adaptors are also realized as dynamic libraries.}
+ \label{fig:saga-overview}
+\end{figure}
+
+A SAGA implementation consists of a high-level API, the SAGA
+Engine providing that API, and backend, middleware/systems specific
+adaptors. Each of these adaptors implements the functionality of
+a functional package (e.g., job adaptors, file adaptors) for a
+specific middleware system. The engine is a dynamic library that
+manages call dispatching and the runtime loading of the middleware
+adaptors. Adaptors are also realized as dynamic libraries. The SAGA
+API has been used (in C++, Python and Java versions) to provide almost
+complete coverage over nearly all grid and distributed computing
+middleware/systems, including but not limited to Condor, Genesis,
+Globus, UNICORE, LSF/PBS/Torque and Amazon EC2.
+
+SAGA is currently used on production Cyberinfrastructure in several
+ways.  Admittedly the number of first-principle distributed
+applications developed is low, but SAGA has been used to develop
+``glue-code'' and tools that are used to submit and marshal jobs \&
+data across and between heterogeneous resources. Specifically, it has
+been used to support multiple computational biology applications that
+use high-performance and high-throughput molecular dynamics (MD)
+simulations.
+
+SAGA has been used to develop a standards-based library for Science
+Gateways to easily utilize different distributed resources; some
+science domains that are using SAGA-based Science Gateways include
+gateways to support next-generation sequencing, docking and
+high-throughput of ensembles.
+
+HPDC infrastructure is by definition comprised of a set of resources
+that is fluctuating -- growing, shrinking, changing in load and
+capability. This is in contrast to a static resource utilization model
+traditionally a characteristic of parallel and cluster computing. The
+ability to utilize a dynamic resource pool is thus an important
+attribute of any application that needs to utilize HPDC infrastructure
+efficiently. Applications that support dynamic execution have the
+ability to respond to a fluctuating resource pool, i.\,e., the set of
+resources utilized at time (T), $T=0$ is not the same as $T>0$.  Thus,
+the need to support dynamic execution is widespread for computational
+science applications; here we accomplish this by using the SAGA-based
+Pilot-Job.
+
+\subsection{SAGA-based Pilot-Job: BigJob}
+
+Workload management and resource scheduling can lead to significant dynamic 
+fluctuations in workloads and resources, reducing the overall efficiency
+and speed of the desired calculations. A common approach for decoupling 
+these competing allocation problems is the use of \emph{pilot-jobs (PJ)}. The PJ
+abstraction is also a promising route to address additional
+requirements of distributed scientific
+applications~\cite{ko-efficient,bigjob_cloudcom10}, such as
+application-level scheduling.
+
+% A prominent example of such a \textit{run-time system} is the SAGA-based
+% pilot-job -- which provides an interoperable pilot-job (see next
+% subsection), with consistent semantics and common usage across
+% different resources. The SAGA-based pilot-job extends and generalizes
+% the commonly used Pilot-Job concept, and as a solid validation of the
+% base standards and abstractions that can be built upon them, has
+% enabled applications to use the same pilot-job API over hitherto
+% disparate resources for the first time; advantages include
+% scalability, simplicity and extensibility (of basic
+% functionality). Similar advantages of scalability, simplicity and
+% extensibility are now being experienced by Gateway developers as a
+% consequence of DARE -- a SAGA-based library for developing Science
+% Gateways.
+ 
+
+A SAGA-based PilotJob, BigJob
+(BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud}, is a general-purpose
+pilot-job framework. BigJob has been used to support various execution
+patterns and execution workflows~\cite{async_repex11,saga-royalsoc}.
+For example, SAGA-BigJob was used to execute scientific applications
+categorized as embarassingly parallel applications and loosely coupled
+applications on scalable distributed resources~\cite{ecmls_ccpe10,
+  dare-ecmls11}
+
+Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
+architecture of BJ. BJ utilizes a Master-Worker coordination
+model. The BigJob-Manager is responsible for the orchestration of
+pilots, for the binding of sub-tasks. For submission of the pilots,
+SAGA relies on the SAGA Job API, and thus can be used in conjunction
+with different SAGA adaptors, e.\,g.\ the Globus, the PBS, the Condor
+and the Amazon Web Service adaptor. Each pilot initializes a so called
+BJ-agent. The agent is responsible for gathering local information and
+for executing tasks on its local resource. The SAGA Advert Service API
+is used for communication between manager and agent. The Advert
+Service (AS) exposes a shared data space that can be accessed by
+manager and agent, which use the AS to realize a push/pull
+communication pattern.  The manager pushes a sub-job to the AS while
+the agents periodically pull for new sub-jobs. Results and state
+updates are similarly pushed back from the agent to the
+manager. Furthermore, BJ provides a pluggable communication \&
+coordination layer and also supports alternative c\&c systems,
+e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+
+In many scenarios it is beneficial to utilize multiple resources,
+e.\,g.\ to accelerate the time-to-completion or to provide resilience
+to resource failures and/or unexpected delays.  BJ supports a wide
+range of application types, and is usable over a broad range of
+infrastructures, i.\,e.\ it is general-purpose and extensible
+(Figure~\ref{fig:figures_re_bigjob_interactions}). In addition there
+are specific BJ flavors for cloud resources such as Amazon EC2 and
+Microsoft Azure that are capable of managing set of VMs, as well as a
+BJ with a Condor-G based backend.
+
+BJ supports dynamic resource additions/removals as well as late
+binding. The support of this feature depends on the backend used. To
+support this feature on top of various BigJob implementations that are
+by default restricted to single resource use (e.\,g.\ BJ), the concept
+of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
+(each BigJob managing one particular resource). An extensible
+scheduler is used for dispatching WUs to one of the BJs of the pool
+(late binding). By default a FIFO scheduler is provided.
+
+\begin{figure}[t]
+  \centering
+  \includegraphics[width=0.40\textwidth]{./figs/re_bigjob_interactions}
+   \caption{\textbf{BigJob Architecture:} The core of the framework,
+     the BigJob-Manager orchestrates a set of pilots. Pilots are
+     started using the SAGA Job API. The application submits WUs, the
+     so-called sub-jobs via the BigJob-Manager. Communication between
+     the BJ-Manager and BJ-Agent is done via a shared data space, the
+     Advert Service. The BJ-Agent is responsible for managing and
+     monitoring sub-jobs. From Ref.~\cite{saga_bigjob_condor_cloud}}
+        \label{fig:figures_re_bigjob_interactions}
+\end{figure}
+
+% \subsection{BigJob: SAGA Pilot-Job Implementation}
+% \todo{PM}
+% The abstraction of a Pilot-Job (PJ) generalizes the reoccurring concept
+% of utilizing a placeholder job as a container for a set of compute tasks;
+% instances of that placeholder job are commonly referred to as Pilot-Jobs or
+% pilots. The PJ provides application- (user-) level control and management of the
+% set of allocated resources. BigJob (BJ) is a SAGA-based PJ framework that
+% implements the Pilot-API. BJ has been designed to be general purpose and
+% extensible. While BJ has been originally built for HPC infrastructures, such as
+% XSEDE and FutureGrid, it is generally also usable in other environments, such as
+% OSG. This extensibility mainly arises from the usage of SAGA as a common API for
+% accessing distributed resources. ~\cite{saga_bigjob_condor_cloud, pstar11}
+
+
+\section{SAGA and BigJob on XSEDE}
+\todo{MR}
+
+This section describes the deployment, testing, and documentation of
+SAGA and BigJob on XSEDE resources.
+
+
 \subsection{SAGA: Simple API for Grid Applications}
  \label{ssec:saga}
  \todo{AM}
@@ -332,37 +548,16 @@ SAGA implementation layer, while providing the semantics necessary to
 efficiently implement distributed applications which can utilize
 XSEDE.
 
-SAGA is standardized in the Open Grid Forum.  It is comprised of a
+A SAGA implementation ss comprised of a
 core API, which defines the overall API structure, and a set of API
 packages, covering topics like job submission and management, file
 access and movement, and the coordination of distributed application
 components.  Multiple implementations of SAGA exist, most notably a
-C++/Python implementation from LSU, which is deployed on all major
-XSEDE clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure
-python implementation (Bliss) is expected to replace it later in
-2012 -- Bliss' development and testing is specifically targeting
-XSEDE and FutureGrid as target platforms.
-
-
-
-\subsection{BigJob: SAGA Pilot-Job Implementation}
-\todo{PM}
-The abstraction of a Pilot-Job (PJ) generalizes the reoccurring concept
-of utilizing a placeholder job as a container for a set of compute tasks;
-instances of that placeholder job are commonly referred to as Pilot-Jobs or
-pilots. The PJ provides application- (user-) level control and management of the
-set of allocated resources. BigJob (BJ) is a SAGA-based PJ framework that
-implements the Pilot-API. BJ has been designed to be general purpose and
-extensible. While BJ has been originally built for HPC infrastructures, such as
-XSEDE and FutureGrid, it is generally also usable in other environments, such as
-OSG. This extensibility mainly arises from the usage of SAGA as a common API for
-accessing distributed resources. ~\cite{saga_bigjob_condor_cloud, pstar11}
-
-
-\section{SAGA and BigJob on XSEDE}
-\todo{MR}
-
-This section describes the deployment, testing, and documentation of SAGA and BigJob on XSEDE resources. 
+C++/Python implementation, which is deployed on all major XSEDE
+clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure python
+implementation (Bliss) is expected to replace it later in 2012 --
+Bliss' development and testing is specifically targeting XSEDE and
+FutureGrid as target platforms.
 
 \subsection{CSA Deployment on XSEDE Machines}
  \label{ssec:csa}
