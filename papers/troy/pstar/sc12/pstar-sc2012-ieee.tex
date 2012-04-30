@@ -1378,6 +1378,158 @@ managed by one \texttt{Pilot\-Compute\-Service}.
 %}\label{table:pstar_elements}
 %\end{table}
 
+\section{P* as a Model for Pilot-Data}
+\label{sec:pilot-data}
+\alnote{Should we merge this with section 2... At least we need to
+  move it before the performance section}
+
+\jhanote{Yes, and we need to supplement it. Maybe cut-n-paste from
+  architecture / flow from the MR paper for the meantime?}
+
+\note{Reviewer Comment: Perhaps the most interesting component of the research 
+is the generalization of the model to data, beyond computing jobs. This 
+portion of the research could probably benefit from being expanded.}
+
+% \alnote{remove emphasis on dynamic execution} \jhanote{Motivation for
+%   P* model for data: (i) Distributed data placement not done
+%   effectively or scalably; (ii) unable to handle dynamic
+%   (late-binding) issues or multi-stage dependencies, (iii) further
+%   optimizations}\alnote{see first version below}
+
+Many scientific applications have immense data requirements, which are
+projected to increase dramatically in the near
+future~\cite{hey2009}. The small genome alignment tool
+scenario presented above e.\,g.\ operates on a input data set of
+$>7$\,GB. While Pilot-Jobs efficiently support late-binding of
+\computeunits and resources, the management of data in distributed
+systems remains a challenge due to various reasons: (i) the placement
+of data is often decoupled from the placement of Compute Units and
+Pilots, i.\,e.\ the application must often manually stage in and out
+its data using simple scripts;  (ii) heterogeneity, e.\,g.\ with
+respect to storage, filesystem types and paths, often prohibits or at
+least complicates late binding decisions; (iii) higher-level
+abstraction that allow applications to specify their data dependencies
+on an abstract, logical level (rather than on file basis) are not
+available; (iv) due to lack of a common treatment for compute and
+data, optimizations of data/compute placements are often not
+possible. For example, in scenario (B3) and (B4) presented in
+section~\ref{sec:fg-xsede-osg-egi}, even though the 50\,\% of the
+input data set is shared for all \cus, the complete data is staged for
+each \cu.
+
+In addition, applications must cope with various other challenging,
+data-related issues, e.\,g.\ varying data sources (such as sensors
+and/or other application components), fluctuating data rates, transfer
+failures, optimizations for different queries, data-/compute
+co-location etc. While these issues can be in principal handled in an
+application-specific way, the usage of higher-level abstractions, such
+as a common \pilot-based abstraction for compute and data is
+preferable.  
+
+% Thus, having defined the P* model, we explore its extension to data.
+
+This motivates an analogous abstraction that we call \emph{\pilotdata
+  (PD)}. \jwave{PD provides late-binding capabilities for data by
+  separating the allocation of physical storage and application-level
+  data units.} Further, it provides an abstraction for expressing and
+managing relationships between data units and/or compute units. These
+relationships are referred to as \emph{affinities}.
+
+% \jhanote{difficult to use affinity without defining it..}
+% \alnote{tried to describe affinities a little bit better}
+
+%\alnote{Extension vs. Application vs. Translation}
+\subsubsection*{P* Model Elements for Data}
+
+% A Pilot-Data Framework facilitates the late-binding between data units
+% and physical storage resources, the so called pilot-stores.
+
+The elements defined by P* (in section~\ref{sec:p_star_elements}) can
+be extended by the following elements:
+
+%\alnote{What is the role of SU in Data?}
+
+\noindent$\bullet$
+  \textbf{\pilot (Pilot-Data):} A \pilotdata (\pd) functions as a 
+	placeholder object that reserves the space
+	for data units. PD facilitates the late-binding of data and resource and is
+	equivalent to the \pilot in the compute model.
+
+\noindent$\bullet$
+  \textbf{Data Unit (DU):} DU is the base unit of data assigned by
+  the application,  e.\,g.\ a data file or chunk. Multiple DUs can be aggregated 
+   within a Data Unit Set.
+
+% \noindent$\bullet$ \textbf{Pilot-Data (PD):} PD allows the logical grouping of DUs
+%   and the expression of data-data affinities. This collection of files
+%   can be associated with an extensible set of properties. One of these
+%   properties is affinity. 
+
+\noindent$\bullet$
+  \textbf{Scheduling Unit (SU):} is an internal unit of scheduling (as in 
+  the compute case). The Pilot framework can aggregate or split DUs into one 
+  or more SUs.
+
+\noindent$\bullet$ 
+  The \textbf{Pilot-Manager (PM)} is the same as in the compute model and
+  implements the different characteristics of the P* Model. It is responsible for
+  managing \dus and \sus. Data is submitted to the framework via the PM. The PM
+  which is responsible for mapping \dus to \sus and for conducting decision 
+  regarding resource assignments. \sus are placed on physical resources via the \pilot.
+
+Note, each element can be mapped to an element in the P* Model by
+symmetry, e.\,g., a DU correspond to a \cu  in the original P* Model; 
+a PD is a placeholder reserving a certain amount of storage on a physical 
+resource and corresponds to the \pilot in the P* Model.
+
+% \jhanote{PJ Model is confusing. Either it is P Model or PJ
+%   Framework} \alnote{ok}
+
+% A particular critical requirement for data-intensive application, is
+% the management of affinity between DUs and also between \cus and
+% DUs. Thus, Pilot-Data introduces the PD container object for
+% expressing relationships between DUs. A PD corresponds to an SU in
+% the \jwave{PJ model}, i.\,e.\ it is used as scheduling unit for
+% internal optimizations, e.\,g.\ the grouping of DUs. Having
+% instantiated a PD, it can be assigned to a PS via the PD manager. A
+% PS is a placeholder reserving a certain amount of storage, i.\,e.\
+% it corresponds to a pilot in the pilot-job model. By associating a
+% PD to a PS the data is actually moved to the physical location
+% associated with the PS. The PD manager facilitates the creation of
+% PSs, schedules data movements (with respect to specified affinities)
+% and manages data accesses.
+
+\subsubsection*{P* Model Characteristics for Data}
+
+While the extended P* Model introduces new elements, the
+characteristics however, remain the same to a great extent. The
+coordination characteristic describes how the elements of PD interact,
+e.\,g.\ utilizing the M/W model; the communication characteristic can
+be applied similarly. The scheduling characteristics must be extended
+to not only meet compute requirements, but also to support common data
+access patterns. \jhanote{Propose comment out due to space
+  restrictions: The scheduling component particularly needs to
+  consider affinities, i.\,e.\ user-defined relationships between \cus
+  and/or \dus. Data-data affinities e.\,g.\ exist if different \dus
+  must be present at the same compute element; data-compute affinities
+  arise if data and compute must be co-located for a computation, but
+  their current location is different.} Data and compute placement
+decisions are made by the scheduler based on defined policies,
+affinities \& dynamic resource information.
+
+
+\subsubsection*{Pilot-API for Data} 
+
+Analogous to the Pilot-API for Compute, the Pilot Data API~\cite{pilot_api} 
+defines the \texttt{PilotDataService} entity as an abstraction for creating and
+managing pools of storage. A \texttt{PilotData} instance represents the actual
+physical storage space. The \texttt{ComputeDataService} entity
+functions as an application-level scheduler, which accepts both
+\texttt{Compute\-Units} and \texttt{DataUnits}. It resolves necessary
+dependencies (e.g. data/data or data/computer affinities), and is
+responsible for managing the execution of \dus and \cus.
+
+
 
 \section{Experiments and Results}
 \label{sec:exp_res}
@@ -1467,7 +1619,7 @@ section~\ref{sec:experiment-interop}.
 \subsection{Coordination in PJ Frameworks}
 \label{sec:pj_performance}
 
-\jhanote{to be reduced significantly}
+\jhanote{to be reduced significantly}\alnote{further reduced}
 
 Different PJ implementation follow different design objectives -- that
 also reflects in the designs of their communication \& coordination
@@ -1488,11 +1640,11 @@ n:n) and the communication frequency. % In the following we investigate
 % entities to operate at their own pace, optimizing the overall
 % throughput.  A particular 
 
-An issue during distributed runs is the latency
-between the application and the (remote) Advert Service. Another
-challenge is that this design introduces a potential
-single-point-of-failure and scalability bottleneck if the centralized
-data space is not carefully designed and operated.
+% An issue during distributed runs is the latency
+% between the application and the (remote) Advert Service. Another
+% challenge is that this design introduces a potential
+% single-point-of-failure and scalability bottleneck if the centralized
+% data space is not carefully designed and operated.
 
 % BigJob also provides two alternative c\&c sub-systems:
 % Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
@@ -1506,9 +1658,9 @@ data space is not carefully designed and operated.
 % does not require a separate infrastructure deployment for the \cc
 % sub-system.
 
-Both the data space and the client-server \cc sub-systems can be
-combined with a publish/subscribe mechanism, i.\,e.\ instead of
-polling, an agent can receive notifications when a new SU arrives.
+% Both the data space and the client-server \cc sub-systems can be
+% combined with a publish/subscribe mechanism, i.\,e.\ instead of
+% polling, an agent can receive notifications when a new SU arrives.
 
 
 For our \cc evaluation, we conducted several experiments on
@@ -1609,6 +1761,14 @@ to BigJob/ZeroMQ, showing a greater increase of the overall
 runtime. This increase can likely be attributed to the single central
 manager in the client-server architecture. As in the last experiment,
 the Advert \cc sub-system showed a significantly lower performance.
+A reason for that
+is the used remote access protocol, which is basically the native
+remote PostgreSQL database protocol, which is not optimized for WAN
+connections. Further, the API is based on a hierarchical namespace,
+which does not easily map to relational databases -- in deeply nested
+namespaces exhibit an insufficient query and update performance. In
+contrast, data is stored in memory for Redis and ZeroMQ, which
+explains the significant performance gains.
 
 \jhanote{at times i think this whole subsection can be removed
 and replaced by a paragraph that summarises (i) the architecture
@@ -1629,27 +1789,27 @@ from 64 to 128 cores. The
  \label{fig:perf_bigjob-varying-cores} 
 \end{figure}
 
-The AS implementation currently shows some performance
-limitations, mainly caused by the prototypical nature of its
-implementation.  Further, it must be noted that the Advert Service was
-deployed remotely (mainly due to deployment constraints). Even so, the
-discrepancy between AS and Redis (Remote), which has been
-deployed on the same remote network, is significant. A reason for that
-is the used remote access protocol, which is basically the native
-remote PostgreSQL database protocol, which is not optimized for WAN
-connections.
+% The AS implementation currently shows some performance
+% limitations, mainly caused by the prototypical nature of its
+% implementation.  Further, it must be noted that the Advert Service was
+% deployed remotely (mainly due to deployment constraints). Even so, the
+% discrepancy between AS and Redis (Remote), which has been
+% deployed on the same remote network, is significant. A reason for that
+% is the used remote access protocol, which is basically the native
+% remote PostgreSQL database protocol, which is not optimized for WAN
+% connections.
 %
 % \jhanote{It is not clear why REDIS and ZeroMQ are not susceptible to
 % access over WAN delays/latency?}\alnote{included a comparison note
 % to Redis Remote. We can't compare it to ZMQ since we use only local
 % communication in this case}
 %
-Transactions e.\,g.\ are very latency sensitive and require several
-roundtrips.  Further, the API is based on a hierarchical namespace,
-which does not easily map to relational databases -- in deeply nested
-namespaces exhibit an insufficient query and update performance. In
-contrast, data is stored in memory for Redis and ZeroMQ, which
-partially explains the significant performance gains.
+% Transactions e.\,g.\ are very latency sensitive and require several
+% roundtrips.  Further, the API is based on a hierarchical namespace,
+% which does not easily map to relational databases -- in deeply nested
+% namespaces exhibit an insufficient query and update performance. In
+% contrast, data is stored in memory for Redis and ZeroMQ, which
+% partially explains the significant performance gains.
 
 \subsection{Characterizing PJ Frameworks on DCI}
 \label{sec:fg-xsede-osg-egi}
@@ -1932,7 +2092,7 @@ leads to an increasing compute time.
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus.pdf}
-	\caption{Pilot-Data: Using Pilot-Data the staging time can be 
+	\caption{\textbf{Pilot-Data on Trestles:} Using Pilot-Data the staging time can be 
 	significantly improved due to a reduction of the overall data transfer volume from 243\,GB to 24\,GB.}
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
@@ -1977,157 +2137,6 @@ optimizations (parallel queuing and transferring)
   consisting of resources of different infrastructures, e.\,g.\ EGI
   and FutureGrid, but also XSEDE resources, at large-scales hitherto
   unattainable.}
-
-\section{P* as a Model for Pilot-Data}
-\label{sec:pilot-data}
-\alnote{Should we merge this with section 2... At least we need to
-  move it before the performance section}
-
-\jhanote{Yes, and we need to supplement it. Maybe cut-n-paste from
-  architecture / flow from the MR paper for the meantime?}
-
-\note{Reviewer Comment: Perhaps the most interesting component of the research 
-is the generalization of the model to data, beyond computing jobs. This 
-portion of the research could probably benefit from being expanded.}
-
-% \alnote{remove emphasis on dynamic execution} \jhanote{Motivation for
-%   P* model for data: (i) Distributed data placement not done
-%   effectively or scalably; (ii) unable to handle dynamic
-%   (late-binding) issues or multi-stage dependencies, (iii) further
-%   optimizations}\alnote{see first version below}
-
-Many scientific applications have immense data requirements, which are
-projected to increase dramatically in the near
-future~\cite{hey2009}. The small genome alignment tool
-scenario presented above e.\,g.\ operates on a input data set of
-$>7$\,GB. While Pilot-Jobs efficiently support late-binding of
-\computeunits and resources, the management of data in distributed
-systems remains a challenge due to various reasons: (i) the placement
-of data is often decoupled from the placement of Compute Units and
-Pilots, i.\,e.\ the application must often manually stage in and out
-its data using simple scripts;  (ii) heterogeneity, e.\,g.\ with
-respect to storage, filesystem types and paths, often prohibits or at
-least complicates late binding decisions; (iii) higher-level
-abstraction that allow applications to specify their data dependencies
-on an abstract, logical level (rather than on file basis) are not
-available; (iv) due to lack of a common treatment for compute and
-data, optimizations of data/compute placements are often not
-possible. For example, in scenario (B3) and (B4) presented in
-section~\ref{sec:fg-xsede-osg-egi}, even though the 50\,\% of the
-input data set is shared for all \cus, the complete data is staged for
-each \cu.
-
-In addition, applications must cope with various other challenging,
-data-related issues, e.\,g.\ varying data sources (such as sensors
-and/or other application components), fluctuating data rates, transfer
-failures, optimizations for different queries, data-/compute
-co-location etc. While these issues can be in principal handled in an
-application-specific way, the usage of higher-level abstractions, such
-as a common \pilot-based abstraction for compute and data is
-preferable.  
-
-% Thus, having defined the P* model, we explore its extension to data.
-
-This motivates an analogous abstraction that we call \emph{\pilotdata
-  (PD)}. \jwave{PD provides late-binding capabilities for data by
-  separating the allocation of physical storage and application-level
-  data units.} Further, it provides an abstraction for expressing and
-managing relationships between data units and/or compute units. These
-relationships are referred to as \emph{affinities}.
-
-% \jhanote{difficult to use affinity without defining it..}
-% \alnote{tried to describe affinities a little bit better}
-
-%\alnote{Extension vs. Application vs. Translation}
-\subsubsection*{P* Model Elements for Data}
-
-% A Pilot-Data Framework facilitates the late-binding between data units
-% and physical storage resources, the so called pilot-stores.
-
-The elements defined by P* (in section~\ref{sec:p_star_elements}) can
-be extended by the following elements:
-
-%\alnote{What is the role of SU in Data?}
-
-\noindent$\bullet$
-  \textbf{\pilot (Pilot-Data):} A \pilotdata (\pd) functions as a 
-	placeholder object that reserves the space
-	for data units. PD facilitates the late-binding of data and resource and is
-	equivalent to the \pilot in the compute model.
-
-\noindent$\bullet$
-  \textbf{Data Unit (DU):} DU is the base unit of data assigned by
-  the application,  e.\,g.\ a data file or chunk. Multiple DUs can be aggregated 
-   within a Data Unit Set.
-
-% \noindent$\bullet$ \textbf{Pilot-Data (PD):} PD allows the logical grouping of DUs
-%   and the expression of data-data affinities. This collection of files
-%   can be associated with an extensible set of properties. One of these
-%   properties is affinity. 
-
-\noindent$\bullet$
-  \textbf{Scheduling Unit (SU):} is an internal unit of scheduling (as in 
-  the compute case). The Pilot framework can aggregate or split DUs into one 
-  or more SUs.
-
-\noindent$\bullet$ 
-  The \textbf{Pilot-Manager (PM)} is the same as in the compute model and
-  implements the different characteristics of the P* Model. It is responsible for
-  managing \dus and \sus. Data is submitted to the framework via the PM. The PM
-  which is responsible for mapping \dus to \sus and for conducting decision 
-  regarding resource assignments. \sus are placed on physical resources via the \pilot.
-
-Note, each element can be mapped to an element in the P* Model by
-symmetry, e.\,g., a DU correspond to a \cu  in the original P* Model; 
-a PD is a placeholder reserving a certain amount of storage on a physical 
-resource and corresponds to the \pilot in the P* Model.
-
-% \jhanote{PJ Model is confusing. Either it is P Model or PJ
-%   Framework} \alnote{ok}
-
-% A particular critical requirement for data-intensive application, is
-% the management of affinity between DUs and also between \cus and
-% DUs. Thus, Pilot-Data introduces the PD container object for
-% expressing relationships between DUs. A PD corresponds to an SU in
-% the \jwave{PJ model}, i.\,e.\ it is used as scheduling unit for
-% internal optimizations, e.\,g.\ the grouping of DUs. Having
-% instantiated a PD, it can be assigned to a PS via the PD manager. A
-% PS is a placeholder reserving a certain amount of storage, i.\,e.\
-% it corresponds to a pilot in the pilot-job model. By associating a
-% PD to a PS the data is actually moved to the physical location
-% associated with the PS. The PD manager facilitates the creation of
-% PSs, schedules data movements (with respect to specified affinities)
-% and manages data accesses.
-
-\subsubsection*{P* Model Characteristics for Data}
-
-While the extended P* Model introduces new elements, the
-characteristics however, remain the same to a great extent. The
-coordination characteristic describes how the elements of PD interact,
-e.\,g.\ utilizing the M/W model; the communication characteristic can
-be applied similarly. The scheduling characteristics must be extended
-to not only meet compute requirements, but also to support common data
-access patterns. \jhanote{Propose comment out due to space
-  restrictions: The scheduling component particularly needs to
-  consider affinities, i.\,e.\ user-defined relationships between \cus
-  and/or \dus. Data-data affinities e.\,g.\ exist if different \dus
-  must be present at the same compute element; data-compute affinities
-  arise if data and compute must be co-located for a computation, but
-  their current location is different.} Data and compute placement
-decisions are made by the scheduler based on defined policies,
-affinities \& dynamic resource information.
-
-
-\subsubsection*{Pilot-API for Data} 
-
-Analogous to the Pilot-API for Compute, the Pilot Data API~\cite{pilot_api} 
-defines the \texttt{PilotDataService} entity as an abstraction for creating and
-managing pools of storage. A \texttt{PilotData} instance represents the actual
-physical storage space. The \texttt{ComputeDataService} entity
-functions as an application-level scheduler, which accepts both
-\texttt{Compute\-Units} and \texttt{DataUnits}. It resolves necessary
-dependencies (e.g. data/data or data/computer affinities), and is
-responsible for managing the execution of \dus and \cus.
 
 
 
