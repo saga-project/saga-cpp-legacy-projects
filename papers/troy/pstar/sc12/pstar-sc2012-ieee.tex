@@ -1476,44 +1476,40 @@ scalability is not the \cu  submission, but the internal coordination
 of the elements of a PJ implementation. There are many factors that
 influence the overall performance, e.\,g.\ the degree of distribution
 (local (LAN) vs. remote (WAN)), the communication pattern (1:n versus
-n:n) and the communication frequency. In the following we investigate
-the impact of different \cc related factors on the overall
-performance and scalability of PJ systems.  We evaluate different
-BigJob configurations, and compare and contrast them with DIANE.
+n:n) and the communication frequency. % In the following we investigate
+% the impact of different \cc related factors on the overall
+% performance and scalability of PJ systems.  We evaluate different
+% BigJob configurations, and compare and contrast them with DIANE.
 
-BigJob's \cc was originally based on a shared, centralized data space, 
-the SAGA Advert Service (AS)~\cite{saga_advert}.  The
-communication between all components is done via this shared data
-space, which decouples BJ-Manager and BJ-Agent and allows both
-entities to operate at their own pace, optimizing the overall
-throughput.  A particular issue during distributed runs is the latency
+% BigJob's \cc was originally based on a shared, centralized data space, 
+% the SAGA Advert Service (AS)~\cite{saga_advert}.  The
+% communication between all components is done via this shared data
+% space, which decouples BJ-Manager and BJ-Agent and allows both
+% entities to operate at their own pace, optimizing the overall
+% throughput.  A particular 
+
+An issue during distributed runs is the latency
 between the application and the (remote) Advert Service. Another
 challenge is that this design introduces a potential
 single-point-of-failure and scalability bottleneck if the centralized
 data space is not carefully designed and operated.
 
-BigJob also provides two alternative c\&c sub-systems:
-Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
-key/value store. Redis is used in a similar way as the AS, i.\,e.\ all 
-communication between BJ-Agent and BJ-Manager is
-channeled through it. In contrast, the ZeroMQ sub-system utilizes a
-client-server architecture, which is similar to the CORBA-based approach 
-of DIANE -- in this architecture, the PM maintains the
-overall state. Clients connect to the PM to request new SUs or to
-report state updates. An advantage of this architecture is that it
-does not require a separate infrastructure deployment for the \cc
-sub-system.
-%
-% While the BJ-Manager can be deployed remotely from the BJ-Agent, in
-% most cases this will not be the case, i.\,e.\ the communication
-% between BJ-Manager and BJ-Agent is mostly local communication. 
-% 
-% AM: I do not understand the above, really: following fig. 2, the
-% agent *is* remote to the manager?
-%
+% BigJob also provides two alternative c\&c sub-systems:
+% Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
+% key/value store. Redis is used in a similar way as the AS, i.\,e.\ all 
+% communication between BJ-Agent and BJ-Manager is
+% channeled through it. In contrast, the ZeroMQ sub-system utilizes a
+% client-server architecture, which is similar to the CORBA-based approach 
+% of DIANE -- in this architecture, the PM maintains the
+% overall state. Clients connect to the PM to request new SUs or to
+% report state updates. An advantage of this architecture is that it
+% does not require a separate infrastructure deployment for the \cc
+% sub-system.
+
 Both the data space and the client-server \cc sub-systems can be
 combined with a publish/subscribe mechanism, i.\,e.\ instead of
 polling, an agent can receive notifications when a new SU arrives.
+
 
 For our \cc evaluation, we conducted several experiments on
 FutureGrid~\cite{fg}. We executed a different number of very short running
@@ -1600,18 +1596,23 @@ repeated at least 10 times.
 % further enhance the overall scalability.
 
 Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
-scalability with respect to the number of cores per \pilot. For this purpose, we
-execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus. In particular, the
-Redis (Local) configuration show an almost linear scalability up to 128 cores.
-The Redis (Remote) setup again imposes some overhead (about 14\,\%). ZeroMQ
-performs very well with lower core counts; with larger core counts the runtimes
-increase, indicating a potential scalability bottleneck. DIANE shows, in
-particular for lower core counts, a longer runtime, again due to the higher
-startup overhead. With higher core counts DIANE behaves similar to
-BigJob/ZeroMQ, showing a greater increase of the overall runtime. This increase
-can likely be attributed to the single central manager in the client-server
-architecture. As in the last experiment, the Advert \cc sub-system showed a
-significantly lower performance.
+scalability with respect to the number of cores per \pilot. For this
+purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
+512\,\cus. In particular, the Redis (Local) configuration show an
+almost linear scalability up to 128 cores.  The Redis (Remote) setup
+again imposes some overhead (about 14\,\%). ZeroMQ performs very well
+with lower core counts; with larger core counts the runtimes increase,
+indicating a potential scalability bottleneck. DIANE shows, in
+particular for lower core counts, a longer runtime, again due to the
+higher startup overhead. With higher core counts DIANE behaves similar
+to BigJob/ZeroMQ, showing a greater increase of the overall
+runtime. This increase can likely be attributed to the single central
+manager in the client-server architecture. As in the last experiment,
+the Advert \cc sub-system showed a significantly lower performance.
+
+\jhanote{at times i think this whole subsection can be removed
+and replaced by a paragraph that summarises (i) the architecture
+(ii) the challenge (iii) performance measurement and analysis?}
 
 \begin{figure}[htbp] 
  \centering
@@ -1936,18 +1937,22 @@ leads to an increasing compute time.
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
 
-Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an increasing
-number of CUs, the naive way of moving files (without Pilot Data becomes a 
-bottleneck), which is reflected in a runtime of $>$4 hours for 128 CUs. While 
-the download time increases linearly with the number of CUs, the compute time 
-remains almost constant at ~15\,min.
+Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an
+increasing number of CUs, the naive way of moving files (without Pilot
+Data becomes a bottleneck), which is reflected in a runtime of $>$4
+hours for 128 CUs. While the download time increases linearly with the
+number of CUs, the compute time remains almost constant at ~15\,min.
 
-There are two options to address this issue: either scale-out the computation 
-to multiple resource (see section~\ref{sec:experiment-interop}) or optimize 
-data transfers using pilot data. Using Pilot Data the overall amount of data 
-that needs to be transferred for a 128 CU scenario is reduced from 243\,GB to 
-24\,GB.\\
-\\
+\jhanote{why the further reduction with GO?}
+
+There are two options to address this issue: either scale-out the
+computation to multiple resource (see
+section~\ref{sec:experiment-interop}) or optimize data transfers using
+pilot data. Using Pilot Data the overall amount of data that needs to
+be transferred for a 128 CU scenario is reduced from 243\,GB to
+24\,GB.\\ \\
+
+
 
 In summary, the Pilot-API enables the usage of a diverse set of distributed,
 heterogeneous infrastructures via a unified API. As shown, the Pilot-API does
@@ -1975,8 +1980,11 @@ optimizations (parallel queuing and transferring)
 
 \section{P* as a Model for Pilot-Data}
 \label{sec:pilot-data}
-\alnote{Should we merge this with section 2... At least we need to 
-move it before the performance section}
+\alnote{Should we merge this with section 2... At least we need to
+  move it before the performance section}
+
+\jhanote{Yes, and we need to supplement it. Maybe cut-n-paste from
+  architecture / flow from the MR paper for the meantime?}
 
 \note{Reviewer Comment: Perhaps the most interesting component of the research 
 is the generalization of the model to data, beyond computing jobs. This 
@@ -2141,6 +2149,10 @@ responsible for managing the execution of \dus and \cus.
 \section{Discussion and Future Work}
 \label{sec:discussion-future-work}
 
+\jhanote{Ole: Please Please Please put down an analysis of why an API
+  is not enough and the deployment challenges that remain. In other
+  words, the API is a necessary starting point, but not a sufficient
+  point.}
 
 % The P* model was used to demonstrate
 % We established PJ and PD as abstractions for supporting dynamic
