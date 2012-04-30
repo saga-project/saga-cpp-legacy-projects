@@ -625,9 +625,6 @@ data chunks into \dus and associates them with \pilotdata objects,
 which are placed close to \pilotcomputes by BigData.  The \mrmg can
 focus on orchestrating this resource pool.
 
-This architecture can also efficiently support workloads that
-currently not supported well enough by Hadoop, e.\,g.\ iterative
-applications.
 
 
 \begin{figure}[t]
@@ -669,9 +666,9 @@ pilots for this application workflow:
 
 \item \textbf{Chunking:} % \pnote{commented - The input data on each resource is
 % {\it chunked}.}
-The \mrmg executes a \cu on each resource, which splits the
-input data on the respective resource with respect to the defined chunk
-size.\label{stp:chunking} % \alnote{how many chunking CUs are there? 1 per
+  The \mrmg executes a \cu on each resource, which splits the input
+  data on the respective resource with respect to the defined chunk
+  size.\label{stp:chunking} % \alnote{how many chunking CUs are there? 1 per
 % resource?}
 Each chunk is stored in a new DU. BigJob and BigData -- in particular
 the \texttt{ComputeDataService} -- are used as the common abstraction
@@ -713,8 +710,9 @@ for managing the \computeunits and \dataunits.
   partitioned map output files. \cus and \dus are then submitted
   through the \texttt{ComputeDataService} of BJ and BD. The
   affinity-aware scheduler ensure that \cus are assigned to local \dus
-  minimizing the amount of data transfers. 	For each reduce task a 
-  Data Unit containing the necessary input files is created and submitted. % (step 3/4 in
+  minimizing the amount of data transfers.  For each reduce task a
+  Data Unit containing the necessary input files is created and
+  submitted. % (step 3/4 in
   %figure~\ref{fig:figures_mapreduce-pilotdata})
 
 \jhanote{shouldn't it
@@ -745,25 +743,27 @@ for managing the \computeunits and \dataunits.
 The PMR relies on the master/worker coordination model, i.\,e.\ a
 central \mrmg orchestrates a set of MapReduce workers, which in turn
 are responsible for executing map and reduce tasks. The \mrmg utilizes
-BigJob and BigData and in particular the central
-\texttt{ComputeDataService} for executing mapper and reduce
-tasks.
+BigJob and BigData, and in particular the central
+\texttt{ComputeDataService} for executing mapper and reduce tasks.
+This architecture can also efficiently support workloads that
+currently not supported well enough by Hadoop, e.\,g.\ iterative
+applications.
 
 \upp
 \subsection{Compute and Data Management}
 
-The Pilot-API provides a well-defined abstraction for supporting the
+The Pilot-API provides a well-defined interface for supporting the
 late-binding of compute and data units decoupling resource assignment
 from resource usage. Using BJ and BD, PMR can allocate both storage
 and compute resources, which can then be flexibly utilized for
 executing map and reduce tasks as well as for storing both
-intermediate and output data. % \jhanote{How
-% so?} \alnote{added some more explanation.} 
+intermediate and output data.
+
 The API also allows the expression and management of relationships
-between data units and/or compute units. BigJob and BigData provide an
-implementation of the Pilot-API. These frameworks ensure that the data
-and compute affinity requirements of the MapReduce applications are
-met for each step of the MapReduce workflow. For example, in the
+between data units and/or compute units.  BigJob and BigData provide
+an implementation of the Pilot-API.  These frameworks ensure that the
+data and compute affinity requirements of the MapReduce applications
+are met for each step of the MapReduce workflow. For example, in the
 shuffle phase for each reduce task a DU and CU is generated. These are
 then submitted to BigJob and BigData framework, which handles the
 scheduling, transfer of the DU and execution of the CU. PMR assigns a
@@ -797,7 +797,15 @@ CU is co-located to the right DU.
 % \end{lstlisting}
 % \end{minipage}
 
-Similarly, Hadoop also utilizes a job and task tracker: the job
+The efficiency of PMR  on multiple resources depends on
+the management of the the intermediate data. BigData not only
+provides flexibility to manage the relationship between data and
+compute units, but also allows {\it parallel} data transfers between
+machines and between data units.  BigData is used for moving the
+intermediate output files of the mapper tasks to the resource where
+the reduce compute units are executed.  
+
+Interestingly, Hadoop also utilizes a job and task tracker: the job
 tracker is the central manager that dispatches map and reduce tasks to
 the nodes of the Hadoop cluster. On each node the task tracker is
 responsible for executing the respective tasks. The main limitation of
@@ -806,51 +814,6 @@ management and application-level task managements. Thus, it is not
 easily possible to integrate Hadoop with another resource management
 tool, e.\,g.\ PBS or Torque. Also, the job tracker represents a single
 point of failure and scalability bottleneck.
-
-% \subsection{Data Management in \pilotmapreduce}
-
-The efficiency of PMR  on multiple resources depends on
-the management of the the intermediate data. BigData not only
-provides flexibility to manage the relationship between data and
-compute units, but also allows {\it parallel} data transfers between
-machines and between data units.  BigData is used for moving the
-intermediate output files of the mapper tasks to the resource where
-the reduce compute units are executed. 
-%  Listing~\ref{lst:pds_creation}
-% illustrates the creation of a new Pilot-Data at the location of the
-% reduce task.
-
-
-% \alnote{Can we do a MR specific example? Showing the co-placement of compute and 
-% data}
-% 
-% \lstset{
-% language=Python,
-% frame=single,
-% captionpos=b,
-% stringstyle=\ttfamily,
-% basicstyle=\scriptsize\ttfamily
-% }
-% \noindent\begin{minipage}{0.47 \textwidth}
-% \begin{lstlisting}[caption={\textbf{Pilot Data Creation:} Instantiation of a Pilot Data using Pilot Data Description}, label={lst:pds_creation}]
-% pds = PilotDataService()
-% pd_desc=
-% {"service_url":"ssh://india.futuregrid.org/pilotdata",
-% "size":100,
-% "affinity_datacenter_label":'india',
-% "affinity_machine_label":'india'}
-% pd=pds.create_pilot( pilot_data_description=pd_desc)
-% cds.add_pilot_data_service(pds)
-% \end{lstlisting}
-% \end{minipage}
-
-% \alnote{\textbf{removed for now - maybe add later for analysis of
-%     perf:} Similarly, Hadoop uses mapred.reduce.parallel.copies
-%   parameter to set the number of parallel transfers run by reduce
-%   during the copy (shuffle) phase.  and use key names for pieces of
-%   data which inform Hadoop how to send related bits of information to
-%   a common destination node.}
-%~\footnote{\url{http://developer.yahoo.com/hadoop/tutorial/module1.html}}
 
 
 \upp
@@ -876,12 +839,12 @@ aggregating the different de-central data sources. The volume of the
 pre-processed data is generally lower and thus, can be easily moved to
 another processing resource. 
 
-Weissman~\cite{weissman-mr-11} shows that a hierarchical Hadoop
+Ref~\cite{weissman-mr-11} shows that a hierarchical Hadoop
 configuration leads to a better performance than a global Hadoop
 cluster for some applications. A drawback of this approach is the
 increased complexity: Hadoop is not designed with respect to a
-federation of multiple MapReduce clusters. Setting up such a
-system typically requires a lot of manual effort.  
+federation of multiple MapReduce clusters. Setting up such a system
+typically requires a lot of manual effort.
 
 
   
@@ -984,15 +947,14 @@ scenarios (ii) and (iii).
 In this section we analyze the performance and scalability of
 \pilotmapreduce and compare it to Hadoop MapReduce using different
 applications. For this purpose we run several experiments on
-FutureGrid (FG)~\cite{fg}. We run the experiment on the following
-FG resources: India, Sierra and Hotel. Each experiment is
-repeated at least three times. For our Hadoop experiments, we use
-Hadoop 0.20.2. At the begin of each run a Hadoop cluster is started
-via the Torque resource management system on a specified number of
+FutureGrid (FG)~\cite{fg}. We run the experiment on the following FG
+resources: India, Sierra and Hotel. Each experiment is repeated at
+least three times. For our Hadoop experiments, we use Hadoop
+0.20.2. At the begining of each run a Hadoop cluster is started via
+the Torque resource management system on a specified number of
 nodes. The first assigned node is used as master node running the
 Hadoop JobTracker and the NameNode. The HDFS replication factor is set
-to 2 and number of reduces to 8.
-\upp
+to 2 and number of reduces to 8.  \upp
 \subsection{MapReduce-Based Applications}
 
 MapReduce has been utilized in various science applications. A key performance 
@@ -1161,16 +1123,18 @@ Hadoop based SEQAL, the replication factor of two is used.
 \label{fig:gs_seq_pmr}
 \end{figure}		
 
-Figure~\ref{fig:gs_seq_pmr} shows the comparative results of both SEQAL and
-GS/PMR applications. The time required to copy and extract the reference genome
-to HDFS is included in the SEQAL set-up time. In comparison to Word Count both
-GS applications are more compute intensive, i.\,e.\ the ratio between
-computation in the map phase and the size of the input data is significantly
-larger. Furthermore, SEQAL has greater time-to-completion than GS/PMR. Both the
-map and reduce phase of SEQAL are longer. While the map phase of SEQAL relies on
-the same BWA implementation as GS/PMR, the reduce phase uses Picard's
-\texttt{rmdump}~\cite{picard} for duplicate removal, which has a significant
-longer runtime than the duplicate removal process in the reduce phase of GS/PMR.
+Figure~\ref{fig:gs_seq_pmr} shows the comparative results of both
+SEQAL and GS/PMR applications. The time required to copy and extract
+the reference genome to HDFS is included in the SEQAL set-up time. In
+comparison to Word Count GS applications are more compute intensive,
+i.\,e.\ the ratio between computation in the map phase and the size of
+the input data is significantly larger. Furthermore, SEQAL has a larger
+time-to-completion than GS/PMR. Both the map and reduce phase of SEQAL
+are longer. While the map phase of SEQAL relies on the same BWA
+implementation as GS/PMR, the reduce phase uses Picard's
+\texttt{rmdump}~\cite{picard} for duplicate removal, which has a
+significant longer runtime than the duplicate removal process in the
+reduce phase of GS/PMR.
 % \jhanote{We just said above that we will focus on the map
 %   phase after stating that the reduce phases are different. So why are
 %   we now discussing reduce phases?}  \jhanote{Also not sure How/why
@@ -1203,7 +1167,7 @@ phase.
 In this section, we evaluate the performance and scalability of the (i)
 distributed and (ii) hierarchical PMR configuration using the Word Count
 application on natural language and on random data as well as the genome
-sequencing application. In the distributed PMR scenario the map CUs are
+sequencing application. In the distributed PMR scenario, the CUs are
 distributed across two machines; in the hierarchical PMR two resources are used,
 each executing an independent MR run. The MapReduce run for combining and
 aggregating the output of the first round is executed on one of these machines.
