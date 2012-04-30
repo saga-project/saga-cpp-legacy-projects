@@ -174,7 +174,7 @@ a minimal, but complete model -- hence referred to as P* Model, for \pilotjob
 abstractions. The P* Model provides a conceptual basis to compare and contrast
 different PJ frameworks -- which to the best of our knowledge is the first such
 attempt. In \S\ref{sec:pilot-job-frameworks} we validate this claim by analyzing
-well-known PJ frameworks (BigJob, Condor-G/Glide-in, DIANE, Swift-Coaster) using
+well-known PJ frameworks (BigJob, Condor-G/Glide-in, DIANE) using
 the P* Model.
 
 %Before validating this claim with empirical evidence
@@ -595,37 +595,37 @@ particular we focus on Condor-G/Glide-in, BigJob and DIANE.
 \jhanote{Condense into no more than 5-6 sentences}
 
 
-The Condor project pioneered the concept of Pilot-Jobs by introducing 
-the \textit{Condor-G/Glide-in} mechanisms~\cite{condor-g} which allow 
-the temporary addition of Globus GRAM controlled HPC resources to a 
-Condor resource pool.
+The Condor project pioneered the concept of Pilot-Jobs by introducing the
+\textit{Condor-G/Glide-in} mechanisms~\cite{condor-g} which allow the
+temporary addition of Globus GRAM controlled HPC resources to a Condor
+resource pool.In this scenario, the \pilot is exposed as a complete Condor
+pool that is started via the Globus GRAM service of a resource. This mechanism
+is referred to as Condor Glide-in. Subsequently, jobs (CUs) can be submitted
+to the Condor Glide-in pool using the standard Condor tools and APIs.
 
-In this scenario, the \pilot is exposed as a complete Condor pool that is started 
-via the Globus GRAM service of a resource. This mechanism is referred to as Condor
-Glide-in. Subsequently, jobs (CUs) can be submitted to the Condor Glide-in pool
-using the standard Condor tools and APIs. Condor utilizes a
-master/worker coordination model. The PJ manager is referred to as the
-Condor Central Manager. The functionality of the Central Manager is
-provided by several daemons: the \texttt{condor\_master} that is generally
-responsible for managing all daemons on a machine, the
-\texttt{condor\_collector} which collects resource information, the
-\texttt{condor\_negotiator} that does the matchmaking and the \texttt{condor\_schedd}
-that is responsible for managing the binding and scheduling
-process. Condor generally does not differentiate between workload,
-i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
-referred to as job. However, it supports late binding, i.\,e.\
-resources a job is eventually submitted to are not required to be available at
-submission time. The scheduler matches the capabilities required by a
-\cu to the available resources. This process is referred to as
-matchmaking. Further, a priority-based scheduler is used. For
-communication between the identified elements Condor utilizes
-point-to-point messaging using a binary protocol on top of TCP.
-
-Different fault tolerance mechanisms, such as automatic retries, are
-supported.  Further, Condor supports different security mechanisms:
-for authentication it integrates both with local account management
-systems (such as Kerberos) as well as grid authentication systems such
-as GIS. Communication traffic can be encrypted.
+% Condor utilizes a
+% master/worker coordination model. The PJ manager is referred to as the
+% Condor Central Manager. The functionality of the Central Manager is
+% provided by several daemons: the \texttt{condor\_master} that is generally
+% responsible for managing all daemons on a machine, the
+% \texttt{condor\_collector} which collects resource information, the
+% \texttt{condor\_negotiator} that does the matchmaking and the \texttt{condor\_schedd}
+% that is responsible for managing the binding and scheduling
+% process. Condor generally does not differentiate between workload,
+% i.\,e.\ \cu, and schedulable entity, i.\,e.\ SU. Both entities are
+% referred to as job. However, it supports late binding, i.\,e.\
+% resources a job is eventually submitted to are not required to be available at
+% submission time. The scheduler matches the capabilities required by a
+% \cu to the available resources. This process is referred to as
+% matchmaking. Further, a priority-based scheduler is used. For
+% communication between the identified elements Condor utilizes
+% point-to-point messaging using a binary protocol on top of TCP.
+% 
+% Different fault tolerance mechanisms, such as automatic retries, are
+% supported.  Further, Condor supports different security mechanisms:
+% for authentication it integrates both with local account management
+% systems (such as Kerberos) as well as grid authentication systems such
+% as GIS. Communication traffic can be encrypted.
 
 
 \subsection{BigJob: A SAGA-based PJ Framework}
@@ -664,12 +664,21 @@ as GIS. Communication traffic can be encrypted.
 
 BigJob (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud} is a SAGA-based PJ
 framework. BJ has been designed to be general-purpose and extensible. While BJ
-has been originally built for HPC infrastructures, such as XSEDE and FutureGrid,
-it is generally also usable in other environments. This extensibility mainly
-arises from the usage of SAGA as a common API for accessing distributed
-resources. SAGA~\cite{saga_url,ogf-gfd-90} provides a simple, POSIX-style API to
-the most common grid functions at a sufficiently high-level of abstraction so as
-to be independent of the diverse and dynamic grid environments.
+has been originally built for HPC infrastructures, such as XSEDE and
+FutureGrid, it is generally also usable in other environments. This
+extensibility mainly arises from the usage of SAGA~\cite{saga_url,ogf-gfd-90} 
+as a common API for accessing distributed resources. 
+% SAGA provides a
+% simple, POSIX-style API to the most common grid functions at a sufficiently
+% high-level of abstraction so as to be independent of the diverse and dynamic
+% grid environments.
+Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
+BJ architecture and its mapping to P*. The architecture reflects
+all P* elements: The BJ-Manager is the Pilot-Manager responsible for
+coordinating the different components of the frameworks. The
+BigJob-Agent is the actual \pilot that is submitted to a
+resource. \cus are referred to as sub-jobs. Internally \cus are mapped
+1:1 to \sus.
 
 % \jhanote{we'll have to unfortunately describe saga briefly in order to
 %   make saga-based clear/obvious}\alnote{ok, moved a sentence from
@@ -693,13 +702,7 @@ to be independent of the diverse and dynamic grid environments.
 \end{figure}
 
 
-Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
-architecture of BJ and its mapping to P*. The architecture reflects
-all P* elements: The BJ-Manager is the Pilot-Manager responsible for
-coordinating the different components of the frameworks. The
-BigJob-Agent is the actual \pilot that is submitted to a
-resource. \cus are referred to as sub-jobs. Internally \cus are mapped
-1:1 to \sus.
+
 
 BJ implements the following P* characteristic: As coordination model the 
 M/W scheme is used: The BJ-Manager is the central entity, which manages the
@@ -721,22 +724,17 @@ binding). For scheduling, a simple FIFO queue is used (see also
 table~\ref{table:pilot-job-comparison}).
 
 
-% All core BJ are confined to a single resource and don't allow
-% neither elasticity nor late binding.
+% In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
+% accelerate the time-to-completion or to provide resilience to resource failures
+% and/or unexpected delays. BigJob allows dynamic resource additions/removals as
+% well as late binding. The support of this feature depends on the backend used.
+% To support this feature on top of various BigJob implementations that are by
+% default restricted to single resource use, the concept of a BigJob pool is
+% introduced. A BigJob pool consists of multiple BJs (each BigJob managing one
+% particular resource). An extensible scheduler is used for dispatching \cus to
+% one of the BJs of the pool (late binding). By default a FIFO scheduler is used.
 
-%paragraph on dynamic capabilities
-In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
-accelerate the time-to-completion or to provide resilience to resource failures
-and/or unexpected delays. BigJob allows dynamic resource additions/removals as
-well as late binding. The support of this feature depends on the backend used.
-To support this feature on top of various BigJob implementations that are by
-default restricted to single resource use, the concept of a BigJob pool is
-introduced. A BigJob pool consists of multiple BJs (each BigJob managing one
-particular resource). An extensible scheduler is used for dispatching \cus to
-one of the BJs of the pool (late binding). By default a FIFO scheduler is used.
-%  Other backends (such as DIANE
-% and Condor) natively support elasticity, but can nevertheless be combined into 
-% a % BJ pool.
+
 
 % \note{OW says: Where is that magic BigJob-Pool and its scheduler? Is there an
 % API for that? That's also part of the capabilities provided by
@@ -748,17 +746,17 @@ one of the BJs of the pool (late binding). By default a FIFO scheduler is used.
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|p{1.2cm}|p{1cm}|p{1cm}|p{1.9cm}|p{1.3cm}|}
+\begin{tabular}{|p{2.6cm}|p{1cm}|p{1cm}|p{1.95cm}|p{1.3cm}|}
   \hline
-  \textbf{P*\newline Element}    &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/\newline Glide-in}     &\textbf{Swift/\newline Coaster}  \\\hline
+  \textbf{P*\newline Element}    &\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/\newline Glide-in}     \\\hline
   Pilot-Manager          &BigJob Manager  & RunMaster     & condor\_master\newline 
                                                             condor\_collector\newline 
                                                             condor\_negotiator\newline 
-                                                            condor\_schedd                &Coaster Service         \\\hline
+                                                            condor\_schedd                        \\\hline
   \pilot                 &BigJob Agent    & Worker Agent  &condor\_master,\newline
-                                                           condor\_startd                 &Coaster Worker          \\\hline
-  \computeunit  \ (CU)   &Task            &Task           &Job                            &Application Interface\newline Function (Swift Script)\\\hline
-  Scheduling Unit \ (SU) &Sub-Job         &Task           &Job                            &Job                     \\\hline
+                                                           condor\_startd                         \\\hline
+  \computeunit  \ (CU)   &Task            &Task           &Job                           \\\hline
+  Scheduling Unit (SU) &Sub-Job         &Task           &Job                           \\\hline
 % Dynamic Resources &no/yes &yes (AgentFactories)\\
 % \hline
  \end{tabular}
@@ -792,16 +790,16 @@ messaging based on CORBA~\cite{OMG-CORBA303:2004} is used. CORBA is also used
 for file staging.
 
 % Binding 
-DIANE is primarily designed with respect to HTC environments (such as
-EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
-size of 1 core.
-To use DIANE on HPC environments, a so-called multinode submitter script can be
-used: the scripts starts a defined number of worker agents on a certain
-resource.
-However, \cus will be constrained to the specific number of cores
-managed by a worker agent.
-By default a \cu  is mapped to a SU; application can however implement smarter
-allocation schemes, e.\,g.\ the clustering of multiple \cus into a SU.
+% DIANE is primarily designed with respect to HTC environments (such as
+% EGI~\cite{egi}), i.\,e.\ one PJ consists of a single worker agent with the
+% size of 1 core.
+% To use DIANE on HPC environments, a so-called multinode submitter script can be
+% used: the scripts starts a defined number of worker agents on a certain
+% resource.
+% However, \cus will be constrained to the specific number of cores
+% managed by a worker agent.
+% By default a \cu  is mapped to a SU; application can however implement smarter
+% allocation schemes, e.\,g.\ the clustering of multiple \cus into a SU.
 
 %Scheduling
 DIANE includes a simple capability matcher and FIFO-based task scheduler.
@@ -811,48 +809,48 @@ applications can implement a custom application-level scheduler.
 
 
 %Other impl. related issues: FT and security
-DIANE is, like BJ, a single-user PJ, i.\,e.\ each PJ is executed with the privileges
-of the respective user. Also, only \cus of this respective user are executed
-by DIANE. DIANE supports various middleware security mechanisms (e.\,g.\ GSI,
-X509). For this purpose it relies on GANGA.
-Further, DIANE supports fault tolerance: basic error detection and propagation
-mechanisms are in place. Further, an automatic re-execution of \cus is
-possible.
+% DIANE is, like BJ, a single-user PJ, i.\,e.\ each PJ is executed with the privileges
+% of the respective user. Also, only \cus of this respective user are executed
+% by DIANE. DIANE supports various middleware security mechanisms (e.\,g.\ GSI,
+% X509). For this purpose it relies on GANGA.
+% Further, DIANE supports fault tolerance: basic error detection and propagation
+% mechanisms are in place. Further, an automatic re-execution of \cus is
+% possible.
 
 
 
 
 
 
-\subsection{Swift/Coaster}
-
-\jhanote{Eliminate?}
-
-Swift~\cite{Wilde2011} is a scripting language designed for expressing
-abstract workflows and computations. The language provides, amongst many other
-things, capabilities for executing external applications, as well as the
-implicit management of data flows between application tasks. 
-% For this
-% purpose, Swift formalizes the way that applications can define
-% data-dependencies. Using so called mappers, these dependencies can be
-% easily extended to files or groups of files. 
-The runtime environment handles the allocation of resources and the spawning of 
-the compute tasks. 
-% Both data- and execution management capabilities are provided
-% via abstract interfaces. 
-Swift supports e.\,g.\ Globus, Condor and PBS resources. 
-% The pool of resources
-% that is used for an application is statically defined in a configuration file.
-% While this configuration file can refer to highly dynamic resources (such as OSG
-% resources), there is no possibility to manage this resource pool
-% programmatically. 
-By default, Swift uses a 1:1 mapping for \cus and \sus. However,
-Swift supports the grouping of SUs as well as PJs. For the PJ functionality, Swift uses the
-Coaster~\cite{coasters} framework. Coaster relies on a master/worker
-coordination model; communication is implemented using GSI-secured TCP sockets.
-Swift and Coaster support various scheduling mechanisms, e.\,g.\ a FIFO and a
-load-aware scheduler. Additionally, Swift can be used in conjunction with 
-Falkon~\cite{1362680}, which also provides \pilot-like functionality.
+% \subsection{Swift/Coaster}
+% 
+% \jhanote{Eliminate?}
+% 
+% Swift~\cite{Wilde2011} is a scripting language designed for expressing
+% abstract workflows and computations. The language provides, amongst many other
+% things, capabilities for executing external applications, as well as the
+% implicit management of data flows between application tasks. 
+% % For this
+% % purpose, Swift formalizes the way that applications can define
+% % data-dependencies. Using so called mappers, these dependencies can be
+% % easily extended to files or groups of files. 
+% The runtime environment handles the allocation of resources and the spawning of 
+% the compute tasks. 
+% % Both data- and execution management capabilities are provided
+% % via abstract interfaces. 
+% Swift supports e.\,g.\ Globus, Condor and PBS resources. 
+% % The pool of resources
+% % that is used for an application is statically defined in a configuration file.
+% % While this configuration file can refer to highly dynamic resources (such as OSG
+% % resources), there is no possibility to manage this resource pool
+% % programmatically. 
+% By default, Swift uses a 1:1 mapping for \cus and \sus. However,
+% Swift supports the grouping of SUs as well as PJs. For the PJ functionality, Swift uses the
+% Coaster~\cite{coasters} framework. Coaster relies on a master/worker
+% coordination model; communication is implemented using GSI-secured TCP sockets.
+% Swift and Coaster support various scheduling mechanisms, e.\,g.\ a FIFO and a
+% load-aware scheduler. Additionally, Swift can be used in conjunction with 
+% Falkon~\cite{1362680}, which also provides \pilot-like functionality.
 
 % Falkon
 % refers to \pilots as the so called provisioner, which are created using the
@@ -867,7 +865,7 @@ Falkon~\cite{1362680}, which also provides \pilot-like functionality.
 
 P* provides an abstract model for describing and understanding PJ
 frameworks. Table~\ref{table:bigjob-saga-diane} summarizes how P* can
-be applied to BigJob, DIANE, Condor-G/Glide-in and Swift/Coaster. While each of 
+be applied to BigJob, DIANE and Condor-G/Glide-in. While each of 
 the frameworks maintains its own vocabulary, all share the common P* elements. 
 Table~\ref{table:pilot-job-comparison} summarizes the P* characteristic and 
 other properties of these frameworks. While most of these frameworks share many 
@@ -949,45 +947,43 @@ model.}
 \begin{table}[t]
 \footnotesize
 \centering
-\begin{tabular}{|p{1.2cm}|p{1.3cm}|p{1.2cm}|p{1.4cm}|p{1.5cm}|}
+\begin{tabular}{|p{1.9cm}|p{1.7cm}|p{1.6cm}|p{1.6cm}|}
 	\hline
 	\textbf{Properties}
-	&\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/\newline Glide-in} &   
-	\textbf{Swift/\newline Coaster} \\ \hline
+	&\textbf{BigJob} &\textbf{DIANE} &\textbf{Condor-G/\newline Glide-in}    
+	\\ \hline
 
-\textbf{Coord.} &M/W  &M/W &M/W &M/W \\ \hline
+\textbf{Coordination} &M/W  &M/W &M/W \\ \hline
 	
-\textbf{Comm.} &Advert Service &CORBA &TCP &GSI-enabled TCP \\ \hline
+\textbf{Communication} &Advert Service &CORBA &TCP\\ \hline
 
 % \hline
 % MPI/Multinode Applications &yes &no (yes with custom implementation of ApplicationWorker)\\
-\textbf{Scheduling} &FIFO, custom &FIFO, custom &Matchmaking, priority-based scheduler 
-&Load-aware scheduler,\newline \cu  grouping\\
+\textbf{Scheduling} &FIFO, custom &FIFO, custom &Matchmaking, priority-based scheduler \\
 
-\hfill Binding & Early/Late &\hfill Late &\hfill Late &\hfill Late\\
+\hfill Binding & Early/Late &\hfill Late &\hfill Late \\
 
 
 \hline
 Agent Submission &API &GANGA Submission Script &Condor CLI 
-&Resource Provider API\\
+\\
 
 \hline
 
-End User Environment &API &API and\newline M/W Framework &CLI Tools &Swift 
-script\\ 
+End User Environment &API &API and\newline M/W Framework  &CLI Tools \\ 
 
 \hline
 
-Fault Tolerance &Error propa-\newline gation &Error propa-\newline gation, retries &Error propa-\newline gation, retries &Error propa-\newline gation, retries,\newline replication\\
+Fault Tolerance &Error propa-\newline gation &Error propa-\newline gation, retries &Error propa-\newline gation, retries \\
 
 \hline
 
-Resource Abstraction &SAGA &GANGA/\newline SAGA &Globus &Resource Provider\newline API/Globus CoG \\ 
+Resource Abstraction &SAGA &GANGA/\newline SAGA &Globus \\ 
 
 \hline
 
 Security &Multiple\newline (GSI, User/Pass.) &Multiple (GSI) &Multiple\newline (GSI, 
-Kerberos) &GSI\\ 
+Kerberos) \\ 
 
 \hline
 
