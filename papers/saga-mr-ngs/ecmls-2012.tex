@@ -370,7 +370,7 @@ implementations~\cite{cloudburst,langmead2009,seal2011,langmead2010}.
 % alignment and successive tasks. 
 
 Unfortunately, users cannot directly deploy a MapReduce framework such
-as Hadoop on top of these clusters to form a single larger MapReduce
+as Hadoop on top of multiple clusters to form a single larger MapReduce
 cluster. Typically the internal nodes of a cluster are not directly
 reachable from outside. However, MapReduce requires the master node to
 directly communicate with any slave node, which is also one of the
@@ -445,8 +445,8 @@ test our PMR (single or multiple-clusters scenarios) and to compare our PMR impl
 machines. A replication factor of 2 and default chunk size of 128 MB
 is used.
 
+\newpage
 \subsection{File Systems}
-
 In our experiments, both PMR and Hadoop are executed on a shared file system.
 A shared file system is a common file system accessible for all the compute nodes on a single cluster.
 Hadoop performs well when compute node local disks are used to build HDFS, but due to limited local disk space of compute nodes we utilized shared file system to build HDFS. 
@@ -702,13 +702,13 @@ Preprocessing is a common step for both Seqal and Crossbow. The input
 file format for Seqal is prq format.  We use the PairReadsQSeq tool of
 the Seal package to convert qseq/fastq format files to prq
 format. Crossbow also performs preprocessing on input fastq files and
-then performs alignment and snp finding. 
+then performs alignment and SNP finding. 
 
 We developed a PMR based pipeline which implements the similar capabilities of Seqal
 and Crossbow.  The PMR based pipeline for Seqal capabilities has a
 custom script for the map phase which performs short read alignment using BWA
 aligner and a script for the reduce phase to perform duplicate read removals~\cite{seal_2011_mapred}.  Note that our reduce
-phase implementation differs from the Seqal implementation's since ours are in-house scripts.  The PMR based pipeline aiming to provide the similar capabilities of Crossbow has an alignment step supporting Bowtie aligner and implements SNP finding with samtools.  Note that Crossbow uses SOAPsnp along with Bowtie alignment.   SOAPsnp accepts the output format of SOAPaligner as a default, but Crossbow modified Bowtie for generating outputs that can be accepted by SOAPsnp.  Because of that, we do not compare SNF finding step in this work.
+phase implementation differs from the Seqal implementation's since ours are in-house scripts.  The PMR based pipeline aiming to provide the similar capabilities of Crossbow has an alignment step supporting Bowtie aligner and implements SNP finding with samtools.  Note that Crossbow uses SOAPsnp along with Bowtie alignment.   SOAPsnp accepts the output format of SOAPaligner as a default, but Crossbow modified Bowtie for generating outputs that can be accepted by SOAPsnp.  Because of that, we do not compare SNP finding step in this work.
  
 When executing Hadoop based MapReduce NGS tools on production
 cyberinfrastructure, we request a set of nodes to start the Hadoop
@@ -824,9 +824,7 @@ distributing tasks between two clusters.  The other reason is that the time take
 Nonetheless, the observed overhead is not significant, and considering the advantages of
 \textit{scaling-across} that allows the concurrent usage of multiple cluster resources, distributed PMR could be a valuable option for achieving the scalable solution.   
 
-In the case of distributed PMR, once entire intermediate data are produced, the reduce phase is executed on Sierra. 
-
-Note that a direct comparison of the reduce phase is not obvious due to the different implementations between Seqal and our custom scripts for duplicate read removal tasks \jhanote{what is ours. please
+In the case of distributed PMR, once entire intermediate data are produced, the reduce phase is executed on Sierra. Note that a direct comparison of the reduce phase is not obvious due to the different implementations between Seqal and our custom scripts for duplicate read removal tasks \jhanote{what is ours. please
  replace with whatever ours is!!}\pnote{addressed}, in spite of the fact that the same
 criteria of duplicate read removal of Seqal\cite{seal_2011_mapred} was
 used for our implementation.  The map phase of Seqal and PMR are almost comparable since
@@ -1002,6 +1000,7 @@ Hadoop-based Seqal is compared to local-PMR vs. distributed-PMR.  For this exper
   \label{fig:mulit-parallel} 
 \end{figure}
 
+\newpage
 \section{Discussion}\label{sec:discussions}
 \rev{In short, promising start -- especially when PMR is published -- but the authors should focus on scale up (more than 32 cores), showing scale across, and performing a better comparison with the state of the art such that current mapreduce tools are clearly run in a comparison (as opposed to edits) and that they use HDFS as intended.  Increasing the granularity such that the files can fit could help, maybe.}
 \addr{misunderstood experiment - should be clear now}
