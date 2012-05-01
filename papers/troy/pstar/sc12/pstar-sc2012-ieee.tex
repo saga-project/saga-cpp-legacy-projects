@@ -763,7 +763,7 @@ to the Condor Glide-in pool using the standard Condor tools and APIs.
 % as GIS. Communication traffic can be encrypted.
 
 
-\subsection{BigJob: A SAGA-based PJ Framework}
+\subsection{BigJob and BigData: A SAGA-based PJ Framework}
 \label{sec:bigjob_description}
 
 
@@ -837,26 +837,53 @@ resource. \cus are referred to as sub-jobs. Internally \cus are mapped
 \end{figure}
 
 
-
-
-BJ implements the following P* characteristic: As coordination model the 
-M/W scheme is used: The BJ-Manager is the central entity, which manages the
-actual \pilot, the BJ-Agent. Each agent is responsible for gathering local
-information, for pulling sub-jobs from the manager, and for executing SUs on its
-local resource. The SAGA Advert Service is used for communication between
-manager and agent. The Advert Service (AS) exposes a shared data space that can
-be accessed by manager and agent, which use the AS to realize a push/pull
+BJ implements the following P* characteristic: As coordination model the M/W
+scheme is used: The BJ-Manager is the central entity, which manages the actual
+\pilot, the BJ-Agent. Each agent is responsible for gathering local
+information, for pulling sub-jobs from the manager, and for executing SUs on
+its local resource. The SAGA Advert Service is used for communication between
+manager and agent. The Advert Service (AS) exposes a shared data space that
+can be accessed by manager and agent, which use the AS to realize a push/pull
 communication pattern, i.\,e.\ the manager pushes a SU to the AS while the
 agents periodically pull for new SUs. Results and state updates are similarly
 pushed back from the agent to the manager. Further, BJ provides a pluggable
-communication \& coordination layer and also supports other \cc systems besides 
-the AS, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+communication \& coordination layer and also supports other \cc systems
+besides the AS, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
 
-BJ currently uses a simple scheduling mechanism based on an internal queue: each
-\cu submitted to the BigJob framework is mapped to a SU. Binding can take place
-at submission time (early binding) or delayed in case of multiple \pilots (late
-binding). For scheduling, a simple FIFO queue is used (see also
-table~\ref{table:pilot-job-comparison}).
+
+%\subsection{BigData: A \pilotdata Implementation}
+
+% Analogous to \pilotjobs, {\it Pilot-Data} (PD) abstraction provides late-binding
+% capabilities for data by separating the storage allocation and application-level
+% \dataunits~\cite{pstar-2012}. For this purpose, the API defines the {\it
+% \pilotdata (PD)} and {\it \dataunit (DU)} entity: A \pd function as a
+% placeholder object that reserves storage spaces for a set of \dus.
+% 
+% \begin{figure}[t]
+% 	\upp\upp
+% 	\centering
+% 		\includegraphics[width=0.4\textwidth]{figures/bigdata.pdf}
+% 	\caption{BigData Architecture and Interactions\upp\upp\upp\upp\upp\upp}
+% 	\label{fig:figures_bigdata}
+% \end{figure}
+
+{\it BigData (BD)} is an implementation of the Pilot-Data abstraction. BigData
+is designed as an extension of BigJob. Similar to BigJob, it is comprised of
+two components: the BD-Manager and the BD-Agents, which are deployed on the
+physical resources. The coordination scheme used is Master-Worker (MW), with
+some decentralized intelligence located at the BD-Agent. The BD-Manager is
+responsible for (i) meta-data management, i.\,e.\ it keeps track of all \pd
+and associated \dus, (ii) for scheduling of data movements and replications
+(taking into account the application requirements defined via affinities), and
+(iii) for managing data movements activities. BigData supports plug-able
+storage adaptors -- currently an adaptor for SSH, WebHDFS~\cite{webhdfs} and
+Globus Online~\cite{10.1109/MIC.2011.64} is provided.
+
+% BJ currently uses a simple scheduling mechanism based on an internal queue: each
+% \cu submitted to the BigJob framework is mapped to a SU. Binding can take place
+% at submission time (early binding) or delayed in case of multiple \pilots (late
+% binding). For scheduling, a simple FIFO queue is used (see also
+% table~\ref{table:pilot-job-comparison}).
 
 
 % In many scenarios it is beneficial to utilize multiple resources, e.\,g.\ to
@@ -1947,12 +1974,11 @@ set of input files, which are staged by the application.
 
 \subsubsection*{Experimental Results}
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
-experiments. In addition to the runtime ($T_r$) we measured 
-%the queuing time ($T_q$), 
-the time to transfer input files ($T_s$), and
-the actual runtime$T_c$. $T_c$ also includes the overhead of the 
-pilot, which is usually ~10\,\% of the overall runtime.
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
+addition to the runtime ($T_r$) we measured %the queuing time ($T_q$), the
+time to transfer input files ($T_s$), and the actual runtime $T_c$. $T_c$ also
+includes the overhead of the pilot, which is usually ~10\,\% of the overall
+runtime.
 
 % Staging
 For each \cu, the reference genome, the index files and one read file need to
@@ -2111,38 +2137,52 @@ the necessity of file staging.
 \label{sec:experiment-pilotdata}
 
 A particular challenge when running data-intensive tasks is the management of
-data. As seen in Figure~\ref{fig:perf_interop_128-bfast-interop}, file staging
-quickly becomes a bottleneck with a sufficiently high number of CUs as all CUs
-share the incoming bandwidth. Also, I/O contention on the shared file systems
-leads to an increasing compute time.
+data. We investigate different data management scenarios: (D1) the usage of 
+application-level file staging without PD, (D2) the usage of PD with the SSH 
+plugin, and (D3) the usage of PD with Globus Online. For these experiments, we
+utilize the Trestles (XSEDE). The input files are located on a remote 
+machine: Quarry (IU) for D1, Lonestar (TACC) for D2 and D3.
 
-\begin{figure}[htbp]
+\begin{figure}[t]
+	\upp
 	\centering
 		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus.pdf}
 	\caption{\textbf{Pilot-Data on Trestles:} Using Pilot-Data the staging time can be 
-	significantly improved due to a reduction of the overall data transfer volume from 243\,GB to 24\,GB.}
+	significantly improved due to a reduction of the overall data transfer volume from 243\,GB to 24\,GB.\up\up}
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
 
-Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an
-increasing number of CUs, the naive way of moving files (without Pilot
-Data becomes a bottleneck), which is reflected in a runtime of $>$4
-hours for 128 CUs. While the download time increases linearly with the
-number of CUs, the compute time remains almost constant at ~15\,min.
+As previously alluded (see Figure~\ref{fig:perf_interop_128-bfast-interop}),
+file staging quickly becomes a bottleneck with a sufficiently high number of
+CUs as all CUs share the incoming bandwidth. Also, I/O contention on the
+shared file systems leads to an increasing compute time.
+Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an increasing
+number of CUs, the naive way of moving files (D1), which is reflected in a
+runtime of $>$4 hours for 128 CUs. While the download time increases linearly
+with the number of CUs, the compute time remains almost constant at ~15\,min.
 
-\jhanote{why the further reduction with GO?}
+\jhanote{why the further reduction with GO?}\alnote{this was just some dummy
+data with 1 CU. Now the figure contains the most current data}
 
-There are two options to address this issue: either scale-out the
-computation to multiple resource (see
-section~\ref{sec:experiment-interop}) or optimize data transfers using
-pilot data. Using Pilot Data the overall amount of data that needs to
-be transferred for a 128 CU scenario is reduced from 243\,GB to
-24\,GB. \jhanote{Where is the reason behind this explained?} \jhanote{Also, I can't
-see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined in the beginning 
-of sec B resp. C. Will do the same with configuration D.}\\ \\
+There are two options to address this issue: either scale-out the computation
+to multiple resource (see C3) or optimize data transfers using \pilotdata.
+Using \pilotdata the overall amount of data that needs to be transferred for a
+128 CU scenario is reduced from 243\,GB to 24\,GB. The staging times in D2 and
+D3 are comparable: While both SSH and Globus Online show some overhead
+compared to a plain HTTP-based transfer, the lower amount of data leads to a
+significant improvement. Notable, the runtime of BFAST increases lightly in D3
+mainly due to the fact the scratch directory on Trestles is not directly
+accessible via Globus Online; thus, the computation had to be carried out in
+the home directory (NFS), which lead to a longer compute time.
+
+\jhanote{Where is the reason behind this explained?} \jhanote{Also, I
+can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
+in the beginning of sec B resp. C. Will do the same with configuration D.}
 
 
-\jhanote{This paragraph is misplaced} In summary, the Pilot-API
+
+\jhanote{This paragraph is misplaced} \alnote{propose to merge in conclusion} 
+In summary, the Pilot-API
 enables the usage of a diverse set of distributed, heterogeneous
 infrastructures via a unified API. As shown, the Pilot-API does not
 represent a barrier to scalability, but provides the ability to
@@ -2157,9 +2197,7 @@ enables application to improve performance, e.\,g.\ by offloading
 parts of the computation to a faster resource (see C1), and to scale
 its problem set, e.\,g.\ by utilizing more resources at the same time.
 
-Future Work:
-
-optimizations (parallel queuing and transferring)
+\note{Future Work: optimizations (parallel queuing and transferring)}
 
 
 \jhanote{This will probably have to go due to space: In summary, the
