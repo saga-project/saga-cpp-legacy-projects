@@ -169,43 +169,36 @@ needs), these objectives remains difficult if not infeasible.
 % The P* Model captures the essence of most, if not all existing PJ
 % frameworks.
 
-We present the P* Model in \S\ref{sec:pilot-model}. Our objective is to provide
-a minimal, but complete model -- hence referred to as P* Model, for \pilotjob
-abstractions. The P* Model provides a conceptual basis to compare and contrast
-different PJ frameworks -- which to the best of our knowledge is the first such
-attempt. In \S\ref{sec:pilot-job-frameworks} we validate this claim by analyzing
-well-known PJ frameworks (BigJob, Condor-G/Glide-in, DIANE) using
-the P* Model.
+We present the P* Model in \S\ref{sec:pilot-model}. Our objective is to
+provide a minimal, but complete model -- hence referred to as P* Model, for
+\pilot abstractions. We also investigate generalizations to the base P* Model.
+A natural and logical extension of the P* Model arises from the need to extend
+it to include data in addition to computational tasks. This leads to analogous
+abstraction to the \pilotjob: the \emph{\pilotdata (PD)} abstraction. The
+potentially consistent treatment of data and compute suggests symmetrical
+compute and data elements in the model; thus we refer to this model as the P*
+Model ("P-star").
 
-%Before validating this claim with empirical evidence
-
-% \S{V} we present and validate
-
-\S\ref{sec:pilot-api} of this paper motivates and describes the Pilot-API;  we
-discuss how % BigJob, Condor-G/Glide-in~\cite{condor-g} and
-% DIANE~\cite{Moscicki:908910} --
-existing and widely used \pilotjob frameworks, can be used through the
-Pilot-API.  \S\ref{sec:exp_res} describes the experiments and performance
-measurements used to characterize the workings of the Pilot-API and to
-demonstrate interoperability across middleware, platform and different
-PJ frameworks.  To further substantiate the impact of P*, we will
-demonstrate interoperability between different PJ frameworks -- BigJob
-and DIANE. We believe this is also the first demonstration of
-concurrent interoperation of different \pilotjob implementations.
-Performance advantages arising from the ability to distribute part of a
-data-intensive workload are discussed; interoperable capabilities
-increase flexibility in resource selection and optimization.
+The P* Model provides a conceptual basis to compare and contrast different PJ
+frameworks -- which to the best of our knowledge is the first such attempt. In
+\S\ref{sec:pilot-job-frameworks} we validate this claim by analyzing
+well-known PJ frameworks (BigJob, Condor-G/Glide-in, DIANE) using the P*
+Model. \S\ref{sec:pilot-api} of this paper motivates and describes the
+Pilot-API; we discuss how existing and widely used \pilotjob frameworks, can
+be used through the Pilot-API. \S\ref{sec:exp_res} describes the experiments
+and performance measurements used to characterize the workings of the
+Pilot-API and to demonstrate interoperability across middleware, platform and
+different PJ frameworks. To further substantiate the impact of P*, we will
+demonstrate interoperability between different PJ frameworks -- BigJob and
+DIANE. We believe this is also the first demonstration of concurrent
+interoperation of different \pilotjob implementations. Performance advantages
+arising from the ability to distribute part of a data-intensive workload are
+discussed; interoperable capabilities increase flexibility in resource
+selection and optimization.
 
 % After validating the P* Model -- as measured by extensibility and
 % interoperability -- 
-We investigate generalizations to the base P* Model
-in \S\ref{sec:pilot-data}.  A natural and logical extension of the
-P* Model arises from the need to extend it to include data in
-addition to computational tasks.  This leads to analogous abstraction
-to the \pilotjob: the \emph{\pilotdata (PD)} abstraction.  The
-potentially consistent treatment of data and compute suggests
-symmetrical compute and data elements in the model; thus we refer
-to this model as the P* Model ("P-star").
+
 
 %Before discussing the P* Model, 
 
@@ -2146,7 +2139,7 @@ machine: Quarry (IU) for D1, Lonestar (TACC) for D2 and D3.
 \begin{figure}[t]
 	\upp
 	\centering
-		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus.pdf}
+		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus-with-srm.pdf}
 	\caption{\textbf{Pilot-Data on Trestles:} Using Pilot-Data the staging time can be 
 	significantly improved due to a reduction of the overall data transfer volume from 243\,GB to 24\,GB.\up\up}
 	\label{fig:perf_sc_download-concurrent-cus}
@@ -2166,14 +2159,23 @@ data with 1 CU. Now the figure contains the most current data}
 
 There are two options to address this issue: either scale-out the computation
 to multiple resource (see C3) or optimize data transfers using \pilotdata.
-Using \pilotdata the overall amount of data that needs to be transferred for a
-128 CU scenario is reduced from 243\,GB to 24\,GB. The staging times in D2 and
+Using \pilotdata the overall amount of data that needs to be transferred for the
+128 CU scenario is reduced from 243\,GB (i.\,e.\ 128\,\cus times 1.9\,GB data for
+the reference genome, index files and 1 read file) to 24\,GB (a single transfer of 
+the reference genome and index files and 1 read file per \cu, i.\,e.\ 128 
+times 170\,MB ). The staging times in D2 and
 D3 are comparable: While both SSH and Globus Online show some overhead
 compared to a plain HTTP-based transfer, the lower amount of data leads to a
 significant improvement. Notable, the runtime of BFAST increases lightly in D3
 mainly due to the fact the scratch directory on Trestles is not directly
 accessible via Globus Online; thus, the computation had to be carried out in
 the home directory (NFS), which lead to a longer compute time.
+
+
+\alnote{
+SRM uses replication
+data to large to store the complete
+}
 
 \jhanote{Where is the reason behind this explained?} \jhanote{Also, I
 can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
