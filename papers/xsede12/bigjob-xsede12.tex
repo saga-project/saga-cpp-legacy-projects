@@ -50,10 +50,10 @@
        \affaddr{Louisiana Tech University}\\
        \affaddr{Ruston, LA} \\
        \email{bishop@latech.edu }
-\alignauthor Emilio Gallichio\\
-       \affaddr{ BioMaPS Institute - Rutgers University}\\
-       \affaddr{Piscataway, N} \\
-       \email{emilio@biomaps.rutgers.edu }
+%\alignauthor Emilio Gallichio\\
+%       \affaddr{ BioMaPS Institute - Rutgers University}\\
+%       \affaddr{Piscataway, N} \\
+%       \email{emilio@biomaps.rutgers.edu }
 \and
 \alignauthor Andre Merzky\\
        \affaddr{Center for Computation and Technology}\\
@@ -68,7 +68,7 @@
        \affaddr{Austin TX} \\
        \email{yaakoub@tacc.utexas.edu}       
 \alignauthor Shantenu Jha\\
-     \affaddr{The Cloud and Autonomic Computing Center}\\
+     \affaddr{CAC/ECE}\\
      \affaddr{Rutgers University}\\
       \affaddr{94 Brett Road}\\
       \affaddr{Piscataway, NJ}
@@ -124,17 +124,19 @@ The Extended Collaborative Support Service (ECSS) pairs members of the XSEDE
 user community with expert staff for an extended period to work together to
 solve challenging science and engineering problems through the application of
 cyberinfrastructure~(\cite{ECSS_webpage}). In depth staff support, lasting a few
-weeks to up to a year in length, can be requested at any time through the XSEDE
+weeks up to a year in length, can be requested at any time through the XSEDE
 allocations process. Expertise is available in a wide range of areas, from
 performance analysis and petascale optimization to the development of community
 gateways and work and data flow systems.
 
-In this paper, we discuss two ECSS projects that overlap in both scientific
-endeavor and computational challenges. The success of these two projects is
-attributed to the strong interaction and familiarity between ECSS staff and
-infrastructure developers. The collaboration between system administrators and
-middleware developers lead to the deployment of production-grade infrastructure
-that is currently being used by the scientists.
+In this paper, we discuss two ECSS projects that overlap in both
+scientific endeavor and computational challenges. The success of these
+two projects is attributed to the strong interaction and familiarity
+between ECSS staff and infrastructure developers. The collaboration
+between system administrators and middleware developers has led to the
+deployment of production-grade infrastructure that is currently being
+used scientists originally intended as beneficiaries of ECSS as well
+as other scientists.
 
 The computational challenges are circumvented through innovative solutions in
 distributed and high throughput computing, thus satisfying the computational
@@ -412,8 +414,11 @@ available.
 
 \section{Methodical Solution and Technology}
 
-\jhanote{fix by explaining...}
-
+Although the objectives of the two ECSS projects are distinct, there
+is certain amount of commonality in the technology employed. Both
+projects use SAGA and SAGA-based Pilot-Jobs to support the concurrent
+execution of multiple simulations (ensembles or replicas as the case
+maybe). In this section we briefly introduce the technology employed.
 
 \subsection{SAGA: Standards-based Access to the Resources Layer}
 
@@ -525,27 +530,39 @@ Pilot-Job.
 
 \subsection{SAGA-based Pilot-Job: BigJob}
 
-\yyenote{So first off, this pilot-job definition does not explain why we chose
-to use pilot jobs to overcome the computational challenges. Furthermore, the
-use of the word speed in relation to calculations means FLOPS, this is wrong.
-The use of the word ALLOCATION is also wrong. In XSEDE, allocation means one and
-only one thing and this is NOT it. We need a clear, layman's definition of what
-pilot jobs are in relation to the computational  challenge. The following is
-NOT.}
-Workload management and resource scheduling can lead to significant dynamic 
-fluctuations in workloads and resources, reducing the overall efficiency
-and speed of the desired calculations. 
-A common approach for decoupling  
-these competing allocation problems is the use of \emph{pilot-jobs (PJ)}. 
-\mrnote{This is the point where we should first try to define a pilot job 
-in a clear manner} The  PJ
-abstraction is also a promising route to address additional requirements of
-distributed scientific applications~(\cite{ko-efficient,bigjob_cloudcom10}),
-such as application-level scheduling.
-\mrnote{Perhaps this excerpt from the pstar paper is of value? ``The abstraction of 
-a Pilot-Job generalizes the reoccurring concept of utilizing a placeholder job
-as a container for a set of compute tasks; instances of that placeholder job 
-are commonly referred to as Pilot-Jobs or pilots.''}
+\yyenote{So first off, this pilot-job definition does not explain why
+  we chose to use pilot jobs to overcome the computational
+  challenges. Furthermore, the use of the word speed in relation to
+  calculations means FLOPS, this is wrong.  The use of the word
+  ALLOCATION is also wrong. In XSEDE, allocation means one and only
+  one thing and this is NOT it. We need a clear, layman's definition
+  of what pilot jobs are in relation to the computational
+  challenge. The following is NOT.}  Workload management and resource
+scheduling can lead to significant dynamic fluctuations in workloads
+and resources, reducing the overall efficiency and time-to-solution of
+the desired calculations.  A common approach for decoupling these
+competing allocation problems is the use of \emph{pilot-jobs (PJ)}.
+\mrnote{This is the point where we should first try to define a pilot
+  job in a clear manner} A pilot-job is a mechanism by which a proxy
+for the actual simulations is submitted on the resource to be
+utilized; this proxy agent in turn, is given responsibility to convey
+to the application the availabilty of resources and also influence
+which tasks are executed. The abstraction of a Pilot-Job generalizes
+the reoccurring concept of utilizing a placeholder job as a container
+for a set of compute tasks; instances of that placeholder job are
+commonly referred to as Pilot-Jobs or pilots.The SAGA-based pilot-job
+is a container job which can include within its fold multiple smaller
+tasks.
+
+The pilot-job (PJ) abstraction is also a promising route to address
+additional requirements of distributed scientific
+applications~(\cite{ko-efficient,bigjob_cloudcom10}), such as
+application-level scheduling.  \mrnote{Perhaps this excerpt from the
+  pstar paper is of value? ``The abstraction of a Pilot-Job
+  generalizes the reoccurring concept of utilizing a placeholder job
+  as a container for a set of compute tasks; instances of that
+  placeholder job are commonly referred to as Pilot-Jobs or pilots.''}
+\jhanote{Yes.. Good call}
 
 A SAGA-based PilotJob, BigJob (BJ)~(\cite{bigjob_web,saga_bigjob_condor_cloud}),
 is a general-purpose pilot-job framework. BigJob has been used to support
@@ -579,22 +596,26 @@ e.\,g.\ to accelerate the time-to-completion or to provide resilience
 to resource failures and/or unexpected delays.  BJ supports a wide
 range of application types, and is usable over a broad range of
 infrastructures, i.\,e.\ it is general-purpose and extensible
-(Figure~\ref{fig:figures_re_bigjob_interactions}). In addition there
-are specific BJ flavors for cloud resources such as Amazon EC2 and
-Microsoft Azure that are capable of managing set of VMs, as well as a
-BJ with a Condor-G based backend.
+(Figure~\ref{fig:figures_re_bigjob_interactions}). 
+
+% In addition there
+% are specific BJ flavors for cloud resources such as Amazon EC2 and
+% Microsoft Azure that are capable of managing set of VMs, as well as a
+% BJ with a Condor-G based backend.
 
 \yyenote{We go to incredible lengths to discuss what this is in complicated
 terms but do not say what this means to an end user, how this relates to the
 scientific problem. We either tie this in or remove for lack of cohesion. }
-BJ supports dynamic resource additions/removals as well as late
-binding. The support of this feature depends on the backend used. To
-support this feature on top of various BigJob implementations that are
-by default restricted to single resource use (e.\,g.\ BJ), the concept
-of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
-(each BigJob managing one particular resource). An extensible
-scheduler is used for dispatching WUs to one of the BJs of the pool
-(late binding). By default a FIFO scheduler is provided.
+\jhanote{YYE valid points. Removed/addressed}
+
+% BJ supports dynamic resource additions/removals as well as late
+% binding. The support of this feature depends on the backend used. To
+% support this feature on top of various BigJob implementations that are
+% by default restricted to single resource use (e.\,g.\ BJ), the concept
+% of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
+% (each BigJob managing one particular resource). An extensible
+% scheduler is used for dispatching WUs to one of the BJs of the pool
+% (late binding). By default a FIFO scheduler is provided.
 
 \begin{figure}[t]
   \centering
@@ -916,17 +937,21 @@ conducted as part of the efforts to understand HIV drug resistance.
 
 \yyenote{SJ this is nearing final form. Please confirm}
 
-The strong collaboration between system administrators and tool
+The strong collaboration between system administrators 
+\jhanote{Yaakoub, Can we not call you a system admin! You're much more
+  than that. 
+and tool
 developers ensures rapid functionality development and
 bottlenecks/show-stopper-bugs are identified very early in the
 development cycle and squashed immediately. In fact, only one thing
 comes to mind in terms of improving the ECSS projects. That would be
 having an ECSS consultant whose research overlaps with the scientific
-aims of both projects. The most effective aspect of this project is undoubtedly
-the overlap of the two ECSS projects in terms of tools and infrastructure
-(software and hardware). While the ECSS staff's research interests are not
-aligned with MD simulations, they are however familiar with the particular MD
-simulation tools and packages used.
+aims of both projects. The most effective aspect of this project is
+undoubtedly the overlap of the two ECSS projects in terms of tools and
+infrastructure (software and hardware). While the ECSS staff's
+research interests are not aligned with MD simulations, they are
+however familiar with the particular MD simulation tools and packages
+used.
 
 The triple-pronged approach to the ECSS consultants insulated scientists from
 the ``plumbing'' of infrastructure allowing them to focus on the science. The
@@ -979,10 +1004,8 @@ In addition we are grateful to Abhinav Thota who provided much of the
 initial support (Bishop) and to Ole Weidner for support with SAGA. We
 are grateful to Andre Luckow for his original development of BigJob.
 Computing resources used for this work were made possible via NSF TRAC
-award TG-MCB090174 and LONI resources.  This document was developed
-with support from the National Science Foundation (NSF) under Grant
-No.  0910812 to Indiana University for ``FutureGrid: An Experimental,
-High-Performance Grid Test-bed.''.
+award TG-MCB090174 and LONI resources.  \jhanote{Is there an ECSS
+  award number that we should reference?}
 
 \bibliographystyle{abbrv}
 \bibliography{bigjob-xsede12,saga}
