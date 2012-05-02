@@ -422,8 +422,28 @@ maybe). In this section we briefly introduce the technology employed.
 
 \subsection{SAGA: Standards-based Access to the Resources Layer}
 
-The Simple API for Grid Applications (SAGA)~(\cite{saga_url}) is an
-implementation of an Open Grid Forum (OGF) Technical Specification
+XSEDE is inherently a very complex infrastructure.  Given the wide
+range of user groups and application use cases it aims to address,
+and the large number and the diversity of participating resource
+providers, this is to be expected.  Complex systems are though
+usually very difficult to use, as that complexity and the underlying
+resource diversity often translates into complicated user tools and
+interfaces.  The relatively clean architecture of XSEDE is, to some
+extent, addressing this problem, but is, in itself and at this point
+in time, a moving target.
+
+The Simple API for Grid Applications (SAGA)~(\cite{saga_url}) aims to address a
+part of that problem, by providing a well defined and stable API, which
+exposes those operations which are required on application level, but
+encapsulates the complexity of translating them into the respective
+operations on the XSEDE infrastructure.  In other words: SAGA tries
+to move the complexity of dealing with distributed
+cyberinfrastructures like XSEDE out of the application, and into the
+SAGA implementation layer, while providing the semantics necessary to
+efficiently implement distributed applications which can utilize
+XSEDE.
+
+SAGA is an implementation of an Open Grid Forum (OGF) Technical Specification
 that provides a common and consistent high-level API for the most
 commonly required functionality to construct distributed applications.
 It also provides a high-level API to construct tools and frameworks to
@@ -530,20 +550,11 @@ Pilot-Job.
 
 \subsection{SAGA-based Pilot-Job: BigJob}
 
-\yyenote{So first off, this pilot-job definition does not explain why
-  we chose to use pilot jobs to overcome the computational
-  challenges. Furthermore, the use of the word speed in relation to
-  calculations means FLOPS, this is wrong.  The use of the word
-  ALLOCATION is also wrong. In XSEDE, allocation means one and only
-  one thing and this is NOT it. We need a clear, layman's definition
-  of what pilot jobs are in relation to the computational
-  challenge. The following is NOT.}  Workload management and resource
-scheduling can lead to significant dynamic fluctuations in workloads
-and resources, reducing the overall efficiency and time-to-solution of
-the desired calculations.  A common approach for decoupling these
-competing allocation problems is the use of \emph{pilot-jobs (PJ)}.
-\mrnote{This is the point where we should first try to define a pilot
-  job in a clear manner} A pilot-job is a mechanism by which a proxy
+A common approach to circumvent the computational challenges faced by our ECSS
+projects is the use of container jobs with sophisticated workflow management to
+coordinate the launch and interaction of actual computational tasks within the
+container. This is a particular instance of a more general
+concept: \emph{pilot-jobs (PJ)}. A pilot-job is a mechanism by which a proxy
 for the actual simulations is submitted on the resource to be
 utilized; this proxy agent in turn, is given responsibility to convey
 to the application the availabilty of resources and also influence
@@ -557,12 +568,10 @@ tasks.
 The pilot-job (PJ) abstraction is also a promising route to address
 additional requirements of distributed scientific
 applications~(\cite{ko-efficient,bigjob_cloudcom10}), such as
-application-level scheduling.  \mrnote{Perhaps this excerpt from the
-  pstar paper is of value? ``The abstraction of a Pilot-Job
-  generalizes the reoccurring concept of utilizing a placeholder job
-  as a container for a set of compute tasks; instances of that
-  placeholder job are commonly referred to as Pilot-Jobs or pilots.''}
-\jhanote{Yes.. Good call}
+application-level scheduling. The abstraction of a Pilot-Job
+generalizes the reoccurring concept of utilizing a placeholder job
+as a container for a set of compute tasks; instances of that
+placeholder job are commonly referred to as Pilot-Jobs or pilots.
 
 A SAGA-based PilotJob, BigJob (BJ)~(\cite{bigjob_web,saga_bigjob_condor_cloud}),
 is a general-purpose pilot-job framework. BigJob has been used to support
@@ -598,24 +607,6 @@ range of application types, and is usable over a broad range of
 infrastructures, i.\,e.\ it is general-purpose and extensible
 (Figure~\ref{fig:figures_re_bigjob_interactions}). 
 
-% In addition there
-% are specific BJ flavors for cloud resources such as Amazon EC2 and
-% Microsoft Azure that are capable of managing set of VMs, as well as a
-% BJ with a Condor-G based backend.
-
-\yyenote{We go to incredible lengths to discuss what this is in complicated
-terms but do not say what this means to an end user, how this relates to the
-scientific problem. We either tie this in or remove for lack of cohesion. }
-\jhanote{YYE valid points. Removed/addressed}
-
-% BJ supports dynamic resource additions/removals as well as late
-% binding. The support of this feature depends on the backend used. To
-% support this feature on top of various BigJob implementations that are
-% by default restricted to single resource use (e.\,g.\ BJ), the concept
-% of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
-% (each BigJob managing one particular resource). An extensible
-% scheduler is used for dispatching WUs to one of the BJs of the pool
-% (late binding). By default a FIFO scheduler is provided.
 
 \begin{figure}[t]
   \centering
@@ -632,52 +623,7 @@ scientific problem. We either tie this in or remove for lack of cohesion. }
 
 
 
-\section{SAGA and BigJob on XSEDE}
-This section describes the deployment, testing, and documentation of
-SAGA and BigJob on XSEDE resources.
-
-
-\subsection{SAGA: Simple API for Grid Applications}
- \label{ssec:saga}
- 
-\yyenote{Why are we repeating the definition of saga and its architecture here?
-We had an entire subsection about saga. SJ we either remove this or fix it so
-that it only includes xsede related aspects of SAGA, nothing about SAGA's
-details.}
- 
-XSEDE is inherently a very complex infrastructure.  Given the wide
-range of user groups and application use cases it aims to address,
-and the large number and the diversity of participating resource
-providers, this is to be expected.  Complex systems are though
-usually very difficult to use, as that complexity and the underlying
-resource diversity often translates into complicated user tools and
-interfaces.  The relatively clean architecture of XSEDE is, to some
-extent, addressing this problem, but is, in itself and at this point
-in time, a moving target.
-
-The Simple API for Grid Applications (SAGA) aims to address a part of
-that problem, by providing a well defined and stable API, which
-exposes those operations which are required on application level, but
-encapsulates the complexity of translating them into the respective
-operations on the XSEDE infrastructure.  In other words: SAGA tries
-to move the complexity of dealing with distributed
-cyberinfrastructures like XSEDE out of the application, and into the
-SAGA implementation layer, while providing the semantics necessary to
-efficiently implement distributed applications which can utilize
-XSEDE.
-
-A SAGA implementation is comprised of a
-core API, which defines the overall API structure, and a set of API
-packages, covering topics like job submission and management, file
-access and movement, and the coordination of distributed application
-components.  Multiple implementations of SAGA exist, most notably a
-C++/Python implementation, which is deployed on all major XSEDE
-clusters (see sec.~\ref{ssec:csa}).  A newly emerging pure python
-implementation (Bliss) is expected to replace it later in 2012 --
-Bliss' development and testing is specifically targeting XSEDE and
-FutureGrid as target platforms.
-
-\subsection{CSA Deployment of SAGA on XSEDE Machines}
+\section{CSA Deployment of SAGA and BigJob on XSEDE Machines}
  \label{ssec:csa}
  
 SAGA and BigJob are deployed on all major XSEDE
@@ -937,10 +883,8 @@ conducted as part of the efforts to understand HIV drug resistance.
 
 \yyenote{SJ this is nearing final form. Please confirm}
 
-The strong collaboration between system administrators
-\jhanote{Yaakoub, Can we not call you a system admin! You're much more
-  than that. Can we change you to an ``XSEDE Consultant'' all through
-  consistently please} and tool developers ensures rapid functionality
+The strong collaboration between XSEDE system side consultants
+and middleware developers ensures rapid functionality
 development and bottlenecks/show-stopper-bugs are identified very
 early in the development cycle and squashed immediately. In fact, only
 one thing comes to mind in terms of improving the ECSS projects. That
@@ -1004,7 +948,7 @@ initial support (Bishop) and to Ole Weidner for support with SAGA. We
 are grateful to Andre Luckow for his original development of BigJob.
 Computing resources used for this work were made possible via NSF TRAC
 award TG-MCB090174 and LONI resources.  \jhanote{Is there an ECSS
-  award number that we should reference?}
+  award number that we should reference?}\yyenote{No}
 
 \bibliographystyle{abbrv}
 \bibliography{bigjob-xsede12,saga}
