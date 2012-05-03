@@ -1669,16 +1669,22 @@ section~\ref{sec:experiment-interop}. \jhanote{We should agree on what
 \alnote{What are the factors for overheads? coordination, file staging, file
 systems, job submission? invoke SAGA Europar?}
 
-Before we understand the performance of different frameworks, we
-discuss the issue of coordination in PJ frameworks.
-Different PJ implementation follow different design objectives -- that
-also reflects in the designs of their communication \& coordination
-(\cc) sub-systems.  The primary barrier for performance and
-scalability is not the \cu submission, but the internal coordination
-of the elements of a PJ implementation. There are many factors that
-influence the overall coordination performance, e.\,g.\ the degree of
-distribution (local (LAN) vs. remote (WAN)), the communication pattern
-(1:n versus n:n) and the communication frequency.
+Before we understand the performance of different frameworks in a real
+application scenario, we analyze the typical overheads of PJ frameworks.
+Commonly, the performance of a PJ framework is determined by different
+factors: the job submission time, the queueing time, file staging time and the
+coordination overhead.
+% Different PJ implementation follow different design objectives --
+% that also reflects in the designs of their communication \& coordination 
+% (\cc) sub-systems. 
+The job submission time is commonly very low compared to the overall runtime
+(see~\cite{denBurger:2010:PSC:1887695.1887739} for an analysis). Both the queueing and file staging time heavily
+depends on extrinsic factor, such as the current system and network load.
+Thus, the primary barrier for performance and scalability is not the internal
+coordination of the elements of a PJ implementation. There are many factors
+that influence the overall coordination performance, e.\,g.\ the degree of
+distribution (local (LAN) vs. remote (WAN)), the communication pattern (1:n
+versus n:n) and the communication frequency.
 
 For our \cc evaluation, we conducted several experiments on
 FutureGrid~\cite{fg}. We executed a different number of very short running
@@ -2017,9 +2023,12 @@ Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
 experiments. In addition to the runtime ($T_r$) we
 measured %the queuing time ($T_q$), the
 time to transfer input files ($T_s$), and the actual runtime
-$T_c$. $T_c$ also includes the overhead of the pilot, which is usually
-~10\,\% of the overall runtime. \jhanote{I'm not sure I understand
-  this. What aspect of the pilot contributes 10\%. Why?}
+$T_c$. $T_c$ also includes the overhead of the pilot. 
+%which is usually ~10\,\% of the overall runtime. 
+\jhanote{I'm not sure I understand
+  this. What aspect of the pilot contributes 10\%. Why?} \alnote{I removed
+this the number since it was specific to the BJ experiments and it is
+not visible in the graphs.}
 
 % Staging
 % both
@@ -2034,19 +2043,15 @@ runtime. In particular, on the HPC clusters, the staging quickly becomes a
 bottleneck due to the fact that all \cus share the incoming bandwidth. Also,
 fluctuation of the bandwidth in this scenario leads to a high failure rate. As
 seen in B3, the staging time can be optimized by distributing the \cus to two
-machines.
-
-\jhanote{merge this paragraph with previous, and save space?}
-Generally, the performance of BFAST is heavily dependent on the
-available I/O bandwidth. Both the index and read files need to be
-loaded into memory.  Trestles (XSEDE) and India/Sierra (FG) have
-shared network filesystems (Lustre for Trestles, NFS for India), which
-are utilized by all jobs running on these machines -- the collective
-performance of multiple BFAST \cu thus degrades significantly with the
-available I/O bandwidth, e.\,g.\ if a large number of jobs access the
-filesystem concurrently (the runtime on India is likely due to the
-usage of NFS about 20\,\% slower than on the other machine). On EGI
-and OSG, the BFAST \cu performs best. This can mainly be attributed to
+machines. Generally, the performance of BFAST is heavily dependent on the
+available I/O bandwidth. Both the index and read files need to be loaded into
+memory. Trestles (XSEDE) and India/Sierra (FG) have shared network filesystems
+(Lustre for Trestles, NFS for India), which are utilized by all jobs running
+on these machines -- the collective performance of multiple BFAST \cu thus
+degrades significantly with the available I/O bandwidth, e.\,g.\ if a large
+number of jobs access the filesystem concurrently (the runtime on India is
+likely due to the usage of NFS about 20\,\% slower than on the other machine).
+On EGI and OSG, the BFAST \cu performs best. This can mainly be attributed to
 the use of local storage.
 
 % Queuing Time
@@ -2118,25 +2123,23 @@ conjunction with different SAGA adaptors and infrastructures, and the
 second is PJ framework interoperability, i.\,e.\ the usage of
 different PJ frameworks via the Pilot-API. In configuration C1 we
 utilize SAGA-based interoperability by running BigJob concurrently on
-FutureGrid::India and XSEDE::Kraken. C2 and C3 show PJ
+FutureGrid:India and XSEDE:Trestles. C2 and C3 show PJ
 framework interoperability by concurrently running BigJob and DIANE on
-FutureGrid::India and EGI as well as Condor and BigJob on OSG and
-XSEDE::QueenBee. For all scenarios, we run the same BFAST application
+FutureGrid:India and EGI as well as Condor and BigJob on OSG and
+XSEDE:QueenBee. For all scenarios, we run the same BFAST application
 described in \S\ref{sec:fg-xsede-osg-egi} with 64\,\cus on each
 infrastructure, i.\,e.\ in total 128\,\cus.
 
 \begin{figure}[htbp]
   	\centering
-	\includegraphics[width=0.48\textwidth]{../perf/interop/128-bfast-interop.pdf}
+	\includegraphics[width=0.48\textwidth]{../perf/interop/128-bfast-interop-with-staging.pdf}
 	\caption{\textbf{PJ Framework Interoperability:} Runtime of
-          128 BFAST \cus on different infrastructures. \cus are
-          equally distributed across the two infrastructures. In
-          particular, slower resources, such as Kraken can benefit
-          from offloading \cus to faster infrastructures. \jhanote{Why
+        128 BFAST \cus on different infrastructures. \cus are
+        equally distributed across the two infrastructures. The performance 
+		heavily depends on the available bandwidths to the resources, which 
+		determines the time required for file transfers. \jhanote{Why
             are the numbers being added? Aren't the runs concurrent on
-            the two infrastructures?}\alnote{Maybe a stacked bar chart is not
-			the visualization for this, but it should read as: the run on XSEDE/FG took 23 minutes. 
-			The CUs on FG finished after 15 minutes}}
+            the two infrastructures?}\alnote{refined}}
 	\label{fig:perf_interop_128-bfast-interop}
 \end{figure}
 
@@ -2157,24 +2160,17 @@ mainly due to the usage of the faster India resource for half of the
 %\jhanote{should this scenario number be different?} \alnote{sorry,
 %  just moved this paragraph down from B} 
 
-The middle bar in figure~\ref{fig:perf_interop_128-bfast-interop}
-shows C2 and demonstrates that two PJ frameworks can be utilized
-concurrently using the Pilot-API. Files are pre-staged for FutureGrid;
-they need to be staged for the DIANE/EGI \cus. \jhanote{without an
-  explanation the previous sentence seems arbitary and difficult to
-  appreciate/understand why?}  The performance in this scenario is
-significantly better than in the DIANE only case for 128\,\cus (see
-section~\ref{sec:fg-xsede-osg-egi}), mainly due to the fact the
-overhead induced by file staging is only applicable to half of the
-\cus. However, it must also be noted that the performance of the BJ
-\pilot is about 30\,\% worse for the EGI/FG run compared to the
-XSEDE/FG run.  This can be mainly attributed to the distributed
-coordination necessary in a high latency environment. All
-communication is conducted via a Redis instance deployed on FG, while
-the BJ manager is deployed on EGI; thus, for each \cu several
-cross-atlantic roundtrips are necessary.
-
-Finally, C3 (right bar in figure~\ref{fig:perf_interop_128-bfast-interop})
+The middle bar in figure~\ref{fig:perf_interop_128-bfast-interop} shows C2 and
+demonstrates that two PJ frameworks can be utilized concurrently using the
+Pilot-API. As in the previous scenarios, the overall performance heavily
+depends on the time required for staging the files (for scenarios C2 and C3 we
+estimated the staging times based on previous measurements). Further, some
+performance overhead is induced by the distributed coordination necessary
+particular in case C2 where the BJ manager is located in the EU in a high
+latency environment. All communication is conducted via a Redis instance
+deployed on FG, while the BJ manager is deployed on EGI; thus, for each \cu
+several cross-atlantic roundtrips are necessary.
+Finally, C3 (right bars in figure~\ref{fig:perf_interop_128-bfast-interop})
 shows the result of the OSG and XSEDE::QB run. Since QueenBee is an older
 XSEDE machine, $T_r$ on this machine is much longer than $T_r$ on OSG despite
 the necessity of file staging.
