@@ -1650,22 +1650,56 @@ section~\ref{sec:experiment-interop}. \jhanote{We should agree on what
 %   combination'.}\jhanote{Would `` collectively'' be a better
 %   description?}
 
-\subsection{Coordination in PJ Frameworks}
-\label{sec:pj_performance}
+\subsection{Coordination in PJ Frameworks}\label{sec:pj_performance}
+
+Before we understand the performance of different frameworks, we
+discuss the issue of coordination in PJ frameworks.
 
 \jhanote{to be reduced significantly}\alnote{further reduced}
 
 Different PJ implementation follow different design objectives -- that
 also reflects in the designs of their communication \& coordination
 (\cc) sub-systems.  The primary barrier for performance and
-scalability is not the \cu  submission, but the internal coordination
+scalability is not the \cu submission, but the internal coordination
 of the elements of a PJ implementation. There are many factors that
-influence the overall performance, e.\,g.\ the degree of distribution
-(local (LAN) vs. remote (WAN)), the communication pattern (1:n versus
-n:n) and the communication frequency. % In the following we investigate
-% the impact of different \cc related factors on the overall
-% performance and scalability of PJ systems.  We evaluate different
-% BigJob configurations, and compare and contrast them with DIANE.
+influence the overall coordination performance, e.\,g.\ the degree of
+distribution (local (LAN) vs. remote (WAN)), the communication pattern
+(1:n versus n:n) and the communication frequency.
+
+For our \cc evaluation, we conducted several experiments on
+FutureGrid~\cite{fg}. We executed a different number of very short running
+(i.\,e. zero workload) \cus on Alamo and Sierra, running up to 128\,\cus 
+concurrently.  This enables us to focus on the overhead induced
+by the PJ framework and the \cc subsystem. Each experiment is
+repeated at least 10 times.
+
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
+scalability with respect to the number of cores per \pilot. For this
+purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
+512\,\cus. In particular, the Redis (Local) configuration show an
+almost linear scalability up to 128 cores.  The Redis (Remote) setup
+again imposes some overhead (about 14\,\%). ZeroMQ performs very well
+with lower core counts; with larger core counts the runtimes increase,
+indicating a potential scalability bottleneck. DIANE shows, in
+particular for lower core counts, a longer runtime, again due to the
+higher startup overhead. With higher core counts DIANE behaves similar
+to BigJob/ZeroMQ, showing a greater increase of the overall
+runtime. This increase can likely be attributed to the single central
+manager in the client-server architecture. As in the last experiment,
+the Advert \cc sub-system showed a significantly lower performance.
+A reason for that
+is the used remote access protocol, which is basically the native
+remote PostgreSQL database protocol, which is not optimized for WAN
+connections. Further, the API is based on a hierarchical namespace,
+which does not easily map to relational databases -- in deeply nested
+namespaces exhibit an insufficient query and update performance. In
+contrast, data is stored in memory for Redis and ZeroMQ, which
+explains the significant performance gains.
+
+% In the following we investigate the impact of different \cc related
+% factors on the overall performance and scalability of PJ systems.
+% We evaluate different BigJob configurations, and compare and
+% contrast them with DIANE.
 
 % BigJob's \cc was originally based on a shared, centralized data space, 
 % the SAGA Advert Service (AS)~\cite{saga_advert}.  The
@@ -1697,12 +1731,6 @@ n:n) and the communication frequency. % In the following we investigate
 % polling, an agent can receive notifications when a new SU arrives.
 
 
-For our \cc evaluation, we conducted several experiments on
-FutureGrid~\cite{fg}. We executed a different number of very short running
-(i.\,e. zero workload) \cus on Alamo and Sierra, running up to 128\,\cus 
-concurrently.  This enables us to focus on the overhead induced
-by the PJ framework and the \cc subsystem. Each experiment is
-repeated at least 10 times.
 
 
 % \jhanote{Need to motivate testing of c\&c sub-system better: There are
@@ -1781,28 +1809,6 @@ repeated at least 10 times.
 % the TROY manager introduces another hierarchy-level which can
 % further enhance the overall scalability.
 
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
-scalability with respect to the number of cores per \pilot. For this
-purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
-512\,\cus. In particular, the Redis (Local) configuration show an
-almost linear scalability up to 128 cores.  The Redis (Remote) setup
-again imposes some overhead (about 14\,\%). ZeroMQ performs very well
-with lower core counts; with larger core counts the runtimes increase,
-indicating a potential scalability bottleneck. DIANE shows, in
-particular for lower core counts, a longer runtime, again due to the
-higher startup overhead. With higher core counts DIANE behaves similar
-to BigJob/ZeroMQ, showing a greater increase of the overall
-runtime. This increase can likely be attributed to the single central
-manager in the client-server architecture. As in the last experiment,
-the Advert \cc sub-system showed a significantly lower performance.
-A reason for that
-is the used remote access protocol, which is basically the native
-remote PostgreSQL database protocol, which is not optimized for WAN
-connections. Further, the API is based on a hierarchical namespace,
-which does not easily map to relational databases -- in deeply nested
-namespaces exhibit an insufficient query and update performance. In
-contrast, data is stored in memory for Redis and ZeroMQ, which
-explains the significant performance gains.
 
 \jhanote{at times i think this whole subsection can be removed
 and replaced by a paragraph that summarises (i) the architecture
@@ -1918,34 +1924,34 @@ peak load.}
 %  machine (on XSEDE and FG) and resources configuration + PJ Framework
 %  employed.}
 
-We define an experimental configurations as a set comprised of the
+We define an experimental configuration as a set comprised of the
 production infrastructure used, the specific machine/resource
-configuration, and the utilized PJ framework.  We run the experiment
+configuration, and the utilized PJ framework.  We run experiments
 on four different configurations: (B1) BigJob/XSEDE, (B2)
-BigJob/FutureGrid, (B3) two BigJob/Futuregrid, (B4) Condor/OSG, 
-(B5) DIANE/EGI. As discussed in
-\S\ref{sec:pilot-api}, the Pilot-API provides a unified way for
-accessing these infrastructures using the native PJ capabilities for
-all three PJ frameworks, i.\,e.\ BigJob, DIANE and Condor (see
-figure~\ref{fig:figures_distributed_pilot_job}).  For BJ we use the
-PBS/SSH plugin to access both the FutureGrid and XSEDE machines. 
-On OSG, we use SAGA and the SAGA-Condor adaptor to interface directly 
-with OSG's dynamic Glide-in-WMS resource pool. Further, we utilize 
-DIANE on EGI. 
+BigJob/FutureGrid, (B3) two BigJob/Futuregrid, (B4) Condor/OSG, (B5)
+DIANE/EGI. As discussed in \S\ref{sec:pilot-api}, the Pilot-API
+provides a unified way for accessing these infrastructures using the
+native PJ capabilities for all three PJ frameworks, i.\,e.\ BigJob,
+DIANE and Condor (see figure~\ref{fig:figures_distributed_pilot_job}).
+For BJ we use the PBS/SSH plugin to access both the FutureGrid and
+XSEDE machines.  On OSG, we use SAGA and the SAGA-Condor adaptor to
+interface directly with OSG's dynamic Glide-in-WMS resource
+pool. Further, we utilize DIANE on EGI.
 %\msnote{more on EGI later ...}
 %On the XSEDE, Kraken is used with up to 512 cores concurrently.
 %\amnote{why is the corecount mentioned for Kraken, and not the others?}
 
 The investigated workload consists of of 128 \cus. Each \cu executes a
 BFAST matching process, which is used to find potential DNA sequence
-alignments. The scenario requires the following input data: 1.9\,GB for
-the reference genome and index files, and 170\,MB for each 
-\textit{short read} file, i.\,e.\ the file generated by the DNA 
-sequencing machine. For this configuration a total of 128 read files (one per CU) 
-are used. 
-\jhanote{The numbers don't add up!! 32 files of 1.68GB is about
-50GB!}\alnote{hopefully fixed. This was explaining the input data we had 
-(we only have 32 read files, ie. we reuse them}
+alignments. The scenario requires the following input data: 1.9\,GB
+for the reference genome and index files, and 170\,MB for each
+\textit{short read} file, i.\,e.\ the file generated by the DNA
+sequencing machine. For this configuration a total of 128 read files
+(one per CU) are used.
+
+% \jhanote{The numbers don't add up!! 32 files of 1.68GB is about
+% 50GB!}\alnote{hopefully fixed. This was explaining the input data we had 
+% (we only have 32 read files, ie. we reuse them}
 
 In total, 128\,\cus are defined and submitted to the
 \texttt{Compute\-Data\-Service}. Each BFAST \cu requires 1 core;
@@ -1989,13 +1995,21 @@ set of input files, which are staged by the application.
 
 \subsubsection*{Experimental Results}
 
-Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the experiments. In
-addition to the runtime ($T_r$) we measured %the queuing time ($T_q$), the
-time to transfer input files ($T_s$), and the actual runtime $T_c$. $T_c$ also
-includes the overhead of the pilot, which is usually ~10\,\% of the overall
-runtime.
+Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
+experiments. In addition to the runtime ($T_r$) we
+measured %the queuing time ($T_q$), the
+time to transfer input files ($T_s$), and the actual runtime
+$T_c$. $T_c$ also includes the overhead of the pilot, which is usually
+~10\,\% of the overall runtime. \jhanote{I'm not sure I understand
+  this. What aspect of the pilot contributes 10\%. Why?}
 
 % Staging
+% both
+% pilot-external, i.\,e.\ queuing system (PBS, Torque, Condor) waiting
+% times, as well as \pilot-internal waiting times.
+
+% BFAST PERFORMANcE
+
 For each \cu, the reference genome, the index files and one read file need to
 be staged (1.9\,GB) -- which consumes the most significant part of the overall
 runtime. In particular, on the HPC clusters, the staging quickly becomes a
@@ -2004,21 +2018,18 @@ fluctuation of the bandwidth in this scenario leads to a high failure rate. As
 seen in B3, the staging time can be optimized by distributing the \cus to two
 machines.
 
-% both
-% pilot-external, i.\,e.\ queuing system (PBS, Torque, Condor) waiting
-% times, as well as \pilot-internal waiting times.
-
-% BFAST PERFORMANcE
-Generally, the performance of BFAST is heavily dependent on the available I/O
-bandwidth. Both the index and read files need to be loaded into memory.
-Trestles (XSEDE) and India/Sierra (FG) have shared network filesystems (Lustre
-for Trestles, NFS for India), which are utilized by all jobs running on these
-machines -- the collective performance of multiple BFAST \cu thus degrades
-significantly with the available I/O bandwidth, e.\,g.\ if a large number of
-jobs access the filesystem concurrently (the runtime on India is likely due to
-the usage of NFS about 20\,\% slower than on the other machine). On EGI and
-OSG, the BFAST \cu performs best. This can mainly be attributed to the use of
-local storage.
+\jhanote{merge this paragraph with previous, and save space?}
+Generally, the performance of BFAST is heavily dependent on the
+available I/O bandwidth. Both the index and read files need to be
+loaded into memory.  Trestles (XSEDE) and India/Sierra (FG) have
+shared network filesystems (Lustre for Trestles, NFS for India), which
+are utilized by all jobs running on these machines -- the collective
+performance of multiple BFAST \cu thus degrades significantly with the
+available I/O bandwidth, e.\,g.\ if a large number of jobs access the
+filesystem concurrently (the runtime on India is likely due to the
+usage of NFS about 20\,\% slower than on the other machine). On EGI
+and OSG, the BFAST \cu performs best. This can mainly be attributed to
+the use of local storage.
 
 % Queuing Time
 % \alnote{to refine: queuing time not part of the diagram anymore}
@@ -2112,13 +2123,15 @@ infrastructure, i.\,e.\ in total 128\,\cus.
 \end{figure}
 
 
-Figure~\ref{fig:perf_interop_128-bfast-interop} shows the results of the
-interoperability tests. In C1, one \pilot is submitted to Kraken and one to
-India. Files are pre-staged before the run. Needless to say, the overall runtime
-is determined by the slower resources. Consistent with previous results the
-\pilot on India finished before the \pilot on Kraken. However, $T_r$ of the
-distributed run improved about 6\,\% compared to a Kraken only run mainly due to
-the usage of the faster India resource for half of the \cus.
+Figure~\ref{fig:perf_interop_128-bfast-interop} shows the results of
+the interoperability tests. In C1, one \pilot is submitted to Kraken
+and one to India. Files are pre-staged before the run. Needless to
+say, the overall runtime is determined by the slower
+resources. Consistent with previous results the \pilot on India
+finished before the \pilot on Kraken. However, $T_r$ of the
+distributed run improved about 6\,\% compared to a Kraken only run
+mainly due to the usage of the faster India resource for half of the
+\cus.
 
 % However, the runtime of
 % the scenario is also about 20\,\% slower than running on India only.
