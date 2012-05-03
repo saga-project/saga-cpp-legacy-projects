@@ -498,10 +498,11 @@ abstraction that allow applications to specify their data dependencies
 on an abstract, logical level (rather than on file basis) are not
 available; (iv) due to lack of a common treatment for compute and
 data, optimizations of data/compute placements are often not
-possible. For example, in scenario (B3) and (B4) presented in
-section~\ref{sec:fg-xsede-osg-egi}, even though the 50\,\% of the
-input data set is shared for all \cus, the complete data is staged for
-each \cu.
+possible. 
+% For example, in scenario (B3) and (B4) presented in
+% section~\ref{sec:fg-xsede-osg-egi}, even though the 50\,\% of the
+% input data set is shared for all \cus, the complete data is staged for
+% each \cu.
 
 In addition, applications must cope with various other challenging,
 data-related issues, e.\,g.\ varying data sources (such as sensors
@@ -530,8 +531,7 @@ relationships are referred to as \emph{affinities}.
 % A Pilot-Data Framework facilitates the late-binding between data units
 % and physical storage resources, the so called pilot-stores.
 
-The elements defined by P* (in section~\ref{sec:p_star_elements}) can
-be extended by the following elements:
+The elements defined by P* can be extended by the following elements:
 
 %\alnote{What is the role of SU in Data?}
 
@@ -607,7 +607,8 @@ affinities \& dynamic resource information.
 \subsection{Putting it all together} \jhanote{Should this come after
   the next subsection on ``P* as a model for Pilot-Data''}\alnote{ok,
 needs refinement for Pilot-DAta}
-
+\alnote{Should we make Figure 1 generic to data and compute or have it include
+both?}
 
 Figure~\ref{fig:figures_pstar} illustrates the interactions between the
 elements of the P* Model using Pilot-Compute as example. First, the
@@ -658,7 +659,7 @@ PJ frameworks with decentralized decision making e.\,g.\ often utilize
 autonomic agents that accept respectively pull SUs according to a set of
 defined policies.
 
-\alnote{TODO: add paragraph on Pilot-Compute}
+\alnote{TODO: add paragraph on Pilot-Data}
 
 
 \note{Reviewer Comment:  For instance, utilities such as GLexec which have 
@@ -710,7 +711,7 @@ As more applications take advantage of dynamic execution, the
 Pilot-Job concept has grown in popularity and has been extensively
 researched and implemented for different usage scenarios and
 infrastructure.  \jhanote{The previous sentence is a repeat of one of
-  the high-level motivations of this work. I propose we remove}
+  the high-level motivations of this work. I propose we remove}\alnote{ok}
 
 The aim of this section is to provide a basic understanding of some of
 the most commonly used PJ frameworks. This has served to both motivate
@@ -1548,8 +1549,8 @@ managed by one \texttt{Pilot\-Compute\-Service}.
 %\end{table}
 
 
-\subsection{Extending the Pilot-API for Data}\jhanote{I propose we
-  call this Pilot-API for Data, not ``Extending''}
+\subsection{Pilot-API for Data}\jhanote{I propose we
+  call this Pilot-API for Data, not ``Extending''}\alnote{ok}
 
 Analogous to the Pilot-API for Compute, the Pilot Data
 API~\cite{pilot_api} defines the \texttt{PilotDataService} entity as
@@ -1610,7 +1611,9 @@ section~\ref{sec:pj_performance} we investigate the performance and
 scalability of coordination in BigJob and DIANE, executing thousands
 of tasks but with zero workload. We establish that for up to thousands
 of tasks, existing coordination infrastructures suffice. \jhanote{We
-  don't do the previous two sentences, do we?} In
+  don't do the previous two sentences, do we?} \alnote{Well we did, but 
+the figure is now not part of the paper anymore. We could say hundreds of
+concurrent tasks} In
 section~\ref{sec:fg-xsede-osg-egi} we show the effectiveness of our
 approach (Pilot-API/P* Model) by executing {\it real application
   workloads} -- in this case a genome alignment application -- on
@@ -1652,11 +1655,10 @@ section~\ref{sec:experiment-interop}. \jhanote{We should agree on what
 
 \subsection{Coordination in PJ Frameworks}\label{sec:pj_performance}
 
-Before we understand the performance of different frameworks, we
-discuss the issue of coordination in PJ frameworks.
-
 \jhanote{to be reduced significantly}\alnote{further reduced}
 
+Before we understand the performance of different frameworks, we
+discuss the issue of coordination in PJ frameworks.
 Different PJ implementation follow different design objectives -- that
 also reflects in the designs of their communication \& coordination
 (\cc) sub-systems.  The primary barrier for performance and
@@ -1673,28 +1675,6 @@ concurrently.  This enables us to focus on the overhead induced
 by the PJ framework and the \cc subsystem. Each experiment is
 repeated at least 10 times.
 
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
-scalability with respect to the number of cores per \pilot. For this
-purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
-512\,\cus. In particular, the Redis (Local) configuration show an
-almost linear scalability up to 128 cores.  The Redis (Remote) setup
-again imposes some overhead (about 14\,\%). ZeroMQ performs very well
-with lower core counts; with larger core counts the runtimes increase,
-indicating a potential scalability bottleneck. DIANE shows, in
-particular for lower core counts, a longer runtime, again due to the
-higher startup overhead. With higher core counts DIANE behaves similar
-to BigJob/ZeroMQ, showing a greater increase of the overall
-runtime. This increase can likely be attributed to the single central
-manager in the client-server architecture. As in the last experiment,
-the Advert \cc sub-system showed a significantly lower performance.
-A reason for that
-is the used remote access protocol, which is basically the native
-remote PostgreSQL database protocol, which is not optimized for WAN
-connections. Further, the API is based on a hierarchical namespace,
-which does not easily map to relational databases -- in deeply nested
-namespaces exhibit an insufficient query and update performance. In
-contrast, data is stored in memory for Redis and ZeroMQ, which
-explains the significant performance gains.
 
 % In the following we investigate the impact of different \cc related
 % factors on the overall performance and scalability of PJ systems.
@@ -1810,6 +1790,32 @@ explains the significant performance gains.
 % further enhance the overall scalability.
 
 
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
+scalability with respect to the number of cores per \pilot. For this purpose,
+we execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus. In particular,
+the Redis (Local) configuration show an almost linear scalability up to 128
+cores. The Redis (Remote) setup again imposes some overhead (about 14\,\%).
+ZeroMQ performs very well with lower core counts; with larger core counts the
+runtimes increase, indicating a potential scalability bottleneck. DIANE shows,
+in particular for lower core counts, a longer runtime, again due to the higher
+startup overhead. With higher core counts DIANE behaves similar to
+BigJob/ZeroMQ, showing a greater increase of the overall runtime. This
+increase can likely be attributed to the single central manager in the
+client-server architecture. Using Redis as central data space decouples the 
+Pilot-Manager and the Agent, which yields to a better performance in 
+particular with a larger number of replicas.
+% As in the last experiment,
+% the Advert \cc sub-system showed a significantly lower performance.
+% A reason for that
+% is the used remote access protocol, which is basically the native
+% remote PostgreSQL database protocol, which is not optimized for WAN
+% connections. Further, the API is based on a hierarchical namespace,
+% which does not easily map to relational databases -- in deeply nested
+% namespaces exhibit an insufficient query and update performance. In
+% contrast, data is stored in memory for Redis and ZeroMQ, which
+% explains the significant performance gains.
+
+
 \jhanote{at times i think this whole subsection can be removed
 and replaced by a paragraph that summarises (i) the architecture
 (ii) the challenge (iii) performance measurement and analysis?}
@@ -1817,7 +1823,7 @@ and replaced by a paragraph that summarises (i) the architecture
 \begin{figure}[t] 
  \centering
  \up
- \includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo.pdf}
+ \includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
  \up
  \caption{\textbf{\pilotjob Coordination Mechanism:}  The
   runtime of a workload of 4 \cus per core, i.\,e.\ 32 - 512\,\cus, using 
