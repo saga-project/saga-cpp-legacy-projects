@@ -466,71 +466,7 @@ framework.  These agents can be used to enforce a set of
 (user-defined) policies (e.g.  resource capabilities, data/compute
 affinities, etc.) and heuristics.
 
-\subsection{Putting it all together} \jhanote{Should this come after
-  the next subsection on ``P* as a model for Pilot-Data''}
 
-
-Figure~\ref{fig:figures_pstar} illustrates the interactions between
-the elements of the P* Model. First, the application specifies the
-capabilities of the resources required using a \pilotjob description
-(step 1). The PM then submits the necessary number of \pilots to
-fulfill the resource requirements of the application (step~2). Each
-\pilot is queued at the resource manager, which is responsible for
-starting the \pilot (step~3). There can be variations of this flow:
-while in the described model, the application defines the required
-resources, the PM could also decide based on the submitted \cu \
-workload whether and when it submits new \pilots.
-
-%\jhanote{What about the Resource Manager? Is it part of the resource}
-
-The application can submit \cus to the PM at any time (step~4). A
-submitted \cu \ becomes an SU, i.\,e.\ the PM is now in control of
-it. In the simplest case one \cu \ corresponds to one SU; however,
-SUs can be combined and aggregated to optimize throughputs and
-response times. Commonly, a hierarchical M/W model for coordination
-is used internally: the PM uses M/W to coordinate a set of \pilots,
-the \pilot itself functions as manager for the execution of the
-assigned SUs.
-
-
-Scheduling decisions can be made on multiple levels. The PM is responsible for
-selecting a \pilot for an SU (step 5). A \pilot is bound to a physical resource
-on which it is responsible for a particular resource set. Once a SU has been
-scheduled to a \pilot, the \pilot decides when and on which part of the resource
-an SU is executed.
-% \jhanote{Isn't
-%   the pilot already bound to a specific resource? Or isn't the pilot
-%   bound to a resource and thereby the SU bound to a resource
-%   indirectly, and not directly?}  \alnote{Yes, the pilot is bound to a
-%   specific resource set, assigning a SU to a pilot means that it can
-%   be executed somewhere on this resource set. The pilot decides on
-%   which node a SU is run. There can be trivial cases, e.g. DIANE where
-%   this decision making does not exist: 1 worker agent == 1 core == 1
-%   task. Should we make this more explicit?} \jhanote{Yes -- we
-%   could/should make more explicit the fact that pilot is already bound
-%   to a resources and assigning a SU to a pilot means it can be
-%   executed anywhere on this resource set.} \alnote{refined}
-Further, the \pilot manages the subsequent execution of an SU (step~6).
-There can be variations of this flow. 
-% The above description presents a
-% typical example of the inner working of a PJ framework, but alternative
-% implementation of the P* characteristics are possible. 
-PJ frameworks with decentralized decision making e.\,g.\ often utilize autonomic 
-agents that accept respectively pull SUs according to a set of defined policies.
-
-\note{Reviewer Comment:  For instance, utilities such as GLexec which have 
-been developed so that the security model is preserved between the execution 
-of the SU and the CU should be part of P* and appear somewhere in Figure 1.}
-
-\note{Reviewer Comment: As the name suggest, the Pilot Job concept is very 
-computation oriented and how to make the model evolve towards a solution which 
-would be able to take into account application data requirements is an open 
-question. Authors actually identifies this issue as Section 6 is devoted to an 
-abstraction for Pilot-Data. However, the Pilot-Data API, which more or less 
-mimics the PilotJob API is not very convincing in the sense that the 
-interaction between the 2 APIs are not discussed at all. Maybe Pilot-Data 
-should be presented as part of the P* model and section 6 should be dedicated 
-to the implementation of the 2 APIs to data-intense computing.}
 
 
 \subsection{P* as a Model for Pilot-Data}
@@ -666,6 +602,78 @@ access patterns. \jhanote{Propose comment out due to space
   their current location is different.} Data and compute placement
 decisions are made by the scheduler based on defined policies,
 affinities \& dynamic resource information.
+
+
+\subsection{Putting it all together} \jhanote{Should this come after
+  the next subsection on ``P* as a model for Pilot-Data''}\alnote{ok,
+needs refinement for Pilot-DAta}
+
+
+Figure~\ref{fig:figures_pstar} illustrates the interactions between the
+elements of the P* Model using Pilot-Compute as example. First, the
+application specifies the capabilities of the resources required using a
+\pilotjob description (step 1). The PM then submits the necessary number of
+\pilots to fulfill the resource requirements of the application (step~2). Each
+\pilot is queued at the resource manager, which is responsible for starting
+the \pilot (step~3). There can be variations of this flow: while in the
+described model, the application defines the required resources, the PM could
+also decide based on the submitted \cu \ workload whether and when it submits
+new \pilots.
+
+%\jhanote{What about the Resource Manager? Is it part of the resource}
+
+The application can submit \cus to the PM at any time (step~4). A
+submitted \cu \ becomes an SU, i.\,e.\ the PM is now in control of
+it. In the simplest case one \cu \ corresponds to one SU; however,
+SUs can be combined and aggregated to optimize throughputs and
+response times. Commonly, a hierarchical M/W model for coordination
+is used internally: the PM uses M/W to coordinate a set of \pilots,
+the \pilot itself functions as manager for the execution of the
+assigned SUs.
+
+
+Scheduling decisions can be made on multiple levels. The PM is responsible for
+selecting a \pilot for an SU (step 5). A \pilot is bound to a physical
+resource on which it is responsible for a particular resource set. Once a SU
+has been scheduled to a \pilot, the \pilot decides when and on which part of
+the resource an SU is executed.
+% \jhanote{Isn't
+%   the pilot already bound to a specific resource? Or isn't the pilot
+%   bound to a resource and thereby the SU bound to a resource
+%   indirectly, and not directly?}  \alnote{Yes, the pilot is bound to a
+%   specific resource set, assigning a SU to a pilot means that it can
+%   be executed somewhere on this resource set. The pilot decides on
+%   which node a SU is run. There can be trivial cases, e.g. DIANE where
+%   this decision making does not exist: 1 worker agent == 1 core == 1
+%   task. Should we make this more explicit?} \jhanote{Yes -- we
+%   could/should make more explicit the fact that pilot is already bound
+%   to a resources and assigning a SU to a pilot means it can be
+%   executed anywhere on this resource set.} \alnote{refined}
+Further, the \pilot manages the subsequent execution of an SU (step~6).
+There can be variations of this flow. 
+% The above description presents a
+% typical example of the inner working of a PJ framework, but alternative
+% implementation of the P* characteristics are possible. 
+PJ frameworks with decentralized decision making e.\,g.\ often utilize
+autonomic agents that accept respectively pull SUs according to a set of
+defined policies.
+
+\alnote{TODO: add paragraph on Pilot-Compute}
+
+
+\note{Reviewer Comment:  For instance, utilities such as GLexec which have 
+been developed so that the security model is preserved between the execution 
+of the SU and the CU should be part of P* and appear somewhere in Figure 1.}
+
+\note{Reviewer Comment: As the name suggest, the Pilot Job concept is very 
+computation oriented and how to make the model evolve towards a solution which 
+would be able to take into account application data requirements is an open 
+question. Authors actually identifies this issue as Section 6 is devoted to an 
+abstraction for Pilot-Data. However, the Pilot-Data API, which more or less 
+mimics the PilotJob API is not very convincing in the sense that the 
+interaction between the 2 APIs are not discussed at all. Maybe Pilot-Data 
+should be presented as part of the P* model and section 6 should be dedicated 
+to the implementation of the 2 APIs to data-intense computing.}
 
 \section{Pilot-Job Frameworks}
 
