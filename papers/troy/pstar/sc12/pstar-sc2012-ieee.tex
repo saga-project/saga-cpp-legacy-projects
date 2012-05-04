@@ -1604,8 +1604,8 @@ responsible for managing the execution of \dus and \cus.
 % different PJ frameworks. 
 
 As discussed in \S\ref{sec:pilot-job-frameworks}, several PJ frameworks can be
-collectively used via the Pilot-API.  We begin by understanding the overhead of
-PJ frameworks (section~\ref{sec:pj_performance}).  In
+collectively used via the Pilot-API. We begin by understanding the overhead of
+PJ frameworks (section~\ref{sec:pj_performance}). In
 section~\ref{sec:fg-xsede-osg-egi} we show the effectiveness of the
 
 Pilot-API/P* Model approach by executing {\it real application
@@ -1617,10 +1617,13 @@ infrastructure used.  Experiments are conducted on different
 production (XSEDE, EGI, OSG) and research (FutureGrid)
 infrastructures.  Further, we demonstrate interoperability by using
 multiple PJ frameworks concurrently on multiple infrastructures using
-the Pilot-API -- see section~\ref{sec:experiment-interop}.  
+the Pilot-API -- see section~\ref{sec:experiment-interop}.  In 
+section~\ref{sec:experiment-pilotdata} we demonstrate the capabilities of
+\pilotdata, which enables applications (i) to minimize the volume of the 
+transferred data and (ii) to utilize different transfer protocols.
 
 \jhanote{We should agree on what the
-last set of experiments are trying to convey/achieve}
+last set of experiments are trying to convey/achieve}\alnote{done}
 
 
 % of performance and scalability of coordination in BigJob and DIANE,
@@ -2173,7 +2176,10 @@ In principal, two types of interoperability between \pilotjobs and
 infrastructure exist: the first is the usage of a given PJ framework
 on different infrastructures; in the scenario examined, we use BigJob
 on different infrastructures in conjunction with different SAGA
-adaptors. \pmnote{don't we have a interoperability at compute level; since we addressed that having same compute unit description for all infrastructures} The second is the usage of distinct PJ frameworks via the
+adaptors. 
+% \pmnote{don't we have a interoperability at compute level; since we 
+% addressed that having same compute unit description for all infrastructures} 
+The second is the usage of distinct PJ frameworks via the
 Pilot-API, i.e., interoperability between PJ frameworks. In
 configuration C1 we utilize SAGA-based interoperability by running
 BigJob concurrently on FutureGrid:India and XSEDE:Trestles. C2 and C3
@@ -2241,8 +2247,7 @@ FG case. Generally, in HTC environments  the pilots and thus, the \cus, are dist
 bandwidth considerations as additional point}
 Finally, C3 (right bars in figure~\ref{fig:perf_interop_128-bfast-interop})
 shows the result of the OSG and XSEDE:QB run. Since QueenBee is an older
-XSEDE machine, $T_R$ on this machine is much longer than $T_R$ on OSG despite
-the necessity of file staging.
+XSEDE machine, $T_R$ on this machine is much longer than $T_R$ on OSG.
 
 \jhanote{I think the labels of the bars
 need to change. For both C2 and C3 I think}\alnote{Change to what?}
@@ -2251,14 +2256,15 @@ need to change. For both C2 and C3 I think}\alnote{Change to what?}
 \label{sec:experiment-pilotdata}
 
 \jhanote{Is it about management or is it transport we're referring
-  to?}  An important challenge when running distributed data-intensive
-tasks is the effective and efficient transport of data. We investigate
-different data transport scenarios: (D1) the usage of
-application-level file staging without PD, (D2) the usage of PD with
-the SSH plugin\jhanote{what does this mean for transport}, and (D3)
-the usage of PD with Globus Online. For these experiments, we utilize
-Trestles (XSEDE). The input files are located on a remote machine 
-(Quarry (IU) for D1; Lonestar (TACC) for D2 and D3).
+  to?}  \alnote{actually both. Just refined.}
+An important challenge when running distributed data-intensive tasks is the
+effective and efficient management and transfer of data. We investigate
+different scenarios: (D1) the usage of application-level file staging without
+PD, (D2) the usage of PD with the SSH plugin,
+\jhanote{what does this mean for transport}\alnote{refined we generally talk about management of data and transfer. D2/D3 suppose to be analyzing both transfer and data management}
+and (D3) the usage of PD with Globus Online. For these experiments, we utilize
+Trestles (XSEDE). The input files are located on a remote machine: Quarry (IU)
+for D1; Lonestar (TACC) for D2 and D3.
 
 
 \begin{figure}[t]
@@ -2267,13 +2273,13 @@ Trestles (XSEDE). The input files are located on a remote machine
 		\includegraphics[width=0.4\textwidth]{../perf/sc/pd-128cus.pdf}
 	\caption{\I{\textbf{Pilot-Data Performance:} Using Pilot-Data the staging 
 	time can be significantly improved due to a reduction of the overall data 
-	transfer volume from 128 $\cdot$ 1.9\,GB to about 24\,GB (1.9\,GB + 128 
-	$\cdot$ 170\,MB). Further, Globus Online utilizes with GridFTP a more 
+	transfer volume from 128 times 1.9\,GB to about 24\,GB (1.9\,GB + 128 
+	times 170\,MB). Further, Globus Online utilizes with GridFTP a more 
 	efficient transfer protocol.\up\up}}
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
 
-\pmnote{ the dot instead of * is little bit confusing}
+% \pmnote{ the dot instead of * is little bit confusing}
 
 As previously alluded
 (Figure~\ref{fig:perf_interop_128-bfast-interop}), as the number of
@@ -2284,11 +2290,11 @@ Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an
 increasing number of CUs, the naive way of moving files (D1) is not a
 scalable solution; this is reflected in a runtime of $>$4 hours for 128
 CUs.  While the download time increases linearly with the number of
-CUs, the compute time remains almost constant at ~15\,min.
+CUs, the compute time remains almost constant at $\sim$15\,min.
 
-There are two options to address this issue: either
-distribute/scale-out the computation to multiple resource (see C3), or
-optimize data transfers using \pilotdata.  The optimization via
+There are two options to address this issue: (i)
+distribute/scale-out the computation to multiple resources (see C3), or
+(ii) optimize data transfers using \pilotdata.  The optimization via
 \pilotdata in turn has two components: amount transferred and transfer
 protocol.  By being cognizant of the distribution of the \cus,
 redundant transfers can be reduced (if not eliminated); using
@@ -2296,16 +2302,18 @@ redundant transfers can be reduced (if not eliminated); using
 the 128 CU scenario can be reduced from 243\,GB (i.\,e.\ 128\,\cus
 times 1.9\,GB data for the reference genome, index files and 1 read
 file) to 24\,GB (a single transfer of the reference genome and index
-files and 1 read file per \cu, i.\,e.\ 128 times 170\,MB ) \pmnote{This is explained in figure caption.. }.  The
-staging times in D2 and D3 are comparable: both SSH and Globus Online
-show some overhead compared to a plain HTTP-based transfer, but the
-lower amount of data leads to a significant improvement. \jhanote{I
-  don't understand how GlobusOnline has a higher overhead?} Globus
-Online shows a better performance than SSH mainly due to the more
-efficient GridFTP protocol.
+files and 1 read file per \cu, i.\,e.\ 128 times 170\,MB).  The
+staging times in D2 and D3 are significant lower than in D1. Further, Globus
+Online show a significant better performance than SSH ($\sim$30\,\%) mainly
+due to the usage of a more efficient transfer protocol (GridFTP).
 
-\alnote{Add SRM discussion (time to put data, replication, ...)  data
-  to large to store the complete }
+\jhanote{I
+  don't understand how GlobusOnline has a higher overhead?} \alnote{The intial 
+data that I had for GO was not that good, thus, the description was a bit more 
+pessimistic. But, the more runs I did the better GO became in comp. to SSH}
+
+% \alnote{Add SRM discussion (time to put data, replication, ...)  data
+%   to large to store the complete }
 
 % \jhanote{Where is the reason behind this explained?} \jhanote{Also, I
 % can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
