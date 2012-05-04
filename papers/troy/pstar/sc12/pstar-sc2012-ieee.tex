@@ -1394,6 +1394,9 @@ principle as a guideline for a balanced abstraction level.
 
 \subsection{Understanding the Pilot-API}
 
+\amnote{there are two references to SAGA in this section -- I think at
+this point they do not help to clarify things, and should be removed.}
+
 
 % \alnote{We don't establish that the BJ API is semantically equivalent to the 
 % Pilot-API.}
@@ -1416,7 +1419,8 @@ is submitted through the Pilot-API.
 %of scheduling.
 
 Figure~\ref{fig:figures_pilot_api_flow} shows the interactions between the
-P* elements.
+P* elements.\amnote{rather between pilot API components, right?  P*
+interactions is fig.1, me thinks}
 The Pilot-API decouples workload management and resource scheduling by exposing
 two separate services: The \texttt{Pilot\-Compute\-Service} and
 \texttt{Compute\-Unit\-Service}. 
@@ -1429,7 +1433,12 @@ Analogous to job creation in SAGA, the instantiation of the
 \texttt{Pilot\-Compute} instance is done by using a
 \texttt{Pilot\-ComputeDescription}. The description can be reused and has no
 state, while the \texttt{Pilot\-Compute} instance has state and is a reference
-for further usage.\\
+for further usage:
+the references \texttt{Pilot\-Compute} object represents a \pilot instance and allows the 
+application to interact with it, e.\,g.\ to query its state or to cancel 
+it. The process of \texttt{Pilot\-Compute} creation is depicted in step 1-2 of 
+figure~\ref{fig:figures_pilot_api_flow} and in listing~\ref{lst:pcs_creation}.
+
 
 \lstset{
 language=Python,
@@ -1440,7 +1449,7 @@ basicstyle=\scriptsize\ttfamily
 }
 
 \begin{minipage}{0.45 \textwidth}
-\begin{lstlisting}[caption={Instantiation of a Pilot Service using a Pilot Compute Description.}, label={lst:pcs_creation}]
+\begin{lstlisting}[caption={\I{Creation of a \T{PilotCompute} instance using a \T{Pi\-lot\-Compute\-Description}.}}, label={lst:pcs_creation}]
 pcs = PilotComputeService()
 pc_desc = PilotComputeDescription()
 pc_desc.total_core_count = 8
@@ -1449,39 +1458,21 @@ pc = pcs.create_pilot('gram://queenbee',
 \end{lstlisting}
 \end{minipage}
 
-The \texttt{Pilot\-Compute} object represents a \pilot instance and allows the 
-application to interact with it, e.\,g.\ to query its state or to cancel 
-it. The process of \texttt{Pilot\-Compute} creation is depicted in step 1-2 of 
-figure~\ref{fig:figures_pilot_api_flow} and in listing~\ref{lst:pcs_creation}.
-
 Listing~\ref{lst:cus_creation} shows the creation of
 a \texttt{Compute\-Unit\-Service}.  Having created
 a \texttt{Compute\-Unit\-Service} instance, \texttt{Pilot\-Compute\-Service}
-instances can be added and removed at any time.  This enables applications to
+instances can be added and removed at any time, which makes the respective pilots available to that Service.  That semantics enables applications to
 respond to dynamic resource requirements at runtime, i.\,e.\ additional
 resources can be requested on peak demands, and can be released if they are no
 longer required.\\
 
 \begin{minipage}{0.45 \textwidth}
-\begin{lstlisting}[caption={Instantiation
+\begin{lstlisting}[caption={\I{Instantiation
 of a \texttt{ComputeUnitService} using a reference to the
-\texttt{PilotComputeService}.}, label={lst:cus_creation}]
+\texttt{PilotComputeService}.}}, label={lst:cus_creation}]
 cus = ComputeUnitService()
 cus.add(pcs)
 \end{lstlisting}
-
-\end{minipage}
-
-\begin{minipage}{0.45 \textwidth}
-\begin{lstlisting}[caption={Instantiation and 
-	submission of a \texttt{ComputeUnitDescription}.}, label={lst:submission}] 
-cud = ComputeUnitDescription()
-cud.executable = '/bin/bfast'
-cud.arguments = ['match', '-t4', '/data/file1']
-cud.total_core_count = 4
-cu = cus.submit(cud)
-\end{lstlisting}
-
 \end{minipage}
 
 % \lstset{
@@ -1498,9 +1489,20 @@ transitions to an \su.
 SUs are internally processed (e.\,g.\ they can be aggregated) and are then scheduled to the Pilot-Job Framework (step 4). 
 The PJ framework is responsible for the actual execution of the \su on a
 resource.
-Note that multiple levels of (hierarchical) scheduling can be present, commonly
-a \su is scheduled inside a PJ framework and the model allows it to be present
-in multiple layers.
+Note that multiple levels of (hierarchical) scheduling can be present -- commonly
+a \su is scheduled inside a PJ framework, the model allows it to be present
+in multiple layers.\\
+
+\begin{minipage}{0.45 \textwidth}
+\begin{lstlisting}[caption={\I{Instantiation and 
+	submission of a \texttt{Compute\-Unit\-Description}.}}, label={lst:submission}] 
+cud = ComputeUnitDescription()
+cud.executable = '/bin/bfast'
+cud.arguments = ['match', '-t4', '/data/file1']
+cud.total_core_count = 4
+cu = cus.submit(cud)
+\end{lstlisting}
+\end{minipage}
 
 
 
@@ -1539,8 +1541,8 @@ multiple \texttt{Compute\-Unit\-Service} instances.
 A \texttt{Compute\-Unit\-Service} can manage multiple \texttt{Compute\-Unit}
 instances, but a \texttt{Compute\-Unit} can only be managed by one
 \texttt{Compute\-Unit\-Service}.
-So can a \texttt{Pilot\-Compute\-Service} manage multiple
-\texttt{Pilot\-Compute} instances, but can a \texttt{Pilot\-Compute} only be
+Similarly, a \texttt{Pilot\-Compute\-Service} can manage multiple
+\texttt{Pilot\-Compute} instances, but a \texttt{Pilot\-Compute} can only be
 managed by one \texttt{Pilot\-Compute\-Service}.
 
 
@@ -1576,16 +1578,15 @@ managed by one \texttt{Pilot\-Compute\-Service}.
 %\end{table}
 
 
-\subsection{Pilot-API for Data}\jhanote{I propose we
-  call this Pilot-API for Data, not ``Extending''}\alnote{ok}
+\subsection{Pilot-API for Data}
 
 Analogous to the Pilot-API for Compute, the Pilot Data
 API~\cite{pilot_api} defines the \texttt{PilotDataService} entity as
 an abstraction for creating and managing pools of storage. A
 \texttt{PilotData} instance represents the actual physical storage
-space. The \texttt{ComputeDataService} entity functions as an
+space. An additional \texttt{ComputeDataService} entity functions as an
 application-level scheduler, which accepts both
-\texttt{Compute\-Units} and \texttt{DataUnits}. It resolves necessary
+\texttt{Compute\-Units} and \texttt{DataUnits} -- this resolves new
 dependencies (e.g. data/data or data/computer affinities), and is
 responsible for managing the execution of \dus and \cus.
 
