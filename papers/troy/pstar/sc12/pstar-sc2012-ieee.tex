@@ -2244,8 +2244,9 @@ necessity of file staging. \jhanote{I think the labels of the bars
 \subsection{Data Management and Pilot-Data}
 \label{sec:experiment-pilotdata}
 
-An important challenge when running distributed data-intensive tasks
-is the effective and efficient transport of data. We investigate
+\jhanote{Is it about management or is it transport we're referring
+  to?}  An important challenge when running distributed data-intensive
+tasks is the effective and efficient transport of data. We investigate
 different data transport scenarios: (D1) the usage of
 application-level file staging without PD, (D2) the usage of PD with
 the SSH plugin\jhanote{what does this mean for transport}, and (D3)
@@ -2277,21 +2278,23 @@ scalable solutio; this is reflected in a runtime of $>$4 hours for 128
 CUs.  While the download time increases linearly with the number of
 CUs, the compute time remains almost constant at ~15\,min.
 
-% \jhanote{why the further reduction with GO?}\alnote{this was just some dummy
-% data with 1 CU. Now the figure contains the most current data}
-
-There are two options to address this issue: either scale-out the computation
-to multiple resource (see C3) or optimize data transfers using \pilotdata.
-Using \pilotdata the overall amount of data that needs to be transferred for
-the 128 CU scenario is reduced from 243\,GB (i.\,e.\ 128\,\cus times 1.9\,GB
-data for the reference genome, index files and 1 read file) to 24\,GB (a
-single transfer of the reference genome and index files and 1 read file per
-\cu, i.\,e.\ 128 times 170\,MB ). The staging times in D2 and D3 are
-comparable: Both SSH and Globus Online show some overhead compared to a plain
-HTTP-based transfer, the lower amount of data leads to a significant
-improvement. Globus Online shows a better performance than SSH mainly due to
-the more efficient GridFTP transfer protocol.
-
+There are two options to address this issue: either
+distribute/scale-out the computation to multiple resource (see C3), or
+optimize data transfers using \pilotdata.  The optimization via
+\pilotdata in turn has two components: amount transferred and transfer
+protocol.  By being cognizant of the distribution of the \cus,
+redundant transfers can be reduced (if not eliminated); using
+\pilotdata the overall amount of data that needs to be transferred for
+the 128 CU scenario can be reduced from 243\,GB (i.\,e.\ 128\,\cus
+times 1.9\,GB data for the reference genome, index files and 1 read
+file) to 24\,GB (a single transfer of the reference genome and index
+files and 1 read file per \cu, i.\,e.\ 128 times 170\,MB ).  The
+staging times in D2 and D3 are comparable: both SSH and Globus Online
+show some overhead compared to a plain HTTP-based transfer, but the
+lower amount of data leads to a significant improvement. \jhanote{I
+  don't understand how GlobusOnline has a higher overhead?} Globus
+Online shows a better performance than SSH mainly due to the more
+efficient GridFTP transfer protocol.
 
 \alnote{Add SRM discussion (time to put data, replication, ...)  data
   to large to store the complete }
@@ -2299,32 +2302,6 @@ the more efficient GridFTP transfer protocol.
 % \jhanote{Where is the reason behind this explained?} \jhanote{Also, I
 % can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
 % in the beginning of sec B resp. C. Will do the same with configuration D.}
-\jhanote{This paragraph is misplaced} \alnote{propose to merge in
-  conclusion} In summary, the Pilot-API enables the usage of a diverse
-set of distributed, heterogeneous infrastructures via a unified
-API. As shown, the Pilot-API does not represent a barrier to
-scalability, but provides the ability to overcome scalability
-limitations of certain infrastructure caused e.\,g.\ by IO, memory,
-and/or bandwidth bottlenecks. By using the capabilities of the
-Pilot-API, i.\,e.\ the decoupling of workload submission from resource
-assignment, applications can scale-out on multiple and possibly
-heterogeneous resources in a flexible way. While scale-out introduces
-some overheads (e.\,g.\ in particular for data-intensive applications,
-large amounts data need to be moved), it enables application to
-improve performance, e.\,g.\ by offloading parts of the computation to
-a faster resource (see C1), and to scale its problem set, e.\,g.\ by
-utilizing more resources at the same time.
-
-\note{Future Work: optimizations (parallel queuing and transferring)}
-
-
-\jhanote{This will probably have to go due to space: In summary, the
-  Pilot-API enables applications to utilize a dynamic resource pool
-  consisting of resources of different infrastructures, e.\,g.\ EGI
-  and FutureGrid, but also XSEDE resources, at large-scales hitherto
-  unattainable.}
-
-
 
 % \input{bigdata}
 % 
@@ -2343,6 +2320,29 @@ utilizing more resources at the same time.
 
 \section{Discussion and Future Work}
 \label{sec:discussion-future-work}
+
+In summary, the Pilot-API enables the usage of a diverse set of
+distributed, heterogeneous infrastructures via a unified API. As
+shown, the Pilot-API does not represent a barrier to scalability, but
+provides the ability to overcome scalability limitations of certain
+infrastructure caused e.\,g.\ by I/O, memory, and/or bandwidth
+bottlenecks. By using the capabilities of the Pilot-API, i.\,e.\ the
+decoupling of workload submission from resource assignment,
+applications can scale-out on multiple and possibly heterogeneous
+resources in a flexible way. While scale-out introduces some overheads
+(e.\,g.\ in particular for data-intensive applications, large amounts
+data need to be moved), it enables application to improve performance,
+e.\,g.\ by offloading parts of the computation to a faster resource
+(see C1), and to scale its problem set, e.\,g.\ by utilizing more
+resources at the same time.
+
+\jhanote{This will probably have to go due to space: In summary, the
+  Pilot-API enables applications to utilize a dynamic resource pool
+  consisting of resources of different infrastructures, e.\,g.\ EGI
+  and FutureGrid, but also XSEDE resources, at large-scales hitherto
+  unattainable.}
+
+\note{Future Work: optimizations (parallel queuing and transferring)}
 
 \jhanote{Ole: Please Please Please put down an analysis of why an API
   is not enough and the deployment challenges that remain. In other
