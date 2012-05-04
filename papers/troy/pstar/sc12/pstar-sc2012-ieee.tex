@@ -1629,7 +1629,10 @@ responsible for managing the execution of \dus and \cus.
 
 As discussed in \S\ref{sec:pilot-job-frameworks}, several PJ
 frameworks can be mapped to the P* Model, which enables their
-collective usage via the Pilot-API.  We begin by understanding the
+collective usage via the Pilot-API. \onote{Haven't we established
+that just because a PJ maps to the model doesn't mean that 
+it is 'collectively' usable via the Pilot-API, e.g., in the 
+glidein case?}  We begin by understanding the
 overhead of PJ frameworks (section~\ref{sec:pj_performance}).  In
 section~\ref{sec:fg-xsede-osg-egi} we show the effectiveness of the
 Pilot-API/P* Model approach by executing {\it real application
@@ -1699,7 +1702,12 @@ the Pilot-API -- see section~\ref{sec:experiment-interop}.
 
 Before we understand the performance of different frameworks for
 real application workloads, we analyze the typical overheads for PJ
-frameworks.  The overhead of a PJ framework, like many distributed
+frameworks.
+\onote{We don't really 'analyze' anything here. We claim that there
+is C-and-C and extrinsic factors. I also don't know if a discussion
+of the C-n-C properties of DIANE and BigJob are sufficient to claim
+that these are 'typical overheads for PJ frameworks'.}
+The overhead of a PJ framework, like many distributed
 submission mechanisms and tools is most commonly determined by the
 following factors: job submission and coordination overhead.  Although
 important determinants of the time-to-solution, the queueing and file
@@ -1863,49 +1871,40 @@ frequency.
 \jhanote{Need to mention this is for BigJob and not PJ frameworks in
   general, as it reads now!}
 
-We executed a different number of very short running (i.\,e. zero
-workload) \cus on Alamo and Sierra, running up to 128\,\cus
-concurrently.  This enables us to focus on the overhead induced by the
-PJ framework and the \cc subsystem. Each experiment is repeated at
-least 10 times.  In general, the c\&c systems used are mostly
-insensitive to the number of jobs/tasks coordinated.  Although we do
-not provide a detailed discussion of the dependency of the
-coordination overhead on the number of \cus, it is worth mentioning
-that the the runtime increases only slightly when going from 64 to
+We executed a different number of very short running (i.\,e. zero workload)
+\cus on two FutureGrid clusters -- Alamo and Sierra --  running up to 128\,\cus
+concurrently.  This enables us to focus on the overhead induced by the PJ
+framework and the \cc subsystem. Each experiment is repeated at least 10 times.
+In general, the c\&c systems used are mostly insensitive to the number of
+jobs/tasks coordinated.\onote{Strong claim -- data doesn't show any significant
+scale-up} Although we do not provide a detailed discussion of the dependency
+between coordination overhead and the number of \cus, it is worth
+mentioning that the runtime increases only slightly when going from 64 to
 2048 \cus.
 
-\jhanote{Is this c\&c overhead?}
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
-scalability with respect to the number of cores per \pilot. For this
-purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
-512\,\cus. The Redis (Local) configuration show an almost linear
-scalability up to 128 cores. The Redis (Remote) setup imposes an
-overhead of about 14\,\%.  ZeroMQ performs very well with lower core
-counts; with larger core counts, the runtimes increase, indicating a
-potential scalability bottleneck. DIANE shows, in particular for lower
-core counts, a longer runtime, again due to the higher startup
-overhead. With higher core counts DIANE behaves similar to
-BigJob/ZeroMQ, showing a greater increase of the overall runtime. This
-increase is likely attributable to the single central manager in the
-client-server architecture. Using Redis as central data space
-decouples the Pilot-Manager and the Agent, which yields to a better
+\jhanote{Is this c\&c overhead?} Figure~\ref{fig:perf_bigjob-varying-cores}
+illustrates the performance scalability with respect to the number of cores per
+\pilot. For this purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
+512\,\cus. BigJob with Redis (local) shows almost linear scaling up to 128
+cores. BigJob with Redis (remote) imposes an overhead of about 14\,\%.  BigJob
+with ZeroMQ performs very well with lower core counts; with larger core counts,
+the runtimes increase, indicating a potential scalability bottleneck.  DIANE
+shows, in particular for lower core counts, a longer runtime, again due to a
+higher startup overhead. With higher core counts DIANE behaves similar to
+BigJob/ZeroMQ, but showing a greater increase of the overall runtime. This
+increase is likely attributable to the single central manager in DIANE's
+CORBA-based client-server architecture. Using Redis as central data space for
+BigJob decouples the Pilot-Manager and the Agent, which yields to a better
 performance in particular with a larger number of replicas.
 
-\begin{figure}[t] 
- \centering
- \up
- \includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
- \upp
- \caption{\I{\textbf{\pilotjob Coordination Mechanism:}  The
-  runtime of a workload of 4 \cus per core, i.\,e.\ 32 - 512\,\cus, using 
-different \pilots and configuration. For 
-BJ-Redis the runtime  increases only moderately, the client-server-based 
-implementations BJ-ZMQ and DIANE show particularly a steep increase when going 
-from 64 to 128 cores. The Advert backend is unoptimized and 
-shows a significant slowdown. \up\up
-  }}
- \label{fig:perf_bigjob-varying-cores} 
-\end{figure}
+\begin{figure}[t] \centering \up
+\includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
+\upp \caption{\I{\textbf{\pilotjob Coordination Mechanism:}  The runtime of a
+workload of 4 \cus per core, i.\,e.\ 32 - 512\,\cus, using different \pilots
+and configuration. For BJ-Redis the runtime  increases only moderately, the
+client-server-based implementations BJ-ZMQ and CORBA-based DIANE show
+particularly a steep increase when going from 64 to 128 cores. \up\up }}
+\label{fig:perf_bigjob-varying-cores} \end{figure}
 
 % The AS implementation currently shows some performance
 % limitations, mainly caused by the prototypical nature of its
@@ -1933,14 +1932,13 @@ shows a significant slowdown. \up\up
 \label{sec:fg-xsede-osg-egi}
 
 
-\subsubsection*{Production Infrastructure} 
+%\subsubsection*{Production Infrastructure} 
 
-To validate the abstractions developed,
-such as Pilot-API, we conducted a series of
-experiments on various production infrastructure. We executed
-BFAST~\cite{bfast2009} using three different PJ frameworks (BigJob,
-DIANE and Condor) on XSEDE~\cite{xsede}, FutureGrid~\cite{fg},
-EGI~\cite{egi} and OSG~\cite{1742-6596-78-1-012057}.
+To validate the effectiveness and usability of the Pilot-API, we
+conducted a series of experiments on various production infrastructure. We
+executed BFAST~\cite{bfast2009} using three different PJ frameworks (BigJob,
+DIANE and Condor) on XSEDE~\cite{xsede}, FutureGrid~\cite{fg}, EGI~\cite{egi}
+and OSG~\cite{1742-6596-78-1-012057}.
 
 Specifically, we utilized the following resources: XSEDE: Kraken (1.17\,PFlop 
 Cray XT5 / 9,408\,nodes / 112,896\,cores / Torque), Trestles 
@@ -2033,12 +2031,11 @@ files (one per CU) are used.
 % 50GB!}\alnote{hopefully fixed. This was explaining the input data we had 
 % (we only have 32 read files, ie. we reuse them}
 
-\jhanote{please smooth: we mention 128 3 times in 4 sentences!}
-In total, 128\,\cus are defined and submitted to the
-\texttt{Compute\-Data\-Service}. Each BFAST \cu requires 1 core;
-depending on the resource a different number of cores may be assigned
-for each BFAST \cu. Each \cu is associated with a
-set of input files, which are staged by the application.
+\jhanote{please smooth: we mention 128 3 times in 4 sentences!} In total,
+128\,\cus are defined and submitted to the different PJs. Each BFAST \cu
+requires 1 core; depending on the resource a different number of cores may be
+assigned for each BFAST \cu. Each \cu is associated with a set of input files,
+which are staged by the application.
 
 % , e.\,g.\ on Kraken 4 cores are reserved for each
 % \cu to provide sufficient IO and memory. 
