@@ -44,8 +44,9 @@
   \pilotjobs which can be used to define, compare and contrast
   different implementations.  Often \pilotjob implementations are
   strongly coupled to the distributed cyberinfrastructure they were
-  originally designed for. % there exist multiple distinct and
-%   incompatible implementations of pilot-jobs.
+  originally designed for. 
+  % there exist multiple distinct and incompatible implementations of
+  % pilot-jobs.
   These factors present a barrier to extensibility and
   interoperability. This paper is an attempt to (i) provide a minimal
   but complete model (P*) of \pilotjobs, (ii) establish the generality
@@ -62,70 +63,72 @@
 %\keywords{ACM proceedings, \LaTeX, text tagging}
 %\up\up
 
-\section{Introduction and Overview} 
+%and are usable on different infrastructures
 
+\section{Introduction and Overview} 
 The seamless uptake of distributed infrastructures by scientific
-applications has been limited by the availability of extensible,
-pervasive and simple-to-use abstractions at multiple levels -- at
-development, deployment and execution stages of scientific
+applications has been limited by the lack of pervasive and
+simple-to-use abstractions at multiple levels -- at development,
+deployment and execution stages of scientific
 applications~\cite{dpagrid2009}.  Even where meaningful abstractions
-exist, the challenges of providing them in an extensible, reliable and
-scalable manner so as to support multiple applications and are
-usable on different infrastructures are formidable.  The lack of
-appropriate implementations has in fact resulted in ``one-off''
-solutions that address challenges in a highly customized manner.
-Tools and implementations are often highly dependent on and tuned to a
-specific execution environment, further impacting portability,
-reusability and extensibility.  Semantic and interface incompatibility
-are certainly barriers, but so is the lack of a common architecture
-and conceptual framework upon which to develop similar tools a
-barrier.
+exist, the challenges of implementing them in an extensible, reliable
+and scalable manner, so as to support multiple applications are
+formidable.  The lack of appropriate implementations has in fact
+resulted in ``one-off'' solutions that address challenges in a highly
+customized manner.  Tools and implementations are often highly
+dependent on and tuned to a specific execution environment, further
+impacting portability, reusability and extensibility.  Semantic and
+interface incompatibility are certainly barriers, but so is the lack
+of a common architecture and conceptual framework upon which to
+develop similar tools a barrier.  This general state of affairs also
+captures the specific state of the abstractions provided by {\it
+  \pilotjobs (PJ)}.  There are a plethora of working definitions and
+roles for \pilotjobs; from our perspective, a \pilotjob provides the
+ability to utilize a placeholder job as a container for a dynamically
+determined set of compute tasks.
 
 %reinforces the fragmentation~\cite{dpa_surveypaper}.
 % there remains, scope for improvement in both the range and number of
 % supported abstractions and the type of infrastructure over which such
 % abstractions are made available.
 
-This general state of affairs also captures the specific state of the
-abstractions provided by {\it \pilotjobs (PJ)}. \pilotjobs have been
-one of the most successful abstractions in distributed
-computing. Distributed cyber/e-infrastructure is by definition
-comprised of a set of resources that is fluctuating -- growing,
-shrinking, changing in load and capability (in contrast to a static
-resource utilization model of traditional parallel
-and cluster computing systems).  The ability to utilize a dynamic resource
-pool is thus an important attribute of any application that needs to
-utilize distributed cyberinfrastructure (DCI) efficiently. As a
-consequence of providing a simple approach for decoupling workload
-management and resource assignment/scheduling, PJ provide an
-effective abstraction for dynamic execution and resource utilization in
-a distributed context.
+Distributed cyber/e-infrastructure is by definition comprised of a set
+of resources that is fluctuating -- growing, shrinking, changing in
+load and capability (in contrast to a static resource utilization
+model of traditional parallel and cluster computing systems).  The
+ability to utilize a dynamic resource pool is thus an important
+attribute of any application that needs to utilize distributed
+cyberinfrastructure (DCI) efficiently. As a consequence of providing a
+simple approach for decoupling workload management and resource
+assignment/scheduling, PJ provide an effective abstraction for dynamic
+execution and resource utilization in a distributed context.  Not
+suprisingly, \pilotjobs have been one of the most successful
+abstractions in distributed computing.  The fundamental reason for the
+success of the \pilotjob abstraction is that \pilotjobs liberate
+applications/users from the challenging requirement of mapping
+specific tasks onto explicit heterogeneous and dynamic resource pools.
+\pilotjobs thus shield applications from having to load-balance tasks
+across such resources.  The \pilotjob abstraction is also a promising
+route to address specific requirements of distributed scientific
+applications, such as coupled-execution and application-level
+scheduling~\cite{ko-efficient,DBLP:conf/hpdc/KimHMAJ10}.
 
 
-The fundamental reason for the success of the PJ abstraction is that
-PJ liberate applications/users from the challenging requirement of
-mapping specific tasks onto explicit heterogeneous and dynamic
-resource pools.  PJ also thus shields application from having to
-load-balance tasks across such resources.  The \pilotjob abstraction
-is also a promising route to address specific requirements of
-distributed scientific applications, such as coupled-execution and
-application-level scheduling~\cite{ko-efficient,DBLP:conf/hpdc/KimHMAJ10}.
-
-
-A variety of PJ frameworks have emerged:
-Condor-G/ Glide-in~\cite{condor-g}, Swift~\cite{Wilde2011},
+A variety of PJ frameworks have emerged: Condor-G/
+Glide-in~\cite{condor-g}, Swift~\cite{Wilde2011},
 DIANE~\cite{Moscicki:908910}, DIRAC~\cite{1742-6596-219-6-062049},
 PanDA~\cite{1742-6596-219-6-062041}, ToPoS~\cite{topos},
 Nimrod/G~\cite{10.1109/HPC.2000.846563}, Falkon~\cite{1362680} and
 MyCluster~\cite{1652061} to name a few. Although they are all, for the
 most parts, functionally equivalent -- they support the decoupling of
 workload submission from resource assignment -- it is often impossible
-to use them interoperably or even just to compare them functionally or
-qualitatively.  The situation is reminiscent of the proliferation of
-functionally similar yet incompatible workflow systems, where in spite
-of significant a posteriori effort on workflow system extensibility
-and interoperability (thus providing post-facto justification of its
-needs), these objectives remains difficult if not infeasible.
+to use them interoperably, or even just to compare them functionally
+or qualitatively.  The situation is reminiscent of the proliferation
+of functionally similar yet incompatible workflow systems, where in
+spite of significant a posteriori effort on workflow system
+extensibility and interoperability (thus providing post-facto
+justification of its needs), these objectives remains difficult if not
+infeasible.
 
 %Where effective abstractions exist a problem in the 
 %The general problem applies to the specific situation of pilot-jobs.
@@ -170,32 +173,38 @@ needs), these objectives remains difficult if not infeasible.
 % The P* Model captures the essence of most, if not all existing PJ
 % frameworks.
 
-We present the P* Model in \S\ref{sec:pilot-model}. Our objective is to
-provide a minimal, but complete model -- hence referred to as P* Model, for
-\pilot abstractions. We also investigate generalizations to the base P* Model.
-A natural and logical extension of the P* Model arises from the need to extend
-it to include data in addition to computational tasks. This leads to analogous
-abstraction to the \pilotjob: the \emph{\pilotdata (PD)} abstraction. The
-potentially consistent treatment of data and compute suggests symmetrical
-compute and data elements in the model; thus we refer to this model as the P*
-Model ("P-star").
+We present the P* Model in \S\ref{sec:pilot-model}. Our objective is
+to provide a minimal, but complete model -- hence referred to as P*
+Model ("P-star"), for \pilot abstractions. We also investigate
+generalizations to the base P* Model.  A natural and logical extension
+of the P* Model arises from the opportunity to extend it to include
+data in addition to computational tasks. This leads to analogous
+abstraction to the \pilotjob: the \emph{\pilotdata (PD)}
+abstraction. The potentially consistent treatment of data and compute
+suggests symmetrical compute and data elements in the model; thus we
+refer to this model as the P* Model of Pilot Abstractions.
 
-The P* Model provides a conceptual basis to compare and contrast different PJ
-frameworks -- which to the best of our knowledge is the first such attempt. In
-\S\ref{sec:pilot-job-frameworks} we validate this claim by analyzing
-well-known PJ frameworks (BigJob, Condor-G/Glide-in, DIANE) using the P*
-Model. \S\ref{sec:pilot-api} of this paper motivates and describes the
-Pilot-API; we discuss how existing and widely used \pilotjob frameworks, can
-be used through the Pilot-API. \S\ref{sec:exp_res} describes the experiments
-and performance measurements used to characterize the workings of the
-Pilot-API and to demonstrate interoperability across middleware, platform and
-different PJ frameworks. To further substantiate the impact of P*, we will
-demonstrate interoperability between different PJ frameworks -- BigJob and
-DIANE. We believe this is also the first demonstration of concurrent
-interoperation of different \pilotjob implementations. Performance advantages
-arising from the ability to distribute part of a data-intensive workload are
-discussed; interoperable capabilities increase flexibility in resource
-selection and optimization.
+The P* Model provides a conceptual basis to compare and contrast
+different PJ frameworks -- which to the best of our knowledge is the
+first such attempt. In \S\ref{sec:pilot-model}, we also apply the P*
+Model to data and introduce {\it Pilot-Data} as an abstraction for
+data that is analogous \pilotjobs. In \S\ref{sec:pilot-job-frameworks}
+we validate the P* Model by analyzing well-known PJ frameworks
+(BigJob, Condor-G/Glide-in, DIANE) and mapping them to the elements of
+the P* Model. \S\ref{sec:pilot-api} of this paper motivates and
+describes the Pilot-API; we discuss how existing and widely used
+\pilotjob frameworks, can be used through the
+Pilot-API. \S\ref{sec:exp_res} describes the experiments and
+performance measurements used to characterize the workings of the
+Pilot-API and to demonstrate interoperability across middleware,
+platform and different PJ frameworks. To further substantiate the
+impact of P*, we will demonstrate interoperability between different
+PJ frameworks. %BigJob and DIANE.
+We believe this is also the first demonstration of concurrent
+interoperation of different \pilotjob implementations. Performance
+advantages arising from the ability to distribute part of a
+data-intensive workload are discussed; interoperable capabilities
+increase flexibility in resource selection and optimization.
 
 % After validating the P* Model -- as measured by extensibility and
 % interoperability -- 
@@ -203,13 +212,13 @@ selection and optimization.
 
 %Before discussing the P* Model, 
 
-It is worth noting that \pilotjobs are used on every major
-national and international DCI, including NSF/XSEDE,
-NSF/DOE Open Science Grid, EU EGI and others, to support hundreds and
-thousands of tasks daily, thus we believe the impact and validation of
-this paper lies in its ability to not only influence but also bridge
-the theory and practice of \pilotjobs, and thus multiple domains of
-science dependent on distributed cyberinfrastructure.
+It is worth noting that \pilotjobs are used on every major national
+and international DCI, including NSF/XSEDE, NSF/DOE Open Science Grid,
+EU EGI and others; they are used to support hundreds and thousands of
+tasks daily. Thus we believe the impact and validation of this paper
+lies in its ability to not only influence but also bridge the theory
+and practice of \pilotjobs, and thus multiple domains of science
+dependent on distributed cyberinfrastructure.
 
 
 
