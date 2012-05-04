@@ -873,18 +873,20 @@ resource. \cus are referred to as sub-jobs. Internally \cus are mapped
 \end{figure}
 
 
-BJ implements the following P* characteristic: As coordination model the M/W
-scheme is used: The BJ-Manager is the central entity, which manages the actual
-\pilot, the BJ-Agent. Each agent is responsible for gathering local
-information, for pulling sub-jobs from the manager, and for executing SUs on
-its local resource. The SAGA Advert Service is used for communication between
-manager and agent. The Advert Service (AS) exposes a shared data space that
-can be accessed by manager and agent, which use the AS to realize a push/pull
-communication pattern, i.\,e.\ the manager pushes a SU to the AS while the
-agents periodically pull for new SUs. Results and state updates are similarly
-pushed back from the agent to the manager. Further, BJ provides a pluggable
-communication \& coordination layer and also supports other \cc systems
-besides the AS, e.\,g.\ Redis~\cite{redis} and ZeroMQ~\cite{zmq}.
+BJ implements the following P* characteristic: As coordination model
+the M/W scheme is used: The BJ-Manager is the central entity, which
+manages the actual \pilot, the BJ-Agent. Each agent is responsible for
+gathering local information, for pulling sub-jobs from the manager,
+and for executing SUs on its local resource. The SAGA Advert Service
+is used for communication between manager and agent. The Advert
+Service (AS) exposes a shared data space that can be accessed by
+manager and agent, which use the AS to realize a push/pull
+communication pattern, i.\,e.\ the manager pushes a SU to the AS while
+the agents periodically pull for new SUs. Results and state updates
+are similarly pushed back from the agent to the manager. Further, BJ
+provides a pluggable communication \& coordination layer and also
+supports other \cc systems besides the AS, e.\,g.\ Redis~\cite{redis}
+and ZeroMQ~\cite{zmq}.
 
 
 %\subsection{BigData: A \pilotdata Implementation}
@@ -1674,26 +1676,26 @@ Before we understand the performance of different frameworks in a real
 application scenario, we analyze the typical overheads for PJ
 frameworks.  The overhead of a PJ framework, like many distributed
 submission mechanisms and tools is most commonly determined by the
-following factors: job submission and coordination overhead. The job
-submission time is very low compared to the overall runtime
+following factors: job submission and coordination overhead.  Although
+important determinants of the time-to-solution, the queueing and file
+staging time heavily depend on extrinsic factors, such as the system
+and network load, but are not intrinsic overheads of the PJ framework.
+The job submission time is very low compared to the overall runtime
 (see~\cite{saga_europar10} for an analysis).  There are many factors
 that influence the overall coordination performance, e.\,g.\ the
 degree of distribution (local (LAN) vs. remote (WAN)), the
 communication pattern (1:n versus n:n) and the communication
-frequency.  Although important determinants of the time-to-solution,
-the queueing and file staging time heavily depend on extrinsic
-factors, such as the system and network load, but are not intrinsic
-overheads of the PJ framework.
-
+frequency.
 % Thus, the primary barrier for performance and scalability is not the
 % internal coordination of the elements of a PJ implementation. 
 
-To evaluate \cc overheads, we conducted several experiments on
-FutureGrid~\cite{fg}. We executed a different number of very short
-running (i.\,e. zero workload) \cus on Alamo and Sierra, running up to
-128\,\cus concurrently.  This enables us to focus on the overhead
-induced by the PJ framework and the \cc subsystem. Each experiment is
-repeated at least 10 times.
+
+
+
+ 
+% To evaluate \cc overheads, we conducted several experiments on
+% FutureGrid~\cite{fg}. 
+
 
 
 % In the following we investigate the impact of different \cc related
@@ -1730,28 +1732,27 @@ repeated at least 10 times.
 % combined with a publish/subscribe mechanism, i.\,e.\ instead of
 % polling, an agent can receive notifications when a new SU arrives.
 
-
-
-
-% \jhanote{Need to motivate testing of c\&c sub-system better: There are
-%   many barriers to interoperability and performance. primary barrier to
-%   performance is not \cu  submission or SU scheduling to PM, but the
-%   fundamental limitation of scalability of coordination -- with
-%   increasing number of \cu /SU.  Establish tradeoff between distributed
-%   vs local coordination. e.g., It is easy to get consistency but has
-%   overhead.  Easy to get performance but difficult to get
-%   consistency. Thus we opt for centralized / persistent point. But how
-%   does this single point-of-coordination behave with increasing number
-%   of connections? } \alnote{hopefully addressed most points in paragraph above}
+% \jhanote{Need to motivate testing of c\&c sub-system better: There
+%   are many barriers to interoperability and performance. Primary
+%   barrier to performance is not \cu submission or SU scheduling to
+%   PM, but the fundamental limitation of scalability of coordination
+%   -- with increasing number of \cu /SU.  Establish tradeoff between
+%   distributed vs local coordination. e.g., It is easy to get
+%   consistency but has overhead.  Easy to get performance but
+%   difficult to get consistency. Thus we opt for centralized /
+%   persistent point. But how does this single point-of-coordination
+%   behave with increasing number of connections? } \alnote{hopefully
+%   addressed most points in paragraph above}
 
 % \begin{figure*}[htbp]
 % 	\centering		
 % 	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
-% 	\caption{\textbf{Coordination \& Communication:} The primarily used 
-% 	coordination pattern is the utilization of a request/response server 
-% 	(left, middle). In the data-space model (right) all application components 
-% 	are connect to a central data-space. This architecture decouples manager 
-% 	and agent allowing both to operate on its own pace.}
+% 	\caption{\textbf{Coordination \& Communication:} The primarily
+%    used coordination pattern is the utilization of a
+%    request/response server (left, middle). In the data-space model
+%    (right) all application components are connect to a central
+%    data-space. This architecture decouples manager and agent
+%    allowing both to operate on its own pace.}
 % 	\label{fig:figures_coordination-schemes}
 % \end{figure*}
 
@@ -1809,21 +1810,6 @@ repeated at least 10 times.
 % the TROY manager introduces another hierarchy-level which can
 % further enhance the overall scalability.
 
-
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
-scalability with respect to the number of cores per \pilot. For this purpose,
-we execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus. In particular,
-the Redis (Local) configuration show an almost linear scalability up to 128
-cores. The Redis (Remote) setup again imposes some overhead (about 14\,\%).
-ZeroMQ performs very well with lower core counts; with larger core counts the
-runtimes increase, indicating a potential scalability bottleneck. DIANE shows,
-in particular for lower core counts, a longer runtime, again due to the higher
-startup overhead. With higher core counts DIANE behaves similar to
-BigJob/ZeroMQ, showing a greater increase of the overall runtime. This
-increase can likely be attributed to the single central manager in the
-client-server architecture. Using Redis as central data space decouples the 
-Pilot-Manager and the Agent, which yields to a better performance in 
-particular with a larger number of replicas.
 % As in the last experiment,
 % the Advert \cc sub-system showed a significantly lower performance.
 % A reason for that
@@ -1835,10 +1821,50 @@ particular with a larger number of replicas.
 % contrast, data is stored in memory for Redis and ZeroMQ, which
 % explains the significant performance gains.
 
+% \jhanote{at times i think this whole subsection can be removed and
+%   replaced by a paragraph that summarises (i) the architecture (ii)
+%   the challenge (iii) performance measurement and analysis?}
 
-% \jhanote{at times i think this whole subsection can be removed
-% and replaced by a paragraph that summarises (i) the architecture
-% (ii) the challenge (iii) performance measurement and analysis?}
+
+% One reason is that 
+% DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
+% which the framework efficiently distributes to its agents. BigJob in contrast 
+% maintains a separate description for each \cu.
+% At the investigated scales, the single manager does not represent a
+% bottleneck with respect to the processable \cu  numbers. Further,
+% the TROY manager introduces another hierarchy-level which can
+% further enhance the overall scalability.
+
+\jhanote{Need to mention this is for BigJob and not PJ frameworks in
+  general, as it reads now!}
+
+We executed a different number of very short running (i.\,e. zero
+workload) \cus on Alamo and Sierra, running up to 128\,\cus
+concurrently.  This enables us to focus on the overhead induced by the
+PJ framework and the \cc subsystem. Each experiment is repeated at
+least 10 times.  In general, the c\&c systems used are mostly
+insensitive to the number of jobs/tasks coordinated.  Although we do
+not provide a detailed discussion of the dependency of the
+coordination overhead on the number of \cus, it is worth mentioning
+that the the runtime increases only slightly when going from 64 to
+2048 \cus.
+
+\jhanote{Is this c\&c overhead?}
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the performance
+scalability with respect to the number of cores per \pilot. For this
+purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and
+512\,\cus. The Redis (Local) configuration show an almost linear
+scalability up to 128 cores. The Redis (Remote) setup imposes an
+overhead of about 14\,\%.  ZeroMQ performs very well with lower core
+counts; with larger core counts, the runtimes increase, indicating a
+potential scalability bottleneck. DIANE shows, in particular for lower
+core counts, a longer runtime, again due to the higher startup
+overhead. With higher core counts DIANE behaves similar to
+BigJob/ZeroMQ, showing a greater increase of the overall runtime. This
+increase is likely attributable to the single central manager in the
+client-server architecture. Using Redis as central data space
+decouples the Pilot-Manager and the Agent, which yields to a better
+performance in particular with a larger number of replicas.
 
 \begin{figure}[t] 
  \centering
