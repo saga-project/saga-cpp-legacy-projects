@@ -2064,9 +2064,10 @@ which are staged by the application.
 Figure~\ref{fig:perf_perf-bfast-bj} shows the results of the
 experiments. In addition to the runtime ($T_R$) we
 measured %the queuing time ($T_q$), the
-time to transfer input files ($T_X$), and the 
-actual \jhanote{please fix!! we have runtime and actual runtime? does
-  actual just mean total runtime?} runtime $T_C$. $T_C$ also includes the overhead of the pilot.
+time to transfer input files ($T_X$), and the actual \jhanote{please
+  fix!! we have runtime and actual runtime? does actual just mean
+  total runtime?} runtime $T_C$. $T_C$ also includes the overhead of
+the pilot.
 %which is usually ~10\,\% of the overall runtime. 
 \jhanote{I'm not sure I understand
   this. What aspect of the pilot contributes 10\%. Why?} \alnote{I removed
@@ -2243,12 +2244,15 @@ necessity of file staging. \jhanote{I think the labels of the bars
 \subsection{Data Management and Pilot-Data}
 \label{sec:experiment-pilotdata}
 
-A particular challenge when running data-intensive tasks is the management of
-data. We investigate different data management scenarios: (D1) the usage of 
-application-level file staging without PD, (D2) the usage of PD with the SSH 
-plugin, and (D3) the usage of PD with Globus Online. For these experiments, we
-utilize the Trestles (XSEDE). The input files are located on a remote 
-machine: Quarry (IU) for D1, Lonestar (TACC) for D2 and D3.
+An important challenge when running distributed data-intensive tasks
+is the effective and efficient transport of data. We investigate
+different data transport scenarios: (D1) the usage of
+application-level file staging without PD, (D2) the usage of PD with
+the SSH plugin\jhanote{what does this mean for transport}, and (D3)
+the usage of PD with Globus Online. For these experiments, we utilize
+Trestles (XSEDE). The input files are located on a remote machine: for
+D1 Quarry (IU) was used; for D2 and D3 Lonestar (TACC) was used.
+
 
 \begin{figure}[t]
 	\upp
@@ -2262,17 +2266,19 @@ machine: Quarry (IU) for D1, Lonestar (TACC) for D2 and D3.
 	\label{fig:perf_sc_download-concurrent-cus}
 \end{figure}
 
-As previously alluded (see Figure~\ref{fig:perf_interop_128-bfast-interop}),
-file staging quickly becomes a bottleneck with a sufficiently high number of
-CUs as all CUs share the incoming bandwidth. Also, I/O contention on the
-shared file systems leads to an increasing compute time.
-Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an increasing
-number of CUs, the naive way of moving files (D1), which is reflected in a
-runtime of $>$4 hours for 128 CUs. While the download time increases linearly
-with the number of CUs, the compute time remains almost constant at ~15\,min.
+As previously alluded
+(Figure~\ref{fig:perf_interop_128-bfast-interop}), as the number of
+CUs increases, file staging quickly becomes a bottleneck, as all CUs
+share the incoming bandwidth.  Also, I/O contention on the shared file
+systems leads to an increasing compute time.
+Figure~\ref{fig:perf_sc_download-concurrent-cus} shows that with an
+increasing number of CUs, the naive way of moving files (D1) is not a
+scalable solutio; this is reflected in a runtime of $>$4 hours for 128
+CUs.  While the download time increases linearly with the number of
+CUs, the compute time remains almost constant at ~15\,min.
 
-\jhanote{why the further reduction with GO?}\alnote{this was just some dummy
-data with 1 CU. Now the figure contains the most current data}
+% \jhanote{why the further reduction with GO?}\alnote{this was just some dummy
+% data with 1 CU. Now the figure contains the most current data}
 
 There are two options to address this issue: either scale-out the computation
 to multiple resource (see C3) or optimize data transfers using \pilotdata.
@@ -2287,16 +2293,12 @@ improvement. Globus Online shows a better performance than SSH mainly due to
 the more efficient GridFTP transfer protocol.
 
 
-\alnote{
-Add SRM discussion (time to put data, replication, ...)
-data to large to store the complete
-}
+\alnote{Add SRM discussion (time to put data, replication, ...)  data
+  to large to store the complete }
 
-\jhanote{Where is the reason behind this explained?} \jhanote{Also, I
-can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
-in the beginning of sec B resp. C. Will do the same with configuration D.}
-
-
+% \jhanote{Where is the reason behind this explained?} \jhanote{Also, I
+% can't see where B1/B2 and C1/C2 etc are defined}\alnote{Bx and Cx are defined
+% in the beginning of sec B resp. C. Will do the same with configuration D.}
 \jhanote{This paragraph is misplaced} \alnote{propose to merge in
   conclusion} In summary, the Pilot-API enables the usage of a diverse
 set of distributed, heterogeneous infrastructures via a unified
