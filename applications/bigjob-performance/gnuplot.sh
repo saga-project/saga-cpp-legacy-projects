@@ -69,7 +69,7 @@ plot "results-processed/data_cores_advert_alamo.txt" using 1:2 title "Advert" wi
 #     "repex-azure.txt" using 1:5 title "extra-large (8 cores)" with lp  lt 3 linewidth 4
 
 set output "results-processed/bigjob-varying-cores-alamo-noadvert.pdf" 
-set yrange [0:300] 
+set yrange [0:150] 
 plot "results-processed/data_cores_redis_alamo.txt" using 1:2 title "Redis (Remote)" with lp,\
      "results-processed/data_cores_redis_local_alamo.txt" using 1:2 title "Redis (Local)" with lp ps 1,\
      "results-processed/data_cores_zmq_alamo.txt" using 1:2 title "ZMQ" with lp,\
