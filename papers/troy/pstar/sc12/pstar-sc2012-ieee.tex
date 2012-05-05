@@ -1923,38 +1923,40 @@ measured the time to transfer input files ($T_X$), and the compute
 % \jhanote{please
 %   fix!! we have runtime and actual runtime? does actual just mean
 %   total runtime?} 
-time $T_C$. $T_C$ also includes the overhead of
-the pilot.
-For each \cu, the reference genome, the index files and one read file need to
-be staged (1.9\,GB) -- which consumes the most significant part of the overall
-runtime. In particular, on the HPC clusters, the staging quickly becomes a
-bottleneck due to the fact that all \cus share the incoming network bandwidth.
-Also, fluctuation of the bandwidth in this scenario leads to a high failure
-rate during downloads. As seen in B3 (middle bar), the distribution of the
-network load to two resources yields to reduction of $T_{x}$. Also, in the HTC
-configuration (C4, C5), \cus are distributed across multiple machines
-minimizing the possibility of network congestions of single links. As an
-indication, a typical run of 128 CUs on OSG ended up being scheduled on 10+
-sites spread over an equal amount of nodes per site.
+time $T_C$. $T_C$ also includes the overhead of the pilot.  For each
+\cu, the reference genome, the index files and one read file need to
+be staged (1.9\,GB); this constiutes the most significant part of the
+overall runtime. In particular, on HPC clusters, the staging quickly
+becomes a bottleneck due to the fact that all \cus share the incoming
+network bandwidth.  Also, fluctuation of the bandwidth in this
+scenario leads to a high failure rate during downloads. As seen in B3
+(middle bar), the distribution of the network load to two resources
+leads to a reduction of $T_{X}$. Also, in the HTC configuration (C4,
+C5), \cus are distributed across multiple machines minimizing the
+possibility of network congestions of single links. As an indication,
+a typical run of 128 CUs on OSG ended up being scheduled on 10+ sites
+spread over an equal amount of nodes per site.
 
-
-\jhanote{Need to have clarity between
-  transfer between end-points as a bottleneck, and the I/O subsystem
-  as a bottleneck. BTW what is the formal bandwidth between the two
-  transfer endpoints?}\alnote{separated network and disk I/O issue by moving disk io issues to next paragraph and explicitly calling it out.}
+\jhanote{Need to have clarity between transfer between end-points as a
+  bottleneck, and the I/O subsystem as a bottleneck. BTW what is the
+  formal bandwidth between the two transfer
+  endpoints?}\alnote{separated network and disk I/O issue by moving
+  disk io issues to next paragraph and explicitly calling it out.}
 
 % Both the index and read files need to be loaded into memory. 
 
-Generally, $T_{C}$, i.\,e.\ the performance of BFAST is heavily dependent on
-the available disk I/O. Both Trestles (XSEDE) and India/Sierra (FG) have
-shared network filesystems (Lustre for Trestles, NFS for India), which are
-utilized by all jobs running on these machines. The collective performance of
-multiple, concurrent BFAST \cu thus degrades significantly with the available 
-disk I/O bandwidth, e.\,g.\ if a large number of jobs access the filesystem
-concurrently (due to the usage of NFS, the runtime on India is depending on 
-the scenario $>$20\,\% slower than other machines). On EGI and OSG, BFAST \cu 
-performs best. This can mainly be attributed to the use of local storage and
-the high degree of distribution of the \cus to multiple sites.
+In general $T_{C}$, % i.\,e.\ the performance of BFAST
+is heavily dependent on the available disk I/O. Both Trestles (XSEDE)
+and India/Sierra (FG) have shared network filesystems (Lustre for
+Trestles, NFS for India), which are utilized by all jobs running on
+these machines. The collective performance of multiple, concurrent
+BFAST \cu thus degrades significantly as contention for available disk
+I/O bandwidth increases due to larger number of tasks accessing the
+filesystem concurrently (due to the usage of NFS, the runtime on India
+is depending on the scenario $>$20\,\% slower than other machines). On
+EGI and OSG, BFAST \cu performs best. This can mainly be attributed to
+the use of local storage and the high degree of distribution of the
+\cus to multiple sites.
 
 
 \jhanote{How many
@@ -2026,27 +2028,26 @@ the high degree of distribution of the \cus to multiple sites.
 \subsection{PJ Framework Interoperability}
 \label{sec:experiment-interop}
 
-In principal, two types of interoperability between \pilotjobs and
-infrastructure exist: the first is the usage of a given PJ framework
-on different infrastructures; in the scenario examined, we use BigJob
-on different infrastructures in conjunction with different SAGA
-adaptors. 
 % \pmnote{don't we have a interoperability at compute level; since we 
 % addressed that having same compute unit description for all infrastructures} 
-The second is the usage of distinct PJ frameworks via the
-Pilot-API, i.e., interoperability between PJ frameworks. In
-configuration C1 we utilize SAGA-based interoperability by running
-BigJob concurrently on FutureGrid:India and XSEDE:Trestles. C2 and C3
-show PJ framework interoperability by concurrently running BigJob and
-DIANE on FutureGrid:India and EGI (C2), as well as Condor and BigJob
-on OSG and XSEDE:QueenBee (C3). It is worth reiterating, that to the
-best of our knowledge, the latter scenario, wherein different PJ
-frameworks are utilized concurrently for the same application
-(whether on the same infrastructure or distinct) has never before been
-realized. We attribute this to the use of the Pilot-API.  For all
-scenarios, we run the same BFAST application described in
-\S\ref{sec:fg-xsede-osg-egi} with 64\,\cus on each infrastructure,
-i.\,e.\ in total 128\,\cus.
+
+In principal, two types of interoperability between \pilotjobs and
+infrastructure exist: the first is the usage of a given PJ framework
+on different infrastructures; in the scenario examined, BigJob is used
+on different infrastructures by invoking different SAGA adaptors.  The
+second is the usage of distinct PJ frameworks via the Pilot-API, i.e.,
+interoperability between PJ frameworks. In configuration C1 we utilize
+SAGA adaptors to run BigJob concurrently on FutureGrid:India and
+XSEDE:Trestles. C2 and C3 show PJ framework interoperability by
+concurrently running BigJob and DIANE on FutureGrid:India and EGI
+(C2), as well as Condor and BigJob on OSG and XSEDE:QueenBee (C3). It
+is worth reiterating, that to the best of our knowledge, the latter
+scenario, wherein different PJ frameworks are utilized concurrently
+for the same application (whether on the same infrastructure or
+distinct) has never before been realized. We attribute this to the use
+of the Pilot-API.  For all scenarios, we run the same BFAST
+application described in \S\ref{sec:fg-xsede-osg-egi} with 64\,\cus on
+each infrastructure, i.\,e.\ in total 128\,\cus.
 
 \begin{figure}[htbp]
   \upp
@@ -2064,7 +2065,7 @@ i.\,e.\ in total 128\,\cus.
 
 Figure~\ref{fig:perf_interop_128-bfast-interop} shows the results of
 the interoperability tests. In C1, one \pilot is submitted to Trestles
-and one to India. 
+and one to FG/India.
 % \jhanote{This is wrong and needs updating! I think
 %   replace Kraken with Trestles. Check below for Kraken/Trestles too!} 
 The overall runtime is determined by the file staging and the actual compute
