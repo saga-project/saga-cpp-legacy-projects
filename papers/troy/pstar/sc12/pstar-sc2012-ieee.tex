@@ -1608,26 +1608,29 @@ responsible for managing the execution of \dus and \cus.
 % In this section we analyze the performance and scalability of
 % different PJ frameworks. 
 
-As discussed in \S\ref{sec:pilot-job-frameworks}, several PJ frameworks can be
-collectively used via the Pilot-API. We begin by understanding the overhead of
-PJ frameworks (section~\ref{sec:pj_performance}). In
+As discussed in \S\ref{sec:pilot-job-frameworks}, several PJ
+frameworks can be collectively used via the Pilot-API. We begin by
+understanding the overhead of PJ frameworks
+(section~\ref{sec:pj_performance}). In
 section~\ref{sec:fg-xsede-osg-egi} we show the effectiveness of the
-Pilot-API/P* Model approach by executing {\it real application workloads} -- a
-genome alignment application -- on multiple distinct production (XSEDE, EGI,
-OSG) and research (FutureGrid) infrastructures. It is important to note that
-our experiments do not try to identify the ``fastest'' PJ framework, as this
-is dependent on different factors, e.\,g.\ particularly the infrastructure
-used. We rather focus on demonstrating interoperability by using multiple PJ
-frameworks concurrently on multiple infrastructures using the Pilot-API -- see
-section~\ref{sec:experiment-interop}. Further, we show how \pilotdata  enables
-applications (i) to minimize the volume of the transferred data and (ii) to
-utilize different transfer protocols in section~\ref{sec:experiment-pilotdata}.
+Pilot-API/P* Model approach by executing {\it real application
+  workloads} -- a genome alignment application -- on multiple distinct
+production (XSEDE, EGI, OSG) and research (FutureGrid)
+infrastructures. It is important to note that our experiments do not
+try to identify the ``fastest'' PJ framework, as this is dependent on
+several external factors, often specific to the infrastructure
+used. In stead, we focus on demonstrating interoperability via the
+common Pilot-API by using multiple PJ frameworks concurrently on
+multiple infrastructures (see section~\ref{sec:experiment-interop}).
+% having established interoperability, an end-user can reason to
+% establish an optimal infrastructure configuration.
+Further, we show how \pilotdata enables applications (i) to lower
+the volume of the transferred data, and (ii) to utilize different
+transfer protocols in section~\ref{sec:experiment-pilotdata}.
+
 % \footnote{Experimental configurations, scripts and datasets are available online at: http://gw68.quarry.iu.teragrid.org/experiments-SC12}.
-
-
-\jhanote{We should agree on what the
-last set of experiments are trying to convey/achieve}\alnote{done}
-
+% \jhanote{We should agree on what the last set of experiments are
+%   trying to convey/achieve}\alnote{done}
 
 % of performance and scalability of coordination in BigJob and DIANE,
 % executing thousands of tasks but with zero workload. We establish that
@@ -1667,7 +1670,6 @@ last set of experiments are trying to convey/achieve}\alnote{done}
 %   combination'.}\jhanote{Would `` collectively'' be a better
 %   description?}
 
-\subsection{PJ Frameworks Overheads}\label{sec:pj_performance}
 
 % \alnote{What are the factors for overheads? coordination, file
 %   staging, file systems, job submission? invoke SAGA Europar?}
@@ -1680,203 +1682,62 @@ last set of experiments are trying to convey/achieve}\alnote{done}
 % (\cc) sub-systems. 
 %(see~\cite{denBurger:2010:PSC:1887695.1887739} 
 
+\subsection{PJ Frameworks Overhead}\label{sec:pj_performance}
+
 Before we understand the performance of different frameworks for real
-application workloads, we analyze the typical overheads for BigJob and DIANE.
-The overhead of a PJ framework, like many
-distributed submission mechanisms and tools, is most commonly determined by
-the following factors: the API overhead, the job submission and coordination
-overhead. Although important determinants of the time-to-solution, the
-queueing and file staging time heavily depend on extrinsic factors, such as
-the system and network load, but are not intrinsic overheads of the PJ
-framework. The overhead of the API-layer, i.\,e.\ the Pilot-API, was not 
-measurable using the built-in Python profiler, which provides accuracies in 
-the magnitude of milliseconds. Also, we previously established that job 
-submission times are commonly very low compared in particular when compared to 
-the overall runtime~\cite{saga_europar10}.  Thus, we focus our investigation on the distributed coordination overhead. There are many factors
+application workloads, we analyze the typical overheads for BigJob and
+DIANE.  The overhead of a PJ framework, like many distributed
+submission mechanisms and tools, is most commonly determined by the
+following factors: the API overhead, the job submission and
+coordination overhead. Although important determinants of the
+time-to-solution, the queueing and file staging time heavily depend on
+extrinsic factors, such as the system and network load, but are not
+intrinsic overheads of the PJ framework. The overhead of the
+API-layer, i.\,e.\ the Pilot-API, was not measurable using the
+built-in Python profiler, which provides accuracies in the magnitude
+of milliseconds; this places an effective upper-bound on Pilot-API
+latencies. Ref.~\cite{saga_europar10} established that even in a
+distributed context, job submission overheads, are very low when
+compared to the runtimes in consideration.  There are many factors
 that influence the overall coordination performance, e.\,g.\ the
 degree of distribution (local (LAN) vs. remote (WAN)), the
 communication pattern (1:n versus n:n) and the communication
-frequency.
-% Thus, the primary barrier for performance and scalability is not the
-% internal coordination of the elements of a PJ implementation. 
+frequency. We focus our investigation on the distributed coordination
+overhead.
 
-
-
-
- 
-% To evaluate \cc overheads, we conducted several experiments on
-% FutureGrid~\cite{fg}. 
-
-
-
-% In the following we investigate the impact of different \cc related
-% factors on the overall performance and scalability of PJ systems.
-% We evaluate different BigJob configurations, and compare and
-% contrast them with DIANE.
-
-% BigJob's \cc was originally based on a shared, centralized data space, 
-% the SAGA Advert Service (AS)~\cite{saga_advert}.  The
-% communication between all components is done via this shared data
-% space, which decouples BJ-Manager and BJ-Agent and allows both
-% entities to operate at their own pace, optimizing the overall
-% throughput.  A particular 
-
-% An issue during distributed runs is the latency
-% between the application and the (remote) Advert Service. Another
-% challenge is that this design introduces a potential
-% single-point-of-failure and scalability bottleneck if the centralized
-% data space is not carefully designed and operated.
-
-% BigJob also provides two alternative c\&c sub-systems:
-% Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
-% key/value store. Redis is used in a similar way as the AS, i.\,e.\ all 
-% communication between BJ-Agent and BJ-Manager is
-% channeled through it. In contrast, the ZeroMQ sub-system utilizes a
-% client-server architecture, which is similar to the CORBA-based approach 
-% of DIANE -- in this architecture, the PM maintains the
-% overall state. Clients connect to the PM to request new SUs or to
-% report state updates. An advantage of this architecture is that it
-% does not require a separate infrastructure deployment for the \cc
-% sub-system.
-
-% Both the data space and the client-server \cc sub-systems can be
-% combined with a publish/subscribe mechanism, i.\,e.\ instead of
-% polling, an agent can receive notifications when a new \su arrives.
-
-% \jhanote{Need to motivate testing of c\&c sub-system better: There
-%   are many barriers to interoperability and performance. Primary
-%   barrier to performance is not \cu submission or \su scheduling to
-%   PM, but the fundamental limitation of scalability of coordination
-%   -- with increasing number of \cu /\su.  Establish tradeoff between
-%   distributed vs local coordination. e.g., It is easy to get
-%   consistency but has overhead.  Easy to get performance but
-%   difficult to get consistency. Thus we opt for centralized /
-%   persistent point. But how does this single point-of-coordination
-%   behave with increasing number of connections? } \alnote{hopefully
-%   addressed most points in paragraph above}
-
-% \begin{figure*}[htbp]
-% 	\centering		
-% 	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
-% 	\caption{\textbf{Coordination \& Communication:} The primarily
-%    used coordination pattern is the utilization of a
-%    request/response server (left, middle). In the data-space model
-%    (right) all application components are connect to a central
-%    data-space. This architecture decouples manager and agent
-%    allowing both to operate on its own pace.}
-% 	\label{fig:figures_coordination-schemes}
-% \end{figure*}
-
-% Figure~\ref{fig:figures_coordination-schemes} illustrates different
-% coordination schemes. 
-
-% Most pilot-jobs utilize the master-worker \jhanote{M-W for what?}
-% pattern commonly implemented on basis of a simple request/response
-% architecture, i.\,e.\ the \jwave{agent} sends a request for work
-% packages to the master, which replies with a \cu . 
-
-% \jhanote{Are we talking specific implementation, i.e., TROY? If so we
-%   should not say ``A'' manager but ``The Pilot-Manager''? Also the previous
-% sentence should not talk about most pilot-jobs, if we've already started
-% talking about TROY!!} \alnote{hopefully fixed.} 
-
-% A manager
-% can manage a single agent (e.\,g.\ BigJob) or multiple agents
-% (e.\,g.\ DIANE). 
-
-
-% \begin{figure}[htbp] 
-%  \centering
-%  %\up
-%  \includegraphics[width=0.49\textwidth]{../perf/bigjob-varying-wus-alamo.pdf}
-%  \up\up
-%  \caption{\textbf{BigJob and DIANE Performance (1):} The 
-%   runtime increases linearly with the number of \cus in most cases. 
-%   The overhead per \cu imposed by the AS is generally 
-%   higher than for other backends. The runtime of the DIANE \cus only increases 
-%   moderately mainly due to the aggregation of the \cus.
-%   %\up
-% }
-%  \label{fig:perf_bigjob-varying-wus} 
-% \end{figure}
-% 
-% Figure~\ref{fig:perf_bigjob-varying-wus} illustrates the performance
-% and scalability of different BJ configurations and DIANE with
-% respect to the number of \cus. Clearly, the \cc sub-system has a great
-% impact on the overall performance: the Redis backend shows the best
-% performance for small \cu counts. The difference between local and
-% remote coordination is moderate (about 20\,\%). While ZeroMQ is very
-% fast and lightweight, it requires a careful implementation, in
-% particular concerning synchronization and throughput optimization. The
-% overall performance is slightly worse than for Redis. The Advert
-% Service currently has some limitations which will be discussed later.
-% DIANE shows a higher startup overhead, which is particularly
-% observable for smaller \cu  numbers. However, the runtime increases only 
-% slightly (about 10\,sec) when going from 64 to 2048 \cus. One reason is that 
-% DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
-% which the framework efficiently distributes to its agents. BigJob in contrast 
-% maintains a separate description for each \cu.
-% At the investigated scales, the single manager does not represent a
-% bottleneck with respect to the processable \cu  numbers. Further,
-% the TROY manager introduces another hierarchy-level which can
-% further enhance the overall scalability.
-
-% As in the last experiment,
-% the Advert \cc sub-system showed a significantly lower performance.
-% A reason for that
-% is the used remote access protocol, which is basically the native
-% remote PostgreSQL database protocol, which is not optimized for WAN
-% connections. Further, the API is based on a hierarchical namespace,
-% which does not easily map to relational databases -- in deeply nested
-% namespaces exhibit an insufficient query and update performance. In
-% contrast, data is stored in memory for Redis and ZeroMQ, which
-% explains the significant performance gains.
-
-% \jhanote{at times i think this whole subsection can be removed and
-%   replaced by a paragraph that summarises (i) the architecture (ii)
-%   the challenge (iii) performance measurement and analysis?}
-
-
-% One reason is that 
-% DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
-% which the framework efficiently distributes to its agents. BigJob in contrast 
-% maintains a separate description for each \cu.
-% At the investigated scales, the single manager does not represent a
-% bottleneck with respect to the processable \cu  numbers. Further,
-% the TROY manager introduces another hierarchy-level which can
-% further enhance the overall scalability.
-
-% \jhanote{Need to mention this is for BigJob and not PJ frameworks in
-%   general, as it reads now!}\alnote{ok}
-
-We executed a different number of very short running (i.\,e. zero workload)
-\cus on Alamo/FG concurrently. 
 % \pmnote{what figure does it refer
 % to..Not sure what experiments done on Alamo?} \alnote{yes, this was on Alamo}
-This enables us to focus on the overhead induced by the \cc subsystem. Each
-experiment is repeated at least 10 times. In general, the c\&c systems used
-are mostly insensitive to the number of coordinated \cus.
-%\onote{Strong claim -- data doesn't show any significant scale-up} 
-Although we do not provide a detailed discussion of the dependency between 
-coordination overhead and the number of \cus, it is worth mentioning that the 
-runtime increases only slightly with the size of the pilot and/or the number of managed \cus.
+%\onote{Strong claim -- data doesn't show any significant scale-up}  
 
-\jhanote{Is this c\&c overhead?} \pmnote{what machines are used to run BigJob, 
-are all these compute units executed concurrently using BigJob and Diane?}
-Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BJ
-and DIANE with respect to the number of cores and \cus managed by \pilot. For
-this purpose, we execute 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus.
-BigJob with Redis (local) shows almost linear scaling up to 128 cores. BigJob
-with Redis (remote) imposes an overhead of about 14\,\%. BigJob with ZeroMQ
-performs very well with lower core counts; with larger core counts, the
-runtimes increase, indicating a potential scalability bottleneck. DIANE shows,
-in particular for lower core counts, a longer runtime, again due to higher
-startup overhead. With higher core counts DIANE behaves similar to
-BigJob/ZeroMQ, but shows a greater increase of the overall runtime. This
-increase is likely attributable to the single central manager in DIANE's
-CORBA-based client-server architecture. Using Redis as central data space for
-BigJob decouples Pilot-Manager and Agent, yielding better performance in
-particular with many replicas.
+We executed a different number of very short running (i.\,e. zero
+workload) \cus on Alamo/FG concurrently.  This enables us to focus on
+the overhead induced by the \cc subsystem. In general, the c\&c
+systems used are mostly insensitive to the number of coordinated \cus.
+Although we do not provide a detailed discussion of the dependency
+between coordination overhead and the number of \cus, it is worth
+mentioning that the runtime increases only slightly with the size of
+the pilot and/or the number of managed \cus.
+
+%Each experiment is repeated at least 10 times. 
+
+\jhanote{Is this c\&c overhead?} \pmnote{what machines are used to run
+  BigJob, are all these compute units executed concurrently using
+  BigJob and Diane?}  Figure~\ref{fig:perf_bigjob-varying-cores}
+illustrates the scalability of BJ and DIANE with respect to the number
+of cores and \cus managed by \pilot. For this purpose, we execute
+4\,\cus per core, i.\,e.\ between 32 and 512\,\cus.  BigJob with Redis
+(local) shows almost linear scaling up to 128 cores. BigJob with Redis
+(remote) imposes an increase of about 14\,\%. BigJob with ZeroMQ
+performs very well with lower core counts; with larger core counts,
+the runtimes increase, indicating a potential scalability
+bottleneck. Due to higher startup overhead, at lower core counts DIANE
+shows a longer runtime than ZeroMQ or Redis.  At higher core counts
+DIANE behaves similar to BigJob/ZeroMQ, but shows a greater increase
+in the overall runtime. This increase is likely attributable to the
+single central manager in DIANE's CORBA-based client-server
+architecture. Using Redis as central data space for BigJob decouples
+Pilot-Manager and Agent, yielding better performance in particular
+with many replicas. 
 
 \begin{figure}[t] \centering \up\up
 \includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
@@ -1916,28 +1777,26 @@ particularly a steep increase when going from 64 to 128 cores. \up\up }}
 %\subsubsection*{Production Infrastructure} 
 
 To validate the effectiveness and usability of the Pilot-API, we
-conducted a series of experiments on various production infrastructures. We
-executed BFAST~\cite{bfast2009} using three different PJ frameworks (BigJob,
-DIANE and Condor) on XSEDE~\cite{xsede}, FutureGrid~\cite{fg}, EGI~\cite{egi}
-and OSG~\cite{1742-6596-78-1-012057}.
-
-Specifically, we utilized the following resources: XSEDE: Trestles 
-(100\,TFlop / 324\,nodes / 10,368\,cores / Torque) and QueenBee
-(Linux Cluster / 668\,nodes / 5,344\,cores / PBS); FutureGrid:
-India and Sierra (108\,nodes / 864\,cores / PBS); 
+conducted a series of experiments on various production
+infrastructures. We executed BFAST~\cite{bfast2009} using three
+different PJ frameworks (BigJob, DIANE and Condor) on
+XSEDE~\cite{xsede}, FutureGrid~\cite{fg}, EGI~\cite{egi} and
+OSG~\cite{1742-6596-78-1-012057}.  Specifically, we utilized the
+following resources: XSEDE: Trestles (100\,TFlop / 324\,nodes /
+10,368\,cores / Torque) and QueenBee (Linux Cluster / 668\,nodes /
+5,344\,cores / PBS); FutureGrid: India and Sierra (108\,nodes /
+864\,cores / PBS);
 %\pmnote{sierra needs to be included}\alnote{ok} 
 European Grid Initiative (EGI): Resource federation of 364,500 cores;
-OSG: Condor pool (via the \textit{Engage} VO, GlideinWMS,
-20,000 Glide-ins).\footnote{GlideinWMS is a software system built on
-top of Condor-G/Glide-in, which can, based on the current and expected
-number of jobs in the pool,  automatically increase or decrease the
-number of active Glide-ins (\pilots) available to the pool.  
-%While the
-%average number of active Glide-ins on OSG is around 20,000, more than
-%40,000 Glide-ins can be active and available for job execution during
-%peak load.
-}
+OSG: Condor pool (via the \textit{Engage} VO, GlideinWMS, 20,000
+Glide-ins).\footnote{GlideinWMS is a software system built on top of
+  Condor-G/Glide-in, which can, based on the current and expected
+  number of jobs in the pool, automatically increase or decrease the
+  number of active Glide-ins (\pilots) available to the pool.  }
 
+% While the average number of active Glide-ins on OSG is around
+% 20,000, more than 40,000 Glide-ins can be active and available for
+% job execution during peak load.
  
 %\jhanote{I would even introduce a sub-subsection on production
 %  infrastructure used. That would enable us to keep Pilot-API/BigJob
@@ -2349,10 +2208,10 @@ Pilot-API exposes the P* elements and characteristics.  We validate
 the P* Model by demonstrating that the most widely used PJ frameworks,
 viz., DIANE and Condor-G/Glide-in can be compared, contrasted and
 analyzed using this analytical framework.  Furthermore we demonstrate
-the use of the Pilot-API -- which provides a common access layer to
-different PJ frameworks, with multiple PJ frameworks over distributed
+the use of the Pilot-API with multiple PJ frameworks on distributed
 production cyberinfrastructure, such as XSEDE, OSG, EGI and
 FutureGrid.
+
 
 This research agenda presented in this paper, has immense practical
 implications and potential: Although current PJ frameworks
@@ -2543,3 +2402,148 @@ production-grade implementations.
 
 \end{document}
 
+% Thus, the primary barrier for performance and scalability is not the
+% internal coordination of the elements of a PJ implementation. 
+
+% To evaluate \cc overheads, we conducted several experiments on
+% FutureGrid~\cite{fg}. 
+
+% In the following we investigate the impact of different \cc related
+% factors on the overall performance and scalability of PJ systems.
+% We evaluate different BigJob configurations, and compare and
+% contrast them with DIANE.
+
+% BigJob's \cc was originally based on a shared, centralized data space, 
+% the SAGA Advert Service (AS)~\cite{saga_advert}.  The
+% communication between all components is done via this shared data
+% space, which decouples BJ-Manager and BJ-Agent and allows both
+% entities to operate at their own pace, optimizing the overall
+% throughput.  A particular 
+
+% An issue during distributed runs is the latency
+% between the application and the (remote) Advert Service. Another
+% challenge is that this design introduces a potential
+% single-point-of-failure and scalability bottleneck if the centralized
+% data space is not carefully designed and operated.
+
+% BigJob also provides two alternative c\&c sub-systems:
+% Redis~\cite{redis} and ZeroMQ~\cite{zmq}. Redis is a lightweight
+% key/value store. Redis is used in a similar way as the AS, i.\,e.\ all 
+% communication between BJ-Agent and BJ-Manager is
+% channeled through it. In contrast, the ZeroMQ sub-system utilizes a
+% client-server architecture, which is similar to the CORBA-based approach 
+% of DIANE -- in this architecture, the PM maintains the
+% overall state. Clients connect to the PM to request new SUs or to
+% report state updates. An advantage of this architecture is that it
+% does not require a separate infrastructure deployment for the \cc
+% sub-system.
+
+% Both the data space and the client-server \cc sub-systems can be
+% combined with a publish/subscribe mechanism, i.\,e.\ instead of
+% polling, an agent can receive notifications when a new \su arrives.
+
+% \jhanote{Need to motivate testing of c\&c sub-system better: There
+%   are many barriers to interoperability and performance. Primary
+%   barrier to performance is not \cu submission or \su scheduling to
+%   PM, but the fundamental limitation of scalability of coordination
+%   -- with increasing number of \cu /\su.  Establish tradeoff between
+%   distributed vs local coordination. e.g., It is easy to get
+%   consistency but has overhead.  Easy to get performance but
+%   difficult to get consistency. Thus we opt for centralized /
+%   persistent point. But how does this single point-of-coordination
+%   behave with increasing number of connections? } \alnote{hopefully
+%   addressed most points in paragraph above}
+
+% \begin{figure*}[htbp]
+% 	\centering		
+% 	\includegraphics[width=0.8\textwidth]{figures/coordination-schemes.pdf}
+% 	\caption{\textbf{Coordination \& Communication:} The primarily
+%    used coordination pattern is the utilization of a
+%    request/response server (left, middle). In the data-space model
+%    (right) all application components are connect to a central
+%    data-space. This architecture decouples manager and agent
+%    allowing both to operate on its own pace.}
+% 	\label{fig:figures_coordination-schemes}
+% \end{figure*}
+
+% Figure~\ref{fig:figures_coordination-schemes} illustrates different
+% coordination schemes. 
+
+% Most pilot-jobs utilize the master-worker \jhanote{M-W for what?}
+% pattern commonly implemented on basis of a simple request/response
+% architecture, i.\,e.\ the \jwave{agent} sends a request for work
+% packages to the master, which replies with a \cu . 
+
+% \jhanote{Are we talking specific implementation, i.e., TROY? If so we
+%   should not say ``A'' manager but ``The Pilot-Manager''? Also the previous
+% sentence should not talk about most pilot-jobs, if we've already started
+% talking about TROY!!} \alnote{hopefully fixed.} 
+
+% A manager
+% can manage a single agent (e.\,g.\ BigJob) or multiple agents
+% (e.\,g.\ DIANE). 
+
+
+% \begin{figure}[htbp] 
+%  \centering
+%  %\up
+%  \includegraphics[width=0.49\textwidth]{../perf/bigjob-varying-wus-alamo.pdf}
+%  \up\up
+%  \caption{\textbf{BigJob and DIANE Performance (1):} The 
+%   runtime increases linearly with the number of \cus in most cases. 
+%   The overhead per \cu imposed by the AS is generally 
+%   higher than for other backends. The runtime of the DIANE \cus only increases 
+%   moderately mainly due to the aggregation of the \cus.
+%   %\up
+% }
+%  \label{fig:perf_bigjob-varying-wus} 
+% \end{figure}
+% 
+% Figure~\ref{fig:perf_bigjob-varying-wus} illustrates the performance
+% and scalability of different BJ configurations and DIANE with
+% respect to the number of \cus. Clearly, the \cc sub-system has a great
+% impact on the overall performance: the Redis backend shows the best
+% performance for small \cu counts. The difference between local and
+% remote coordination is moderate (about 20\,\%). While ZeroMQ is very
+% fast and lightweight, it requires a careful implementation, in
+% particular concerning synchronization and throughput optimization. The
+% overall performance is slightly worse than for Redis. The Advert
+% Service currently has some limitations which will be discussed later.
+% DIANE shows a higher startup overhead, which is particularly
+% observable for smaller \cu  numbers. However, the runtime increases only 
+% slightly (about 10\,sec) when going from 64 to 2048 \cus. One reason is that 
+% DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
+% which the framework efficiently distributes to its agents. BigJob in contrast 
+% maintains a separate description for each \cu.
+% At the investigated scales, the single manager does not represent a
+% bottleneck with respect to the processable \cu  numbers. Further,
+% the TROY manager introduces another hierarchy-level which can
+% further enhance the overall scalability.
+
+% As in the last experiment,
+% the Advert \cc sub-system showed a significantly lower performance.
+% A reason for that
+% is the used remote access protocol, which is basically the native
+% remote PostgreSQL database protocol, which is not optimized for WAN
+% connections. Further, the API is based on a hierarchical namespace,
+% which does not easily map to relational databases -- in deeply nested
+% namespaces exhibit an insufficient query and update performance. In
+% contrast, data is stored in memory for Redis and ZeroMQ, which
+% explains the significant performance gains.
+
+% \jhanote{at times i think this whole subsection can be removed and
+%   replaced by a paragraph that summarises (i) the architecture (ii)
+%   the challenge (iii) performance measurement and analysis?}
+
+
+% One reason is that 
+% DIANE aggregates SUs: for 2048 \cus only a single task description is created, 
+% which the framework efficiently distributes to its agents. BigJob in contrast 
+% maintains a separate description for each \cu.
+% At the investigated scales, the single manager does not represent a
+% bottleneck with respect to the processable \cu  numbers. Further,
+% the TROY manager introduces another hierarchy-level which can
+% further enhance the overall scalability.
+
+% \jhanote{Need to mention this is for BigJob and not PJ frameworks in
+%   general, as it reads now!}\alnote{ok}
