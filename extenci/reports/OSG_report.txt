@@ -1,0 +1,212 @@
+1. Introduction
+---------------
+
+In the context of the NSF ExTENCI project, our group is exploring job
+submission paradigms that allow application scientists to transparently use
+XSEDE and Open Science Grid (OSG) infrastructure resources side by side as well
+as concurrently, based on their application requirements and compute- /
+data-characteristics. The high-level idea of our approach is to add a thin API
+layer on top of the heterogeneous job-submission and data management interfaces
+of XSEDE (Globus, PBS, GridFTP) and OSG (Condor, Condor-G, Glidein-WMS, SRM) to
+provide a unified access layer to both worlds. 
+
+Our group has extensive experience with implementing interoperability in
+High-Percormance Computing (HPC) environments: we have successfully provided
+computational scientists with the tools and interfaces to coordinately use
+multiple XSEDE and FutureGrid resources in a production research environment.
+Two key technologies have been conceptualized and developed over the past five
+years and are continuously fostered as strategic core components for
+implementing infrastructure interoperability:
+
+(1) SAGA: The Simple API for Grid Applications (SAGA) is an Open Grid Forum
+standard (OGF GFD-90) and provides a unified interface for job submission, file
+and data management as well coordination and communication. We are developing
+two implementations: (a) a C++ implementation (called SAGA-C++), and (b) a
+Python implementation (called Bliss). Both implementations are similar in that
+they implement the adaptor (plug-in) pattern to connect the API with various
+distributed computing middleware systems and services. SAGA supports a wide
+range of backends, the more prominent ones being PBS, LSF, Globus, Torque, SSH,
+Condor and Amazon EC2. SAGA is deployed as part of the 'Community Software
+Areas' (CSA) on most XSEDE and FutureGrid resources where it is used by
+multiple computational science projects as well as compute science research
+experiments. 
+
+(2) BigJob: BigJob is a user-space Pilot-Job implementation written in Python.
+BigJob uses SAGA as the access mechanism for distributed middleware, like PBS
+and LSF batch queuing systems. It uses light-weight 'agents' as resource
+proxies on the target systems to create its own resource overlay network in
+which arbitrary compute- and data-scheduling decisions can be made, based on
+application requirements. Our group has shown that BigJob can help to
+significantly reduce the overhead for high-throughput (HTC) and many-task
+computing (MTC) applications by overriding resource-level job submission and
+management overhead and by employing compute and data co-allocation strategies.
+BigJob exposes a programming interface called 'Pilot-API' which provides
+application developers with high-level handles to 'resources' (to instantiate
+resource overlays) and 'work-units' (jobs/tasks and data). 
+
+The combination of SAGA and BigJob has been used with great success in multiple
+interoperability projects, hence the decision to use the same technology stack
+to bridge the interoperability-gap between XSEDE and OSG. In this report, we
+describe the different approaches (Section 2) we have explored in order to
+provide SAGA/BigJob capabilities on OSG. We will focus especially on the
+misconceptions and problems that we have encountered in the process. We will
+distinguish between 'general problems' that we have encountered as 'novice' OSG
+users/developers (Section 3) and 'data-related' problems (Section 4) that seem
+to be more intrinsic to the overall OSG architecture and present a
+non-neglectable obstacle for the succseful execution of data-intensive HTC/MTC
+applications. In the last section, we discuss the implications that our
+findings may have for OSG interoperability, as well as possible solutions and
+strategies to overcome current limitations. 
+
+
+2. BigJob and SAGA on OSG
+-------------------------
+
+Three scenarios: 
+
+Pilot-API on top of glidein-WMS
+
+BigJob using Condor-G
+
+BigJob using Condor (vanilla) ? (what about condor-diane?)
+
+
+2. General Problems
+-------------------
+
+When we describe our problems in this and the following section, it is
+important to mention beforehand, that nobody in our group has ever worked with
+OSG infrastructure before. Most of our group-memebers have and extensive
+track-record of working with applications and application frameworks on HPC
+grids and it is fair to say that we are obviously biased towards the XSEDE- and
+FutreGrid-mode of operation. However, we do have some experience with the
+European Grid Initiative (EGI) infrastructure, which seems to be conceptually
+similar to OSG.
+
+During the course of the first phase of the ExTENCI project, we worked on
+several different prototypes (see Section 2) in order to explore how to
+integrate our Pilot-API with OSG. During this endeavor, we touched many
+different parts of OSG -- these were our observations from the perspective of a
+software developer:
+
+(A) The most apparent problem that we have encountered is, that OSG doesn't
+provide a mechanism to submit jobs remotely from a non-OSG machine to OSG
+resources. This implies that all interoperability experiments between OSG and
+other infrastructures have to be run from within the OSG domain and can't be
+hosted on a third-party host or a user's machine. It also implicates that most
+of our development had to take place remotely on the command-line of one of the
+OSG 'gateway' machines (engage-submit3.renci.org), which is more than tedious,
+especially over slow network connections. In XSEDE, it is common practice for
+users and developers alike to install the Globus client tools
+(globus.org/toolkit/) on 3rd-party machines / laptops and initiate job
+submission and data transfers remotely (SAGA provides a plug-in for this) --
+this doesn't seem to be possible with the Condor software stack. We have
+implemented a 'condor-over-ssh' tunneling mechanism in SAGA to circumvent these
+limitations, however, this strategy only works satisfactory for very simple
+use-cases.
+
+(B) Another peculiarity we have encountered, is that the official support
+channels for OSG don't seem to be well defined. Support links on the website
+often lead to nothing (e.g., "Find you support center contact information
+here"@http://bit.ly/Iyy6kD) and the general structure is not quite clear to us.
+Statements like "Interaction at resource level is determined by the VO. Please
+contact your VO representative for more information" is not very helpful
+either. While this probably not too much of a concern for people who are deeply
+involved in larger OSG project (help can probably be found 'down the hallway'),
+this is a problem for people engaging with OSG for the first time, on a deeper,
+technical level. It must be mentioned that direct contact with the Engagement
+VO core team (esp. Mats Rynge) was crucial and very helpful. Without this
+unofficial support channel, we wouldn't have been able to develop our OSG
+interoperability prototypes. 
+
+(C) The unclear support structures somewhat go along with a lack of detailed
+technical documentation. The current OSG user (i.e., non-admin) documentation
+hub is available online at
+https://www.opensciencegrid.org/bin/view/Documentation/Release3/NavUserMain. An
+unofficial blog at http://osglog.wordpress.com/ also provides some useful
+information. The official documentation provides an overview of fist steps,
+available job submission methods and the different storage systems available.
+The problem with this tool-centric documentation approach is, that the user /
+developer is left mostly alone with the task to figure out which of the
+available technologies in the complex OSG ecosystem make the most sense in a
+specific application scenario. We would have found a guide which maps
+application requirements (i.e., high-level metrics processing & storage
+requirements, data transfer volume, communication) to the capabilities of
+available tools and software (including their limitations) as most useful. We
+have also noticed, that not all of the advertised tools are necessarily
+available and functional in all VOs and on all CEs. 
+
+(D) The general concept and especially the resource selection for Condor-G jobs
+has strikes us as moderately obscure. While the Glide-In WMS (Vanilla Condor)
+pool for single processors (up to 4? cores) conveniently doesn't require (or
+allow?) explicit resource selection, jobs that require more than 4(?) cores per
+task have to switch to a different job submission paradigm: Condor-G. This
+paradigm requires the explicit selection of a ("grid") resource and exposes
+aspects of Globus RSL (Resource Specification Language) on Condor level. We see
+a problem in this approach, since it introduces (enforces) two different
+paradigms and interfaces for the same fundamental task: submitting jobs. This
+makes the practical implementation of applications and frameworks that need to
+support both types of workload non-trivial. It stroke us as a case for
+interoperability within OSG. The resource selection process for Condor-G jobs
+seems highly-non trivial: resources that are available for a specific VO can be
+discovered using an LDAP client. However, there doesn't seem to be any
+guarantee that the resources returned by a query will actually accept Condor-G
+jobs. Through a trial-and-error process, we have established a list of
+resources that 'tend to work' and that have all required software tools (e.g.
+SRM) installed.  
+
+(E) The globus toolkit seems to be installed on most OSG resources, presumably,
+because the Condor-G as well as the Glide-In mechanisms rely heavily on it. As
+mentioned at the beginning, our group is very familiar with the Globus software
+stack and our own software stack consisting of SAGA and BigJob would not have
+required too much adaption, since it already provides support for Globus.
+However, on more than one occasion, we were discouraged to interface with
+individual OSG resources via Globus directly, since this would potentially
+interfere and/or override internal OSG accounting and scheduling policies /
+mechanisms. 
+
+(F) Lastly, another big source of frustration was the overall stability and the
+error reporting mechanisms in case of failures. At many occasions, tasks would
+just stay in 'hold' state over days and further investigation (i.e., parsing
+condor .log files) would reveal in the best case an unavailable resource and in
+the worst case a way more cryptic error passed on from the Globus subsystem --
+or just nothing. It appears that one has to be familiar with the details of the
+otherwise encapsulated OSG architecture in order to track-down and understand
+possible causes of failure. Another problem with this non-uniform way of error
+handling is, that it makes it highly non-trivial to react appropriately to
+errors programmatical on (user-space) application level, since errors often
+seem to require human interpretation. 
+
+We conclude that the OSG environment seems to enforce a very specific
+usage-mode, dictated by the Condor software stack. While the OSG environment
+provides a convenient 'fire-and-forget' methodology for the types of
+applications originally envisioned by the system designers (applications that
+can be decomposed into compute-centric HTC / Many-Task workloads), it provides
+a serious limitation to more complex applications and user-space application
+frameworks. While HTC grids like XSEDE or FutureGrid also favor a certain usage
+mode (HTC, tightly-coupled applications), they generally don't try to
+encapsulate system details, which makes it much easier to implement user-space
+software frameworks that support different usage-modes.  Furthermore, the OSG
+software stack bears a significantly higher amount of complexity, compared with
+e.g., the XSEDE and FutureGrid stacks. For this reason, OSG requires dedicated,
+pre-installed 'submission' or 'gateway' nodes to which application users and
+developers have to log in in order to access OSG resources. This, together with
+the fact that it doesn't seem possible to submit jobs 'from the outside'
+(remotely, from a non-gateway system) to OSG makes the design and
+implementation of simple (grid-) interoperability solutions if not impossible,
+then at least unnecessarily complex.
+
+
+3. Data-Related Problems
+------------------------
+
+(A) SRM et. al. Decoupled from Condor 
+
+(B) Co-allocation not possible
+
+4. Implications 
+---------------
+
+What does this mean for further development? BigJob on OSG? How? Useful at all? 
+
+
