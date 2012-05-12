@@ -1,7 +1,37 @@
 \documentclass[]{paper}
 \usepackage{graphicx}
+\usepackage{color}
 
 % type user-defined commands here
+\newif\ifdraft
+\drafttrue
+\ifdraft
+\newcommand{\onote}[1]{ {\textcolor{cyan} { (***Ole: #1) }}}
+\newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
+\newcommand{\owave}[1]{ {\cyanuwave{#1}}}
+\newcommand{\jwave}[1]{ {\reduwave{#1}}}
+\newcommand{\alwave}[1]{ {\blueuwave{#1}}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{green} { ***andreL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{blue} { ***andreM: #1 }}}
+\newcommand{\smnote}[1]{ {\textcolor{brown} { ***sharath: #1 }}}
+\newcommand{\pmnote}[1]{ {\textcolor{brown} { ***Pradeep: #1 }}}
+\newcommand{\msnote}[1]{ {\textcolor{cyan} { ***mark: #1 }}}
+\newcommand{\note}[1]{ {\textcolor{magenta} { ***Note: #1 }}}
+\else
+\newcommand{\onote}[1]{}
+\newcommand{\terminology}[1]{}
+\newcommand{\owave}[1]{#1}
+\newcommand{\jwave}[1]{#1}
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\athotanote}[1]{}
+\newcommand{\smnote}[1]{}
+\newcommand{\pmnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\newcommand{\msnote}[1]{}
+\newcommand{\note}[1]{}
+\fi
 
 \begin{document}
 
@@ -16,17 +46,12 @@
 \end{abstract}
 
 \section{Introduction}
-FutureGrid provides students and researchers with new possibilities to
-engage in science relating to the state-of-the-art in cloud and grid computing.
-As members of the RADICAL group, we have taken full advantage
-of the opportunities that FutureGrid provides.  Here are some of the ways
-we are using FutureGrid resources to push the envelope and pursue exciting
-new discoveries.
 
-\section{BigJob and BigData}
-
-FutureGrid has been an important testbed for the development of 
-BigJob~\cite{saga_bigjob_condor_cloud} and BigData~\cite{pstar-sc-2012,pmr-2012}.
+FutureGrid provides researchers with new possibilities to engage in science
+relating to the state-of-the-art in cloud and grid computing. As members of
+the RADICAL group, we have taken full advantage of the opportunities that
+FutureGrid provides. Here are some of the ways we are using FutureGrid
+resources to push the envelope and pursue exciting new discoveries.
 
 
 \section{P* - Pilot-Job Interoperability}
@@ -61,20 +86,85 @@ infrastructures in such cases.
   \label{fig:perf_perf-bfast-bj}
 \end{figure}
 
-% \begin{figure}[htbp]
-% 	\centering
-% 		\includegraphics[height=3in]{figures/128-bfast-egi-fg-xsede-osg.pdf}
-% 	\caption{caption}
-% 	\label{fig:figures_128-bfast-egi-fg-xsede-osg}
-% \end{figure}
+\section{BigJob and BigData}
+
+FutureGrid has been an important testbed for the development of
+BigJob~\cite{saga_bigjob_condor_cloud} and
+BigData~\cite{pstar-sc-2012,pmr-2012}. BigJob (BJ) is a SAGA-based Pilot-Job
+(PJ) framework that implements the Pilot-API. BJ has been designed to be
+general-purpose and extensible. While BJ has been originally built for HPC
+infrastructures, such as FutureGrid and XSEDE, it is generally also usable in
+other environments, such as OSG. This extensibility mainly arises from the
+usage of SAGA as a common API for accessing distributed resources.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.7\textwidth]{figures/re_bigjob_interactions.pdf}
+	\caption{\textbf{BigJob Architecture:} The
+	          BJ architecture resembles many elements of the P* Model. The
+	          BigJob-Manager is the central Pilot-Manager, which
+	          orchestrates a set of Pilots. Each Pilot is represented by a
+	          decentral component referred to as the BigJob-Agent.}
+			\label{fig:figures_re_bigjob_interactions}
+\end{figure}
+
+Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the BJ
+architecture: The BJ-Manager is the Pilot-Manager responsible for coordinating
+the different components of the frameworks. The BigJob-Agent is the actual
+Pilot that is submitted to a resource. BigData extends the Pilot-Job concept
+to data. BigData provides late-binding capabilities for data by separating the
+storage allocation and application-level~\cite{pstar-2012}. Similar to BigJob,
+it is comprised of two components: the BD-Manager and the BD-Agents, which are
+deployed on the physical resources.
+
+\begin{figure}[t] 
+\centering 
+\includegraphics[width=0.8\textwidth]{figures/bigjob-varying-cores-alamo-noadvert.pdf}
+\caption{\textbf{Pilot-Job Coordination Mechanism:}  The runtime of a
+workload of 4 tasks per core, i.\,e.\ 32 - 512\,tasks, using different Pilots
+and configuration. For BJ-Redis the runtime  increases only moderately, the
+client-server-based implementations BJ-ZMQ and CORBA-based DIANE show
+particularly a steep increase when going from 64 to 128 cores.}
+\label{fig:perf_bigjob-varying-cores} 
+\end{figure}
+
+We used FutureGrid to evaluate the overheads typical associated with PJ
+frameworks. For the evaluation of the communication \& coordination (c\&c)
+subsystem of BigJob and DIANE we run a different number of very short running
+(i.\,e. zero workload) tasks on Alamo/FG concurrently. In general, the c\&c
+systems used are mostly insensitive to the number of coordinated tasks.
+
+Figure~\ref{fig:perf_bigjob-varying-cores} illustrates the scalability of BJ
+and DIANE with respect to the number of cores and tasks managed by Pilot. For
+this purpose, we execute 4\,tasks per core, i.\,e.\ between 32 and 512\,tasks.
+BigJob with Redis (local) shows almost linear scaling up to 128 cores. BigJob
+with Redis (remote) imposes an increase of about 14\,\%. BigJob with ZeroMQ
+performs very well with lower core counts; with larger core counts, the
+runtimes increase, indicating a potential scalability bottleneck. Due to
+higher startup overhead, at lower core counts DIANE shows a longer runtime
+than ZeroMQ or Redis. At higher core counts DIANE behaves similar to
+BigJob/ZeroMQ, but shows a greater increase in the overall runtime. This
+increase is likely attributable to the single central manager in DIANE's
+CORBA-based client-server architecture. Using Redis as central data space for
+BigJob decouples Pilot-Manager and Agent, yielding better performance in
+particular with many replicas.
+
+
 
 \section{Replica Exchange}
 
-Various applications have been developed using BigJob. An important 
-application class are the application based on the replica-exchange algorithm.
+Various applications have been developed using Pilot Abstractions and BigJob.
+An important application class are those based on the Replica-Exchange
+algorithm. Replica-Exchange (RE) are used to understand physical phenomena –
+ranging from protein folding dynamics to binding affinity calculations. RE
+methods represent a class of algorithms that involve a large number of
+loosely-coupled ensembles. We develop a framework for RE that supports
+different replica-pairing and coordination mechanisms, that can utilize a
+range of production cyberinfrastructure concurrently. We use this framework to
+implement three different formulations of the RE algorithm: the synchronous, 
+asynchronous (centralized) and asynchronous (decentralized) formulation.
 
-
-
+\alnote{Main issue: In Async-RE paper we only have TG/LONI numbers}
 
 
 
