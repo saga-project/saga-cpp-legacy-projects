@@ -188,8 +188,31 @@ Pilot-MapReduce provides a flexible runtime environment for MapReduce applicatio
 
 \section{Replica Exchange}
 
-Replica-Exchange (RE) methods represent a class of algorithms that involve a large number of loosely-coupled ensembles 
-and are used to understand physical phenomena – ranging from protein folding dynamics to binding affinity calculations. The SAGA-based Pilot Framework, BigJob, has been shown to support this class of applications on FutureGrid as well as XSEDE resources.
+Replica-Exchange (RE) methods represent a class of algorithms that involve a large number of loosely-coupled ensembles and are used to understand physical phenomena – ranging from protein folding dynamics to binding affinity calculations. The SAGA-based Pilot Framework, BigJob, has been shown to support this class of applications on FutureGrid as well as XSEDE resources.We have 2 class of RE algorithms namely Synchronous and Asynchronous.
+
+Synchronous Replica-Exchange:
+Traditionally, RE algorithms have been implemented such that the exchanges have been synchronous.For the synchronous RE formulation, all replicas must reach a pre-determined 
+state before exchanges are performed.All replicas need to finish running before any exchanges are attempted. This synchronization step has the potential to become a serious 
+bottleneck when the ensemble contains large number of replicas. In any implementation, it is highly likely that the coordination of the synchronization step of a large number 
+of replicas will be a costly operation.A major limitation of this model is that the replicas are paired in fixed groups and thus exchanges take place between pre-determined 
+pairs of replicas.But it has an advantage where there is no need to find a replica for pairing, thus eradicating search time.
+
+Asynchronous Replica-Exchange:
+In the asynchronous RE algorithm, a replica does not have to wait for all other replicas to reach a pre-determined state. An exchange can occur whenever a replica reaches a pre-determined state. The replica then attempts an exchange with any other available replica in the ensemble.Thus, in the asynchronous algorithm, each replica after completing a run has to search and find a new partner is not zero.However waiting time i.e time to synchronize with another pair of replica is zero.In other words, a reduction in synchronization times comes at a cost of increased coordination costs. We do not see an  obvious performance bottleneck in the asynchronous RE.Time for exchange is dependent on the implementation and thus with an efficient implementation we can see a good performance with asynchronous RE even with large number of replicas.
+
+Replica-Exchange Manager:
+The RE-Manager is the master process which in addition to controlling the different components-SAGA BigJob framework, the individual replicas, etc., also defines and implements the coordination/exchange mechanism employed. The actual tasks that the RE-Manager performs depends not only on the RE algorithm employed, but also on the replica management scheme being supported.The RE-Manager supports two different replica management schemes: centralized and decentralized.In centralized, the RE-Manager manages all the replicas and performs the exchanges.In the decentralized case, a replica-agent manages each replica individually as well making and performing exchange decisions.On Futuregrid, the synchronous and asynchronous RE algorithms were implemented and experiments were run using the centralized RE-Manager.
+
+Experiments and Results:
+We have used Futuregrid clusters namely: sierra,india,alamo and hotel to run our experiments.We have requested upto 128 cores on all these clusters of Futuregrid.At times due to non-availability of requested resources on future grid ,we have queue times, which we have not included in our total run time of our experiments.Also,not all experiments of Synchronous were run on all machines due to non availability of requested cores. we evaluate and compare the scale-across performance of the algorithms in conjunction with our framework.To understand the scaling behavior of the different RE formulations, we analyze total time to completion (T) for different replica counts from 4, 8, 16, 32. We have kept the ratio of number of attempted exchanges to the number of replicas as constant. The number of times each replica is restarted to complete all exchanges remains constant.Hence the comparison between different cases will reveal differences in coordination cost.The increase is however not uniform between the two implementations: it is largest for synchronous RE than Asynchronous RE.We analyzed the total run time on Futuregrid machines and values for all the different replica counts can be seen in the following graph
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.47\textwidth]{figures/replica-exchange.jpg}
+\caption{Centralized Replica-Exchange Mechanism: Synchronous vs Asynchronous} 	
+\label{figure(i)}
+\end{figure}		
+
+In the above figure(i):As we scale across the number of replicas along with number of machines, keeping number of replicas to number of exchange ratio constant. We can observe that Asynchronous RE outperforms Synchronous RE. This is due to increase in synchronization cost( waiting times) in synchronous RE. Thus, these experiments of RE on Futuregrid clusters demonstrates Scalablility and Interoperability of SAGA-based Pilot Framework, BigJob.
 
 \mrnote{What do you want to say about this? Abhinav's work?? I am concerned that this overlaps with the fcpc2012-all paper...}
 
