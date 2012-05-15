@@ -206,64 +206,151 @@ particular with many replicas.
 \section{Standards-based Interoperability}
 \label{sec:standards}
 
-The application level interoperability efforts of the RADICAL group
-is, to a large extent, based on interoperable standards:  the 'Simple
-API for Grid Applications' (SAGA) is used as generic abstraction
-layer toward the  distributed infrastructures, and in turn interfaces
-to a wide set of other standards based (GridFTP, BES, DRMAA)
-and non-standards bases (EC2/AWS/Eucalyptus, Condor, Globus/GRAM).
+ There are two major approaches to allow applications, such as the
+ pilot frameworks described above, to interoperably use DCIs: system
+ level interoperability (SLI) and application level interoperability
+ (ALI).  SLI is the (often standards based) approach to federate
+ multiple DCIs on middleware and operational level, and to allow
+ applications to use the combined set of resources as if it were
+ a single DCI.  That implies the exchange of accounting,
+ authorization, authentication, logging, brokering and resource
+ management information, and others, on system level.  Very often, SLI
+ is implemented as delegation from one DCI to the other.
 
-We have been using FutureGrid for several aspects of this approach.
-First, we use FutureGrid as testing ground for standards development,
-and for associated interoperability experiments
-(see sec.~\ref{ssec:std_gin}).  Secondly, we use a variety of backends
-provided by FutureGrid for developing SAGA, as the standards based
-access layer for our application level
-experiments(see sec.~\ref{ssec:std_saga}).  And finally, we use FutureGrid
-in its capacity as XSEDE targeted test environment to prepare and
-harden our software, and the related packaging and deployment
-procedures, towards enroling on XSEDE level (and on other
-infrastructures, such as EGI -- see sec.~\ref{ssec:std_xsede}).
+ ALI on the other hand does not require any activity on infrastructure
+ level at all, but instead relies on the ability of the application to
+ utilize multiple independent DCIs at the same time.  While ALI is
+ usually easier to achieve, it typical increases the burden on the
+ application layer with the task to abstract the differences between
+ DCIs.  Further, ALI based systems are inherently less sophisticated
+ and less complete than SLI based systems -- for example, data
+ transfer across DCI boundaries will need to be routed via the
+ application layer, accounting can't be managed on application layer
+ at all, etc. 
+
+ On real-world infrastructures, we usually encounter a need for both
+ approaches: while system level standardization made tremendous steps
+ toward system level interoperability for a variety of
+ infrastructures (for example, BES is available on XSEDE, FutureGrid,
+ EGI, NorduGrid, Naregi and others), the level of SLI varies widely
+ and is often not the default modus operandi (BES again is not the
+ default interface on XSEDE [yet] and FutureGrid, and not available on
+ all resources).  
+
+ As interoperability is a driving motivator of the P* research efforts
+ described in the previous sections, we see the ultimate need for
+ application level interoperability, to complement SLI.  On
+ architecture and implementation level, we largely base ALI on the
+ 'Simple API for Grid Applications' (SAGA~\cite{gfd.90}), which we use
+ as generic abstraction layer toward the distributed infrastructures.
+ SAGA in turn interfaces to a wide set of other standards based
+ (GridFTP, BES, DRMAA) and non-standards bases (EC2/AWS/Eucalyptus,
+ Condor, Globus/GRAM), and thus utilizes SLI where available.
+
+ We have been using FutureGrid to aid in several aspects of this
+ approach.  First, we use FutureGrid as testing ground for standards
+ development, and for associated interoperability experiments on both
+ the SLI and ALI layer (see sec.~\ref{ssec:std_gin}).  Secondly, we
+ use a variety of backends provided by FutureGrid for developing SAGA,
+ as the standards based access layer for our application level
+ experiments(see sec.~\ref{ssec:std_saga}).  And finally, we use
+ FutureGrid in its capacity as XSEDE targeted test environment to
+ prepare and harden our software, and its related packaging and
+ deployment procedures, towards enrolment on XSEDE, and on other
+ infrastructures such as EGI (see sec.~\ref{ssec:std_xsede}).
 
 \subsection*{Standardization and OGF Interop Activities}
 \label{ssec:std_gin}
 
- - participating in SAGA, BES, JSDL, and related standards efforts
+ Standardization of interfaces and protocols is a crucial component
+ for interoperability, even more so for SLI than for ALI.  For the
+ target infrastructures of our research efforts, OGF related standards
+ like BES, JSDL, GLUE, OCCI and SAGA are the most relevant ones, and
+ these are largely still evolving and are still being implemented and
+ deployed.  The OGF Community Group 'GIN' (Grid Interoperation Now)
+ is, for the scope of OGF, the umbrella group to host and coordinate
+ efforts for interop testing and deployment.  Resources on FG have
+ been used both to develop and harden such standards implementations
+ as Genesis, Unicore and (from our end) SAGA, and also to test and
+ demonstrate the SLI and ALI capabilities across those
+ implementations, and across a wide set of infrastructures.
 
- - standards need to be implemented and tested against a variety of
- backends/infrastructures/environments -- FG is targeting that
+ Within the scope of OGF, we have been showing a proof-of-concept
+ distributed application (master-worker pattern, computing the
+ Mandelbrot set), which is able to concurrently utilize more than 30
+ systems, running 12 different system stacks, for a single application
+ instance.  On FutureGrid alone, we have been using ~10 submission
+ endpoints on 4 different systems stacks for those experiments.  It is
+ obvious, that FutureGrid's capacity as research environment is
+ greatly supporting that type of endeavours.
 
- - OGF-GIN is the umbrella group to host and coordinate those efforts
-
- - standing interop test, implemented via SAGA, showing interop on job
- submission and management, and on security level.
+ It must be noted that the greatest inhibitor of production level
+ application runs on that scale is, at this point, not the
+ engineering level -- a combination of ALI and SLI is well able to
+ overcome most of the technical obstacles.  Instead, the security
+ policies and accounting limitations for these efforts are what makes
+ these experiments a continuous, and fragile, challenge.
 
 
 
 \subsection*{Development of SAGA as an interoperable DCI Access Layer}
 \label{ssec:std_saga}
 
- - SAGA as access layer is only as useful as are its backend bindings
+ The described P* research and implementation efforts, and also the
+ underlying ALI efforts, are mostly based on SAGA as generic
+ abstraction layer for programming distributed applications and
+ frameworks.  Our SAGA implementations are adaptor-based, i.e. they
+ expose a generic API towards the application layer, whose semantics
+ is provided by a set of adaptors which translate the API calls to the
+ lower level system's capabilities.  As with all adaptor based
+ systems, such an implementation is only as useful and stable as its
+ backend bindings.  In particular, code stability is major concern, as
+ SAGA requires integration with several middleware stacks, which in
+ turn are based on a wide set of technologies, and are inherently
+ complex.
 
- - code stability is major concern, as is integration with middleware
- stacks
-
- - again, FG as playground and development environment.
-
+ FutureGrid has been used as a development and testing environment for
+ SAGA, allowing to implement and harden a wide number of backend
+ adaptors, in particular new ones for BES and EC2/AWS.  The current
+ move of FutureGrid toward (newer) OpenStack deployments will allow us
+ to expand those efforts towards OCCI.  At the same time, the early
+ availability of these backend bindings in SAGA has enabled several
+ students and researchers to perform experiments on FutureGrid systems
+ which would have been harder to achieve otherwise, thus increasing
+ the usefulness of FutureGrid to its users.  Finally, the results of
+ the SAGA implementation efforts are immediately usable for education
+ and training efforts on FG, as described in~\ref{sec:edu}.
 
 
 \subsection*{Providing Interoperability for Distributed Cyber Infrastructures}
 \label{ssec:std_xsede}
 
- - on of the access layers to XSEDE, also tech provider towards EGI,
- coop with IGE and EMI.
+ Next to the implementation challenges for ALI oriented system stand
+ the deployment challenges.  In fact, in our experiences the efforts
+ required to provide clean and stable deployment processes for
+ a variety of environments can well exceed the actual development
+ efforts.
 
- - involves relatively complex packaging, certification and deployment processes
+ We find the FutureGrid approach, to act as an test and staging
+ environment which explicitly targets a large production environment,
+ XSEDE, as very appropriate: it provides us with the ability to
+ develop, test and certify packaging and deployment procedures without
+ interfering with production systems, and without exposing the process
+ to the end users on those systems.  
 
- - use FG as staging environment, in particular towards XSEDE (CSA)
+ In detail: SAGA is deployed as community software on TeraGrid/XSEDE.
+ We are using the same model on FutureGrid, and can test deployment
+ and testing on the FutureGrid machines.  That provides SAGA
+ installations to our (mostly CS experiment friendly) users on
+ FutureGrid itself, and also mimics perfectly the procedures we use to
+ deploy stable versions on XSEDE.  Further, we have been using
+ FutureGrid resources to perform certification and packaging processes
+ toward other production infrastructures, most notably toward the SAGA
+ enrolment on the European EGI software repositories (UMD).
 
 
 \section{Education: Distributed Scientific Computing}
+\label{sec:edu}
 
 In Fall of 2010 a new class on Scientific Computing was co-introduced
 by Prof. Jha (led by Prof. Gabrielle Allen). The Distributed
