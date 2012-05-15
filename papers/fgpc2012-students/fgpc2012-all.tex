@@ -2,6 +2,8 @@
 \usepackage{graphicx}
 \usepackage{color}
 \usepackage{fullpage}
+\usepackage{subfigure}
+\usepackage{url}
 % type user-defined commands here
 \newif\ifdraft
 \drafttrue
@@ -206,13 +208,13 @@ particular with many replicas.
 \section{Standards-based Interoperability}
 \label{sec:standards}
 
- There are two major approaches to allow applications, such as the
- pilot frameworks described above, to interoperably use DCIs: system
+ There are two major approaches to allow applications (such as the
+ pilot frameworks described above) to interoperably use DCIs: system
  level interoperability (SLI) and application level interoperability
- (ALI).  SLI is the (often standards based) approach to federate
- multiple DCIs on middleware and operational level, and to allow
- applications to use the combined set of resources as if it were
- a single DCI.  That implies the exchange of accounting,
+ (ALI)~\cite{fgcs-interop11}.  SLI is the (often standards based)
+ approach to federate multiple DCIs on middleware and operational
+ level, and to allow applications to use the combined set of resources
+ as if it were a single DCI.  That implies the exchange of accounting,
  authorization, authentication, logging, brokering and resource
  management information, and others, on system level.  Very often, SLI
  is implemented as delegation from one DCI to the other.
@@ -230,22 +232,23 @@ particular with many replicas.
 
  On real-world infrastructures, we usually encounter a need for both
  approaches: while system level standardization made tremendous steps
- toward system level interoperability for a variety of
- infrastructures (for example, BES is available on XSEDE, FutureGrid,
- EGI, NorduGrid, Naregi and others), the level of SLI varies widely
- and is often not the default modus operandi (BES again is not the
- default interface on XSEDE [yet] and FutureGrid, and not available on
- all resources).  
+ toward system level interoperability for a variety of infrastructures
+ (for example, BES is available on XSEDE, FutureGrid, EGI, NorduGrid,
+ Naregi and others), the level of SLI varies widely and is often not
+ the default modus operandi (BES again is not, as of yet, the default
+ interface on XSEDE and FutureGrid, and thus not available on all
+ resources).  
 
- As interoperability is a driving motivator of the P* research efforts
- described in the previous sections, we see the ultimate need for
- application level interoperability, to complement SLI.  On
+ As interoperability is a driving motivator behind the P* research
+ efforts described in the previous sections, we see the ultimate need
+ for application level interoperability, to complement SLI.  On
  architecture and implementation level, we largely base ALI on the
- 'Simple API for Grid Applications' (SAGA~\cite{gfd.90}), which we use
- as generic abstraction layer toward the distributed infrastructures.
- SAGA in turn interfaces to a wide set of other standards based
- (GridFTP, BES, DRMAA) and non-standards bases (EC2/AWS/Eucalyptus,
- Condor, Globus/GRAM), and thus utilizes SLI where available.
+ 'Simple API for Grid Applications' (SAGA~\cite{ogf-gfd-90}), which we
+ use as generic abstraction layer toward the distributed
+ infrastructures.  SAGA in turn interfaces to a wide set of other
+ standards based backends (such as GridFTP, BES, DRMAA), but also
+ non-standards based ones (such as EC2/AWS/Eucalyptus, Condor,
+ Globus/GRAM) -- and thus utilizes SLI where available.
 
  We have been using FutureGrid to aid in several aspects of this
  approach.  First, we use FutureGrid as testing ground for standards
@@ -264,25 +267,42 @@ particular with many replicas.
 
  Standardization of interfaces and protocols is a crucial component
  for interoperability, even more so for SLI than for ALI.  For the
- target infrastructures of our research efforts, OGF related standards
- like BES, JSDL, GLUE, OCCI and SAGA are the most relevant ones, and
- these are largely still evolving and are still being implemented and
- deployed.  The OGF Community Group 'GIN' (Grid Interoperation Now)
- is, for the scope of OGF, the umbrella group to host and coordinate
- efforts for interop testing and deployment.  Resources on FG have
- been used both to develop and harden such standards implementations
- as Genesis, Unicore and (from our end) SAGA, and also to test and
- demonstrate the SLI and ALI capabilities across those
- implementations, and across a wide set of infrastructures.
+ target infrastructures of our research efforts (XSEDE, EGI, Naregi,
+ OSG, FutureGrid), OGF related standards like BES, JSDL, GLUE, OCCI
+ and SAGA are very relevant, but are largely still evolving and are
+ still implemented and deployed.  The OGF Community Group 'GIN' (Grid
+ Interoperation Now) is, for the scope of OGF, the umbrella group to
+ host and coordinate efforts for interop testing and deployment.
+ Resources on FutureGrid have been used both to develop and harden
+ standard implementations as Genesis, Unicore and (from our end) SAGA,
+ and also to test and demonstrate the SLI and ALI capabilities across
+ those implementations, across a wide set of infrastructures.
 
  Within the scope of OGF, we have been showing a proof-of-concept
  distributed application (master-worker pattern, computing the
- Mandelbrot set), which is able to concurrently utilize more than 30
- systems, running 12 different system stacks, for a single application
- instance.  On FutureGrid alone, we have been using ~10 submission
- endpoints on 4 different systems stacks for those experiments.  It is
- obvious, that FutureGrid's capacity as research environment is
- greatly supporting that type of endeavours.
+ Mandelbrot set -- see fig.~\ref{fig:mandelbrot}), which is able to
+ concurrently utilize more than 30 systems distributed world-wide,
+ which run $>$10 different middleware stacks, for a single application
+ instance.  On FutureGrid alone, we have been using $>$10 submission
+ endpoints on 4 different stacks for those experiments.  FutureGrid's
+ capacity as research environment is greatly supporting that type of
+ endeavour.
+
+\begin{figure}[ht!]
+ \begin{center}
+  \subfigure[overview over participating backend states.]{
+   \includegraphics[width=0.48\textwidth]{figures/mandelbrot-table.png}
+  }
+  \subfigure[resulting mandelbrot set.]{
+   \includegraphics[width=0.48\textwidth]{figures/mandelbrot.png}
+  }\vspace*{-1em}
+  \caption{\textbf{Distributed Mandelbrot Demo}: the endpoints
+   listed in table (a) contribute to the resulting mandelbrot set in
+   figure (b).  Shown is an experimental snapshot which shows a number
+   of endpoints in various error and success states.}
+  \label{fig:mandelbrot}
+ \end{center}
+\end{figure}
 
  It must be noted that the greatest inhibitor of production level
  application runs on that scale is, at this point, not the
@@ -290,7 +310,6 @@ particular with many replicas.
  overcome most of the technical obstacles.  Instead, the security
  policies and accounting limitations for these efforts are what makes
  these experiments a continuous, and fragile, challenge.
-
 
 
 \subsection*{Development of SAGA as an interoperable DCI Access Layer}
@@ -326,27 +345,26 @@ particular with many replicas.
 \label{ssec:std_xsede}
 
  Next to the implementation challenges for ALI oriented system stand
- the deployment challenges.  In fact, in our experiences the efforts
+ the deployment challenges.  In our experience, the efforts
  required to provide clean and stable deployment processes for
- a variety of environments can well exceed the actual development
+ a variety of environments can in fact well exceed the actual development
  efforts.
 
  We find the FutureGrid approach, to act as an test and staging
  environment which explicitly targets a large production environment,
  XSEDE, as very appropriate: it provides us with the ability to
  develop, test and certify packaging and deployment procedures without
- interfering with production systems, and without exposing the process
- to the end users on those systems.  
+ interfering with production systems, and without exposing the
+ evolution of that process to the end users on those systems.  
 
  In detail: SAGA is deployed as community software on TeraGrid/XSEDE.
- We are using the same model on FutureGrid, and can test deployment
- and testing on the FutureGrid machines.  That provides SAGA
- installations to our (mostly CS experiment friendly) users on
- FutureGrid itself, and also mimics perfectly the procedures we use to
- deploy stable versions on XSEDE.  Further, we have been using
- FutureGrid resources to perform certification and packaging processes
- toward other production infrastructures, most notably toward the SAGA
- enrolment on the European EGI software repositories (UMD).
+ We are using the same model on FutureGrid -- that provides SAGA
+ installations to our (mostly experiment friendly) users on FutureGrid
+ itself, and also perfectly mimics the procedures we use to deploy
+ stable versions on XSEDE.  Further, we have been using FutureGrid
+ resources to perform certification and packaging processes toward
+ other production infrastructures, most notably toward the SAGA
+ enrolment in the European EGI software repositories (UMD).
 
 
 \section{Education: Distributed Scientific Computing}
