@@ -52,10 +52,9 @@
   \and Sivakarthik Natesan 
   \and Melissa Romanus \\
   \and Sai Saripalli 
-  \and Ashley Zebrowski \\
-  \and \large{Faculty Advisor: Shantenu Jha}
-}
-
+  \and Ashley Zebrowski 
+  \and \large{Faculty Advisor: Shantenu Jha}\\
+  }
 
 \date{May 15th, 2012}
 \maketitle
@@ -110,7 +109,7 @@ To address these requirements, we design and implement Pilot-MapReduce (PMR)~\ci
         \end{subfigure}
 
 	\caption{ Figure ~\ref{fig:mr_arch} shows the architecture of Pilot-MapReduce, Pilot-Jobs manage the map and reduce compute  units and Pilot-data manage the intermediate data transfer between the map and reduce phase across multiple clusters. Figure ~\ref{fig:mrtop} shows different Pilot-MapReduce Deployment Scenarios- In the distributed scenario (~\ref{fig:mrtop}: left), the mapping tasks are run close to the data; reduced tasks are then run on a single resource. In the hierarchical scenario (~\ref{fig:mrtop}:right) two full MapReduce runs are conducted.  }
-	\label{fig:combo}
+	\label{fig:combo_2}
 
 \end{figure}
 
@@ -166,7 +165,7 @@ Output &20\,MB&30\,GB\\
         \end{subfigure}
 
 	\caption{Table ~\ref{tab:data-volumes} shows the input, intermediate and output data volumes for WordCount applications on natural language and random data. Figure ~\ref{fig:allmrs_rands} shows WordCount on 16\,GB Data Using Hadoop, Hierarchical Hadoop, Distributed PMR  and Hierarchical PMR}
-	\label{fig:combo}
+	\label{fig:combo_1}
 
 \end{figure}
 
@@ -316,55 +315,86 @@ between distributed systems will be as simple as choosing between the systems a 
 to access, letting plugins like the SSH plugin and the Eucalyptus plugin handle the rest.
 
 \section{CSA Deployment and Testing}
+
 SAGA and BigJob are deployed on all major FutureGrid machines (India,
 Sierra, Hotel and Alamo).  FutureGrid provides Community Software
 Areas (CSA) to communities, which basically is a system level area
 where software packages can be shared among a community of users.
 While it is possible to install and use SAGA and BigJob in each user's
 directory, to ensure minimum repetition of effort and to ensure users
-of SAGA get the best possible support, we employ the Community
-Software Areas (CSA) model.  It is not the case that SAGA per se is
-difficult to install but the fact that the adaptors to the many
-middlewares have widely varying configuration and deployment
-requirements.  Thus having a central location on each machine where
-SAGA is deployed as a community code ensures effective and correct
-installation.  Therefore it was only logical to deploy SAGA and BigJob
-in a CSA space on FutureGrid machines.
+of SAGA get the best possible support, we employ the CSA model.  It is
+not the case that SAGA per se is difficult to install, but the fact
+remains that the adaptors to the many middlewares have widely varying
+configuration and deployment requirements.  Thus having a central
+location on each machine where SAGA is deployed as a community code
+ensures effective and correct installation.  Similar considerations
+hold for Bigjob and Bliss --  it was therefore only logical to deploy
+SAGA and BigJob in a CSA space on FutureGrid machines.
 
-The source code for SAGA and BigJob is stored in a git repository
-~\cite{bigjob_web}. 
-A github wiki is used to store user guides for
-each of the individual FutureGrid machines. A BigJob CSA release is
-the result of a production pipeline. Any newly developed features,
-code modifications and bug fixes are created in branches and later
-merged onto the master. Once merged a set of semi-automatic deployment
-scripts is used to manually trigger the update. The update can
-encompass an individual machine or all machines, an individual SAGA
-component or the entire SAGA/BigJob installation. The set of supported
-components includes the SAGA core libraries, different API packages,
-the supported middleware adaptors for each machine, the python
-bindings, and the BigJob package and its dependencies.
+The source code for SAGA, BigJob and Bliss is stored in a git
+repository~\cite{saga-github}, and the deployment scripts pull sources
+from specific branches in the repository.  A set of semi-automatic
+deployment scripts is used to manually trigger CSA software updates.
+An update can encompass an individual machine or all machines, an
+individual SAGA component or the entire SAGA/BigJob/Bliss stack. The
+set of supported components includes the SAGA core libraries,
+different API packages, the supported middleware adaptors for each
+machine, the python bindings, and the BigJob package and its
+dependencies, and Bliss. 
 
-After each update, a set of automated unit tests is run on the target
-machines to ensure that not only the updated version is deployed, but
-more importantly, that it is correctly installed and configured for
-that target machine. The unit tests range from basic (low-level)
-environment testing, to application level test runs of a BigJob
-application. The user can also submit own scripts to test the
-deployments on CSA space. The test README, module file and test
-results are all committed to the central SAGA code repository, and
-(partially) used to document the current state of deployment on the
-SAGA deployment wiki.  \jhanote{provide URL to unit-tests please}
+The CSA installations are accompanied by automatically generated
+documentation (READMEs) and configuration scripts, which simplify the
+environment settings for the end user.  Site specific configuration
+details are also documented on github wiki pages.  For BigJob, a
+github wiki is used to store user guides for each of the individual
+FutureGrid machines. 
 
+A BigJob CSA release is the result of a production pipeline. Any newly
+developed features, code modifications and bug fixes are created in
+branches and are later merged onto the master. Once merged, it is
+deployed as experimental feature.  After each update, a set of
+automated unit tests is run on the target machines to ensure that not
+only the updated version is deployed, but more importantly, that it is
+correctly installed and configured for that target machine. The unit
+tests range from basic (low-level) environment testing, to application
+level test runs of a BigJob application. The user can also submit own
+scripts to test the deployments on CSA space. The test README, module
+file and test results are all committed to the central SAGA code
+repository, and (partially) used to document the current state of
+deployment on the SAGA deployment wiki.  \jhanote{provide URL to
+unit-tests please}
 
-After testing is complete, the python code is pushed to the Python
-Package Index (\textit{pypi}). This code is then deployed into the CSA
-space using pypi. Careful consideration is taken to ensure that the
-updates to CSA space will not impact any current users of BigJob on
-the XSEDE resources. Another round of testing is then completed to
-verify that the CSA installations are working and no changes to the
-users' environments are required. Any corresponding documentation on
-the github wiki is updated to reflect the changes.
+After testing is complete, the python code is (manually) pushed to the
+Python Package Index (\textit{pypi}). This code is then deployed into
+the CSA space using pypi. Careful consideration is taken to ensure
+that the updates to CSA space will not impact any current users of
+BigJob on the XSEDE resources. Another round of testing is then
+completed to verify that the CSA installations are working and no
+changes to the users' environments are required. Any corresponding
+documentation on the github wiki is updated to reflect the changes.
+
+For SAGA and for Bliss, an additional set of tests are running after
+the CSA deployment completed, ti verify the viability of the
+installations.  For SAGA, those tests are relatively simple, and check
+if the expected set of adaptors are available and load correctly.  For
+Bliss, the set of tests is more elaborate, and also cover correct
+environment settings, and n:m testing of remote system access: for
+example, a test run for the Bliss installation on india would attempt
+to submit test jobs via ssh and pbs+ssh to alamo, sierra and hotel.
+As those tests use exactly the environment settings which are
+documented for the end user, we gain some confidence that the
+installation is in fact viable.  Test results are timestamped and
+again pushed back into the SAGA git repository, 
+
+Additionally, Bliss is using another buildbot~\cite{bliss-builbot}
+driven test regime to ensure the stability of the Bliss code base in
+respect to FutureGrid and XSEDE as target environments: on every git
+code update (and also at regular intervals), a set of tests is run on
+all FutureGrid backends, to verify that the Bliss master branch is in
+usable state, and to notify the developers of potential problems as
+early as possible.  That mechanism proves extremely valuable for the
+release process of Bliss.
+
 
 \section{SAGA and BigJob on FutureGrid Cloud Resources}
 
