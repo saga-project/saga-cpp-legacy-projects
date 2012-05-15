@@ -71,7 +71,7 @@ FutureGrid provides students and researchers with new possibilities to engage in
 
 We have been using SAGA on FutureGrid to address the wide spectrum of challenges: from scalable runtime systems for distributed data-intensive applications (Pilot-MapReduce) to novel dynamic execution modes for traditional HPC applications (Cactus-Spawner) as well as enhanced sampling algorithms (Replica-Exchange).  In addition to flexible and scalable applications, we have used FutureGrid to enhance and extend the capabilities of SAGA.  In this submission we outline how are some of the ways we are using SAGA on FutureGrid resources to push the envelope and pursue exciting new discoveries.
 
-\jhanote{Each section should have the following: Scientific Motivation/objective? How was FutureGrid used? Scientific Results on Futuregrid? Ideally show how this work contributed to Interoperabiltiy and scalability}
+\jhanote{Each section should have the following: Scientific Motivation/objective? How was FutureGrid used? Scientific Results on Futuregrid? Ideally show how this work contributed to Interoperability and scalability}
 
 \section{Pilot-MapReduce}
 
@@ -230,7 +230,8 @@ Replica-Exchange Manager:
 The RE-Manager is the master process which in addition to controlling the different components-SAGA BigJob framework, the individual replicas, etc., also defines and implements the coordination/exchange mechanism employed. The actual tasks that the RE-Manager performs depends not only on the RE algorithm employed, but also on the replica management scheme being supported.The RE-Manager supports two different replica management schemes: centralized and decentralized.In centralized, the RE-Manager manages all the replicas and performs the exchanges.In the decentralized case, a replica-agent manages each replica individually as well making and performing exchange decisions.On Futuregrid, the synchronous and asynchronous RE algorithms were implemented and experiments were run using the centralized RE-Manager.
 
 Experiments and Results:
-We have used Futuregrid clusters namely: sierra,india,alamo and hotel to run our experiments.We have requested upto 128 cores on all these clusters of Futuregrid.At times due to non-availability of requested resources on future grid ,we have queue times, which we have not included in our total run time of our experiments.Also,not all experiments of Synchronous were run on all machines due to non availability of requested cores. we evaluate and compare the scale-across performance of the algorithms in conjunction with our framework.To understand the scaling behavior of the different RE formulations, we analyze total time to completion (T) for different replica counts from 4, 8, 16, 32. We have kept the ratio of number of attempted exchanges to the number of replicas as constant. The number of times each replica is restarted to complete all exchanges remains constant.Hence the comparison between different cases will reveal differences in coordination cost.The increase is however not uniform between the two implementations: it is largest for synchronous RE than Asynchronous RE.We analyzed the total run time on Futuregrid machines and values for all the different replica counts can be seen in the following graph
+We have used Futuregrid clusters namely: sierra,india,alamo and hotel to run our experiments.We have requested upto 128 cores on all these clusters of Futuregrid.At times due to non-availability of requested resources on future grid ,we have queue times, which we have not included in our total run time of our experiments.Also,not all experiments of Synchronous were run on all machines due to non availability of requested cores. we evaluate and compare the scale-across performance of the algorithms in conjunction with our framework.To understand the scaling behavior of the different RE formulations, we analyze total time to completion (T) for different replica counts from 4, 8, 16, 32. We have kept the ratio of number of attempted exchanges to the number of replicas as constant. The number of times each replica is restarted to complete all exchanges remains constant.Hence the comparison between different cases will reveal differences in coordination cost.The increase is however not uniform between the two 
+implementations: it is largest for synchronous RE than Asynchronous RE.We analyzed the total run time on Futuregrid machines and values for all the different replica counts can be seen in the following graph
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.47\textwidth]{figures/replica-exchange.jpg}
@@ -275,7 +276,7 @@ can be enhanced.
 \section{Bliss Development}
 Bliss is an implementation of the OGF GFD.90 SAGA standard, built with an emphasis
 on usability and ease of development.  To this end, it makes use of Python and a
-less-than-strict adherance to feature completeness or standards obedience.
+less-than-strict adherence to feature completeness or standards obedience.
 In short, the focus of the Bliss project is to have a highly-usable API for distributed
 computing with a low barrier of entry for development via Bliss-enabled software
 and Bliss plugins/extensions.  The Bliss project is still under heavy 
@@ -354,6 +355,20 @@ verify that the CSA installations are working and no changes to the
 users' environments are required. Any corresponding documentation on
 the github wiki is updated to reflect the changes.
 
+\section{SAGA and BigJob on FutureGrid Cloud Resources}
+
+\mrnote{Not done yet...}
+
+Though SAGA was originally developed for Grids and clusters, its importance must also be considered in the context of Cloud computing. A SAGA-based Cloud approach focuses on providing interoperability at the application-level through the use of adaptors. This approach can ultimately lead to interoperability between Clouds and Grids. SAGA was originally developed primarily for compute-intensive Grids, but the overall goal of achieving the ``distributed functionality'' required for data-intensive applications
+remains the same -- namely the ability to submit jobs to different back-ends, the ability to move files between distributed resources
+etc. Since Grids and Clouds do differ in many semantical aspects, SAGA requires functionality that allows the application to be immune to the fact that it is running on a Grid vs. a Cloud. This functionality is achieved through a context-aware adaptor
+that is dynamically loaded. 
+
+The natural extension of this work is to try to use BigJob, the SAGA-based Pilot Job framework, with clouds. The use of BigJob with clouds has been achieved with Nimbus in the past, but BigJob has evolved since then and the legacy code with SAGA and BigJob must be integrated in order to use the features of each FutureGrid Cloud stack. Since BigJob is used in a way to place tasks independent of the underlying machine, it is possible to spin up a number of VMs using BigJob and then submit jobs to these VMs based on the number of cores each VM has, with some code tweaks. At the moment, the SAGA context-aware adaptor does not interface with the BigJob API, which limits the use of BigJob via OpenStack due to issues with ssh using a private VM key. Future work involves identifying ways for BigJob to more efficiently be able to log in and submit jobs to such resources without the context adaptor.
+
+On FutureGrid, Cloud computing is offered through a choice of stacks -- Eucalyptus, Nimbus, or OpenStack. Testing of SAGA and BigJob on Cloud resources was performed on India with both Eucalyptus and OpenStack. Though SAGA had been tested with both Eucalyptus and Nimbus before, it had yet to be tested on the new OpenStack resources on India. India offers both OpenStack Nova (compute resources) and Swift (storage). Preliminary work on integrating SAGA with these resources focuses only on Nova and job submission, but in the future, the focus will shift to cloud-based storage to support both scalability and data exchanges.
+
+The initial testing of these resources was performed in stages. First, VMs were spun up, given a task, and shut down using the command line euca2ools provided by FutureGrid. No problems were encountered following the FutureGrid tutorials for Eucalyptus \ref{fg_tutorial_euca} and OpenStack \ref{fg_tutorial_openstack}. Code for the SAGA-based Amazon Web Services (AWS) adaptor has become out of date in favor of the aforementioned Bliss-based implementation, however, the SAGA context adaptor was utilized to send the private key via ssh and to submit a job to OpenStack. \mrnote{hard to explain just AWS without providing context -- for instance, I will need to explain the SSH adaptor etc.... maybe do that tomorrow morning}
 
 \section{Conclusion}
 Here we will evaluate each application based on how they fit into the
