@@ -969,12 +969,42 @@ so future work could be creating the tool which would be able to customize the c
 
 \subsection{DARE: Developer's perspective}
 
+When dare-run command is triggered with a .dare configuration file as an argument  it starts of a dare-manager module.  
+The dare-manager module is then responsible for  preparing the workflow, starting of web database updater, 
+start of the pilots on different resources mentioned in the configuration, and start of the different steps using multiple threads and terminate all of them when all steps are done.
+
+For preparing a workflow dare-manager utilizes a  customized configuration file parser which is packaged inside DARE.
+While preparing workflow first it reads a section called 'main' from the main it goes onto preparing pilot units based on the 
+parameters mentioned. It loads appropriate pilot configuration file mentioned in one of the file or by default it loads with the one
+available in the DARE package.'.dare' configuration file only contains information about the resource names, wall time, size can be provided, rest of the job description details should be available in the job configuration file
+
+once the preparation of pilot units is done it then goes on to preparing steps units. It creates these step units based on the  parameter 'steps' mentioned in the main section. These units will also have empty parameters like 'transfer\textunderscore input\textunderscore data\textunderscore units', 'transfer\textunderscore output\textunderscore data\textunderscore units',' compute\textunderscore units' which are used later to fill with appropriate data.  Then it continues to read different step units description from .dare file to find the dependent steps and store them as a parameter for the step unit "start-after-steps". 
+
+Now it goes on to preparing the compute units in the same process as above  but now all these compute units are assigned unique id's and then append these id's to the appropriate steps 'compute-units'  field. so that it will be used in the future while running a step.
+
+Similar to compute units data units are also prepared from the parameters transfer\textunderscore input\textunderscore files and transfer\textunderscore output\textunderscore files these are also then assigned to appropriate step.
+
+Now dare-manager starts creating the pilot service with required data service agent and compute service agent as necessary on the remote resources with help of pilot units description we prepared were utilized here. Once pilot agents were up and running then manager dispatches a thread for each step. This thread first checks if there are any dependent steps if it has one or more it waits until all those steps have status as done. if none it starts running the steps right away. once the step execution is started it submits the input data units in this steps to pilot data service agent and waits for all the data transfers to complete. After the transfers are successful it submits the compute units for the steps. after these compute units were done it goes onto submitting the output\textunderscore data\textunderscore units. Here it keeps updating gateway's database about the status of these steps.
+
+Once all the steps have finished it goes on to killing the pilot agents. if anything fails in the middle of the execution currently entire job is terminated and status is set as failed. 
+
+All these execution details are hidden for the gateway.  All it needs to do is create the appropriate job description file('.dare') which is then submitted as dare-run command. This makes it easier and pluggable to other gateways as well.
+
+In future we can also provide a functionality for the users to exchange workflows on different resources from the gateway. 
+
+
 \begin{figure}[t]
 \centering \includegraphics[width=0.66\textwidth]{figures/DARE_Sequence.pdf}
 \caption{\textbf{ DARE }}
 
  \label{fig:saga-overview}
 \end{figure}
+
+
+
+
+
+
 
 \subsection{SAGA: Standards-based Access to the Resources Layer}
 
