@@ -944,6 +944,38 @@ flexibility that scientific applications demand.
 % quick construction of lightweight, extensible, gateways that can
 % utilize distributed cyberinfrastructure.
 
+\subsection{DARE: user's perspective}
+
+%Current DARE's  scope is limited to following: i)for users without much experience in distributed world want want setup, customize and run  the workflows.
+%ii)for integrating and configuring the workflow execution system quickly and easily into a gateways.To support the static workflows like NGS using BFAST
+%which can be easily modified right before execution of a particular job. it will have some predefined compute units description files and resource description file which are also user customizable. 
+
+Once the user does install DARE he will be able to access an executable called 'dare-run' . this executable takes an input file with '.dare' as an extension. A DARE should be know and be able to understand the following 3 different files.
+
+1) A file with resource information. These files go by '*.pilot' extension. In this file we define a set resource's properties which are required in job descriptions to launch an agent on a resource or submitting a job to job schedulers to start the pilot agent 
+
+2) A file with compute unit information. These files goes by '. cu'  extension. it has the list of what arguments that keep changing for a job (example: bfast input\textunderscore file). Environment variables that needs to be set to execute on particular environment. if the executable path changes on different changes this is a good place to store information where the executable is accessible on particular resource. further it also have different arguments which might be a machine/resource specific.
+
+3) A file with job/workflow specific information. this goes by '.dare' extension. it  can hold the data about the combination of resources that should be  used for this job. Size and wall time of the resources. Further user can specify the which file should pick up the resource information for a job that is he can create a custom resource configuration file and use it for this particular job. And another important part about this file is it has data of the different steps that are required in a workflow. it also has a flag whether this particular job should or should not update the status of these jobs into the database which is used to show job's status's on the gateway.  
+
+
+Another flag for a step which tells it is dependent on other steps successful execution or not. This could be multiple steps dependency, but by default is none. So before  a step execution actually starts it checks for it's dependent steps and will not start until the steps have DONE status.  A step can have multiple compute units of same kind with minor variations like input files. A flag called 'input\textunderscore names' basically determines the number of compute unit's in a step. The input names are separated by a comma to make it simple for the users. A step is typically comprises of compute unit description file. so a flag to determine which config should be used to determine this's compute unit's job description. A user can define his own compute unit description all he needs to do is specify the path so that DARE can load it during the runtime. A step  also has the flags (transfer\textunderscore input\textunderscore files, transfer\textunderscore output\textunderscore files) which determines which files need to be moved before and after the execution of all step's compute units. Currently, these transfers are limited between DARE host machine and the resource where the STEP run's. It also has option where user can mention which resource the DARE should run a compute unit. This is useful when a user wants to run some of the compute units on a particular machine. For the later one we have a utility inside the library which can connect to a database to update the most recent status of the job like which steps have finished and which are running. so that we can display that information to the users.
+
+
+So by customizing the '.dare' configuration file a user basically can initiate a dare instance using the dare-run command. We also have  tool which  customizes a DARE configuration file based on job submitted by a user in a  gateway and this dare configuration file is used to initiate the dare instance  by the gateway.
+
+Further,  currently a user can customize the above configuration files through text editors which may become complicated for some complex workflows
+so future work could be creating the tool which would be able to customize the configuration files.   
+
+\subsection{DARE: Developer's perspective}
+
+\begin{figure}[t]
+\centering \includegraphics[width=0.66\textwidth]{figures/DARE_Sequence.pdf}
+\caption{\textbf{ DARE }}
+
+ \label{fig:saga-overview}
+\end{figure}
+
 \subsection{SAGA: Standards-based Access to the Resources Layer}
 
 % SAGA is an API that provides the basic functionality for developing
