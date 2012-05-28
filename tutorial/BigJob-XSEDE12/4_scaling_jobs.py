@@ -44,7 +44,10 @@ if __name__ == "__main__":
     # submit compute units
     for i in range(NUMBER_JOBS):
         compute_unit_description = {
-                "executable": "/bin/echo",
+                # When multiple machines considered executable location might vary.
+                # User has to to create link to executable in $HOME directory
+                # In below case testexe is a link to executable echo on both Ranger and Lonstar
+                "executable": "$HOME/testexe",
                 "arguments": ["Hello","$ENV1","$ENV2"],
                 "environment": {'ENV1':'env_arg1','ENV2':'env_arg2'},
                 "total_cpu_count": 4,            
