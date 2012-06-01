@@ -944,47 +944,43 @@ flexibility that scientific applications demand.
 % quick construction of lightweight, extensible, gateways that can
 % utilize distributed cyberinfrastructure.
 
-In the following two subsections, we describe some general perspectives that an end-user or a developer are expected to hold. In other words, in order to provide a more specific picture on how DARE prepares and executes a target group of tasks comprising a workflow, we explain a general sequence of underlying tasks for an end-user or a developer point of view.
+In the following two subsections, we describe some general perspectives that an end-user or a developer are expected to hold. In other words, in order to provide a more specific picture on how DARE prepares and executes a target group of tasks comprising a workflow, we explain a general sequence of underlying tasks for an end-user or a developer point of view (see also Fig.~\ref{fig:dare-seqence}).  
 
 
 
 
 \subsection{DARE: user's perspective}
 
- Some new terms that are introduced in this section and the next are as follows
+First, the following terms used in this and the next subsections are explained.
 
-\textbf{dare-run}: This the name of the executable which instantiates DARE with certain configuration files as the input.
+\textbf{dare-run}: an executable that instantiates DARE with configuration files as input.
  
-\textbf{dare-manager}:  This is a module inside DARE package which takes control over the execution from dare-run. It is responsible for managing several  
-functions with in dare like preparing configuration files, failure, termination.  
+\textbf{dare-manager}: a module inside the DARE package which carries out the execution imposed by dare-run and that is responsible for managing several functions such as preparing configuration files and detection of failure and successful termination.  
 
-\textbf{job}: The where a user submits to our Gateway. It generally contains several information about kind of tools 
+\textbf{job}: a service invoked by a user via Gateway. It contains information about required tools. 
 
-\textbf{pilot unit}: This is an object  where it is supposed to have information about remote resources a user tries to utilize. This is utilized to launch pilot agents.   It contains attributes like authentication, working directory, data transfer url. 
+\textbf{pilot unit}: an object holding information about remote resources to be utilized. This is needed to launch pilot agents.  Attributes for authentication, working directory, and data transfer urls are also assigned. 
 
-\textbf{step unit}: This is also an object inside DARE which holds the information about certain  computation and data transfers that are needed to be performed. For example, in bfast first we have to do 
-indexing, then mapping and then alignment. In DARE we consider indexing as step 1, mapping as step 2 and alignment as step 3. Now, Step 1 i.e. mapping step has information about the input files that need to transferred to remote resource(data unit) and a computation that needs to be performed.
+\textbf{step unit}: an object in DARE which holds the information about required computation and data transfers. For example, in the computation for a mapping with the bfast package, first we have to conduct an indexing task, then a mapping and then an alignment tasks.  In DARE, we assign an indexing task as step 1, a mapping task as step 2 and an alignment task as step 3. step 1, an indexing step, has information about input files that is to be transferred to a remote resource(data unit) and a computational task that needs to be performed.
 
-For more information about pilot agent, compute unit and data unit please refer to P*.
+For more information about pilot agent, compute unit and data unit please refer to the reference\cite{pstar11}.
 
 %Current DARE's  scope is limited to following: i)for users without much experience in distributed world want want setup, customize and run  the workflows.
 %ii)for integrating and configuring the workflow execution system quickly and easily into a gateways.To support the static workflows like NGS using BFAST
 %which can be easily modified right before execution of a particular job. it will have some predefined compute units description files and resource description file which are also user customizable. 
    
 Once a user installs DARE, the first task is to run an executable called 'dare-run' . 
-This executable takes an input file having an extension of '.dare' and this input file contains the information 
-at least one from the files which go by ".cu" and ".pilot" extension. The following is the description about the three kinds of configuration files.
+This executable takes an input file having an extension of '.dare' and this input file contains the information about files with ".cu" and ".pilot" extensions.  Again, such three kinds of configuration files are detailed below with the information that they contain.
 
-1) Files about the resource information. These files go by '*.pilot' extension. In these files, we define a set resource's properties which are required in job descriptions to launch an agent on a resource or submitting a job to job schedulers to start the pilot agent. 
+1) Files about the resource information. These files go by '*.pilot' extension. In these files, we define a set of properties for resources which is associated with a job description to launch an agent on a resource and a job submission to a job scheduler to start a pilot agent. 
 
-2) Files about the compute unit information. These files go by '. cu'  extension.  The information include arguments for an individual task (for example, bfast input\textunderscore file) and environment variables that needs to be set for each task. Note that these variables would be different for each machine/resources and should be dealt with appropriately.
+2) Files about the compute unit information.  These files go by '. cu'  extension.  The information include arguments for an individual task (for example, bfast input\textunderscore file) and environment variables that needs to be set for each task. Note that these variables would be different for each machine/resources and assigned appropriately.
 
-3) Files about the job/workflow specific information.  These files go by '.dare' extension. In these files, the information about the data, in conduction with resources and jobs. Examples are the size and wall time of the resources.  Further, a user can specify which file should pick up the resource information for a job.  Another important thing about these files is that it has the information about different steps that are required in a target workflow.  Finally, there is a flag whether a particular job should or should not update the status of jobs into the database which is used to show a job status through the gateway.  
+3) Files about the job/workflow specific information.  These files go by '.dare' extension. In these files, the information about the data, in conduction with resources and jobs, is specified. Examples are the size and wall time of the resources.  Further, a user can specify which file should be picked up for resource information for a submitted job.  Another important thing about these files is that it has the information about different steps that are required in a target workflow.  Finally, there is a flag whether a particular job should or should not update the status of jobs into the database which is used to show a job status through the gateway.  
 
+Another flag for each step of a whole workflow is whether the step is dependent on successful execution of other steps.  For example, with this flag, it is possible to impose a validation task, before an execution of a step actually starts, that confirms the successful end of dependent steps.  A step can have multiple compute units of a same kind with minor variations such as different input files.  A flag called 'input\textunderscore names' basically determines the number of compute unit's in a step. The input names are separated by a comma to make it simple for the users. A step is typically composed of compute unit description files, so a flag is used for the decision about which configuration should be used for the compute unit's job description.  This allows a user to define his own compute unit description so that DARE can find appropriate tasks during the runtime. A step also has the flags (transfer\textunderscore input\textunderscore files, transfer\textunderscore output\textunderscore files) which determine what files need to be moved before and after the execution of compute units. Currently, these transfers are limited between the DARE host machine and resources where the steps should run.  Also, a user has an option for assigning specific tasks for a certain machine.  This is useful when a user wants to run some of the compute units on a particular machine. 
 
-Another flag for each step of a whole workflow is whether the step is dependent on successful execution of other steps.  For example, with this flag, it is possible to impose a validation task, before an execution of a step actually starts, that confirms the successful end of dependent steps.  A step can have multiple compute units of a same kind with minor variations such as differnt input files. A flag called 'input\textunderscore names' basically determines the number of compute unit's in a step. The input names are separated by a comma to make it simple for the users. A step is typically comprises of compute unit description file. so a flag to determine which config should be used to determine this's compute unit's job description. A user can define his own compute unit description all he needs to do is specify the path so that DARE can load it during the runtime. A step  also has the flags (transfer\textunderscore input\textunderscore files, transfer\textunderscore output\textunderscore files) which determines which files need to be moved before and after the execution of all step's compute units. Currently, these transfers are limited between DARE host machine and the resource where the step should run. It also has option where user can mention which resource the DARE should run all the compute unit's that belongs to a step. This is useful when a user wants to run some of the compute units on a particular machine. 
-
-  We have a utility inside the DARE library which can connect to a database to update the most recent status of the job like which steps have finished and which are running. so that we can display that information to the users.
+The status of each job is stored in the external database and updated as each step starts to run, continue to run or finished.  This information can be easily displayed via Gateway to the user.  
 
 Overall, with the creation of the '.dare' configuration file, a user can initiate a dare instance using the dare-run command.  In terms of science gateway development, based on identification of pipelines for specific services, a DARE configuration file is chosen as a job is submitted by a user via a gateway GUI and this dare configuration file is used to carry out the required service.
 
@@ -992,30 +988,23 @@ Currently, a user or a gateway developer are expected to write such configuratio
 
 \subsection{DARE: Developer's perspective}
 
-When dare-run command is triggered with the dare configuration file with ".dare" extension, it starts a dare-manager module.  
-The dare-manager module is then responsible for  preparing the workflow, starting of web database updater, 
-start of the pilots on different resources mentioned in the configuration, and start of the different steps using multiple threads and terminate all of them when all steps are done.
+When dare-run command is triggered with the dare configuration file with ".dare" extension, it starts a dare-manager module.  The dare-manager module is responsible for preparing the workflow, starting the web database updater, starting pilot agents on different resources as mentioned in the configuration, and starting steps by creating multiple threads and terminating them when all steps are done.
 
-For preparing a workflow, the dare-manager utilizes a customized configuration file parser which is packaged inside DARE.
-First, the parser reads a section called 'main' from the main it goes onto preparing pilot units based on the 
-parameters mentioned. Also, appropriate pilot configuration file or as a default default the one
-available in the DARE package.'.dare' configuration file are also read for the information about resource names, wall time, and size of required computation.  The rest of the job description details should be available in the job configuration file
+For preparing a workflow, the dare-manager utilizes a customized configuration file parser which is packaged inside DARE.  First, the parser reads a section called 'main' of the dare configuration file.   Preparing pilot units is made based on the parameters there.   A required pilot configuration file is read for the information about resource names, wall time, and size of computation.  The rest of the job description details should be available in the job configuration file.
 
 Once the preparation of pilot units is done, the next step is for preparing step units.  These step units are based on the parameter 'steps' in the main section of the dare configuration file.  These step units will also have empty parameters like 'transfer\textunderscore input\textunderscore data\textunderscore units', 'transfer\textunderscore output\textunderscore data\textunderscore units',' compute\textunderscore units' which are used later to fill with appropriate data.  Then reading different step units description from the dare configuration file to find the dependent steps and store them as a parameter for the step unit "start-after-steps". 
 
 Now it goes on to preparing the compute units in the same process as above  but now all these compute units are assigned unique id's and then append these id's to the appropriate steps 'compute-units'  field. so that it will be used in the future while running a step.
 
-Similar to compute units data units are also prepared from the parameters transfer\textunderscore input\textunderscore files and transfer\textunderscore output\textunderscore files these are also then assigned to appropriate step.
+Similar to compute units, data units are also constructed based on the parameters transfer\textunderscore input\textunderscore files and transfer\textunderscore output\textunderscore files. These are then assigned to appropriate steps.
 
-Now the dare-manager starts to create the pilot service with required a data service agent and a compute service agent as necessary on the remote resources with help of pilot units description we prepared in the above step.
+At this moment, the dare-manager starts with a creation of the pilot service that also starts a data service agent and a compute service agent on remote resources following the pilot unit descriptions prepared in the above step.
 
-Once pilot agents were up and running then manager dispatches a thread for each step. This thread first checks if there are any dependent steps. If it has one or more it waits until all those steps are finished and update their status as done else none it starts running the steps right away. once the step execution is started it submits the input data units in this steps to pilot data service agent and waits for all the data transfers to complete. After the transfers are successful it submits the compute units for the steps. after these compute units were done it goes onto submitting the output\textunderscore data\textunderscore units. Here it keeps updating gateway's database about the status of these steps.
+Once pilot agents are up and running, the manager dispatches a thread for each step. This thread first checks if there are any dependent steps. If such dependent steps exist, the thread waits until all those steps are finished.  When each step execution starts, input data units for the step are submitted to a pilot data service agent.  After the data transfer are successful, the thread for the step submits the compute units.  After tasks with compute units are done, the thread goes onto submitting the output\textunderscore data\textunderscore units. At this moment, the thread updates the external database for the status of this step.
 
- 
+Once all the steps have finished, it goes on to terminating of the pilot agents. if anything fails in the middle of the execution, the entire job is terminated and the status is set as failed. 
 
-Once all the steps have finished it goes on to killing the pilot agents. if anything fails in the middle of the execution currently entire job is terminated and status is set as failed. 
-
-All these execution details are hidden for the gateway.  All it needs to do is create the appropriate job description file('.dare') which is then submitted as dare-run command. This makes it easier and pluggable to other gateways as well.
+Note that for the development of a gateway, all it needs to do is to create an appropriate job description file('.dare') which is then submitted as dare-run command. This makes the development modular and extensible to other gateways.
 
 In future we can also provide a functionality for the users to exchange workflows on different resources from the gateway. 
 
