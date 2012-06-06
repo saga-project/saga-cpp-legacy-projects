@@ -161,7 +161,7 @@ the wall boundary within the acceptable computational cost.
 A number of scientific studies have been published which improve the hybrid
 technique and/or apply this approach to various nano-scale flow fields.
 These researches can be categorized to constrained Lagrangian dynamics
-\cite{Thompson,Nie,Nie_cavity,Cui,Wang,Yen,Liu,JoCS2012}, alternating 
+\cite{Thompson,Nie,Nie_cavity,Cui,Wang,Yen,Liu,ECCOMAS10}, alternating 
 Schwarz method\cite{Hadjicon1,Hadjicon2,Hadjicon3,Werder,Kotsalis}, 
 and direct flux exchange\cite{Flekkoy,Wagner,Delgado1,USHER,Time_Mechanism,Giupponi},
 according to the formulation of hybrid schemes and the characteristics of 
@@ -199,7 +199,7 @@ for the application to multi-species and polyatomic fluid flow. The equation is
 reformulated to provide the linear momentum conservation. Also, the equation is
 applied on the molecules instead of individual atoms, to prevent the numerical
 break-up of chemical bond. We implement this equation on our hybrid CFD-MD simulation
-package which has been introduced in our previous article\cite{JoCS2012} and apply
+package which has been introduced in our previous article\cite{ECCOMAS10} and apply
 it to solving multi-species and polyatomic fluid flow.
 
 We introduce the hybrid CFD-MD approach and describe the Lagrangian dynamics equation
@@ -365,7 +365,7 @@ The forces on the cell caused by particle interactions with other particles are 
 \label{sec:numerics}
 
 We address the numerical schemes and hybrid interface of individual CFD and MD
-solvers in brief: Full details can be found in Ref.~\citen{JoCS2012}.
+solvers in brief: More details can be found in Ref.~\citen{ECCOMAS10}.
 
 \subsection{Continuum Incompressible Flow Solver}
 \label{sec:numerics_cfd}
@@ -475,12 +475,11 @@ and developed by Sandia National Labs\cite{LAMMPS_url}.
 The file-based communicator is implemented on each solver to exchange conservative
 properties at every sampling interval. CFD solver stores the instantaneous solution
 at that time instance, while MD solver produces the backward sample over the
-sampling duration. Thus, the extrapolation/interpolation mechanism for time-accurate
-hybrid simulation\cite{JoCS2012} is also incorporated to avoid time-lagging pattern. 
-CFD solver directly applies these extrapolated/interpolated properties as the 
-hybrid boundary condition. MD solver inputs these values on employed constrained 
-Lagrangian dynamics formulation. MD solver also applies the external force function
-in the uppermost layer.
+sampling duration. Thus, transferred boundary information is extrapolated along
+the temporal space so as to avoid the time-lagging pattern in the boundary.
+CFD solver directly applies these extrapolated properties as the 
+hybrid boundary condition at each time instance. MD solver inputs these values
+on employed constrained Lagrangian dynamics formulation. MD solver also applies the external force function in the uppermost layer.
 
 The unit conversion function is also incorporated in CFD solver. This function changes
 the non-dimensional CFD solution into non-dimensional MD unit and vice versa. 
@@ -584,7 +583,7 @@ considering the characteristics of our deterministic application targets.
 
 
 %%%%% FIGURE %%%%%
-\begin{wrapfigure}{R}{1.0\linewidth}
+\begin{wrapfigure}{L}{1.0\linewidth}
 %\includegraphics{Flat_Plate_Sol2.pdf}
 \includegraphics{Flat_Plate_Sol2.jpg}
 \caption{A Time-accurate Couette Flow Profile: The evolution of velocity field 
@@ -615,7 +614,7 @@ The hybrid solution succeeds in describing the same flow physics as the
 analytic solution under the level of molecular dynamic sampling noise.
 This evaluates the accuracy of the current hybrid simulation package
 as a tool for solving the nano-scale flow field. This sampling noise is 
-even diminished further through the sampling of multiple replicas.\cite{JoCS2012}
+even diminished further through the sampling of multiple replicas.
 
 
 %\begin{figure}
@@ -647,14 +646,56 @@ even diminished further through the sampling of multiple replicas.\cite{JoCS2012
 \subsection{Transient Couette Flow Profiles in Multi-species and Polyatomic Fluids}
 \label{sec:result_multi}
 
-We currently apply our simulation package to solving two fluid systems.
-The first experiment solves a liquid compound which consists of two
-monatomic molecule species differing in mass. Chemical properties of
+We apply our simulation package to solving a liquid compound which consists of
+two monatomic molecule species varying in mass. Chemical properties of
 each artificially designed molecule are set to be the same as that of
-the liquid argon. This numerical experiment will aims to verify the
-accuracy of the improved constrained Lagrangian dynamics equation, by comparing its result with the pure molecular dynamic solution.
+the above liquid argon system, except the particle mass. Yet,
+the systematic density and total number of particles are preserved,
+so as to provide the reliability on preserving other characteristic properties.
+
+Three different compositions have been simulated to verify
+the constrained Lagrangian dynamic equation for multi-species fluid.
+The first system consists of two molecular species whose non-dimensional
+mass (compared to that of a liquid argon) are 0.5 and 1.5, respectively.
+Same number of particles are mixed to compose a fluid domain.
+The second system contains two species of 0.5 and 2.0 non-dimensional
+molecular mass whose quantities are 2:1 ratio. Likewise, the third system
+consists of 0.4 and 4.0 non-dimensional mass molecules, with the quantitative
+ratio of 5:1. 
+
+Figure~\ref{Fig:Multi_species} presents the transient Couette flow profile
+from three different composition of molecules. In comparison to the analytic
+solution, all simulations show the same flow evolution. It verifies
+the accuracy of the multi-species Lagrangian dynamics model.
+Hybrid steady-state velocity solutions at time of 1500 $\tau$ globally shows
+a little faster than the analytic solution. This behavior is due to 
+the slight slip between wall and liquid particles, which is the response of
+the inter-molecular characteristc energy. 
+%Also, the time-lagging profile during the evolution is presented. This is
+%related to the accuracy of the temporal coupling scheme. It motivates us
+%to refine the time integration method.
 
 
+%%%%% FIGURE %%%%%
+\begin{wrapfigure}{R}{0.8\linewidth}
+%\begin{figure}
+ \begin{subfigmatrix}{1}% number of columns
+  \subfigure[Mixture of 0.5 and 1.5 Mass Atoms]{\includegraphics{050150.jpg}}
+  \subfigure[Mixture of 0.5 and 2.0 Mass Atoms]{\includegraphics{050200.jpg}}
+  \subfigure[Mixture of 0.4 and 4.0 Mass Atoms]{\includegraphics{040400.jpg}}
+ \end{subfigmatrix}
+ \caption{Couette Flow Profiles in Multi-species Liquids:
+ Time-variant velocity profile along the vertical direction are presented.
+ All simulations from different particle compositions accurately describe
+ the flow physics, which verifies the multi-species Lagrangian dyanmics
+ model.}
+ \label{Fig:Multi_species}
+%\end{figure}
+\end{wrapfigure}
+%%%%% FIGURE %%%%%
+
+
+----- Todos
 The next experiment will solve a polyatomic molecular fluid whose
 molecular structure is equivalent to that of water. This experiment 
 focuses on proving that imposing the constrained equation on the center
@@ -666,6 +707,7 @@ since outside the hybrid region is treated as the vacuum in particle
 domain. Thus, we apply the short-range Lennard-Jones potential for
 describing the molecular motion and compare our hybrid solution with
 the pure molecular dynamic simulation on the same flow field.
+----- Todos
 
 %%%%% End Numerical Solutions %%%%%
 
@@ -687,15 +729,18 @@ which consists of a pseudo-compressibility incompressible Navier-Stokes
 solver and a molecular dynamics solver solving the Lennard-Jones
 potential. The simulation package has been verified by solving the 
 transient Couette flow profile of a single-species monatomic fluid 
-system.
-It is under the application to two fluid systems who contains different
-atomic species in the particle domain. Simulation of the monatomic 
-fluid solution with different mass will verify the accuracy of
-the improved equation. Simulation of a polyatomic fluid will provide 
+system. We have applied our simulation package to solving the multi-species
+monatomic fluid. All simulations at different composition of particles
+present accurate solutions compared to the analytic solution, which verify
+the multi-species Lagrangian dynamics equation.
+
+----- Todos
+Simulation of a polyatomic fluid will provide 
 the numerical validity of imposing the constrained Lagrangian dynamics
 equation on molecular level. These numerical experiments, in turn, will
 express the potential to apply the hybrid CFD-MD approach to any fluid
 systems.
+----- End of todos
 
 The future work will be dedicated to solving the long-range force
 field (e.g., Coulomb force) as well as the short-range Lennard-Jones
