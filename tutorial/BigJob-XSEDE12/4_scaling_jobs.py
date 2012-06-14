@@ -4,6 +4,7 @@ import os
 import time
 import sys
 from pilot import PilotComputeService, ComputeDataService, State
+COORDINATION_URL = "redis://ILikeBigJob_wITH-REdIS@gw68.quarry.iu.teragrid.org:6379"
 	
 
 ### This is the number of jobs you want to run
@@ -12,7 +13,7 @@ NUMBER_JOBS=24
 if __name__ == "__main__":
 
     start_time=time.time()
-    pilot_compute_service = PilotComputeService()
+    pilot_compute_service = PilotComputeService(COORDINATION_URL)
     pilot_compute_description=[]
 
     pilot_compute_description.append({ "service_url": "ssh://localhost",
@@ -49,7 +50,7 @@ if __name__ == "__main__":
                 # In below case testexe is a link to executable echo on both Ranger and Lonstar
                 "executable": "$HOME/testexe",
                 "arguments": ["Hello","$ENV1","$ENV2"],
-                "environment": {'ENV1':'env_arg1','ENV2':'env_arg2'},
+                "environment": ['ENV1=env_arg1','ENV2=env_arg2'],
                 "total_cpu_count": 4,            
                 "spmd_variation":"mpi",
                 "output": "stdout.txt",

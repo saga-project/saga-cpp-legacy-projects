@@ -4,28 +4,22 @@ import time
 import logging
 from pilot import PilotComputeService, ComputeDataService, State
 
+COORDINATION_URL = "redis://ILikeBigJob_wITH-REdIS@gw68.quarry.iu.teragrid.org:6379"
+
 if __name__ == "__main__":      
-    pilot_compute_service = PilotComputeService()
+    pilot_compute_service = PilotComputeService(COORDINATION_URL)
     pilot_compute_description = []
 
     # create pilot job service and initiate a pilot job
     pilot_compute_description.append({
                              "service_url": 'ssh://localhost',
                              "number_of_processes": 12,                             
-                             "working_directory": os.path.join(os.getcwd(), "agent"),
-                             "affinity_datacenter_label": "eu-de-south",              
-                             "affinity_machine_label": "mymachine-1",
-                             "file_transfer": ["ssh://" + os.path.dirname(os.path.abspath(__file__)) 
-                                               + "/../test.txt > BIGJOB_WORK_DIR"]
+                             "working_directory": os.path.join(os.getcwd(), "agent")
                             })
     pilot_compute_description.append({
                              "service_url": 'ssh://ranger',
                              "number_of_processes": 16,
-                             "working_directory": "/share/home/01539/pmantha/agent",
-                             "affinity_datacenter_label": "eu-de-south1",
-                             "affinity_machine_label": "mymachine-2",
-                             "file_transfer": ["ssh://" + os.path.dirname(os.path.abspath(__file__))
-                                               + "/../test.txt > BIGJOB_WORK_DIR"]
+                             "working_directory": "/share/home/01539/pmantha/agent"
                             })
 
     for pcd in pilot_compute_description:
@@ -42,8 +36,7 @@ if __name__ == "__main__":
             "total_core_count": 1,
             "output": "stdout.txt",
             "error": "stderr.txt",   
-            "file_transfer": ["ssh://" + os.path.dirname(os.path.abspath(__file__)) 
-                                + "/../test.txt > BIGJOB_WORK_DIR"]
+            "file_transfer": ["ssh://" + os.path.dirname(os.path.abspath(__file__)) + "/test.txt > BIGJOB_WORK_DIR"]
         }    
         compute_unit = compute_data_service.submit_compute_unit(compute_unit_description)
 

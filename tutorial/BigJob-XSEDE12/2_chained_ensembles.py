@@ -8,11 +8,12 @@ from pilot import PilotComputeService, ComputeDataService, State
 
 ### This is the number of jobs you want to run
 NUMBER_JOBS=4
+COORDINATION_URL = "redis://ILikeBigJob_wITH-REdIS@gw68.quarry.iu.teragrid.org:6379"
 
 if __name__ == "__main__":
 
     start_time=time.time()
-    pilot_compute_service = PilotComputeService()
+    pilot_compute_service = PilotComputeService(COORDINATION_URL)
     pilot_compute_description=[]
 
     pilot_compute_description.append({ "service_url": "ssh://localhost",
@@ -22,7 +23,6 @@ if __name__ == "__main__":
                                        "processes_per_node":12,
                                        "working_directory": os.getcwd()+"/agent",
                                        "walltime":10,
-                                       "affinity_machine_label": "mymachine" 
                                      })
 
     for pcd in pilot_compute_description:
@@ -37,12 +37,11 @@ if __name__ == "__main__":
         compute_unit_description = {
                 "executable": "/bin/echo",
                 "arguments": ["Hello","$ENV1","$ENV2"],
-                "environment": {'ENV1':'env_arg1','ENV2':'env_arg2'},
+                "environment": ['ENV1=env_arg1','ENV2=env_arg2'],
                 "total_cpu_count": 4,            
                 "spmd_variation":"mpi",
                 "output": "A_stdout.txt",
                 "error": "A_stderr.txt",
-                "affinity_machine_label": "mymachine" 
                 }    
         compute_unit = compute_data_service.submit_compute_unit(compute_unit_description)
 
@@ -60,12 +59,11 @@ if __name__ == "__main__":
                 compute_unit_description = {
                     "executable": "/bin/echo",
                     "arguments": ["$ENV1","$ENV2"],
-                    "environment": {'ENV1':'task_B'+str(i),'ENV2':'after_task_A'+str(i)},
+                    "environment": ['ENV1=task_B'+str(i),'ENV2=after_task_A'+str(i)],
                     "total_cpu_count": 1,
                     "spmd_variation":"single",
                     "output": "B_stdout.txt",
-                    "error": "B_stderr.txt",
-                    "affinity_machine_label": "mymachine"
+                    "error": "B_stderr.txt"
                 }
                 compute_unit = compute_data_service.submit_compute_unit(compute_unit_description)
                 del temp[i]
@@ -88,12 +86,11 @@ if __name__ == "__main__":
                 compute_unit_description = {
                     "executable": "/bin/echo",
                     "arguments": ["$ENV1","$ENV2"],
-                    "environment": {'ENV1':'task_C'+str(i),'ENV2':'after_task_B'+str(i)},
+                    "environment": ['ENV1=task_C'+str(i),'ENV2=after_task_B'+str(i)],
                     "total_cpu_count": 1,
                     "spmd_variation":"single",
                     "output": "C_stdout.txt",
-                    "error": "C_stderr.txt",
-                    "affinity_machine_label": "mymachine"
+                    "error": "C_stderr.txt"
                 }
                 compute_unit = compute_data_service.submit_compute_unit(compute_unit_description)
                 del all_B_cus[i]
