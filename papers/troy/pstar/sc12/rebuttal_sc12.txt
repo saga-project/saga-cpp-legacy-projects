@@ -1,67 +1,100 @@
-#1
-Section V-B: the text references figure elements using a terminology which
-differs from the one used for figure axis labels: C1, C2, HTC, ... while the
-figure axis are labelled BigJob/XSEDE, DIANE/EGI, XSEDE:Trestles/FG, etc. This
-is confusing for the reader. Please provide a common naming convention.
+It was very encouraging to note that (all four) reviewers universally
+acknowledged the practical importance and relevance of the P* Model
+and the Pilot-API.  These ranged from greater usability of tools,
+impact on advanced scheduling and possible role in standardization.
 
-#2
-The strength of the paper is that it attacks an important problem: there is a
-proliferation of pilot frameworks, each working in essentially the same way,
-so providing a unifying model and underpinnings of interoperability can
-potentially simplify moving between infrastructures using different
-implementations.
+1.) "Section V-B: the text references figure elements using... Please provide a common naming convention."
 
-A significant weakness of the paper is that the P* model is not explained
-well. The authors see the pilot jobs as primarily facilitating mapping tasks
-onto heterogeneous resource pools. In practice though, pilot frameworks seem
-to be popular primarily because they offer some control over resource
-provisioning in a job/batch scheduler dominated world (i.e., a pilot gilde-in
-is used to obtain a resource lease onto which an application can then submit
-jobs, further, infrastructures like MyCluster have been used to configure the
-resource). This resource versus job provisioning aspect has not been
-articulated enough; for example, the SUs are in practice resource slots. Later
-in the paper, there is talk of “the process of mapping a SU to resources via a
-Pilot” and “potential” multiple layers of scheduling (there are always at
-least two in a pilot framework). A clearer model and explanation here would
-significantly improve the paper. Also, in the evaluation, it would be more
-interesting to see more fine-grained performance results to get a better feel
-for the potential performance issues of pilot frameworks. Is the API itself
-introducing any overhead? What are the trade-offs for the user for choosing to
-submit to two several different pilot-based systems instead of one?
+We acknowledge the reviewer's observation of less than perfect
+labeling of the figures. These will be addressed.
 
+2.1)"A significant weakness of the paper is that the P* model is not
+explained well... This resource versus job provisioning aspect has not
+been articulated enough... there is talk of "the process 
+of mapping a SU to resources via a Pilot" and “potential” multiple layers of
+scheduling... A clearer model and explanation here would significantly improve 
+the paper."
 
-"This resource versus job provisioning aspect has not been articulated enough"
-Once you have control over the resource you don't have to worry about the job
+We acknowledge the importance of clarifying the "job versus resource
+provisioning" *aspects*. [P* is explicitly trying to separate these
+aspects, which is not well done by existing PJ-frameworks]
+Furthermore, we will address the lack of clarity in the job submission
+and scheduling *procedure*. As examples of improvements, we
+will provide greater context and details of how scheduling and mapping
+occurs internal and external to the pilot highlighting aspects related
+to multi-level scheduling. 
 
-It's not about jobs anymore, but about tasks...
-=> will be make it clearer. There is scope for improvements
+2.2) "Also, in the evaluation, it would be more interesting to see
+more fine-grained performance results to get a better feel for the
+potential performance issues of pilot frameworks. Is the API itself
+introducing any overhead? What are the trade-offs for the user for
+choosing to submit to two several different pilot-based systems
+instead of one?"
 
+For an 8 page-paper, we provide both a broad and deep performance analysis,
+(i) aspects internal to the PJ framework (e.g. the coordination overhead),
+(ii) the API overhead and the overhead induced by distributed interoperability
+runs. (iii) extensive scaling along multiple dimensions -- up, out and across.
+This has been also acknowledged by reviewer 3: "Extensive experimentation is
+done." We explicitly addressed the Pilot-API overhead which is negligible in
+section V.A.
 
-Performance:
-=>More-fine grained performance... => can be rebuttled
-=>API overhead is in the text
+We believe it is not useful for a P* paper to compare/contrast specific
+PJ-framework performance. P* addresses the "how" of interoperability, not the
+"when" to use. What typically determines the choice of
+two versus one pilot-job is not the ability or the coordination across
+resources, but (i) access to systems which support a specific PJ (e.g. XSEDE
+versus EGI), (ii) load on the system/resource.
 
-#3
-What are research deductions from work.
-=> this is a system paper and this is the validation of a concept
-=> MR paper shows how genome sequencing challenge has been solved
+3.1) "What are research deductions from work."  
 
-ideas are old and not very exciting
-=> quote 1. reviewer
+We believe this is a first not only in providing a common-model for
+PJ-frameworks, but major step towards "a theoretical approach to
+middleware design and implementation", where no longer a "mere
+existence of a capability is proof of correctness or validation".
+This is a conceptual paper and provides all the rigor to validate the
+proposed concepts.
 
-What do experiments show?
-=> they validate the conceptual model
-=> PD specifics?
+3.2) "ideas are old and not very exciting".
 
-Where do clouds fit in?
-=> clouds do fit in are a specific type of resource with certain properties (affinities)
+While the ideas have existed for some time, a common model for PJ
+frameworks does not exist. Thus, it is often impossible to use PJs 
+interoperably, or even just to compare them functionally or
+qualitatively. This is acknowledged by reviewer 1: "The paper FIRST
+introduces a common abstraction model (P*) for Pilot-Jobs."
 
-#4
+3.3) "What do experiments show?"  
 
-Based system like Condor-G/Glide-in has a scheduling feature by, for example, 
-match-making. How can it be expressed by the proposed pilot job framework? 
+The experiments validate the conceptual model and analyzes the
+performance implications of the model using different well-known PJ
+frameworks as an example.
+
+3.4) "Where do clouds fit in?"
+
+The paper focuses on distributed systems and not resource specific or
+technologies; P* can be applied to other resource types, e.g. clouds.
+SAGA-based implementations of P* have been demonstrated in Luckow/Jha
+IEEE/CloudCom, "Abstractions for Loosely-Coupled and Ensemble-based
+Simulations on Azure" and on Eucalyptus/EC2 (see [18]). We will make this more
+clear.
+
+4) "...system like Condor-G/Glide-in has a scheduling feature match-making... 
 Relation of existing systems that provide the same functionality as the 
-proposed framework is not clear.
+proposed framework is not clear."
 
-=> Affinity is going to be the basis for advanced scheduling capability
-=> see table
+Match-making is handled by the sub-system responsible for "scheduling" --
+which is a fundamental characteristic of P*. It's a good
+pedagogical/illustrative point and we will mention this explicitly. Further,
+we introduce how the Pilot-API exposes different types of affinity
+(Compute-Compute, Data-Data, Data-Compute etc.), which forms the basis for
+advanced scheduling capability.
+
+We mention most well-known PJ-frameworks (best-effort estimates suggest we
+have covered the major PJ-frameworks that account of 80% of total PJ-usage on
+production DCI). Space constraints ensure our choice is one of minimalism; it
+is not possible to discuss/compare all known PJ-frameworks. Also, Swift does
+not have native distributed capability (it relies on JavaCOG) and has been
+more oriented/focussed towards extreme-scale on single machines. We
+acknowledge greater effort towards discussing NIMROD can be made.
+
+
