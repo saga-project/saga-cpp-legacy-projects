@@ -1,4 +1,4 @@
-\documentclass[a4paper,10pt]{article}
+\documentclass[a4paper,12pt]{article}
 
 \usepackage[utf8]{inputenc}
 \usepackage{color}
@@ -16,15 +16,15 @@
 \usepackage{xspace}
 \usepackage{booktabs}
 
-%\setlength\topmargin{0in}
-%\setlength\headheight{0in}
-%\setlength\headsep{0in}
-%\setlength\textheight{9.5in}
-%\setlength\textwidth{6.5in}
-%\setlength\oddsidemargin{0in}
-%\setlength\evensidemargin{0in}
-%\setlength\parindent{0.1in}
-%\setlength\parskip{0.25em}
+\setlength\topmargin{0in}
+\setlength\headheight{0in}
+\setlength\headsep{0in}
+\setlength\textheight{9.5in}
+\setlength\textwidth{6.5in}
+\setlength\oddsidemargin{0in}
+\setlength\evensidemargin{0in}
+\setlength\parindent{0.1in}
+\setlength\parskip{0.25em}
 
 \ifpdf
  \DeclareGraphicsExtensions{.pdf, .jpg}
@@ -39,9 +39,9 @@
 
 \ifdraft
 \newcommand{\todo}[1]{     {\textcolor{red}  { ***TODO      #1 }}}
-\newcommand{\amnote}[1]{   {\textcolor{gree} { ***Andre:    #1 }}}
+\newcommand{\amnote}[1]{   {\textcolor{blue} { ***Andre:    #1 }}}
 \newcommand{\jhanote}[1]{  {\textcolor{red}  { ***Shantenu: #1 }}}
-\newcommand{\onote}[1]{    {\textcolor{blue} { ***Ole:      #1 }}}
+\newcommand{\onote}[1]{    {\textcolor{green}{ ***Ole:      #1 }}}
 \else
 \newcommand{\todo}[1]{}
 \newcommand{\amnote}[1]{}
@@ -53,9 +53,9 @@
 \newcommand{\impl}{\sagaimpl}
 \newcommand{\lf}{Look-\&-Feel}
 
-\newcommand{\I}[1]{\textit{#1}\xspace}
-\newcommand{\B}[1]{\textbf{#1}\xspace}
-\newcommand{\T}[1]{\texttt{#1}\xspace}
+\newcommand{\I}[1]{\textit{#1}}
+\newcommand{\B}[1]{\textbf{#1}}
+\newcommand{\T}[1]{\texttt{#1}}
 
 
 \begin{document}
@@ -278,7 +278,7 @@ Beyond simple static single batch-mode
 
 \end{verbatim}
 
-A distributed application has some unique challenges: a distributed
+ A distributed application has some unique challenges: a distributed
  application/developer has to reason about the environment that the
  application will execute in, has to make assumptions about the
  runtime availability, and has to assume a failure model that
@@ -289,7 +289,7 @@ A distributed application has some unique challenges: a distributed
  above hard factors, and not just the tools, services and
  capabilities.
 
-The process of developing and deploying large-scale distributed
+ The process of developing and deploying large-scale distributed
  applications presents a critical and challenging agenda for
  researchers and CI developers.  In spite of the tremendous potential
  of distributed systems, there have only been a limited number of
@@ -304,6 +304,7 @@ The process of developing and deploying large-scale distributed
 
  \jhanote{Some text about the mismatch between DCA requirements and
   DCI capabilities}
+
 
 \section{Access Layers to DCI and Abstractions for DA}\todo{AM, SJ}
 
@@ -382,11 +383,11 @@ provide an abstraction too.
   % should fall out from section 2!
 
   SAGA (the API, including its extensions, language bindings and
-  implementations) is ultimatively designed to address some of the DCI
+  implementations) is ultimately designed to address some of the DCI
   challenges discussed above, and in particular those which are faced
-  by users and developers of distributed applications using DCIs.
+  by users and developers of distributed applications for those DCIs.
   Starting from that premise, the design of SAGA follows from a number
-  of additional constraints and design objectives.
+  of related constraints and design objectives.
 
   While the SAGA API specification process and the SAGA API
   implementation efforts have been relatively synchronous, and
@@ -461,7 +462,7 @@ provide an abstraction too.
     %     than simple API (ease of implementation is orthogonal, but
     %     related)
 
-    Another very obvious objective of the SAGA specification is to
+    Another very obvious objective of the \B{S}AGA specification is to
     define an API which is simple and intuitive to use (while not
     being semantically trivial).  In that respect, the design
     basically follows the mantra of Larry Wall \I{"make easy things
@@ -477,7 +478,7 @@ provide an abstraction too.
     \I{Look-\&-Feel}) occupies a relatively large part of the overall
     SAGA API specification.
 
-    Another principle used in order to fulfil that perspective is to
+    Another principle used in order to fulfil that objective is to
     heavily lean on existing standards and best practices, and to
     reference or use them where possible.  Examples for this are:
     futures for asynchronous operations, JSDL and DRMAA for job
@@ -489,44 +490,66 @@ provide an abstraction too.
     to use, as users met well known and accepted paradigms they new
     how to handle.
 
-%  \subsection{Design Objectives}
 
-%   % should fall out from section 2!
+   \subsubsection*{Manage Complexities}
 
-%   \begin{verbatim}
-%     ----------------------------------------------------------------------------
+    % O: manage complexities (needs good scoping, sect. 2)
+    % P: compartmentalization, abstraction(?)
+    % S: loose coupling                (only partially sucessfull)
+    %    avoid leakage of abstractions (only partially sucessfull)
+    
+    % --> define heterogeneity and complexity in sec. 2
+    % --> also discuss what abstraction means in sec. 2
 
-%     Andre's take on objectives / principles / solutions:
-%     ====================================================
+    Ultimately, most of the engineering challenges in distributed
+    systems (and often also in non-distributed systems) is to manage
+    complexities.  This section specifically targets the application
+    level efforts to handle system level complexities.
+
+    Historically, distributed systems have often be considered as
+    federations of relatively independent resources, connected via
+    mutually agreed interfaces.  That leads to very heterogeneous, but
+    also very flexible infrastructures.  But also, that approach
+    leaves it mostly to the upper layers (middleware services, tools
+    and applications) to handle the resulting mess, aeh, system
+    complexity.  The middleware layer in turn is in many cases, at
+    least for academic DCIs, also a federated mix of different
+    services, policies and capabilities -- which leaves it to the
+    tooling and application layer to catch much of the system
+    complexity.  This is often not reasonable possible for academic
+    software projects, at least not in a portable and sustainable
+    fashion.  As a result, many excellent developments have been
+    constrained to a small subset of DCI resources, or use complex,
+    volatile ad-hoc solutions.  Only comparatively large research
+    projects, such as irods, or large international collaborations,
+    such as CERN, managed to compartmentalize specific pain-points,
+    and to provide at least point-wise solutions.
+
+    \amnote{we do not define what the system complexity really is.}
+
+    There are well established software engineering principles which
+    would allow to address the system complexity problems, such as
+    component based software development, well defined
+    abstractions\footnote{As always with abstracting layers, it is a
+    challenge to avoid the leaking abstractions.}, standardized
+    interfaces and protocols.  Many of those principles should be (and
+    are) applied on the middleware layer -- but some also apply to the
+    application and tooling layers.  
+
+    With that background, the SAGA API strives to define semantically
+    \B{rigid} abstract constructs, which shields higher (than SAGA)
+    layers from much of the syntactic and semantic complexity.  Also,
+    the SAGA API is designed to encourage implementations which base
+    on loose coupling of components, and which can compartmentalize
+    the interactions with the lower level environments.
 
 
-%     Original Objectives (mostly API specification)
-%     ----------------------------------------------
-
-%     O: manage system / middleware heterogeneity
-%     P: abstraction(?) of heterogeneity
-%     S: abstract API, adaptors to implement abstractions
-%        (worked out in principle, devil is in details, compliance tests
-%         missing on adaptor level)
-
-%     O: ease of use
-%     P: top-down
-%     S: use cases, extensible API, 80:20
-%        (worked out in principle, moving targets, ease of use is more
-%         than simple API (ease of implementation is orthogonal, but
-%         related)
-
-%     O: manage complexities (needs good scoping, sect. 2)
-%     P: compartmentalization, abstraction(?)
-%     S: loose coupling                (only partially sucessfull)
-%        avoid leakage of abstractions (only partially sucessfull)
-
-%     --> define heterogeneity and complexity in sec. 2
-%     --> also discuss what abstraction means in sec. 2
-
-
-%     O: cover commonality on application levels (pattern? frameworks?
-%     What is the application?  Semantic coverage...)
+   \subsubsection*{Cover Common Usage Patterns}
+    
+   % O: cover commonality on application levels (pattern? frameworks?
+   %    What is the application?  Semantic coverage...)
+   % P: abstraction, pattern
+   % S: high level API, use case driven, known models etc.
 
 
 
