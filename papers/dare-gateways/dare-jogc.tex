@@ -1174,50 +1174,55 @@ tasks and file transfers on distributed resources will be handled by the P*-API 
 
 
 
-\jhanote{Isn't that a usage mode of an API rather than a
-  different API?} 
+%\jhanote{Isn't that a usage mode of an API rather than a different API?} 
 
-Other type of interface 
-%\jhanote{type of what?}
- is DARE-GATEWAYS which provides a
-web interface and uses DARE-API 
-%\jhanote{need to be consistent: DARE API or DARE-API?} 
-executable with customized configuration files in
-the backend.  The DARE-GATEWAYS user interface is built on top of
-Pylons~\cite{pylons_website}. \jhanote{This doesn't explain what
-  DARE-GATEWAYS is?}
+Other type of interface is DARE-GATEWAYS. It which provides a
+simple web interface for the user to utilize the capabilities of  DARE-API.
+Every Gateway also contains user authentication to submit jobs. 
+Different DARE-GATEWAYS have different web forms and workflow behind them.
+Most Gateways commonly contain a well defined problem set where user
+want to just push a submit button with some minor changes in input
+files and tools. For example in  DARE-NGS(a DARE-GATEWAY) we have form for CHiP-SEQ
+application where user can choose parameters like reference genome,  input files like control and treat data
+and the mapping tools like BWA, Bowtie, and peak calling tools like MACS, PeakSeq and submits the form. 
+After submission these parameters will be stored in a database. 
 
+
+The database for DARE-GATEWAYS is defined so that it could hold information about the job submitted by the user as well
+as the user authentication information for registration and login. 
+Another important component in DARE-GATEWAYS is the job monitoring thread.  
+Its functionality is to continuously ping the database for new jobs. Whenever it finds a new 
+job in the database it spawns the DARE-WRAPPER by creating the necessary configuration files. 
+
+The DARE-GATEWAYS web server is built using Pylons~\cite{pylons_website} web framework . 
 The Pylons project is a collection of Python based web frameworks that
 are lightweight and easy to use. Pylons uses the common
-Model-Viewer-Controller design pattern and is written in Python and
-thus easily interfaces with DARE-GATEWAY  
-%\jhanote{Or DARE-GATEWAY?}
-. Pylons handles everything from user authentication, database
+Model-Viewer-Controller design pattern and is written in Python. 
+Pylons handles everything from user authentication, database
 creation/management, and data storage/retrieval. Creating a user
 interface is straightforward and ``connecting'' the user interface to
-the server-side services in DARE was surprisingly simple.
+the server-side  DARE-API services is surprisingly simple with job monitoring thread. 
 
-Most Gateway commonly contain a well defined problem set where user
-want to just push a submit button with some minor changes in input
-files and tools. So a database inside DARE-GATEWAYS is defined so that
-it could hold information about the job for example inout files, tools, size and runtime of job 
+First step to create a custom Gateway is to create configuration files for the 
+targeted application using new tools in that applications workflow and
+test the new configuration with the standalone DARE-WRAPPER. 
+Next step is to create web forms with necessary input fields and then a simple adaptor
+to convert the user submitted web form in to a configuration file that DARE-WRAPPER
+can understand and instantiate DARE-API.
+
 %\jhanote{What is them?} 
-and retrieved when DARE-API instance is started for the execution. Every
-gateway also contains some kind of user authentication to submit
-jobs. Different DARE-GATEWAYS have different web forms and workflow
-behind them.
-
-Further, gateway developers can use DARE-API 
- \jhanote{have we defined what  the DARE components are?} 
- components directly (Levels 2 and 3) and
-have their Gateways write DARE configuration files.  All the required
-components to run a workflow written using DARE-API
+% \jhanote{have we defined what  the DARE components are?} 
 \jhanote{what is a DARE-API  workflow? Do you mean a workflow written using DARE-API?} 
+\jhanote{What does this mean? How can an API have an executable?} 
+\jhanote{How do you instantiate an API so as to execute a workflow!} 
+
+
+Further, gateway developers can use DARE-API directly (Levels 2 and 3) 
+and have their Gateways write DARE configuration files.  All the required
+components to run a workflow written using DARE-API
 are described in a configuration file. This configuration file is then
 submitted to the DARE-API's executable 
-\jhanote{What does this mean? How can an API have an executable?} 
 that launches executes the workflow by instantiating the P-* API. 
-\jhanote{How do you instantiate an API so as to execute a workflow!} 
 
 \subsection{Applications, Capabilities and Services Level ($L2$)}
 
