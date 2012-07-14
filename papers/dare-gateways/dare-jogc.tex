@@ -1070,9 +1070,9 @@ uncoupled and loosely-coupled ensembles, Master-Worker, MapReduce etc.
 
 \begin{figure}
  \centering
- \includegraphics[scale=0.55]{figures/DARE-gateway-arch.pdf}
+ \includegraphics[scale=0.55]{figures/new_DARE-gateway-arch.pdf}
 \caption{\small Overall architecture of a
- DARE-based gateway comprising four levels. 
+ DARE-based gateway comprising five levels. 
  }
  \label{fig:dare-arch} 
 \end{figure}
@@ -1087,12 +1087,12 @@ language syntax and so on.
 
 DARE based science gateways are typically organized in levels.
 Levels L2 and L3, are common to all gateways, and are decoupled from
-access level (L1) and resource layer (L4). Development is therefore
+access level (L1) and resource layer (L5). Development is therefore
 modular and layered. Adding support for a new resource, for example
-OpenStack based clouds in L4, is as simple as adding the required SAGA
-adaptors in L3. No changes need to be made at L1 or L2. Similarly,
+OpenStack based clouds in L5, is as simple as adding the required SAGA
+adaptors in L4. No changes need to be made at L1 or L2. Similarly,
 adding more execution patterns and workflows in L2 is decoupled
-from the runtime system in L3 and the resources involved in L4.
+from the runtime system in L4 and the resources involved in L5.
 
 
 
@@ -1187,46 +1187,6 @@ that launches executes the workflow by instantiating the P-* API.
 
 \subsection{Applications, Capabilities and Services Level ($L2$)}
 
-The important feature of DARE is to utilize different distributed resources and this complexity involving the execution of 
-tasks and file transfers on distributed resources will be handled by the P*-API . 
-
-The Pilot-API(P*-API) provides a common access layer to Pilot Job (Compute) and Pilot Data(File transfers) frameworks over
-distributed production cyberinfrastructure, such as XSEDE, OSG, EGI and FutureGrid. 
-Thus it provides the ability to distribute workloads in a scalable manner~\ref{pilot-api} 
-P*-API hides the complexity involved in remote job executions so it is used inside DARE-API.
-
-DARE-API features include a generating the necessary objects required by the 
-P-* API by combining the user customized configuration files. 
-These are categorized in to three different types,
-one with resource information like job submission url (ConfTypeI),
-other which holds information  like location of a tool on different resources and arguments that should be used for tools(ConfTypeII),
-Final one with workflow information like tools need to executed, location of input files, ConfTypeI and ConfTypeII etc.,(ConfTypeIII)
-There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API but only one file with ConfTypeIII.
-DARE-API comes with some predefined configuration files.
-After instantiation of DARE-API first loads ConfTypeIII  after that it loads ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII 
-other wise it looks for default files. and these are customizable
-based on the requirements as they are stored in simple text files. 
-More information about the DARE-API configuration files can be found in the DARE wiki~\cite{dare_api_web}. 
-
-
-DARE-API comes with capability to schedule tasks and movement 
-of files between resources when it is required during the runtime. 
-Using the information provided in the configuration files DARE-API understands
-which tasks need to submitted at the right time for successful completion.  
-The tasks and input/output files will be distributed over different machines and DARE needs to keep
-track of them. 
-Before DARE-API submitting the next tasks to the P*-API,  DARE-API should check for the status of its dependent task.
-More information about the management and scheduling can be found the DARE wiki.
-This automatic scheduling feature of DARE-API is very helpful 
-when the user has multiple tools in the pipeline for execution
-where the output files of one step become the input files for the next((TYPE II)). 
-
-Another important feature integrated into DARE-API  is the
-ability to update the recent status of the job to a specified database. 
-This  updated status can then be used to show status of user submitted jobs in gateways. 
-
-
-
 The application layer implements the logic necessary for pattern of
 %\jhanote{what is a pattern? Has that been defined?}  
 execution. In other words it implements the logic necessary to create jobs of single
@@ -1313,12 +1273,53 @@ are fully customizable and extensible\jhanote{have we discussed either
 used as is.  Type III services obviously can run Type II workflows.
 
 
+\subsection{DARE-API ($L3$)}
 
-\subsection{Runtime System Level ($L3$)}
+L3 represents the DARE-API. The important feature of DARE is 
+to utilize different distributed resources and this complexity involving the execution of 
+tasks and file transfers on distributed resources will be handled by the P*-API . 
 
-L3 represents the core of the DARE framework. In a nutshell, it
+The Pilot-API(P*-API) provides a common access layer to Pilot Job (Compute) and Pilot Data(File transfers) frameworks over
+distributed production cyberinfrastructure, such as XSEDE, OSG, EGI and FutureGrid. 
+Thus it provides the ability to distribute workloads in a scalable manner~\ref{pilot-api} 
+P*-API hides the complexity involved in remote job executions so it is used inside DARE-API.
+
+DARE-API features include a generating the necessary objects required by the 
+P-* API by combining the user customized configuration files. 
+These are categorized in to three different types,
+one with resource information like job submission url (ConfTypeI),
+other which holds information  like location of a tool on different resources and arguments that should be used for tools(ConfTypeII),
+Final one with workflow information like tools need to executed, location of input files, ConfTypeI and ConfTypeII etc.,(ConfTypeIII)
+There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API but only one file with ConfTypeIII.
+DARE-API comes with some predefined configuration files.
+After instantiation of DARE-API first loads ConfTypeIII  after that it loads ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII 
+other wise it looks for default files. and these are customizable
+based on the requirements as they are stored in simple text files. 
+More information about the DARE-API configuration files can be found in the DARE wiki~\cite{dare_api_web}. 
+
+DARE-API comes with capability to schedule tasks and movement 
+of files between resources when it is required during the runtime. 
+Using the information provided in the configuration files DARE-API understands
+which tasks need to submitted at the right time for successful completion.  
+The tasks and input/output files will be distributed over different machines and
+ DARE needs to keep track of them. 
+
+Before DARE-API submits the next tasks to the P*-API,  
+DARE-API should check for the status of its dependent task.
+More information about the management and scheduling can be found the DARE wiki.
+This automatic scheduling feature of DARE-API is very helpful 
+when the user has multiple tools in the pipeline for execution
+where the output files of one step become the input files for the next((TYPE II)). 
+
+Another important feature integrated into DARE-API  is the
+ability to update the recent status of the job to a specified database. 
+This  updated status can then be used to show status of user submitted jobs in gateways. 
+
+\subsection{Runtime System Level ($L4$)}
+
+L4 represents the core of the DARE framework. In a nutshell, it
 integrates the application-level capabilities (L2, support for Type
-I/II/III services) with the HPDC infrastructure (resources/L4) layer. The DARE
+I/II/III services) with the HPDC infrastructure (resources/L5) layer. The DARE
 runtime level in turn achieves this via a critical dependence on
 SAGA. The challenges in building a scalable distributed gateway are
 greatly mitigated by SAGA and/or SAGA-based frameworks. The
@@ -1361,7 +1362,7 @@ Thanks to the dynamic adaptor loading mechanism, SAGA can provide
 these execution patterns for emerging data intensive computing
 infrastructure such as clouds~\cite{bigjob_cloudcom10,saga_bigjob_condor_cloud}.
 
-\subsection{Resources Level ($L4$)} 
+\subsection{Resources Level ($L5$)} 
 
 SAGA and SAGA-based frameworks enable distributed scale-out across
 multiple production grade resources. These production grade resources
@@ -1372,7 +1373,7 @@ future-proofing through extensibility and abstraction. When adding a
 new computing platform, only a small amount of code has to be written
 as a SAGA adaptor to enable access to that platform.
 
-To cement support for different resources in L4, SAGA was deployed
+To cement support for different resources in L5, SAGA was deployed
 publicly on XSEDE. The installations are available for anyone and
 everyone to use: no private or shared accounts, no special
 permissions. Ranger, Lonestar, Kraken, Trestles, Steele as well as
