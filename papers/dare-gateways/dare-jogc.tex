@@ -1118,11 +1118,11 @@ generating the necessary objects required by the Pilot-API
 by combining the user customized configuration files.
 
 These configuration files are carefully categorized into three different types for simplicity and reusablity: 
-(i) ConfTypeI: This holds the details about resources/machines for example job submission url, file transfer url,  authentication type, 
-(ii) ConfTypeII:  With information about a tool like location of a tool on different resources and
+(i) ConfType I: This holds the details about resources/machines for example job submission url, file transfer url,  authentication type, 
+(ii) ConfType II:  With information about a tool like location of a tool on different resources and
 arguments that should be used for tools, and 
-(iii)ConfTypeIII:  Application instance specific information like location of input
-files, which series of  tools (ConfTypeII) to use and resources as well as their size, wall time (ConfTypeI) etc..
+(iii)ConfType III:  Application instance specific information like location of input
+files, which series of  tools (ConfType II) to use and resources as well as their size, wall time (ConfType I) etc..
 More details about the configuration files are discussed in the next section.
 
 DARE comes with capability to schedule tasks and movement of files
@@ -1182,16 +1182,16 @@ DARE-Wrapper after it creates the necessary configuration files.
 Further, connecting the web interface to the server-side DARE services
 is made simple with job monitoring thread. 
 
-First step to create a custom Gateway is to create/modify configuration files(ConfTypeII)
+First step to create a custom Gateway is to create/modify configuration files(ConfType II)
 for various tools in the targeted application and test the 
 new configuration with the DARE-Wrapper 
 Next step is  to create web forms with necessary input
 fields and then a customize a function to convert the user submitted web
-form into a configuration file(ConfTypeIII). 
+form into a configuration file(ConfType III). 
 
 Further, gateway developers can use DARE-Wrapper directly (Levels 2 and 3)
 and have their Gateways write DARE configuration files.  All they need to do is 
-introduced the functionality to create/write a  a configuration file(ConfTypeIII) 
+introduced the functionality to create/write a  a configuration file(ConfType III) 
 with required parameters to run a workflow and have this configuration 
 file submitted while initiating DARE-Wrapper.
 
@@ -1228,35 +1228,35 @@ file submitted while initiating DARE-Wrapper.
 Before understanding the details about applications layer 
 it is important to know about the roles of different configurations introduced earlier.
 
-ConfTypeIII holds the critical part of a job(instance of application) as it has the information 
+ConfType III holds the critical part of a job(instance of application) as it has the information 
 for that specific application's instance. Since the same application may run faster or slower 
 based on the input  file size, it is important to let the user modify
 just before the runtime different tools like which resources and their size based on input files
 for the job. Further user may also want to change one of the  various 
 tools in the current workflow. These minor changes can be achieved quickly just by
-changing a parameter with a  different ConfTypeII file in ConfTypeIII. 
-There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API
-but only one file with ConfTypeIII.  Additonal information
-about other parameters in configuration files can be found in the DARE-wiki ~\cite{dare_api_web}.
+changing a parameter with a  different ConfType II file in ConfType III. 
+There can be multiple ConfType I, ConfType II files for a single instance of DARE-API
+but only one file with ConfType III.   Information
+about additional parameters in configuration files can be found in the DARE-wiki ~\cite{dare_api_web}.
 %\jhanote{previous sentence difficult to understand}. 
 
 DARE installation comes with some predefined configuration files 
 and user's can modify those files or create new configuration files.
-During the DARE's runtime first it loads ConfTypeIII after that it loads
-various ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII.
+During the DARE's runtime first it loads ConfType III after that it loads
+various ConfType I, ConfType II based on the location specified in ConfType III.
 
 DARE framework's scheduling mechanism entirely depends on the
-parameters in  ConfTypeIII. For example, there are two tools(Tool A, Tool B) 
+parameters in  ConfType III. For example, there are two tools(Tool A, Tool B) 
 for which Tool B's input files are dependent on Tool A's output file and wants to
 execute on distributed resources. All he needs to do is modify a  
-parameter in a ConfTypeIII file. DARE scheduling system waits until
+parameter in a ConfType III file. DARE scheduling system waits until
 all the Tool A's jobs are completely finished and then submits Tool B's jobs. And this
 can get complicated as the number tools grow.
 
 The application layer(L2) contains the logic necessary 
 to create jobs of single standalone applications, pipelines and dynamic workflows. 
 for the pattern of execution mentioned in the above example. In other words it
-is a combination of various configuration file (ConfTypeII, ConfTypeIII) to form a pattern of
+is a combination of various configuration file (ConfType II, ConfType III) to form a pattern of
 service.
 
 Three categories of patterns are available to users, Types I, II and III.
@@ -1291,8 +1291,7 @@ applications currently being used and their respective pattern types. All
 of these applications can be used independently as standalone Type I services.
 
 In general, a program developed as a single standalone application needs
-less effort and is in many cases straightforward to integrate with
-DARE. These are typically provided as Type I service. In contrast,
+less effort. These are typically provided as Type I service. In contrast,
 Type II services are built by incorporating different individual
 tools/applications, and linked so that the output of one is
 pre-determined as the input of another, i.e., provided as pipelines.
@@ -1304,15 +1303,16 @@ HPC and Cloud resources.
 
 On the other hand, Type III services aim to support more complex
 service, both in the type of workflows supported as well as more
-sophisticated execution\jhanote{what does sophisticated execution
-  mean?}. In contrast Type I and Type II services aim to serve
+sophisticated execution like the input file changes dynamically from job to 
+job. In contrast Type I and Type II services aim to serve
 stand-alone and pipelined tools with advanced cyberinfrastructure
 capabilities, scalable production infrastructure and integrative
 efficient pipelines. They are however limited to static execution:
 once the job submission scripts are in, nothing can be changed.
 \jhanote{Ok, if Type III can be support changes, what kind of changes,
   and how does it do so?}
-
+\smnote{I am a bit confused too with discticion between Type II and Type III. I think Joohyun as some strong opinion about these 
+services may be he can chip in? }
 Additionally, pipelines offered as Type II may often require greater
 runtime flexibility, i.e., different stages may run on different
 resources which may not be determined until execution time; these
@@ -1341,7 +1341,7 @@ greatly mitigated by SAGA and/or SAGA-based frameworks. The
 SAGA-runtime system has the responsibility to make middleware specific
 dispatches.
 
-The SAGA-BigJob supports dynamic configuration changes, thus it is
+The SAGA-BigJob(Pilot Job) supports dynamic configuration changes, thus it is
 relatively easy to optimize the usage of target resources for a given
 computational workload and their execution characteristics. Examples include
 embarrassingly parallel, loosely-coupled, or even multiple instances of
@@ -1351,22 +1351,30 @@ runtime environment for a given target application capable of
 utilizing distributed resources without any application or
 infrastructure refactoring.
 
+
 Furthermore, it is important to consider data movement requirements,
 since the movement of large data sets (input, output, and temporary
 files) is a major challenge. We have recently analyzed the
 date-volumes that need to be moved around, and demonstrated some of
 the challenges and solutions for BFAST~\cite{dare-ecmls11}, an NGS
-application prototype~\yyenote{What was the conclusion of the analysis
- of the challenges and solutions from BFAST. Can somebody add a
- sentence here saying what we concluded please}.\jhanote{Joohyun,
- please comment/add from the TG'11/ECMLS paper please} At the moment,
-GridFTP and scp are used as the primary protocols for data
-transfer. Support for Globus-Online is imminent. As we will discuss in
+application prototype.  As we will discuss in
 \S4, typical data-volumes for NGS applications can easily exceed
 100GB; data-movement services need to and can managed these
-volumes.~\yyenote{I am keeping the previous sentence but do we
+volumes. The current implementation of DARE relies on data movement solutions
+provided by BigData(Pilot Data).  These capabilities provide DARE data movement 
+and orchestration necessary during the runtime of complex workflow.
+
+
+ ~\yyenote{What was the conclusion of the analysis
+ of the challenges and solutions from BFAST. Can somebody add a
+ sentence here saying what we concluded please}.
+ \jhanote{Joohyun, please comment/add from the TG'11/ECMLS paper please} 
+At the moment, GridFTP and scp are used as the primary protocols for data
+transfer. Support for Globus-Online is imminent.
+~\yyenote{I am keeping the previous sentence but do we
  actually make good on this promise. Where do we discuss this in the
- paper. Please confirm}\jhanote{Good point. We do have support for
+ paper. Please confirm}
+ \jhanote{Good point. We do have support for
  Globus Online now in Pilot-Data. BTW need reference to Globus
  Online. Also, we should generalize to advanced data-transfer
  protocols in addition to GO}
@@ -1377,7 +1385,7 @@ Thanks to the dynamic adaptor loading mechanism, SAGA can provide
 these execution patterns for emerging data intensive computing
 infrastructure such as clouds~\cite{bigjob_cloudcom10,saga_bigjob_condor_cloud}.
 
-\subsection{Resources Level ($L3$)} 
+\subsection{Resources Level ($L4$)} 
 
 SAGA and SAGA-based frameworks enable distributed scale-out across
 multiple production grade resources. These production grade resources
@@ -1405,23 +1413,16 @@ These features are critical for distributed heterogeneous resource
 utilization. As mentioned earlier, the pilot
 job abstraction, SAGA-BigJob, has been successfully developed for
 distributed task management and integrated into the current DARE
-framework as a key component. For data management, SAGA-BigData~\cite{pstar11} is
-being actively developed in parallel to BigJob.
+framework as a key component. For data management, SAGA-BigData(Pilot Data)~\cite{pstar11} is
+being actively developed in parallel to BigJob which is used in DARE as well.
 
-The current implementation of DARE relies on data movement solutions
-provided by SAGA, namely GridFTP and SCP. A Globus-Online adaptor is
-being developed for SAGA, along with a DARE interface and a web
-API. The concept is to provide web-users with an interface very
+A Globus-Online adaptor is being developed for SAGA.
+The concept is to provide web-users with an interface very
 similar to Globus-Online, complete with scheduled file transfers,
 third party transfers, pause/resume, bandwidth caps, error detection
 and notification and routing options. A global file index is also
 being developed to catalog input data sets and their locations, along
-with locations of archived data around XSEDE resources. These DARE
-capabilities provide data movement and orchestration necessary for
-complex workflow support.
-
-
-
+with locations of archived data around XSEDE resources.
 
 
 \section{EXAMPLES OF DARE-BASED GATEWAYS FOR LIFE SCIENCES}
