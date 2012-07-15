@@ -1114,47 +1114,27 @@ Whilst the same scheduling can be achieved  with just P*-API with
 some function calls to services in P*-API. These are completely hidden 
 inside DARE so that user simply modify the necessary parameters in some 
 configuration files. As a result another important DARE feature include 
-generating the necessary objects required
-by the Pilot-API by combining the user customized configuration files.
+generating the necessary objects required by the Pilot-API 
+by combining the user customized configuration files.
 
-These configuration files are carefully categorized into three different types: 
+These configuration files are carefully categorized into three different types for simplicity and reusablity: 
 (i) ConfTypeI: This holds the details about resources/machines for example job submission url, file transfer url,  authentication type, 
 (ii) ConfTypeII:  With information about a tool like location of a tool on different resources and
 arguments that should be used for tools, and 
 (iii)ConfTypeIII:  Application instance specific information like location of input
 files, which series of  tools (ConfTypeII) to use and resources as well as their size, wall time (ConfTypeI) etc..
-
-ConfTypeIII is critical because it has the information 
-for that specific application's instance. Since the same application may run faster or slower 
-based on the input  file size. So it important to let user decide the runtime different 
-tools, which resources and their size based on input files.
-Further user may also want to change one tool in the various 
-tools he has current workflow. This can be achieved just by
-changing a parameter with a  different ConfTypeII file in ConfTypeIII. 
-There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API
-but only one file with ConfTypeIII.  More information
-about different parameters in configuration files can be found in the DARE-wiki ~\cite{dare_api_web}.
-%\jhanote{previous sentence difficult to understand}. 
-
-DARE installation comes with some predefined configuration files 
-and user's can modify those files or create new configuration files.
-During the DARE's runtime first it loads ConfTypeIII after that it loads
-various ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII.
-With these details it creates objects necessary for P*-API.
-
-%\jhanote{Not sure what the above is trying to say} 
+More details about the configuration files are discussed in the next section.
 
 DARE comes with capability to schedule tasks and movement of files
 between resources when it is required during the runtime.  Using the
-information provided in the configuration files DARE understands
+information provided in the above configuration files DARE understands
 which tasks need to submitted at the right time for successful
-completion. The tasks and input/output files
-will be distributed over different machines and DARE needs to keep
-track of them.
+completion. With these details it creates objects necessary for P*-API. 
+The tasks and input/output files will be distributed over different machines 
+and DARE needs to keep track of them.
 
-Before a next task in submitted inside DARE to the Pilot-API, it
-should check for the status of its dependent task.  More information
-about the management and scheduling can be found the DARE wiki.  This
+Before a task inside DARE is submitted to the Pilot-API, it
+should check for the status of its dependent task\cite{dare-wiki}. This
 automated scheduling feature of DARE is very helpful when the user
 has multiple tools in the pipeline for execution where the output
 files of one step become the input files for the next.
@@ -1236,31 +1216,55 @@ file submitted while initiating DARE-Wrapper.
 %using DARE-API?}  \jhanote{What does this mean? How can an API have
 %an executable?}  \jhanote{How do you instantiate an API so as to execute a workflow!}
 %\jhanote{BTW, its the Pilot-API}
+%\jhanote{Not sure what the above is trying to say} 
 
 
 
 \subsection{Applications, Capabilities and Services Level ($L2$)}
-
-The application layer provides the logic necessary for pattern of
 %\jhanote{what is a pattern? Has that been defined?}  
-execution. In other words it implements the logic necessary to create jobs of single
-standalone applications, pipelines and dynamic workflows. It does not
-run scripts on resources but is a necessary abstraction over the
-actual runtime systems.
- \jhanote{I do not know what ``.. is a necessary abstraction over the actual runtime systems'' means}
+% \jhanote{I do not know what ``.. is a necessary abstraction over the actual runtime systems'' means}
 
-The application layer is where execution patterns are prepared for the
-runtime system to execute. Three categories of patterns are available
-to users, Types I, II and III. Type I is the simple, standalone tool. 
+
+Before understanding the details about applications layer 
+it is important to know about the roles of different configurations introduced earlier.
+
+ConfTypeIII holds the critical part of a job(instance of application) as it has the information 
+for that specific application's instance. Since the same application may run faster or slower 
+based on the input  file size, it is important to let the user modify
+just before the runtime different tools like which resources and their size based on input files
+for the job. Further user may also want to change one of the  various 
+tools in the current workflow. These minor changes can be achieved quickly just by
+changing a parameter with a  different ConfTypeII file in ConfTypeIII. 
+There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API
+but only one file with ConfTypeIII.  Additonal information
+about other parameters in configuration files can be found in the DARE-wiki ~\cite{dare_api_web}.
+%\jhanote{previous sentence difficult to understand}. 
+
+DARE installation comes with some predefined configuration files 
+and user's can modify those files or create new configuration files.
+During the DARE's runtime first it loads ConfTypeIII after that it loads
+various ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII.
+
+DARE framework's scheduling mechanism entirely depends on the
+parameters in  ConfTypeIII. For example, there are two tools(Tool A, Tool B) 
+for which Tool B's input files are dependent on Tool A's output file and wants to
+execute on distributed resources. All he needs to do is modify a  
+parameter in a ConfTypeIII file. DARE scheduling system waits until
+all the Tool A's jobs are completely finished and then submits Tool B's jobs. And this
+can get complicated as the number tools grow.
+
+The application layer(L2) contains the logic necessary 
+to create jobs of single standalone applications, pipelines and dynamic workflows. 
+for the pattern of execution mentioned in the above example. In other words it
+is a combination of various configuration file (ConfTypeII, ConfTypeIII) to form a pattern of
+service.
+
+Three categories of patterns are available to users, Types I, II and III.
+Type I is the simple, standalone tool. 
 Type II is a linear pipeline of tools and type III is a dynamic workflow.
 A combination of early life sciences focus and gradual development
 led to this categorization. It is also a natural and convenient
 breakdown of available services.
-
-This is the layer where different configuration files will  tell
-DARE-API which and where the tasks, file transfers should be created and executed. 
-Then DARE-API will prepare the necessary objects and execute them in a particular order
-by triggering the P-* API services. More information about this can be found in the DARE wiki~\cite{dare_api_web}.
 
 
 \begin{table}[!h]
