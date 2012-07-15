@@ -1070,7 +1070,7 @@ uncoupled and loosely-coupled ensembles, Master-Worker, MapReduce etc.
 
 \begin{figure}
  \centering
- \includegraphics[scale=0.55]{figures/new_DARE-gateway-arch.pdf}
+ \includegraphics[scale=0.55]{figures/DARE-gateway-arch.pdf}
  \caption{\small Overall architecture of a DARE-based gateway
    comprising five levels. \jhanote{this has 5 levels, but it does not
      show DARE-Wrapper or DARE-Gateway?}}
@@ -1094,33 +1094,134 @@ adaptors in L4. No changes need to be made at L1 or L2. Similarly,
 adding more execution patterns and workflows in L2 is decoupled
 from the runtime system in L4 and the resources involved in L5.
 
-
-
 \subsection{User Interface Level ($L1$)}
-\jhanote{This section is very unsmooth to read. Changes contexts/flow
-  too many times} User interface level for DARE are of two types
-DARE-WRAPPER (command line interface) and DARE-Gateways (web
-interface).  DARE-API \jhanote{sorry, is this DARE-WRAPPER or
-  something different?} is a framework which provides the capabilities
-of runtime environment for executing application over distributed
-resources. More details about DARE-API are discussed in the DARE-API
-Level(L3).
+%\jhanote{This section is very unsmooth to read. Changes contexts/flow too many times} 
 
-\jhanote{I see both DARE-GATEWAYS and DARE-gateways. Which is correct?}
+Before we introduce the details about interfaces to DARE framework,  
+it is important to appreciate details about DARE and Pilot-API(P*-API) first. 
+The motivation behind DARE framework 
+is to simplify the mechanism for the user to interact with different distributed resources 
+for executing the complex workflows with various tools.
+The P*-API provides a common access layer to Pilot Job (Compute)
+and Pilot Data (File transfers) frameworks over distributed production
+cyberinfrastructure, such as XSEDE, OSG, EGI and FutureGrid.
+Thus it provides the ability to distribute workloads in a scalable
+manner~\ref{pilot-api} these are discussed in detail in later sections. 
+While Pilot-API(P*-API) glosses away the complexity involved in the execution of tasks and 
+file transfers on distributed resources DARE controls the
+scheduling the different tasks for example coupled simulations. 
+Whilst the same scheduling can be achieved  with just P*-API with 
+some function calls to services in P*-API. These are completely hidden 
+inside DARE so that user simply modify the necessary parameters in some 
+configuration files. As a result another important DARE feature include 
+generating the necessary objects required
+by the Pilot-API by combining the user customized configuration files.
 
-\jhanote{I still don't understand how one can instantiate an API?}
+These configuration files are carefully categorized into three different types: 
+(i) ConfTypeI: This holds the details about resources/machines for example job submission url, file transfer url,  authentication type, 
+(ii) ConfTypeII:  With information about a tool like location of a tool on different resources and
+arguments that should be used for tools, and 
+(iii)ConfTypeIII:  Application instance specific information like location of input
+files, which series of  tools (ConfTypeII) to use and resources as well as their size, wall time (ConfTypeI) etc..
 
-DARE-WRAPPER provides a simple command line interface to DARE-API with
-an executable named ``textbf{dare-run}''.  This executable takes a
-configuration file as an argument. It also instantiates DARE-API with
-the give configuration file.
+ConfTypeIII is critical because it has the information 
+for that specific application's instance. Since the same application may run faster or slower 
+based on the input  file size. So it important to let user decide the runtime different 
+tools, which resources and their size based on input files.
+Further user may also want to change one tool in the various 
+tools he has current workflow. This can be achieved just by
+changing a parameter with a  different ConfTypeII file in ConfTypeIII. 
+There can be multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API
+but only one file with ConfTypeIII.  More information
+about different parameters in configuration files can be found in the DARE-wiki ~\cite{dare_api_web}.
+%\jhanote{previous sentence difficult to understand}. 
 
-%There are two interfaces to access DARE functionality: DARE-API and
-%DARE-GATEWAYS.  
+DARE installation comes with some predefined configuration files 
+and user's can modify those files or create new configuration files.
+During the DARE's runtime first it loads ConfTypeIII after that it loads
+various ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII.
+With these details it creates objects necessary for P*-API.
 
-\jhanote{Please structure the discussion with some flow.  Define what,
-  then how!} \jhanote{what are these configurations of?}
+%\jhanote{Not sure what the above is trying to say} 
 
+DARE comes with capability to schedule tasks and movement of files
+between resources when it is required during the runtime.  Using the
+information provided in the configuration files DARE understands
+which tasks need to submitted at the right time for successful
+completion. The tasks and input/output files
+will be distributed over different machines and DARE needs to keep
+track of them.
+
+Before a next task in submitted inside DARE to the Pilot-API, it
+should check for the status of its dependent task.  More information
+about the management and scheduling can be found the DARE wiki.  This
+automated scheduling feature of DARE is very helpful when the user
+has multiple tools in the pipeline for execution where the output
+files of one step become the input files for the next.
+
+Another important feature integrated into DARE is the ability to
+update the recent status of the job to a specified database.  This
+updated status can then be used to show status of user submitted jobs
+in gateways.
+
+
+There are two interfaces to access DARE functionality:  DARE-Wrapper and DARE-Gateways.   
+
+DARE-Wrapper is a wrapper over DARE framework. It provides a simple command line tool
+named ``\textbf{dare-run}'' to interact with DARE framework.  This tool takes a
+configuration file as an argument and initiates function calls to DARE passing out the
+given configuration file.
+
+DARE-Gateways is a web interface, which provides a simple
+user interaction for the services applications level L2.
+Every Gateway can impose user authentication for submitting jobs.
+Different DARE-Gateways have different web forms and workflow behind
+them.  Most Gateways commonly contain a well defined problem set where
+user want to just push a submit button with some minor changes in
+input files and tools. For example in DARE-NGS (one of the gateway based on DARE-Gateways)
+a web form for CHiP-SEQ application where user can choose parameters like
+reference genome, input files like control and treat data and the
+mapping tools like BWA, Bowtie, and peak calling tools like MACS,
+PeakSeq and submits the form.  After submission these parameters will
+be stored in a database. Further user can look the status of the 
+job that he has submitted and download the output files once its done.
+
+The DARE-Gateways web server is built using
+Pylons~\cite{pylons_website} web framework.  Pylons project is a
+collection of Python based web frameworks that are lightweight and
+easy to use. Pylons uses the common Model-Viewer-Controller design
+pattern and is written in Python.  DARE-Gateways were developed 
+on top of Pylons so that it can handle everything from user
+authentication, database creation/management, and data
+storage/retrieval. 
+
+The database in DARE-Gateways is defined in such a way it could hold
+information about the job submitted by the user as well as the user
+authentication information for login and registration.
+
+A job monitoring thread is an important component inside DARE-Gateways.
+Its functionality is to continuously ping the database for new
+jobs and whenever it finds a new job it spawns a
+DARE-Wrapper after it creates the necessary configuration files.
+Further, connecting the web interface to the server-side DARE-API services
+is made simple with job monitoring thread. 
+
+First step to create a custom Gateway is to create/modify configuration files(ConfTypeII)
+for various tools in the targeted application and test the 
+new configuration with the DARE-Wrapper 
+Next step is  to create web forms with necessary input
+fields and then a customize a function to convert the user submitted web
+form into a configuration file(ConfTypeIII). 
+
+Further, gateway developers can use DARE-Wrapper directly (Levels 2 and 3)
+and have their Gateways write DARE configuration files.  All the
+required components to run a workflow written using DARE-API are
+described in a configuration file(ConfTypeIII) and have this configuration 
+submitted to the DARE-Wrapper.
+
+%\jhanote{Please structure the discussion with some flow.  Define what,
+%then how!} \jhanote{what are these configurations of?}
+%\jhanote{I still don't understand how one can instantiate an API?}
 %\jhanote{Difference between DARE-API and what? Unclear...}
 % \jhanote{P* undefined!?} 
 % DARE-API is available for user installation and one can interact
@@ -1135,58 +1236,12 @@ the give configuration file.
 %DARE-API generate objects including resource, compute and file transfers information by the combination of 
 %different configuration files and submits them to P*-API.
 %\jhanote{Isn't that a usage mode of an API rather than a different API?} 
+%\jhanote{what is a DARE-API workflow? Do you mean a workflow written
+%using DARE-API?}  \jhanote{What does this mean? How can an API have
+%an executable?}  \jhanote{How do you instantiate an API so as to execute a workflow!}
+%\jhanote{BTW, its the Pilot-API}
 
-The other type of interface is DARE-GATEWAYS, which provides a simple
-web interface for the user to utilize the capabilities of DARE-API.
-Every Gateway also contains user authentication to submit jobs.
-Different DARE-GATEWAYS have different web forms and workflow behind
-them.  Most Gateways commonly contain a well defined problem set where
-user want to just push a submit button with some minor changes in
-input files and tools. For example in DARE-NGS(a DARE-GATEWAY) we have
-form for CHiP-SEQ application where user can choose parameters like
-reference genome, input files like control and treat data and the
-mapping tools like BWA, Bowtie, and peak calling tools like MACS,
-PeakSeq and submits the form.  After submission these parameters will
-be stored in a database.
 
-The database for DARE-GATEWAYS is defined so that it could hold
-information about the job submitted by the user as well as the user
-authentication information for registration and login.  Another
-important component in DARE-GATEWAYS is the job monitoring thread.
-Its functionality is to continuously ping the database for new
-jobs. Whenever it finds a new job in the database it spawns a
-DARE-WRAPPER after it creates the necessary configuration files.
-
-The DARE-GATEWAYS web server is built using
-Pylons~\cite{pylons_website} web framework .  The Pylons project is a
-collection of Python based web frameworks that are lightweight and
-easy to use. Pylons uses the common Model-Viewer-Controller design
-pattern and is written in Python.  Pylons handles everything from user
-authentication, database creation/management, and data
-storage/retrieval. Creating a user interface is straightforward and
-``connecting'' the user interface to the server-side DARE-API services
-is surprisingly simple with job monitoring thread.
-
-First step to create a custom Gateway is to create configuration files
-for the targeted application using new tools in that applications
-workflow and test the new configuration with the standalone
-DARE-WRAPPER.  Next step is to create web forms with necessary input
-fields and then a simple adaptor to convert the user submitted web
-form in to a configuration file that DARE-WRAPPER can understand and
-instantiate DARE-API.
-
-\jhanote{what is a DARE-API workflow? Do you mean a workflow written
-  using DARE-API?}  \jhanote{What does this mean? How can an API have
-  an executable?}  \jhanote{How do you instantiate an API so as to
-  execute a workflow!}
-
-Further, gateway developers can use DARE-API directly (Levels 2 and 3)
-and have their Gateways write DARE configuration files.  All the
-required components to run a workflow written using DARE-API are
-described in a configuration file. This configuration file is then
-submitted to the DARE-API's executable that launches executes the
-workflow by instantiating the P-* API. \jhanote{BTW, its the
-  Pilot-API}
 
 \subsection{Applications, Capabilities and Services Level ($L2$)}
 
@@ -1274,63 +1329,6 @@ these \jhanote{what are ``these''?} DARE features. Type III workflows
 are fully customizable and extensible\jhanote{have we discussed either
   of these properties?}, whereas Type II workflows are predefined and
 used as is.  Type III services obviously can run Type II workflows.
-
-
-\subsection{DARE-API ($L3$)}
-
-L3 represents the DARE-API. The important feature of DARE is to
-utilize different distributed resources and this complexity involving
-the execution of tasks and file transfers on distributed resources
-will be handled by the Pilot-API.
-
-The Pilot-API provides a common access layer to Pilot Job (Compute)
-and Pilot Data (File transfers) frameworks over distributed production
-cyberinfrastructure, such as XSEDE, OSG, EGI and FutureGrid.  Thus it
-provides the ability to distribute workloads in a scalable
-manner~\ref{pilot-api}. Pilot-API hides the complexity involved in
-remote job executions so it is used inside DARE-API.
-
-DARE-API features include generating the necessary objects required
-by the Pilot-API by combining the user customized configuration files.
-These are categorized in to three different types: (i) one with resource
-information like job submission url (ConfTypeI), (ii) second holds
-information like location of a tool on different resources and
-arguments that should be used for tools(ConfTypeII), and (iii) finally with
-workflow information like tools need to executed, location of input
-files, ConfTypeI and ConfTypeII etc.,(ConfTypeIII). \jhanote{previous
-sentence difficult to understand}. There can be
-multiple ConfTypeI, ConfTypeII files for a single instance of DARE-API
-but only one file with ConfTypeIII.  
-
-DARE-API comes with some predefined configuration files.  After
-instantiation of DARE-API first loads ConfTypeIII after that it loads
-ConfTypeI, ConfTypeII based on the location specified in ConfTypeIII
-other wise it looks for default files. and these are customizable
-based on the requirements as they are stored in simple text files.
-\jhanote{Not sure what the above is trying to say} More information
-about the DARE-API configuration files can be found in the DARE
-wiki~\cite{dare_api_web}.
-
-DARE-API comes with capability to schedule tasks and movement of files
-between resources when it is required during the runtime.  Using the
-information provided in the configuration files DARE-API understands
-which tasks need to submitted at the right time for successful
-completion.  \jhanote{DARE-API does not come with the ability, it can
-  be used to implement the ability!}  The tasks and input/output files
-will be distributed over different machines and DARE needs to keep
-track of them.
-
-Before DARE-API submits the next tasks to the Pilot-API, DARE-API
-should check for the status of its dependent task.  More information
-about the management and scheduling can be found the DARE wiki.  This
-automatic scheduling feature of DARE-API is very helpful when the user
-has multiple tools in the pipeline for execution where the output
-files of one step become the input files for the next.
-
-Another important feature integrated into DARE-API is the ability to
-update the recent status of the job to a specified database.  This
-updated status can then be used to show status of user submitted jobs
-in gateways.
 
 \subsection{Runtime System Level ($L4$)}
 
