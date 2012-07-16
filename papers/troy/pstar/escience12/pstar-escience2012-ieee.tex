@@ -255,7 +255,7 @@ cyberinfrastructure.
 
 An initial motivation for the P* Model of pilot-abstractions is to
 provide a common analytical framework to understand commonly
-used \pilotjob frameworks.  The P* model was derived by analysing many
+used \pilotjob frameworks.  The P* model was derived by analyzing many
 \pilotjob implementations.  We first present
 the common {\it elements} of the P* Model, followed by a description
 of the {\it characteristics} that determine the interaction of these
@@ -364,7 +364,7 @@ allocated resources.
   orchestrating the interaction between the \pilots as well as the
   different components of the P* Model (\cus, \sus) and (ii) decisions
   related to internal resource assignment (once resources have been
-  acquired by the \pilotjob).  For example, an SU can consists of one
+  acquired by the \pilotjob).  For example, an SU can consist of one
   or more \cus. Further, \cus and \sus can be combined and aggregated;
   the PM determines how to group them, when \sus are scheduled and
   executed on a resource via the \pilot, as well as how many resources
@@ -1351,21 +1351,7 @@ complex~\cite{leaky_abstractions}. The Pilot-API uses the Pareto principle as
 guideline for a balanced abstraction level.
 
 
-\begin{figure}[t]
-    \begin{center}
-    \up
-    \includegraphics[width=0.47\textwidth]{../figures/distributed_pilot_job.pdf}
-    \caption{\I{\textbf{Pilot-API and PJ frameworks:} The Pilot-API
-        provides a unified interface to utilize the native Pilot-Job
-        capabilities of different infrastructures, e.\,g.\ BigJob for
-        XSEDE/FutureGrid, DIANE for EGI and Condor for OSG.
-      % It also enables the concurrent usage of these infrastructures.
-  \up\up\up
-  }\label{fig:figures_distributed_pilot_job}}
-  \end{center}
-\note{Reviewer Comment: The experiments are by far the weakest part of this paper. For the experiments parts, the authors didn't explain very well how they test the interoperability between Pilot-Jobs and infrastructures exist. The results are also hard to follow, why certain experiments are done, and how to interpret the results.}
-    
-\end{figure}
+
 
 
 % While no single solution can address
@@ -1413,8 +1399,9 @@ usage modes (i) it provides a unified API to various PJ frameworks (e.\,g.\
 BigJob, DIANE and Condor-G/Glide-in), and (ii) it enables the concurrent usage 
 of multiple PJ frameworks. The Pilot-API classes and interactions are designed 
 to reflect the P* elements and characteristics. 
-Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and the 
-Pilot-API. The API exposes the two primary interfaces: the 
+% Table~\ref{table:pstar_elements} summarizes the mapping of P* elements and the 
+% Pilot-API. 
+The API exposes the two primary interfaces: the 
 \texttt{Pilot\-Compute\-Service} is responsible for the management of \pilots 
 and the \texttt{Compute\-Unit\-Service} for the management of \cus. As defined 
 by P*, a \cu represents a primary self-containing piece of work that is 
@@ -1561,7 +1548,7 @@ managed by one \texttt{Pilot\-Compute\-Service}.
 	functionality of pilot-jobs are exposed using two primary classes: The 
 	\texttt{Pilot\-Compute\-Service} for the management 
 	of \pilots, and the \texttt{Compute\-Unit\-Service} for the management of 
-	\cus. \up\up
+	\cus. \up
 	}}
 	\label{fig:figures_pilot_api_flow}
 \end{figure}
@@ -1596,6 +1583,36 @@ application-level scheduler, which accepts both
 \texttt{Compute\-Units} and \texttt{DataUnits} -- this resolves new
 dependencies (e.g. data/data or data/computer affinities), and is
 responsible for managing the execution of \dus and \cus.
+
+
+\subsection{Conclusion}
+
+\begin{figure}[t]
+    \begin{center}
+\includegraphics[width=0.47\textwidth]{../figures/distributed_pilot_job.pdf}
+    \caption{\I{\textbf{Pilot-API and PJ frameworks:} The Pilot-API
+        provides a unified interface to utilize the native Pilot-Job
+        capabilities of different infrastructures, e.\,g.\ BigJob for
+        XSEDE/FutureGrid, DIANE for EGI and Condor for OSG.
+  	}\label{fig:figures_distributed_pilot_job}}
+	\upp\upp
+  \end{center}    
+\end{figure}
+
+The Pilot-API provides a well-defined abstraction for managing both compute
+and data. The API has been developed to support production-scale science on
+production infrastructure. As shown in
+Figure~\ref{fig:figures_distributed_pilot_job} the API supports different HPC
+and HTC infrastructures. As shown
+in~\cite{bigjob_cloudcom10,saga_bigjob_condor_cloud}, we also deployed \pilots
+successfully in clouds as well as in hybrid grid/cloud environments. In these
+cases, \pilots can be used to efficiently manage a dynamic pool of cloud
+resources either in form of bare IaaS VMs or higher-level PaaS abstractions,
+such as Azure Worker Roles. Further, \pilotdata and affinities offer a
+well-defined abstraction to express and optimize for typical trade-offs with
+respect to the different cloud storage options, e.g. instance storage versus
+blob storage, and data center locations.
+
 
 \section{Experiments and Results}\label{sec:exp_res}
 
@@ -1726,11 +1743,12 @@ of milliseconds; this places an effective upper-bound on Pilot-API
 latencies. Ref.~\cite{saga_europar10} established that even in a
 distributed context, job submission overheads, are very low when
 compared to the runtimes in consideration.  There are many factors
-that influence the overall coordination performance, e.\,g.\ the
+that influence the overall performance, e.\,g.\ the
 degree of distribution (local (LAN) vs. remote (WAN)), the
 communication pattern (1:n versus n:n) and the communication
-frequency. We focus our investigation on the distributed coordination
-overhead.
+frequency. We focus our investigation on the the communication \& 
+coordination (\cc) subsystem, which we established earlier as
+import characteristics of PJ frameworks.
 
 % \pmnote{what figure does it refer
 % to..Not sure what experiments done on Alamo?} \alnote{yes, this was on Alamo}
@@ -1747,9 +1765,10 @@ the pilot and/or the number of managed \cus.
 
 %Each experiment is repeated at least 10 times. 
 
-\jhanote{Is this c\&c overhead?} \pmnote{what machines are used to run
-  BigJob, are all these compute units executed concurrently using
-  BigJob and Diane?}  Figure~\ref{fig:perf_bigjob-varying-cores}
+% \jhanote{Is this c\&c overhead?} \pmnote{what machines are used to run
+%   BigJob, are all these compute units executed concurrently using
+%   BigJob and Diane?}  
+Figure~\ref{fig:perf_bigjob-varying-cores}
 illustrates the scalability of BJ and DIANE with respect to the number
 of cores and \cus managed by \pilot. For this purpose, we execute
 4\,\cus per core, i.\,e.\ between 32 and 512\,\cus.  BigJob with Redis
@@ -1764,10 +1783,10 @@ in the overall runtime. This increase is likely attributable to the
 single central manager in DIANE's CORBA-based client-server
 architecture. Using Redis as central data space for BigJob decouples
 Pilot-Manager and Agent, yielding better performance in particular
-with many replicas. 
+with many CUs. 
 
 \begin{figure}[t] \centering \up\up
-\includegraphics[width=0.4\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
+\includegraphics[width=0.48\textwidth]{../perf/bigjob-varying-cores-alamo-noadvert.pdf}
 \upp \caption{\I{\textbf{\pilotjob Coordination Mechanism:}  The runtime of a
 workload of 4 \cus per core, i.\,e.\ 32 - 512\,\cus, using different \pilots
 and configuration. For BJ-Redis the runtime  increases only moderately, the
@@ -1813,7 +1832,6 @@ following resources: XSEDE: Trestles (100\,TFlop / 324\,nodes /
 10,368\,cores / Torque) and QueenBee (Linux Cluster / 668\,nodes /
 5,344\,cores / PBS); FutureGrid: India and Sierra (108\,nodes /
 864\,cores / PBS);
-%\pmnote{sierra needs to be included}\alnote{ok} 
 EGI: Resource federation of 364,500 cores;
 OSG: Condor pool (via the \textit{Engage} VO, GlideinWMS, 20,000
 Glide-ins).
@@ -1873,21 +1891,21 @@ Glide-ins).
 % An experimental configuration is defined by the set of the production
 % infrastructure used, the specific machine/resource configuration, and
 % the utilized PJ framework.  
-We run experiments using four different
-configurations: (B1) BigJob/XSEDE, (B2) BigJob/FutureGrid, (B3) two
-BigJob/Futuregrid, (B4) DIANE/EGI, (B5) Condor/OSG.  \jhanote{We've
-  just defined configuration as a function of 3 variables and in the
-  above we are using only one! Misleading!}\alnote{removed first sentence 
-giving this 3 vars: we don't do it in other subsec in V and I think the conf 
-is still understandable as layout in the next 2 para} As discussed, the 
-Pilot-API provides a unified interface for
-accessing these infrastructures using the respective native PJ framework, 
+%   \jhanote{We've
+%   just defined configuration as a function of 3 variables and in the
+%   above we are using only one! Misleading!}\alnote{removed first sentence 
+% giving this 3 vars: we don't do it in other subsec in V and I think the conf 
+% is still understandable as layout in the next 2 para} 
+
+We run experiments using five different configurations: (B1) BigJob/XSEDE,
+(B2) BigJob/FutureGrid, (B3) two BigJob/Futuregrid, (B4) DIANE/EGI, (B5)
+Condor/OSG. As discussed, the Pilot-API provides a unified interface for
+accessing these infrastructures using the respective native PJ framework,
 i.\,e.\ BigJob, DIANE and Condor (see
-figure~\ref{fig:figures_distributed_pilot_job}).  For BJ we use the
-PBS/SSH plugin to access both the FutureGrid and XSEDE machines.  On
-OSG, we use SAGA and the SAGA-Condor adaptor to interface directly
-with OSG's dynamic GlideinWMS resource pool. Further, we utilize
-DIANE on EGI.
+figure~\ref{fig:figures_distributed_pilot_job}). For BJ we use the PBS/SSH
+plugin to access both the FutureGrid and XSEDE machines. On OSG, we use SAGA
+and the SAGA-Condor adaptor to interface directly with OSG's dynamic
+GlideinWMS resource pool. Further, we utilize DIANE on EGI.
 \jhanote{We
   haven't defined native PJ }\alnote{added intro to nativeness to sec II discussion}
 %\msnote{more on EGI later ...}
@@ -1961,8 +1979,8 @@ becomes a bottleneck due to the fact that all \cus share the incoming
 network bandwidth.  Also, fluctuation of the bandwidth in this
 scenario leads to a high failure rate during downloads. As seen in B3
 (middle bar), the distribution of the network load to two resources
-leads to a reduction of $T_{X}$. Also, in the HTC configuration (C4,
-C5), \cus are distributed across multiple machines minimizing the
+leads to a reduction of $T_{X}$. Also, in the HTC configuration (B4,
+B5), \cus are distributed across multiple machines minimizing the
 possibility of network congestions of single links. As an indication,
 a typical run of 128 CUs on OSG ended up being scheduled on 10+ sites
 spread over an equal amount of nodes per site.
@@ -2274,22 +2292,22 @@ has the potential to improve this situation.
 
 %~\cite{bigjob_web}
 
-The Pilot-API~\cite{pilot_api} has been deployed to support production-scale 
-science on production infrastructure (and as demonstrated by the emphasis on 
-production infrastructure in our experimentation). In fact, it is a stated goal 
-of our research to enhance the range of applications and usage-modes that will 
-benefit from the \pilot abstraction, by deeply integrating Pilot-API/P* 
-capabilities with multiple production infrastructures (both grids and clouds). 
-However, attention to several deployment issues is required to realize the full 
-power of the P*/Pilot-API. For example, in spite of a common Pilot-API, each PJ 
-framework has a rather different usage modality; this is reflective of the fact 
-that typically, PJ frameworks ``evolve in'' and are ``native to'' specific 
-infrastructure, e.g., Condor-G/Glide-in is the native PJ framework of the OSG, 
-and its use is heavily coupled with infrastructure specific to OSG, such as 
-GlideinWMS. Additionally, our experience with fragile grid middleware and 
-infrastructures has taught us to appreciate the significance of the ease of 
-deployment and the need for robustness of tools and software on heterogeneous 
-distributed infrastructures.
+The Pilot-API~\cite{pilot_api} has been deployed to support production-scale
+science on production infrastructure (and as demonstrated by the emphasis on
+production infrastructure in our experimentation). In fact, it is a stated
+goal of our research to enhance the range of applications and usage-modes that
+will benefit from the \pilot abstraction, by deeply integrating Pilot-API/P*
+capabilities with multiple production infrastructures (both grids and clouds).
+However, attention to several deployment issues is required to realize the
+full power of the P*/Pilot-API. For example, in spite of a common Pilot-API,
+each PJ framework has a rather different usage modality; this is reflective of
+the fact that typically, PJ frameworks ``evolve in'' and are ``native to''
+specific infrastructure, e.g., Condor-G/Glide-in is the native PJ framework of
+the OSG, and its use is heavily coupled with infrastructure specific to OSG,
+such as GlideinWMS. Additionally, our experience with fragile grid middleware
+and infrastructures has taught us to appreciate the significance of the ease
+of deployment and the need for robustness of tools and software on
+heterogeneous distributed infrastructures.
 
 
 The Pilot-API does not represent a barrier to scalability, but
