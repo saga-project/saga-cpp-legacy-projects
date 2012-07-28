@@ -4,6 +4,26 @@
 \input{head}
 \input{include}
 
+\usepackage{listings}
+
+\lstnewenvironment{code}[1][]%
+{
+\noindent
+%\minipage{0.98 \linewidth} 
+\minipage{1.0 \linewidth} 
+\vspace{0.5\baselineskip}
+\lstset{
+    language=Python,
+%    numbers=left,
+%    numbersep=4pt,
+    frame=single,
+    captionpos=b,
+    stringstyle=\ttfamily,
+    basicstyle=\scriptsize\ttfamily,
+    showstringspaces=false,#1}
+}
+{\endminipage}
+
 \begin{document}
 %\conferenceinfo{WOODSTOCK}{'97 El Paso, Texas USA}
 % \conferenceinfo{ECMLS'11,} {June 8, 2011, San Jose, California, USA.}
@@ -12,7 +32,7 @@
 % \clubpenalty=10000
 % \widowpenalty = 10000
 
-\title{Pilot-Data: An Abstraction for Managing Distributed Data}
+\title{Pilot-Data: An Abstraction for Distributed Data}
 
 \author{}
 
@@ -21,21 +41,239 @@
 
 \begin{abstract} 
 
-Alternate title: ``Pilot-Data: An Abstraction for Distributed Data''
-
-
-
 
 \end{abstract}
 
 \section{Introduction and Overview} 
 
+\pilotjobs support effective distributed resource utilization, and are
+arguably one of the most widely-used distributed computing abstractions.
+\emph{\pilotdata (PD)} is a novel abstraction for data-intensive applications
+that provides late-binding capabilities for data by separating the allocation
+of physical storage and application-level data units. Further, it provides an
+abstraction for expressing and managing relationships between data units
+and/or compute units. These relationships are referred to as
+\emph{affinities}.
+
+
+\section{Related Work}
+
+Several different tools, e.\,g.
+BitDew~\cite{Fedak:2008:BPE:1413370.1413416}, SRM~\cite{srm-ogf},
+iRODS~\cite{Rajasekar:2010:IPI:1855046}, Condor
+Matchmaking~\cite{Raman:1998:MDR:822083.823222} and
+HDFS/Hadoop~\cite{hadoop}, address the general ideas associated with
+affinity, most of the tools introduce the concept in semantically
+inconsistent and implicit ways; consequently, affinities are not one
+of the degrees-of-freedom exposed to or controllable at the
+application-level (i.e.  by the developer/user). Furthermore, few
+existing (distributed) programming models provide explicit support or
+control for affinity~\cite{ideas}.
+
+
+\section{Distributed Storage Infrastructure}
+
+In distributed settings, storage is often a black box for the application with
+unknown quality of services, i.\,e. the application usually does not know what
+bandwidths and latencies it can expect. Furthermore, physical and logical
+distribution implies higher penalties for inefficient data access as the data
+traverses several hardware and software layers.
+
+
+In general, different types of storage exist (see 
+figure~\ref{fig:figures_storage-types}):
+
+\begin{enumerate}
+	\item \textbf{Local Storage:} describes local hard disk directly attached 
+	to the compute resource.
+	\item \textbf{Network Filesystem:} refers to different forms of 
+	distributed (possible parallel) filesystems. The filesystem is commonly 
+	exported via the Posix API and a virtual filesystem layer.
+	\item \textbf{Distributed Storage:} refers to a highly distributed type of 
+	storage systems that spawn across multiple data centers. Access to such 
+	storage systems via a common -- often simplified -- namespace and API. For 
+	example, cloud systems, such as the Azure Blob Storage, Amazon S3 and 
+	Google Storage, provide only a namespace with a 1-level hierarchy. 
+\end{enumerate}
 
 
 
-\section{Pilot-Data Overview}
 
-Talk about concept
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.45\textwidth]{figures/storage-types.pdf}
+	\caption{Pilot-Compute and Pilot-Data on Different Types of Storage Resources}
+	\label{fig:figures_storage-types}
+\end{figure}
+
+
+
+Table~\ref{tab:storage-systems} shows an overview of distributed storage 
+systems. The focus of this analysis are file-based storage systems. Structured
+storage types (e.g. relational databases) and key-/values stores are not 
+considered.
+
+\begin{table}[t]
+\begin{tabular}{|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
+	\hline
+	\textbf{Storage Type} &\textbf{Azure} &\textbf{Amazon} &\textbf{Google} &\textbf{XSEDE}  &\textbf{OSG} \\
+	\hline
+	Local	&yes &yes &yes &yes &yes\\
+	\hline
+	Network Filesystem &Azure Drive &EBS &GCE Block Storage &Lustre, GPFS 
+	&no\\
+	\hline
+	Distributed Storage &Azure Blob Storage &S3 &Google Storage &GFFS
+	 &SRM\\
+	\hline	
+\end{tabular}
+\caption{File-based storage types for different infrastructures (key/value and 
+SQL-based storage types omitted) \label{tab:storage-systems}}
+\end{table}
+
+
+\subsection{Limitations}
+While some distributed storage systems provide support for data/compute 
+co-location (e.\,g.\ iRODS~\cite{Rajasekar:2010:IPI:1855046}), commonly 
+applications require a direct access to files via a Posix-based API.
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Pilot-Data}
+
+We propose the use of \pilotdata as an application-level construct support
+distributed data. In conjunction with \pilotjob, \pilotdata is able to support
+different forms of data/compute affinities. Both abstractions are implemented
+as reference implementation to the P* model -- a unifying, analytical
+framework for \pilot abstractions -- introduced in~\cite{pstar11}. 
+Similarly to \pilotjobs, \pilotdata allows the logical decoupling
+of production and consumption of data. Among many things, \pilotdata 
+facilitates the late binding of data and physical resources.  
+
+\subsection{Affinities Overview}
+
+An important consequence of data and computation as equal first-class
+entities, is that either data (D) can be provisioned where computation
+(C) is scheduled to take place (as is done traditionally), or C can be
+provisioned where D resides. This equal movement of computational
+units leads to a richer set of possible correlations between the
+involved data elements and computational units; correlations can be
+either spatial and/or temporal. These correlations arise either as a
+consequence of constraints of localization (e.g., D is fixed, C must
+move, or vice-versa), or as temporal ordering imposed on the different
+data and computational units.
+
+
+\subsection{\pilot-Abstractions and Affinities}
+
+
+We use a simple model to describe resource affinities (see
+figure~\ref{fig:figures_resource-topologies}). Data centers and machines are
+represented as a tree. The further the distance between two resources, the
+smaller the affinity.
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.3\textwidth]{figures/resource-topologies.pdf}
+	\caption{\textbf{Modeling Resource Affinities:} Resources are placed in a 
+	tree consisting of two levels. The smaller the distance between two 
+	resources, the larger the affinity.}
+	\label{fig:figures_resource-topologies}
+\end{figure}
+
+Each \pilot can specified the required affinity in it's description (see
+listing~\ref{lst:pilot_compute_affinity}).
+
+\begin{code}[
+caption={Creation of a \textit{PilotCompute} on the specified  compute
+resource endpoint.},
+label={lst:pilot_compute_affinity}]
+pilot_compute_description = 
+
+{
+    "service_url":"sge+ssh://gsissh.kraken.nics.xsede.org",
+    "number_of_processes": 1,                             
+    "working_directory": "/tmp/pilot-compute/",
+    "affinity_datacenter_label": "nisc",              
+    "affinity_machine_label": "kraken" 
+}
+\end{code}
+
+The runtime system will map the requirements of the \pilot with an appropriate
+resources (see figure~\ref{fig:figures_pilot-affinities}). Once a \pilot is
+assigned to a resource, it inherits the affinity of that resource.
+
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.45\textwidth]{figures/pilot-affinities.pdf}
+	\caption{\pilot-Abstractions and Affinities}
+	\label{fig:figures_pilot-affinities}
+\end{figure}
+
+
+In most cases it is necessary to co-locate \cus and \dus, i.\,e.\ either a \du
+must be copied into a \pd that is placed on the same resource as the \pj or
+vice versa. The other option is to stream the \du to the respective \cu.
+
+TODO
+explain how affinities can be used to model different storage types from section III
+
+
+
+\subsection{BigData -- A PilotData Implementation}
+
+
+The Pilot-Manager decides how and when to place data and
+schedule its movement. Facilities provided include the creation of a
+PD, the insertion/retrieval of \dataunits, and attachment to a storage
+pool to hold its objects. Some implementation issues that need to be
+understood and reasoned about include:
+
+% The PD abstraction is designed to support the following capabilities:
+
+%\begin{itemize}
+\begin{compactitem}
+\item \textbf{Distributed coupling and coordination:} Application
+  components, e.\,g.\ the parts of a distributed workflow or a
+  compute- and analysis job, need support for efficient distributed
+  coordination.
+\item \textbf{Description and management of data affinities and
+    localities:} A \pd container represents a group of affine
+  \dataunits; %Further affinities between several PD can be expressed;
+  various meta-data, such as localities of all \dataunits and
+  replicas, must be stored to facilitate scheduling and other types of
+  decision making.
+\item \textbf{Data-aware scheduling:} Utilizing the hints given to PD
+  in form of affinity specifications, the data-aware scheduler should
+  be able to optimize data localities, movements and
+  streams. Depending on the current system state, computations will be
+  moved to data or vice versa. Replicas of \dataunits can be
+  automatically maintained by PD to facilitate e.\,g.\ a faster
+  access.
+\item \textbf{Data access patterns and data streaming:} Data contained
+  within PD needs to be accessed online and streamed to different
+  locations facilitating e.\,g.\ interactive analyses.  PD should
+  support common data access patterns, e.\,g.\ replication,
+  partitioning and scatter/gather.
+\item \textbf{Discovery:} Application components should be able to
+  query the system for \dataunits and their associated
+  \pilots. Further, the system will provide support for shared \dus,
+  which can be queried and discovered.
+\end{compactitem}
+
+The abstractions enables the
+developer to specify data affinities, which will be utilized by the RTS to
+map data onto a particular infrastructure topology and to support an
+application-specific access pattern, e.\,g.\ as found in MapReduce
+applications. The RTS places \dataunits according to the defined
+objectives; for example, a resource could accept only data objects
+$>5$~GB and above.  Ref.~\cite{ddia_ptrsa10} suggests that the
+explicit support for affinities between and within the \pj and \pd
+abstractions for distributed and dynamic data will yield better
+performance and scalability compared to simplistic if not ad-hoc ways
+of data-compute coupling while still maintaining a high level of
+simplicity.
+
 
 \begin{itemize}
 
@@ -72,25 +310,19 @@ Talk about concept
 
 \end{itemize}
 
-
-
-
-
-
-
-
-
-
-
-
 Reasoning about PilotData
 
 Implementation
 
 Substantiate with description of design decisions
 
-\section{Pilot-API}
-Pilot-API as a unifying piece
+\subsection{Pilot-API}
+Pilot-API provides a unified interface for 
+
+
+
+
+
 
 
 \section{Experiments}
@@ -167,7 +399,7 @@ The idea is that for an application which is
 
   
 \bibliographystyle{IEEEtran}
-\bibliography{pilotjob,saga,saga-related}
+\bibliography{literatur,saga,saga-related,local}
 
 
 \end{document}
