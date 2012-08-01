@@ -16,6 +16,8 @@
 \usepackage{xspace}
 \usepackage{booktabs}
 
+\newcommand{\specrule}{\specialrule{1pt}{0.5em}{0.5em}}
+
 \setlength\topmargin{0in}
 \setlength\headheight{0in}
 \setlength\headsep{0in}
@@ -70,8 +72,14 @@
       Louisiana State University, USA}}\\ } \date{}
  \maketitle
 
+\ifdraft
+ \tableofcontents
+\fi
+
 \abstract{The show must go on. Or maybe not in this case..}
  
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Introduction}\todo{SJ}
  \label{intro}
 
@@ -158,6 +166,8 @@ trying to address.
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Critical Perspective on DCIs}\todo{SJ}
 
 
@@ -306,6 +316,8 @@ Beyond simple static single batch-mode
   DCI capabilities}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Access Layers to DCI and Abstractions for DA}\todo{AM, SJ}
 
 Revisiting the reasons why production DCI have not been used in more
@@ -364,6 +376,8 @@ provide an abstraction too.
    - Define where we are placing it. THAT IS SAGA...
 \end{verbatim}
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Design Objectives and Principles}\label{saga_impls}
 \label{sec:designobjectives}
 
@@ -727,6 +741,134 @@ provide an abstraction too.
 \jhanote{This section should end up motivating the Architecture and
  Implementation}
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
+\section{SAGA API}
+\label{sec:api}
+
+ The SAGA API (as in API specification, not implementation) has been
+ designed with the background of objectives described in
+ section~\ref{sec:designobjectives}.  This section describes the the
+ general structure and scope of the API, and demonstrates how it
+ facilitates the implementation of distributed applications,
+ frameworks and tools.
+
+ The SAGA API structure is best understood when discussing it in
+ different perspectives: general distributed programming practices,
+ and distributed operations semantics.
+
+ \subsection{General Distributed Programming Practices}
+ 
+  The prevalence of distributed programming in the fields of
+  scientific computing and computational engineering led to a large
+  body of collective best practices and successful programming
+  patterns.  Obviously, the SAGA API is expected to build upon that,
+  or at least to nicely interact with those practices and patterns.
+  Among those patterns are
+
+    - async ops\\
+    - event based programming\\
+    - multithreading\\
+    - separation of semantics and communication (transport versus
+      protocol layer)\\
+
+  In order to separate the API design considerations in respect to
+  these patterns from the actual semantic scope of the API, the SAGA
+  API specification consists of two parts.  First, there is a so
+  called 'functional' part of the SAGA API, which, organized into
+  several API packages, spans the semantic scope of the API.
+  Secondly, there is a so called 'non-functional' part -- whereas the
+  latter name is probably not a fortunate choice, that is the part
+  which addresses general distributed programming concerns as
+  mentioned above, and is applied across all 'functional' packages.
+  That mechanism provides a common look-and-feel to those 'functional'
+  packages, which is particularly important as the API allows for API
+  extensions in the 'functional' area.
+
+  The 'non-functional' part of the SAGA API describes how SAGA
+  operations are rendered for asynchronous executions modes, how
+  asynchronous notifications are rendered, how error conditions from
+  different backends are uniformly managed, how the SAGA API behaves
+  in multi-threaded environments, etc.
+
+ 
+ \subsection{Semantic Scope of the SAGA API}
+
+  The 'functional' scope of the SAGA API was derived from a set of use
+  cases, and thus is defined by the set of semantic operations
+  considered essential and beneficial to the programming of typical
+  distributed applications.  Additionally, the API layout is oriented
+  on other well-known APIs and standards, such as POSIX, Java CoG,
+  GAT, GridRPC, DRMAA, JSDL and others.
+
+  The problem with that approach is, (i) that applications outside the
+  set of considered use cases may require slightly or significantly
+  different functionality, and (ii) that APIs and paradigms on which
+  the SAGA specification was based are not widely used anymore, which
+  makes that similarity of limited value.
+
+  To address these problems, the API's scope was widened in an attempt
+  to cover related or likely functionality.  For example, the use
+  cases defined a strict requirement to the API to provide a
+  \T{file.get\_size()} method -- the API definition thus attempts to
+  provide reasonable support for other POSIX \T{stat()} information
+  items.  For most parts, that approach worked reasonably well -- but
+  it also led to some pollution of the API with semantics which has so
+  far not been used, and/or has been difficult to implement.
+
+  To further accommodate new use cases with significantly different
+  semantic requirements on the SAGA API, the API was designed to be
+  extensible by new 'functional' packages, while encouraging to define
+  those new packages on top of existing packages.
+
+  The approximate functional semantic scope of the API is listed in
+  table~\ref{tab:apiscope}.
+
+  \begin{table}[ht!]
+   \begin{footnotesize}
+   \B{Semantic Scope of the SAGA API}\\
+     \begin{tabular}{@{}p{2.00cm} p{3.80cm} p{9.00cm}@{}}
+      
+      \toprule
+      {\bf Package} & {\bf Related APIs} & {\bf Scope} \\
+
+      \specrule
+      
+      Namespace     
+      & POSIX, GridFTP, GAT 
+      & \T{open, close, create, copy, move, delete}
+      \\
+
+      \midrule
+    
+      Files         
+      & POSIX, GridFTP, GAT 
+      & \T{stat, read, write, seek, scattered I/O, pattern based I/O, extended I/O} 
+      \\
+
+      \midrule
+    
+      Jobs         
+      & GRAM, BES, DRMAA,\newline GAT 
+      & \T{job description, create, suspend/resume, state, cancel,
+      inspection, stage-in/out} 
+      \\
+
+      \bottomrule
+     \end{tabular}
+     \caption{caption...}
+    \label{tab:apiscope}
+   \end{footnotesize}
+  \end{table}
+
+
+
+ \subsection{SAGA API as Foundation for Distributed Applications,
+ Frameworks and Tools}
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Conceptual Architecture} \todo{AM (layer 1), Ole (layer 2, 3)}
 \label{sec:conceptualarchitecture}
 
@@ -769,6 +911,8 @@ is depicted in figure \ref{fig:layers}).
 \subsection{Middleware Adaptors}
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Implementation and Solution Challenges}\todo{Ole}
 
 Having an architecture is only half the battle -- one also needs an
@@ -798,6 +942,8 @@ implementation of the architecture.
 
 
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Applications and Frameworks}\todo{SJ}
 \label{apps_and_frameworks}
 
@@ -833,6 +979,8 @@ extensibility, interoperability and lessons from the workflow
 experience have hopefully been learned and there is a willingness to
 adopt and integrate...
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% 
 \section{Discussion}\todo{All}
 
 \subsection{Lessons Learned}
