@@ -15,8 +15,11 @@
 \usepackage{url}
 \usepackage{xspace}
 \usepackage{booktabs}
+\usepackage{listings}
+
 
 \newcommand{\specrule}{\specialrule{1pt}{0.5em}{0.5em}}
+
 
 \setlength\topmargin{0in}
 \setlength\headheight{0in}
@@ -27,6 +30,8 @@
 \setlength\evensidemargin{0in}
 \setlength\parindent{0.1in}
 \setlength\parskip{0.25em}
+
+\newcommand{\up}{\vspace*{-1em}}
 
 \ifpdf
  \DeclareGraphicsExtensions{.pdf, .jpg}
@@ -411,6 +416,7 @@ provide an abstraction too.
   phase, and later those relevant to the implementation phase.
 
   \subsubsection{SAGA Specification Objectives}
+  \label{sec:designobjectives.spec}
 
    \subsubsection*{Managing System Heterogeneity}
 
@@ -749,29 +755,37 @@ provide an abstraction too.
 
  The SAGA API (as in API specification, not implementation) has been
  designed with the background of objectives described in
- section~\ref{sec:designobjectives}.  This section describes the the
- general structure and scope of the API, and demonstrates how it
- facilitates the implementation of distributed applications,
+ section~\ref{sec:designobjectives.spec}.  This section describes the
+ general structure and scope of the API, and demonstrates how that
+ scope facilitates the implementation of distributed applications,
  frameworks and tools.
 
  The SAGA API structure is best understood when discussing it in
  different perspectives: general distributed programming practices,
- and distributed operations semantics.
+ and specific distributed operations semantics.
 
  \subsection{General Distributed Programming Practices}
  
   The prevalence of distributed programming in the fields of
   scientific computing and computational engineering led to a large
   body of collective best practices and successful programming
-  patterns.  Obviously, the SAGA API is expected to build upon that,
-  or at least to nicely interact with those practices and patterns.
-  Among those patterns are
+  patterns.  Obviously, the SAGA API is expected to build upon those
+  where possible and sensible, and to nicely interact with those
+  orthogonal to the API itself.  Among those patterns are, for
+  example:
 
-    - async ops\\
-    - event based programming\\
-    - multithreading\\
-    - separation of semantics and communication (transport versus
-      protocol layer)\\
+  \begin{itemize}
+
+   \item asynchronous operations,
+   \item event based programming,
+   \item multithreading and and concurrent execution, 
+   \item caching (or latency hiding in general), 
+   \item eventual consistency, and 
+   \item separation of syntax and semantics\footnote{For example, most
+         distributed communication models separate transport layer and 
+         protocol layer.  Another example is the separation of data 
+         formats and data models.}.
+  \end{itemize}
 
   In order to separate the API design considerations in respect to
   these patterns from the actual semantic scope of the API, the SAGA
@@ -788,9 +802,47 @@ provide an abstraction too.
 
   The 'non-functional' part of the SAGA API describes how SAGA
   operations are rendered for asynchronous executions modes, how
-  asynchronous notifications are rendered, how error conditions from
-  different backends are uniformly managed, how the SAGA API behaves
-  in multi-threaded environments, etc.
+  asynchronous notifications are rendered, how security tokens are
+  specified, how error conditions from different backends are
+  uniformly managed, how the SAGA API behaves in multi-threaded
+  environments, etc.
+
+  As an example, the code (here in C++) in listing.~\ref{code:async} shows how an
+  asynchronous file copy operation is rendered in SAGA -- the very
+  same mechanism (create a stateful task object for that operation) is
+  applicable to \I{any} SAGA API operation -- the asynchronous part of
+  the SAGA API is \I{orthogonal} to the 'functional' part of the SAGA
+  API.\\
+
+  \begin{lstlisting}[language=c++,
+                     basicstyle=\footnotesize\ttfamily,
+                     keywordstyle=,
+                     numbers=left,
+                     numbersep=1em,
+                     showstringspaces=false,
+                     frame=single, 
+                     label=code:async,
+                     caption=SAGA API Code example for asynchronous
+                     operations (in C++),
+                     captionpos=b]
+ saga::filesystem::file f (source_url);
+ saga::task t = f.copy <saga::task::Async> (target_url);
+
+ while ( saga::task::Running != t.get_state () )
+ {
+   // do something useful
+ }
+
+ if ( saga::task::Failed != t.get_state () )
+ {
+   std::cout << "file copy failed: " << t.get_error ();
+ } 
+ else
+ {
+   std::cout << "file copy done " << std::endl;
+ }
+  \end{lstlisting}
+
 
  
  \subsection{Semantic Scope of the SAGA API}
@@ -827,38 +879,63 @@ provide an abstraction too.
 
   \begin{table}[ht!]
    \begin{footnotesize}
-   \B{Semantic Scope of the SAGA API}\\
-     \begin{tabular}{@{}p{2.00cm} p{3.80cm} p{9.00cm}@{}}
-      
+   \begin{center}
+     \begin{tabular}{@{}p{2.00cm} p{3.80cm} p{8.00cm}@{}}
       \toprule
-      {\bf Package} & {\bf Related APIs} & {\bf Scope} \\
-
+        {\bf Package} & {\bf Related APIs} & {\bf Scope} \\
+        \multicolumn{3}{@{}l}{\B{Saga Core API}}\\
       \specrule
-      
-      Namespace     
-      & POSIX, GridFTP, GAT 
-      & \T{open, close, create, copy, move, delete}
-      \\
-
+        Jobs         
+        & GRAM, BES, DRMAA,\newline GAT 
+        & \T{job description, create, suspend/resume, state, cancel,
+        inspection, stage-in/out} 
+        \\
       \midrule
-    
-      Files         
-      & POSIX, GridFTP, GAT 
-      & \T{stat, read, write, seek, scattered I/O, pattern based I/O, extended I/O} 
-      \\
-
+        Namespace     
+        & POSIX, GridFTP, GAT 
+        & \T{open, close, create, copy, move, delete}
+        \\
       \midrule
-    
-      Jobs         
-      & GRAM, BES, DRMAA,\newline GAT 
-      & \T{job description, create, suspend/resume, state, cancel,
-      inspection, stage-in/out} 
-      \\
-
+        Files         
+        & POSIX, GridFTP, GAT 
+        & \T{stat, read, write, seek, scattered I/O, pattern based I/O, extended I/O} 
+        \\
+      \midrule
+        Replicas
+        & Globus, SRM, Raptor
+        & \T{list/add/remove/update\_location, replicate, annotate,
+          search}
+        \\
+      \midrule
+        Stream
+        & POSIX, BSD, XIO
+        & \T{serve, connect, close, read, write, wait}
+        \\
+      \midrule
+        RPC
+        & RPC, GridRPC
+        & \T{open, call, in/out/inout parameter}
+        \\
+      \specrule
+        {\bf Package} & {\bf Related APIs} & {\bf Scope} \\
+        \multicolumn{3}{@{}l}{\B{Saga API Extensions}}\\
+      \specrule
+        Messages
+        & ZeroMQ, Various
+        & \T{publish/subscribe, multicast,
+        (un)reliable, (un)ordered, send, test, recv}
+        \\
+      \midrule
+        Adverts
+        & -/-
+        & \T{create, delete, annotate, find, attach}
+        \\
       \bottomrule
      \end{tabular}
-     \caption{caption...}
+     \caption{Semantic Scope of the 'functional' SAGA API (SAGA Core
+     API and standardized extensions)}
     \label{tab:apiscope}
+   \end{center}
    \end{footnotesize}
   \end{table}
 
