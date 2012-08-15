@@ -5,6 +5,36 @@
 \usepackage{moreverb}
 \usepackage{xspace}
 
+\newif\ifdraft
+%\drafttrue
+\ifdraft
+\newcommand{\onote}[1]{ {\textcolor{cyan} { (***Ole: #1) }}}
+\newcommand{\terminology}[1]{ {\textcolor{red} {(Terminology used: \textbf{#1}) }}}
+\newcommand{\owave}[1]{ {\cyanuwave{#1}}}
+\newcommand{\jwave}[1]{ {\reduwave{#1}}}
+\newcommand{\alwave}[1]{ {\blueuwave{#1}}}
+\newcommand{\jhanote}[1]{ {\textcolor{red} { ***shantenu: #1 }}}
+\newcommand{\alnote}[1]{ {\textcolor{green} { ***andreL: #1 }}}
+\newcommand{\amnote}[1]{ {\textcolor{blue} { ***andreM: #1 }}}
+\newcommand{\smnote}[1]{ {\textcolor{brown} { ***sharath: #1 }}}
+\newcommand{\pmnote}[1]{ {\textcolor{brown} { ***Pradeep: #1 }}}
+\newcommand{\msnote}[1]{ {\textcolor{cyan} { ***mark: #1 }}}
+\newcommand{\note}[1]{ {\textcolor{magenta} { ***Note: #1 }}}
+\else
+\newcommand{\onote}[1]{}
+\newcommand{\terminology}[1]{}
+\newcommand{\owave}[1]{#1}
+\newcommand{\jwave}[1]{#1}
+\newcommand{\alnote}[1]{}
+\newcommand{\amnote}[1]{}
+\newcommand{\athotanote}[1]{}
+\newcommand{\smnote}[1]{}
+\newcommand{\pmnote}[1]{}
+\newcommand{\jhanote}[1]{}
+\newcommand{\msnote}[1]{}
+\newcommand{\note}[1]{}
+\fi
+
 \newcommand{\pilot}{Pilot\xspace}
 \newcommand{\pilots}{Pilots\xspace}
 \newcommand{\pilotjob}{Pilot-Job\xspace}
@@ -140,6 +170,71 @@ Why Domain scientists are moving to cloud? Hype? Due to non-availability of nece
 
 
 \section{Related Work}
+
+
+\section{Distributed Storage Infrastructure}
+
+In distributed settings, storage is often a black box for the application with
+unknown quality of services, i.\,e. the application usually does not know what
+bandwidths and latencies it can expect. Furthermore, physical and logical
+distribution implies higher penalties for inefficient data access as the data
+traverses several hardware and software layers.
+
+
+In general, different types of storage exist (see 
+figure~\ref{fig:figures_storage-types}):
+
+\begin{enumerate}
+	\item \textbf{Local Storage:} describes local hard disk directly attached 
+	to the compute resource.
+	\item \textbf{Network Filesystem:} refers to different forms of 
+	distributed (possible parallel) filesystems. The filesystem is commonly 
+	exported via the Posix API and a virtual filesystem layer.
+	\item \textbf{Distributed Storage:} refers to a highly distributed type of 
+	storage systems that spawn across multiple data centers. Access to such 
+	storage systems via a common -- often simplified -- namespace and API. For 
+	example, cloud systems, such as the Azure Blob Storage, Amazon S3 and 
+	Google Storage, provide only a namespace with a 1-level hierarchy. 
+\end{enumerate}
+
+While the coupling between compute and data in type 1 and 2 is very high, it 
+is only small in the later case. In general, the buffer type 3 storage are 
+more optimized to reliably storing large volumes of data and achieving high
+read throughputs.
+
+\alnote{Why do we exclude databases?}
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.45\textwidth]{figures/storage-types.pdf}
+	\caption{Pilot-Compute and Pilot-Data on Different Types of Storage Resources}
+	\label{fig:figures_storage-types}
+\end{figure}
+
+
+
+Table~\ref{tab:storage-systems} shows an overview of distributed storage 
+systems. The focus of this analysis are file-based storage systems. Structured
+storage types (e.g. relational databases) and key-/values stores are not 
+considered.
+
+\begin{table}[t]
+\begin{tabular}{|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
+	\hline
+	\textbf{Storage Type} &\textbf{Azure} &\textbf{Amazon} &\textbf{Google} &\textbf{XSEDE}  &\textbf{OSG} \\
+	\hline
+	Local	&yes &yes &yes &yes &yes\\
+	\hline
+	Network Filesystem &Azure Drive &EBS &GCE Block Storage &Lustre, GPFS 
+	&no\\
+	\hline
+	Distributed Storage &Azure Blob Storage &S3 &Google Storage &GFFS
+	 &SRM\\
+	\hline	
+\end{tabular}
+\caption{File-based storage types for different infrastructures (key/value and 
+SQL-based storage types omitted) \label{tab:storage-systems}}
+\end{table}
 
 \section{Hadoop in the Cloud}
 
