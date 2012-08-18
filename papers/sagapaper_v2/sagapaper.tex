@@ -85,90 +85,146 @@
  
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
-\section{Introduction}\todo{SJ}
+\section{Introduction}
  \label{intro}
 
-\begin{verbatim}
-   - Grand intellectual challenges of designing DCIs
-     - how to design infrastructures to bridge gap
-     - what is role of abstractions/interfaces in general, and for
-       SAGA
-       - interface necessary, but sufficient?
-       - should be sufficient, if fully functional (contract)
-       - but what are the challenges of providing a functional interface?
-       - at the end deep integration!
-       - from there follows design, limitations
-         (possibly goes partially into conclusions)
+% \begin{verbatim}
+%    - Grand intellectual challenges of designing DCIs
+%      - how to design infrastructures to bridge gap
+%      - what is role of abstractions/interfaces in general, and for
+%        SAGA
+%        - interface necessary, but sufficient?
+%        - should be sufficient, if fully functional (contract)
+%        - but what are the challenges of providing a functional interface?
+%        - at the end deep integration!
+%        - from there follows design, limitations
+%          (possibly goes partially into conclusions)
 
-    - roles for SAGA: 
-      - shield from environment
-      - need to be able to reason about distribution without
-      considering those env details
+%     - roles for SAGA: 
+%       - shield from environment
+%       - need to be able to reason about distribution without
+%       considering those env details
 
-    - Limitations of SAGA:
-     -- APIs are never enough! The challenge of implementing them. 
+%     - Limitations of SAGA:
+%      -- APIs are never enough! The challenge of implementing them. 
 
-\end{verbatim}
+% \end{verbatim}
 
-Distributed applications utilize multiple resources, or are capable of
-utilizing them. One could argue that any application that would
-benefit from increased peak performance, throughput, or reduced time
-to solution, by using multiple compute and distributed data resources,
-can be classified as a distributed application, or a candidate to be
-formulated as such.
+DCI such as TeraGrid (and now XSEDE) have tremendous potential for
+science and engineering, and impressive advances notwithstanding,
+there have only been a limited number of applications that have been
+successful in exploiting the collective capacity of DCI.  Innovative
+and novel usage of DCI has generally not kept pace with other
+technical advances of DCI; an analysis of the usage modes of
+applications using the TeraGrid (in its final year of operation before
+it transitioned to XSEDE) substantiates this
+observation~\cite{katz-usagemode}. There are several underlying
+reasons that explain the status of affairs: developing large-scale
+distributed applications is fundamentally a difficult
+process~\cite{dpagrid2009, dpa-surveypaper}, made more difficult due
+to the scarcity of high-level abstractions (system and
+application-level) and interfaces that bridge the divide between the
+needs of applications and the functionalities offered by middleware
+and system-level capabilities~\cite{saga_data_intensive_abstractions}.
+Deployment and execution concerns are often disjoint from the
+development process~\cite{dpagrid2009}, in that functionally
+incomplete solutions and not end-to-end solutions are provided to the
+scientist.
 
-% Although \ci technologies have matured considerably over the past
-% few years, applications that can effectively utilize these
-% technologies are far from ubiquitous.
-
-The ability to develop or formulate scientific applications as
-distributed applications,
-% Advances in distributed applications have 
-has simply not kept pace with advances in other aspects of distributed
-cyberinfrastructure (CI). This is true whether measured by the number
-of novel applications developed to exploit distributed infrastructure,
-or even by something simpler, such as the number of applications that
-can use multiple resources to reduce the time-to-solution of
-scientific problems.  There are at least three complex
-reasons~\cite{dpa_grid09}, which defy over-simplification. We believe
-the main issue is simply that developing large-scale distributed
-applications is fundamentally a difficult process~\cite{dpa-paper},
-made more difficult due to the scarcity of high-level programming
-abstractions and interfaces that bridge the divide between the needs
-of distributed applications and the capabilities offered by middleware
-and system-level interfaces~\cite{cloud-saga-paper}. Second,
-deployment and execution concerns are often disjoint from the
-development process~\cite{dpa_grid09}. Finally, the range of tools,
-programming systems, and environments is bewildering large, making
-extensibility and interoperability difficult.  SAGA will help
-applications and tools fulfill the goal: ``As much as possible,
-software should run independent of specific hardware and should use
-intuitive interfaces that do not depend upon extensive knowledge of
-the operating environment,'' as recommended in a recent draft report
-from the NSF workshop on Cyberinfrastructure Software Sustainability
-and Reusability~\cite{CISSR}.
-
+% Admittedly, many are non-technical, such as policy,
+% allocation, etc., however, a fundamental technical challenge is the
+% need to support a broad range of application use-cases and usage
+% modalities on a range of platforms with varying performance
+% constraints. 
 
 Against this backdrop, the distributed infrastructures available to
-scientists continue to evolve in scale and capability, as well as
-complexity.  Investments in legacy applications need to be preserved,
+scientists continue to evolve in scale, technology, as well as
+capability.  Investments in legacy applications need to be preserved,
 while at the same time, development of functionally novel and
 architecturally different applications for new and evolving
-environments needs to be facilitated. 
+environments needs to be facilitated.  This fundamental mismatch
+between requirement of DA and capabilities of DCI is one of the
+intellectual problems that this paper will address.
 
-Developing versus Deployment versus Using
 
-For context: it is still very difficult to develop a distributed
-application that can use O(1000) processors, transfer/handle O(100) GB
-data and use O(10) arbitrarily chosen sites, repeated over 10
-arbitrary chosen days. The only science projects that can do so
-currently are Big Science projects, with very large teams and levels
-of effort.  Individual PIs/scientists are unable to do so, but there
-are many who clamor and need to be able to do so This fundamental
-mismatch between requirement of DA and capabilities of DCI is one of
-the intellectual problems that this paper (and solutions therein) are
-trying to address.
 
+%Developing versus Deployment versus Using
+
+Improvements in algorithms, numerical methods and Moore's Law have
+enabled computing to contribute to major advances in Science \&
+Engineering (S\&E). In spite of impressive growths from each of these
+factors however, in order to effectively solve the next-generation of
+S\&E challenges, more computational capacity will be required than is
+typically available locally, whilst concomitantly being able to
+utilize the increasing computational capacity in novel and interesting
+ways. This suggest the need for a advanced, balanced and comprehensive
+cyberinfrastructure (CI) --- comprised of software layers (the
+application capabilities, tools and services) and physical layers
+(grids, clouds, special purpose architecture and ``vanilla''
+high-performance machines/clusters), along with scalable approaches to
+utilize the CI.
+
+One way to provide the CI that can support novel usage modes and
+scaling --- scaling-out (the number of tasks) as well as scaling the
+number of resources, is to federate computing resources.  Federation
+here refers not just to machines, but also services and tools.  The
+federation of previously independent and individual resources, results
+in extensible and scalable capabilities that are more powerful than
+the simple sum of its parts.  The set of techniques and technologies
+used to federate resources is collectively called Grid Computing.
+
+Although federating resources is a great way to scale the number of
+resources usable, all too often the resources being federated are
+owned, operated and designed for different applications and usage
+modes, and thus inherently different. Federation therefore introduces
+the challenge of interoperability, arising from heterogeneity and
+complexity in software stacks, policies and resource performance, all
+of which result in barriers to interoperation at both the system and
+application levels.
+
+In addition to enabling federation --- and thereby scalability and
+extensibility, additional design objectives that are fundamental to
+distributed applications and capabilities are portability and
+interoperability.  One approach to addressing these persistent and
+fundamental challenges of enabling applications and capabilties to
+interoperate across federated heterogenous DCI has been to design and
+develop a simplified interface to DCI which serves as an access layer
+to DCI as well as providing the base abstractions upon higher level
+capabilities can be built. A specific instance of such an
+interfrace--- known as SAGA --- the Simple API for Grid Applications,
+provides frequently required and used functionality, such as remote
+job-submission, remote file/data transfer, remote coordination, etc.,
+to construct applications capable of utilizing distributed federated
+CI.
+
+Given the landscape of DCI, the design objectives of distributed
+applications and capabailities, a fundamental and challenging research
+agenda emerges: how can distributed applications and capabilities
+(tools, frameworks etc) be designed and developed so as to adhere to
+the set of design objectives.
+qThis is the intellectual problem that lies at the heart of this paper
+as well as the research agenda manifested by the SAGA project.
+
+
+% The process of designing and deploying large-scale DCI such as XSEDE
+% and OSG, presents a critical and challenging research agenda for CI
+% developers.
+
+
+% Distributed applications utilize multiple resources, or are capable of
+% utilizing them. One could argue that any application that would
+% benefit from increased peak performance, throughput, or reduced time
+% to solution, by using multiple compute and distributed data resources,
+% can be classified as a distributed application, or a candidate to be
+% formulated as such.
+ 
+% For context: it is still very difficult to develop a distributed
+% application that can use O(1000) processors, transfer/handle O(100) GB
+% data and use O(10) arbitrarily chosen sites, repeated over 10
+% arbitrary chosen days. The only science projects that can do so
+% currently are Big Science projects, with very large teams and levels
+% of effort.  Individual PIs/scientists are unable to do so, but there
+% are many who clamor and need to be able to do so.
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
