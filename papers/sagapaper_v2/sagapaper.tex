@@ -439,7 +439,7 @@ provide an abstraction too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 \section{Design Objectives and Principles for SAGA as an DCI Access layer}
-\label{sec:designobjectives}
+\label{sec:obj}
 
 % \subsection{Design Objectives and Principles}
 
@@ -471,9 +471,10 @@ provide an abstraction too.
   phase, and later those relevant to the implementation phase.
 
   \subsubsection{SAGA Specification Objectives}
-  \label{sec:designobjectives.spec}
+  \label{sec:obj.spec}
 
    \subsubsection*{Managing System Heterogeneity}
+   \label{ssec:obj.heter}
 
     % O: manage system / middleware heterogeneity
     % P: abstraction(?) of heterogeneity
@@ -547,11 +548,11 @@ provide an abstraction too.
     backends.  Interestingly, that very often turned out to be
     elements which to not have a clear functional representation on
     the systems in question, but instead are orthogonal issues, such
-    as asynchronous operations, and security management related
-    issues.  It is thus not surprising that the so-called
-    non-functional part of the SAGA-API (also called the SAGA
-    \I{Look-\&-Feel}) occupies a relatively large part of the overall
-    SAGA API specification.
+    as asynchronous operations, and security management related issues
+    (see also subsection~\ref{ssec:bestpractices}).  It is thus not
+    surprising that the so-called non-functional part of the SAGA-API
+    (also called the SAGA \I{Look-\&-Feel}) occupies a relatively
+    large part of the overall SAGA API specification.
 
     Another principle used in order to fulfil that objective is to
     heavily lean on existing standards and best practices, and to
@@ -567,6 +568,7 @@ provide an abstraction too.
 
 
    \subsubsection*{Manage Complexities}
+   \label{ssec:obj.compl}
 
     % O: manage complexities (needs good scoping, sect. 2)
     % P: compartmentalization, abstraction(?)
@@ -620,14 +622,58 @@ provide an abstraction too.
 
 
    \subsubsection*{Cover Common Usage Patterns}
+
+    % O: cover commonality on application levels (pattern? frameworks?
+    %    What is the application?  Semantic coverage...)
+    % P: abstraction, pattern
+    % S: high level API, use case driven, known models etc.
+
+    A repeatedly listed requirement to SAGA was to 'make commonly used
+    functionality simple'.  While the SAGA use cases listed a number
+    of those commonly used functionality, it remains a challenge to
+    identify suitably general higher level abstractions.  One has to
+    keep in mind that the higher the abstraction level, the smaller is
+    the semantic scope of that abstraction.  Thus, the higher the
+    abstractions provided, the lower the flexibility and generality of
+    an API.
+
+    Instead of placing the SAGA API on the level of high level
+    programming pattern or frameworks, it seemed advisable to instead
+    place it on a relatively low abstraction level, while making it
+    easy to build such more abstract patterns and frameworks on top of
+    SAGA.  For example, SAGA provides mechanisms to run and track
+    individual job instances, mechanism to store application state,
+    and mechanisms to coordinate application components.  Those
+    functionalities make it relatively simple to implement, say,
+    a stateful master-worker framework, which is one of the more
+    commonly used programming patterns for distributed applications.
+
+    At the same time, SAGA is generally placed on a higher abstraction
+    level than the underlying native middleware interfaces --
+    semantics which is internal or specific to individual middleware
+    types or instances are generally not exposed via SAGA.  That
+    avoids the leakage of non-portable middleware abstractions to the
+    application layer (see also~\ref{ssec:obj.heter}
+    and~\ref{ssec:obj.compl}).
+
+
+  \subsubsection{SAGA Implementation Objectives}
+  \label{sec:obj.impl}
+
+   The previous set of objectives were identified even before the
+   scoping and definition of the SAGA API specification started -- as
+   such, they are mostly focused on the idealistic notion of an Access
+   layer API.  When dealing with SAGA as a code base, a community
+   project, a software deliverable, and as a component of some DCI, a
+   complementary set of design objectives arises -- which lead to
+   similarly stringent constraints on the SAGA architecture.
+
+
+   \subsubsection*{Implementation Sustainability}
+   \label{ssec:obj.sustain}
+
     
-   % O: cover commonality on application levels (pattern? frameworks?
-   %    What is the application?  Semantic coverage...)
-   % P: abstraction, pattern
-   % S: high level API, use case driven, known models etc.
-
-
-
+    
 %     Emerging Objectives (mostly API implementation)
 %     -----------------------------------------------
 
@@ -636,22 +682,38 @@ provide an abstraction too.
 %     S: modular implementation with good tooling support,
 %        open source, community support, project idendity
 
+   \subsubsection*{Manage System Heterogeneity}
+   \label{ssec:obj.system}
+    
+%     complex deployment and runtime environment
 %     O: manage system heterogeneity (on SAGA / impl level)
 %     P: loose coupling (software engineering), integration!
 %     S: lightweight deployment, low dependencies, 
 %        pre-packaging + certification
 %        (software vs. system heterogeneity)
 
+   \subsubsection*{Code Stability}
+   \label{ssec:obj.stable}
+    
 %     O: stability (code, usage)
 %     P: software engineering...
 %     S: modularization, release cycles, ticket responses,
 %        certification, pre-deployment
 
+   \subsubsection*{Scalability}
+   \label{ssec:obj.scalability}
+    
+%     Scale-Up:     Multiple Cores, people, Scale-Out: Multiple tasks/units,
+%     Scale-Out:    Multiple Cores, people, Scale-Out: Multiple tasks/units,
+%     Scale-Across: distinct computational resources
 %     O: scalablity (code, usage, performance)
 %     P: extensibility, software angineering principles
 %     S: modular code base, low overhead, no hard limits,
 %        impl constraints orthogonal to scalability approaches
 
+   \subsubsection*{SAGA Usage Modes}
+   \label{ssec:obj.usage}
+    
 %     O: multiple levels of use of SAGA (API coding, tools, higher up)
 %     P: packaging, 'extensible' code, 
 %     S: integration on different levels (application / tooling level)
@@ -661,86 +723,13 @@ provide an abstraction too.
 %   \end{verbatim}
 
 
-%  \subsubsection{Objective: Manage Heterogeneity}
-%   \begin{verbatim}
-%     Objective: Interoperability
-%     Principle: ?
-%     Solution:  Adaptor
-%    \end{verbatim}
-
-%   \begin{verbatim}
-%     Objective: Dynamic Execution
-%     Principle: ?
-%     Solution:  ?
-%    \end{verbatim}
-
-%   \begin{verbatim}
-%     Objective: ?
-%     Principle: ?
-%     Solution:  ?
-%    \end{verbatim}
-
-%  \subsubsection{Objective: Manage Complexity}
- 
-%   \begin{verbatim}
-%     Objective: complex software environment 
-%     Principle: 
-%     Solution:  
-%    \end{verbatim} 
-
-%    \begin{verbatim}
-%     Objective: complex deployment and runtime environment
-%     Principle: 
-%     Solution:  
-%    \end{verbatim}
-
-%    \begin{verbatim}
 %     Objective: failure/fragile runtime 
-%     Principle: 
-%     Solution:  
-%    \end{verbatim}
-
-%  \subsubsection{Objective: Scalability}
-
-%    \begin{verbatim}
-%      Scale-Up: Multiple Cores, people, Scale-Out: Multiple tasks/units,
-% Scale-Across: distinct computational resources
-%    \end{verbatim}
 
 
-% \subsubsection{Objective: Sustainability}
-%   \begin{verbatim}
+
 %     Objective: Towards a community Standard 
-%     Principle: 
-%     Solution:  
-%    \end{verbatim}
-
-%   \begin{verbatim}
 %     Objective: Community Uptake
-%     Principle: 
-%     Solution:  
-%    \end{verbatim}
-
-% \subsubsection{Objective: Usability}
-
-%   \begin{verbatim}
-%     Objective: Extensibility
-%     Principle: ?
-%     Solution:  ?
-%    \end{verbatim}
-
-%   \begin{verbatim}
 %     Objective: Simplicity
-%     Principle: ?
-%     Solution:  ?
-%  \end{verbatim}
-
-% %  \subsubsection{Manage Heterogeneity}
-% %   \begin{verbatim}
-% %     Objective: sustainability
-% %     Principle: stability
-% %     Solution: standard
-% %    \end{verbatim}
 
 %  \jhanote{take the rest of section 4 and put it into
 %    Objective/Principle/Solutions tuple style}
@@ -810,7 +799,7 @@ provide an abstraction too.
 
  The SAGA API (as in API specification, not implementation) has been
  designed with the background of objectives described in
- section~\ref{sec:designobjectives.spec}.  This section describes the
+ section~\ref{sec:obj.spec}.  This section describes the
  general structure and scope of the API, and demonstrates how that
  scope facilitates the implementation of distributed applications,
  frameworks and tools.
@@ -820,6 +809,7 @@ provide an abstraction too.
  and specific distributed operations semantics.
 
  \subsection{General Distributed Programming Practices}
+ \label{ssec:bestpractices}
  
   The prevalence of distributed programming in the fields of
   scientific computing and computational engineering led to a large
@@ -1045,7 +1035,7 @@ the interface layer. This allows SAGA to be adopted by \textit{existing}
 middleware systems and services, regardless of their underlying
 implementations.  Hence, the conceptual SAGA architecture we discuss in this
 chapter is not driven by the SAGA specification but by the design objectives
-and requirements we have established in section \ref{sec:designobjectives}. It
+and requirements we have established in section \ref{sec:obj}. It
 represent one possible and suitable architecture for any implementation of
 the SAGA specification that has requirements similar to the ones we discuss. 
 
