@@ -16,6 +16,7 @@
 \usepackage{xspace}
 \usepackage{booktabs}
 \usepackage{listings}
+\usepackage{srcltx}
 
 
 \newcommand{\specrule}{\specialrule{1pt}{0.5em}{0.5em}}
@@ -39,25 +40,26 @@
  \DeclareGraphicsExtensions{.eps, .ps}
 \fi
 
-\newcommand{\note}[1]{ {\textcolor{red} { ***NOTE: #1 }}}
 
 \newif\ifdraft
 \drafttrue
 
 \ifdraft
-\newcommand{\todo}[1]{     {\textcolor{red}  { ***TODO      #1 }}}
-\newcommand{\amnote}[1]{   {\textcolor{blue} { ***Andre:    #1 }}}
-\newcommand{\jhanote}[1]{  {\textcolor{red}  { ***Shantenu: #1 }}}
-\newcommand{\onote}[1]{    {\textcolor{green}{ ***Ole:      #1 }}}
+ \newcommand{\todo}[1]{     {\textcolor{red}  { ***TODO      #1 }}}
+ \newcommand{\amnote}[1]{   {\textcolor{blue} { ***Andre:    #1 }}}
+ \newcommand{\jhanote}[1]{  {\textcolor{red}  { ***Shantenu: #1 }}}
+ \newcommand{\onote}[1]{    {\textcolor{green}{ ***Ole:      #1 }}}
+ \newcommand{\fixme}[1]{    {\textcolor{red}  { ***FIXME:    #1 }}}
+ \newcommand{\note}[1]{     {\textcolor{red}  { ***NOTE:     #1 }}}
 \else
-\newcommand{\todo}[1]{}
-\newcommand{\amnote}[1]{}
-\newcommand{\jhanote}[1]{}
-\newcommand{\onote}[1]{}
+ \newcommand{\todo}[1]{}
+ \newcommand{\amnote}[1]{}
+ \newcommand{\jhanote}[1]{}
+ \newcommand{\onote}[1]{}
+ \newcommand{\fixme}[1]{}
+ \newcommand{\note}[1]{}
 \fi
 
-\newcommand{\spec}{\sagaspec}
-\newcommand{\impl}{\sagaimpl}
 \newcommand{\lf}{Look-\&-Feel}
 
 \newcommand{\I}[1]{\textit{#1}}
@@ -233,8 +235,10 @@ manifested by the SAGA project.
 \section{Background and Motivation}
 
 \subsection{Landscape of DCI}
+\label{ssec.dci.landscape}
 
 \subsubsection{The complexity of DCI}
+\label{ssec.dci.complex}
 
 \subsubsection{DCI Challenges: Infrastructure Perspective}
 
@@ -378,6 +382,7 @@ Beyond simple static single batch-mode
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 \subsection{Access Layers to DCI and Abstractions for DA}\todo{AM, SJ}
+\label{ssec.dci.access}
 
 Revisiting the reasons why production DCI have not been used in more
 innovative ways, reveals that there are currently gaps at several
@@ -439,7 +444,7 @@ provide an abstraction too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 \section{Design Objectives and Principles for SAGA as an DCI Access layer}
-\label{sec:obj}
+\label{sec.obj}
 
 % \subsection{Design Objectives and Principles}
 
@@ -471,10 +476,10 @@ provide an abstraction too.
   phase, and later those relevant to the implementation phase.
 
   \subsubsection{SAGA Specification Objectives}
-  \label{sec:obj.spec}
+  \label{sec.obj.spec}
 
    \subsubsection*{Managing System Heterogeneity}
-   \label{ssec:obj.heter}
+   \label{ssec.obj.heter}
 
     % O: manage system / middleware heterogeneity
     % P: abstraction(?) of heterogeneity
@@ -549,7 +554,7 @@ provide an abstraction too.
     elements which to not have a clear functional representation on
     the systems in question, but instead are orthogonal issues, such
     as asynchronous operations, and security management related issues
-    (see also subsection~\ref{ssec:bestpractices}).  It is thus not
+    (see also subsection~\ref{ssec.bestpractices}).  It is thus not
     surprising that the so-called non-functional part of the SAGA-API
     (also called the SAGA \I{Look-\&-Feel}) occupies a relatively
     large part of the overall SAGA API specification.
@@ -568,7 +573,7 @@ provide an abstraction too.
 
 
    \subsubsection*{Manage Complexities}
-   \label{ssec:obj.compl}
+   \label{ssec.obj.compl}
 
     % O: manage complexities (needs good scoping, sect. 2)
     % P: compartmentalization, abstraction(?)
@@ -653,12 +658,12 @@ provide an abstraction too.
     semantics which is internal or specific to individual middleware
     types or instances are generally not exposed via SAGA.  That
     avoids the leakage of non-portable middleware abstractions to the
-    application layer (see also~\ref{ssec:obj.heter}
-    and~\ref{ssec:obj.compl}).
+    application layer (see also~\ref{ssec.obj.heter}
+    and~\ref{ssec.obj.compl}).
 
 
   \subsubsection{SAGA Implementation Objectives}
-  \label{sec:obj.impl}
+  \label{sec.obj.impl}
 
    The previous set of objectives were identified even before the
    scoping and definition of the SAGA API specification started -- as
@@ -666,24 +671,63 @@ provide an abstraction too.
    layer API.  When dealing with SAGA as a code base, a community
    project, a software deliverable, and as a component of some DCI, a
    complementary set of design objectives arises -- which lead to
-   similarly stringent constraints on the SAGA architecture.
+   similarly stringent constraints on the SAGA architecture and
+   software development cycle.
 
 
    \subsubsection*{Implementation Sustainability}
-   \label{ssec:obj.sustain}
+   \label{ssec.obj.sustain}
 
-    
-    
-%     Emerging Objectives (mostly API implementation)
-%     -----------------------------------------------
+    % O: implementation sustainability
+    % P: simple implementation, community effort
+    % S: modular implementation with good tooling support,
+    %    open source, community support, project identity
 
-%     O: implementation sustainability
-%     P: simple implementation, community effort
-%     S: modular implementation with good tooling support,
-%        open source, community support, project idendity
+    Academic software projects are usually planned out for the
+    duration of a project funding period.  In some cases, long term
+    commitments of funding agencies and/or commitment of project
+    independent institutional funds allow a more long term planning --
+    but that is a relatively rare exception.
+
+    Further, academic software development is often considered to be
+    a secondary to the academic research a project targets -- again,
+    relatively rare exceptions exist where software development itself
+    forms the explicit target of a funded project.
+
+    Finally, discontinuity of staffing in academic environments
+    (Students graduate and leave, PhD get completed and people move
+     on, etc), lead to discontinuities in code ownership, a situation
+    which is aggravated by the frequent lack of a coordinated and
+    scalable approach to software documentation, packaging and
+    deployment.
+
+    These (and other) circumstances make software sustainability
+    a challenge in academic environments (and arguably in others,
+    too).  Nevertheless, for a relatively generic, infrastructure
+    independent DCI access layer, software sustainability is crucial.  
+
+    A number of approaches and best practices  exist to support
+    software sustainability in academic environments, to some extent.
+    Foremost of all, the chances of survival for a given software
+    product increases dramatically with the rate of its uptake, and
+    the number of code contributing parties (Open Source is a widely
+    accepted development model in academia).  Code simplicity,
+    modularity, portability and tooling support are properties which
+    support project-external contributors and users.  Also,
+    early adoption and increasing uptake (by users and other projects)
+    increases the chances for continued funding.
+
+   % \subsubsection*{Code Stability}
+   % \label{ssec.obj.stable}
+   %  
+   %  % O: stability (code, usage)
+   %  % P: software engineering...
+   %  % S: standardization, modularization, release cycles, ticket 
+   %  %    responses, certification, pre-deployment
+    
 
    \subsubsection*{Manage System Heterogeneity}
-   \label{ssec:obj.system}
+   \label{ssec.obj.system}
     
 %     complex deployment and runtime environment
 %     O: manage system heterogeneity (on SAGA / impl level)
@@ -692,47 +736,83 @@ provide an abstraction too.
 %        pre-packaging + certification
 %        (software vs. system heterogeneity)
 
-   \subsubsection*{Code Stability}
-   \label{ssec:obj.stable}
-    
-%     O: stability (code, usage)
-%     P: software engineering...
-%     S: modularization, release cycles, ticket responses,
-%        certification, pre-deployment
+    As discussed in subsection~\ref{ssec.dci.complex}, the wide range
+    of target usage modes for academic DCIs leads to a proliferation
+    of software stacks and software configurations and combinations,
+    and thus to a significant system heterogeneity.  Ensuring
+    syntactical and semantical software portability, i.e. to ensure
+    that software is usable in different environments and is also
+    fully and consistently functional in different DCI contexts, is
+    a non-trivial problem.  Again, a number of software engineering
+    techniques target that problem space, such as the encouragement
+    toward a modular software architecture with loosely coupled
+    components; a low degree of internal and external software
+    dependencies; well defined and automated procedures for packaging,
+    testing, deployment and possibly certification.
+
 
    \subsubsection*{Scalability}
-   \label{ssec:obj.scalability}
-    
-%     Scale-Up:     Multiple Cores, people, Scale-Out: Multiple tasks/units,
-%     Scale-Out:    Multiple Cores, people, Scale-Out: Multiple tasks/units,
-%     Scale-Across: distinct computational resources
-%     O: scalablity (code, usage, performance)
-%     P: extensibility, software angineering principles
-%     S: modular code base, low overhead, no hard limits,
-%        impl constraints orthogonal to scalability approaches
+   \label{ssec.obj.scalability}
+
+    % Scale-Up:     add resources to a single node / instance
+    % Scale-Out:    add nodes / instances to the application
+    % Scale-Across: scale out across multiple distinct resources
+    %
+    % O: scalability (code, usage, performance)
+    % P: extensibility, software engineering principles
+    % S: modular code base, low overhead, no hard limits,
+    %    impl constraints orthogonal to scalability approaches
+
+    \fixme{need to define scale-up, scale-out, scale-across somewhere
+    before.}
+
+    There are multiple reasons why DCI are amongst the prevalent IT
+    infrastructures for scientists (see
+    subsection~\ref{ssec.dci.landscape}), but scalability is prominent
+    amongst them.  Not only that a single application instance can
+    scale-out over the large resources available on DCIs, but also
+    that applications and projects can scale across a diverse set of
+    resources, and eventually across distinct national and
+    international DCIs.  In fact, as different DCIs often feature
+    different capabilities (for example, HTC on OSG vs. HPC on XSEDE vs. Data
+    centric computing on DataNet), the scale-across is an ability
+    required by a few, but important set of applications.
+    \fixme{examples, refs}
+
+    In order for SAGA to support application scalability the SAGA
+    layer itself must not become a performance or scalability
+    bottleneck.  It needs to be designed and implemented such that it
+    does (a) not incur any significant additional runtime or memory
+    overhead in its own (scale-up), (b) that it supports the addition
+    of application threads, processes and components (scale-out), and
+    (c) that it supports the concurrent access to different resources
+    and DCIs from within a single application instance (scale-across).
+
 
    \subsubsection*{SAGA Usage Modes}
-   \label{ssec:obj.usage}
+   \label{ssec.obj.usage}
     
-%     O: multiple levels of use of SAGA (API coding, tools, higher up)
-%     P: packaging, 'extensible' code, 
-%     S: integration on different levels (application / tooling level)
-%     -- spectrum of applications is broad...
+    % O: multiple levels of use of SAGA (API coding, tools, higher up)
+    % P: packaging, 'extensible' code, 
+    % S: integration on different levels (application / tooling level)
+    % -- spectrum of applications is broad...
     
-%     ----------------------------------------------------------------------------
-%   \end{verbatim}
+    S\B{A}GA is, by definition, an API.  In
+    subsection~\ref{ssec.dci.acess}, we discuss the different options
+    for DCI access layers, and motivate why we consider an API access
+    layer the most suitable approach.  However, other access layer
+    approaches do also provide significant benefits for a diverse set
+    of use cases, and usage modes.  Not surprisingly though, it is
+    possible to construct a variety of access abstractions on the SAGA
+    API -- such as command line tools, gateways, portals, or hight
+    level frameworks.  To ...
 
 
-%     Objective: failure/fragile runtime 
+    % Objective: failure/fragile runtime 
+    % Objective: Towards a community Standard 
+    % Objective: Community Uptake
+    % Objective: Simplicity
 
-
-
-%     Objective: Towards a community Standard 
-%     Objective: Community Uptake
-%     Objective: Simplicity
-
-%  \jhanote{take the rest of section 4 and put it into
-%    Objective/Principle/Solutions tuple style}
 
 \subsection*{Old Notes}
 
@@ -776,16 +856,16 @@ provide an abstraction too.
    \end{verbatim}
 
  {\it The objective of SAGA, the 'Simple API for Grid Applications is
-   to provide this missing critical component in the distributed
-   cyberinfrastructure ecosystem.}\footnote{While the API's name
-   suggests its string ties to Grid based DCIs, it is in fact a
-   general purpose API for distributed -- which is historically rooted
-   in the Grid community.}  SAGA can provide effective abstractions
- that can hide the environmental complexity, supplement the
- incompleteness and lack-of-extensibility of many tools used whilst
- promoting interoperability as first-class design objective.  On the
- other hand it must provide the building blocks upon which the
- distributed applications, tools and frameworks can be built...
+ to provide this missing critical component in the distributed
+ cyberinfrastructure ecosystem.}\footnote{While the API's name
+ suggests its string ties to Grid based DCIs, it is in fact a general
+ purpose API for distributed -- which is historically rooted in the
+ Grid community.}  SAGA can provide effective abstractions that can
+ hide the environmental complexity, supplement the incompleteness and
+ lack-of-extensibility of many tools used whilst promoting
+ interoperability as first-class design objective.  On the other hand
+ it must provide the building blocks upon which the distributed
+ applications, tools and frameworks can be built...
 
 
 \jhanote{This section should end up motivating the Architecture and
@@ -795,11 +875,11 @@ provide an abstraction too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 \section{Semantic Scope of the SAGA API}
-\label{sec:api}
+\label{sec.api}
 
  The SAGA API (as in API specification, not implementation) has been
  designed with the background of objectives described in
- section~\ref{sec:obj.spec}.  This section describes the
+ section~\ref{sec.obj.spec}.  This section describes the
  general structure and scope of the API, and demonstrates how that
  scope facilitates the implementation of distributed applications,
  frameworks and tools.
@@ -809,7 +889,7 @@ provide an abstraction too.
  and specific distributed operations semantics.
 
  \subsection{General Distributed Programming Practices}
- \label{ssec:bestpractices}
+ \label{ssec.bestpractices}
  
   The prevalence of distributed programming in the fields of
   scientific computing and computational engineering led to a large
@@ -1005,7 +1085,7 @@ provide an abstraction too.
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % 
 \section{Architecture of a SAGA implementation} \todo{AM (layer 1), Ole (layer 2, 3)}
-\label{sec:architecture}
+\label{sec.architecture}
 
 \subsection{Architecture Options and Motivation}
 
@@ -1035,14 +1115,14 @@ the interface layer. This allows SAGA to be adopted by \textit{existing}
 middleware systems and services, regardless of their underlying
 implementations.  Hence, the conceptual SAGA architecture we discuss in this
 chapter is not driven by the SAGA specification but by the design objectives
-and requirements we have established in section \ref{sec:obj}. It
+and requirements we have established in section \ref{sec.obj}. It
 represent one possible and suitable architecture for any implementation of
 the SAGA specification that has requirements similar to the ones we discuss. 
 
 In order to define the high-level structure of our conceptual architecture, we
 have analyzed our design objectives with regard to the structural software
 architecture patterns that can support them. We have identified the requirement
-to support multiple DCI within the same implementation (see \ref{sec:??}) as
+to support multiple DCI within the same implementation (see \ref{sec.??}) as
 the most critical and architecture defining element. It requires the system to
 have the ability to translate API calls into calls to dynamically selected
 middleware systems. In object-oriented system design, this is commonly achieved
