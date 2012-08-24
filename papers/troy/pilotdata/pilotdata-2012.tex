@@ -58,8 +58,24 @@ and/or compute units. These relationships are referred to as
 Notes from discussion:
 \begin{itemize}
 	\item What role do SQL and Non-SQL database play?
+	\item 
 \end{itemize}
 
+
+\section{Terms and definitions}
+
+TODO: Layered Diagram, Terminology, Levels, Granularity (distributed can have 
+different granularities)
+
+\begin{figure}[htbp]
+	\centering
+		\includegraphics[width=0.45\textwidth]{figures/terminology.pdf}
+	\caption{Levels of Distribution}
+	\label{fig:figures_terminology}
+\end{figure}
+
+Figure~\ref{fig:figures_terminology} illustrates the possibly degree of 
+distributions.
 
 
 \section{Related Work}
@@ -78,7 +94,7 @@ control for affinity~\cite{ideas}.
 
 
 
-\section{Distributed Storage Infrastructure}
+\subsection{Storage Infrastructure}
 
 In distributed settings, storage is often a black box for the application with
 unknown quality of services, i.\,e. the application usually does not know what
@@ -143,25 +159,19 @@ SQL-based storage types omitted) \label{tab:storage-systems}}
 \end{table}
 
 
-\subsection{Limitations}
-While some distributed storage systems provide support for data/compute 
-co-location (e.\,g.\ iRODS~\cite{Rajasekar:2010:IPI:1855046}), commonly 
-applications require a direct access to files via a Posix-based API.
-
 \subsection{Storage Backends}
 
-Requirements
-
-Premises:
+Criteria/Requirements:
 \begin{itemize}
-	\item Focuses on unstructured and semi-structured data
-	\item File-based data
+	\item unstructured vs. semi-structured vs. structured data
+	\item Volume of the data
+	\item Access patterns
 \end{itemize}
 
 These data store types are suitable mainly for structured/semi-structured and 
 medium size data:
 \begin{itemize}
-	\item Key-Value Stores
+	\item In-memory, key-value Stores
 	\item Document Stores like MongoDB, CouchDB 
 	\item SQL-based databases
 \end{itemize}
@@ -174,8 +184,25 @@ Scale-out data stores for BigData:
 	\item Hadoop: HDFS/HBase
 \end{itemize}
 
+TODO: How can this be used to implement affinities?
+
+
+\subsection{Distributed Storage Systems}
+
+iRods
+SRM
+
+
+While some distributed storage systems provide support for data/compute 
+co-location (e.\,g.\ iRODS~\cite{Rajasekar:2010:IPI:1855046}), commonly 
+applications require a direct access to files via a Posix-based API.
+
+\subsection{Affinity}
+
+How is affinity implemented in the above system
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
 
 \section{Pilot-Data}
 
@@ -371,7 +398,8 @@ Substantiate with description of design decisions
 	\hline
 Pilot &Filesystem directory &SRM directory referenced by SURL & &Bucket&HDFS Directory\\
 	\hline
-DataUnit &&&&&\\
+DataUnit &&&&&HDFS Chunk\\
+ComputeUnit &&&&&YARN App Container\\
 	\hline
 \end{tabular}
 \caption{Mapping of Pilot Data to different infrastructures (clouds refer to Google Storage/Amazon S3/Microsoft Blob Storage)}
@@ -381,11 +409,13 @@ In general, SRM works on individual file basis \alnote{Can SRM work on directori
 
 
 \begin{table}[ht]
-\begin{tabular}{|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
+\begin{tabular}{|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
 		\hline
-		\textbf{XSEDE} &\textbf{SRM} &\textbf{iRODS} &\textbf{Clouds} &\textbf{Hadoop}\\
+		&\textbf{XSEDE} &\textbf{SRM} &\textbf{iRODS} &\textbf{Clouds} &\textbf{Hadoop}\\
 		\hline
-		SCP/GridFTP &GridFTP &GridFTP &HTTP &HDFS, HTTP\\
+		Transfer &SCP, GridFTP &GridFTP &GridFTP &HTTP &HDFS, HTTP\\
+		\hline
+		Storage &VFS, GFFS &Storage Element & &S3, GS &\\
 		\hline
 \end{tabular}
 \caption{File Transfer Protocols}
@@ -398,15 +428,14 @@ High-Level abstraction on to of logical/abstract file name
 
 
 
+
+
+\section{Pilot-API}
+Pilot-API provides a unified interface for both \pilotcompute and \pilotdata 
+capabilities.
+
+
 \texttt{ComputeUnitContext}: Can be used by compute unit to query 
-
-
-\subsection{Pilot-API}
-Pilot-API provides a unified interface for 
-
-
-
-
 
 
 
