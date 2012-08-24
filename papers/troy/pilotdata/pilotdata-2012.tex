@@ -55,6 +55,12 @@ abstraction for expressing and managing relationships between data units
 and/or compute units. These relationships are referred to as
 \emph{affinities}.
 
+Notes from discussion:
+\begin{itemize}
+	\item What role do SQL and Non-SQL database play?
+\end{itemize}
+
+
 
 \section{Related Work}
 
@@ -69,6 +75,7 @@ of the degrees-of-freedom exposed to or controllable at the
 application-level (i.e.  by the developer/user). Furthermore, few
 existing (distributed) programming models provide explicit support or
 control for affinity~\cite{ideas}.
+
 
 
 \section{Distributed Storage Infrastructure}
@@ -96,8 +103,12 @@ figure~\ref{fig:figures_storage-types}):
 	Google Storage, provide only a namespace with a 1-level hierarchy. 
 \end{enumerate}
 
+While the coupling between compute and data in type 1 and 2 is very high, it 
+is only small in the later case. In general, the buffer type 3 storage are 
+more optimized to reliably storing large volumes of data and achieving high
+read throughputs.
 
-
+\alnote{Why do we exclude databases?}
 
 \begin{figure}[t]
 	\centering
@@ -136,6 +147,33 @@ SQL-based storage types omitted) \label{tab:storage-systems}}
 While some distributed storage systems provide support for data/compute 
 co-location (e.\,g.\ iRODS~\cite{Rajasekar:2010:IPI:1855046}), commonly 
 applications require a direct access to files via a Posix-based API.
+
+\subsection{Storage Backends}
+
+Requirements
+
+Premises:
+\begin{itemize}
+	\item Focuses on unstructured and semi-structured data
+	\item File-based data
+\end{itemize}
+
+These data store types are suitable mainly for structured/semi-structured and 
+medium size data:
+\begin{itemize}
+	\item Key-Value Stores
+	\item Document Stores like MongoDB, CouchDB 
+	\item SQL-based databases
+\end{itemize}
+
+Scale-out data stores for BigData:
+\begin{itemize}
+	\item Swift
+	\item Walrus
+	\item Cassandra
+	\item Hadoop: HDFS/HBase
+\end{itemize}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -218,6 +256,15 @@ vice versa. The other option is to stream the \du to the respective \cu.
 TODO
 explain how affinities can be used to model different storage types from section III
 
+\subsection{Scheduling}
+
+Comparison to YARN-based applications:
+\begin{itemize}
+	\item memory is primary scheduling objectives
+	\item data-locality is not per definition taken care of application must 
+	introspect HDFS for location of chunks and then request an appropriate 
+	container
+\end{itemize}
 
 
 \subsection{BigData -- A PilotData Implementation}
@@ -312,9 +359,47 @@ simplicity.
 
 Reasoning about PilotData
 
-Implementation
-
+\subsection{Implementation}
 Substantiate with description of design decisions
+
+
+\begin{table}[t]
+	\centering
+\begin{tabular}{|p{1.3cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
+	\hline
+	&\textbf{XSEDE} &\textbf{SRM} &\textbf{iRODS} &\textbf{Clouds} &\textbf{Hadoop}\\
+	\hline
+Pilot &Filesystem directory &SRM directory referenced by SURL & &Bucket&HDFS Directory\\
+	\hline
+DataUnit &&&&&\\
+	\hline
+\end{tabular}
+\caption{Mapping of Pilot Data to different infrastructures (clouds refer to Google Storage/Amazon S3/Microsoft Blob Storage)}
+\end{table}
+
+In general, SRM works on individual file basis \alnote{Can SRM work on directories or group of files?}.
+
+
+\begin{table}[ht]
+\begin{tabular}{|p{1cm}|p{1cm}|p{1cm}|p{1cm}|p{1cm}|}
+		\hline
+		\textbf{XSEDE} &\textbf{SRM} &\textbf{iRODS} &\textbf{Clouds} &\textbf{Hadoop}\\
+		\hline
+		SCP/GridFTP &GridFTP &GridFTP &HTTP &HDFS, HTTP\\
+		\hline
+\end{tabular}
+\caption{File Transfer Protocols}
+\end{table}
+
+
+Push vs. Pull data
+
+High-Level abstraction on to of logical/abstract file name 
+
+
+
+\texttt{ComputeUnitContext}: Can be used by compute unit to query 
+
 
 \subsection{Pilot-API}
 Pilot-API provides a unified interface for 
