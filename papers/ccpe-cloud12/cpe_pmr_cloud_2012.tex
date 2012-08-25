@@ -185,6 +185,18 @@ Some Research Questions: (i) How does Pilot-Abstraction work in the
   k-means?  - k-means implemented using windows azure}
 
 
+\section{The Case for Distributed, Data-intensive Computing}
+
+What are our contributions, challenges of distributed, data-intensive computing?
+\begin{itemize}
+	\item choosing the right cloud... 
+	\item how to couple different clouds
+	\item transport in and out to cloud
+	\item support late-binding: late binding as a fundamental attribute in 
+	distributed systems
+\end{itemize}
+Pilot-Jobs help us to address these requirements.
+
 \section{Related Work}
 
 Prior Work (Pradeep)
@@ -207,7 +219,8 @@ minimal management effort or service provider interaction.
 
 \alnote{Do we want to talk about the ``old'' SaaS, PaaS and IaaS stuff?}
 
-Talk about the evolution of PaaS and IaaS towards general services
+Talk about the evolution of PaaS and IaaS towards general services/building 
+blocks
 
 Amazon API
 GData API
@@ -221,18 +234,21 @@ Commercial Clouds vs. Science Clouds
 
 \subsection{Cloud Storage Services}
 
-An important component for data-intensive cloud applications are the cloud 
+An important component for data-intensive cloud applications are the cloud
 storage services. Many clouds offers various kinds of storage services with
-different characteristics, e.\,g.\ these services often differ in their read
-and/or write performance, reliability and scalability (see 
-Baron~\cite{baron2010} for example).
+different characteristics, e.\,g.\ these services usually differ in their read
+and/or write performance, supported data volumes, interfaces, reliability and
+scalability (see Baron~\cite{baron2010} for an overview of Amazon's storage
+services). While clouds often provide storage services on different 
+abstraction levels (including e.\,g.\ relation databases), in the following we 
+focus on general file-based storage types.
 
 In general, different types of storage exist (see figure~\ref{fig:figures_storage-types}):
 
 \begin{enumerate}
 	\item \textbf{Local Storage:} describes local hard disk directly attached 
 	to the compute resource.
-	\item \textbf{Network Filesystem:} refers to different forms of 
+	\item \textbf{Network-attached Filesystems:} refers to different forms of 
 	distributed (possible parallel) filesystems. The filesystem is commonly 
 	exported via the Posix API and a virtual filesystem layer.
 	\item \textbf{Distributed Storage:} refers to a highly distributed type of 
@@ -242,10 +258,11 @@ In general, different types of storage exist (see figure~\ref{fig:figures_storag
 	Google Storage, provide only a namespace with a 1-level hierarchy. 
 \end{enumerate}
 
-While the coupling between compute and data in type 1 and 2 is very high, it 
-is only small in the later case. In general, the buffer type 3 storage are 
-more optimized to reliably storing large volumes of data and achieving high
-read throughputs.
+
+A particular novelty for clouds are distributed storage services, such as
+Amazon S3, Google Storage and the Azure Blob storage. The storage systems are
+optimized for storing large volumes of data and for achieving high
+read throughputs. For example
 
 \begin{figure}[t]
 	\centering
@@ -281,6 +298,13 @@ SQL-based storage types omitted) \label{tab:storage-systems}}
 
 \subsection{Data-intensive Applications}
 
+Scenarios
+\begin{itemize}
+	\item Data is in the cloud or can be brought to the cloud
+	\item Distributed data: data resides on different infrastructures, different resources (within a cloud)
+\end{itemize}
+
+
 \subsubsection{Hadoop in the Cloud}
 
 \alnote{How do the different cloud providers chose to re-package Hadoop and 
@@ -299,7 +323,23 @@ provide an integrated service?}
 
 
 
-\section{Pilot Abstractions and Clouds}
+\section{Pilot Abstractions for Clouds}
+
+timeframe of infrastructure change is much larger than for application change
+Does the api evolvement make it difficult to applications to follow: what about apps that want to use EUCA, OpenStack
+
+Why pilots for clouds?
+\begin{itemize}
+	\item Cloud/Grid interoperability
+	\item Hybrid infrastructures 
+	\item Pilots as resource management abstraction (scheduling, affinities)
+	\item Pilots as basis for building capabilities in grids/clouds
+\end{itemize}
+
+Describe job and data perspective for each of these points
+
+
+Cloud bursting as use case
 
 % Intro to P* model
 
@@ -319,8 +359,17 @@ GCE API to launch BJ agents. Similarly, BigData supports various data access
 protocols and storage types -- currently, SSH, Globus Online, Google Storage
 and Amazon S3.
 
+
+The aim of Pilot abstractions is to marshal the differences in the different 
+cloud storage options (see Figure~\ref{fig:figures_storage-types}) and to 
+provide a unified interface to these services. Affinities are an essential 
+tool for modeling the different storage characteristics and to allow an 
+effective reasoning about different storage topologies and data/compute 
+placements.
+
+
 Figure~\ref{fig:figures_data-flow} shows the interactions and the data flow 
-between Pilot Computes and Data.
+between \computeunits and \dataunits.
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.7\textwidth]{figures/data-flow.pdf}
