@@ -369,10 +369,11 @@ framework~\cite{Mantha:2012:PEF:2287016.2287020}.
 \begin{itemize}
 	\item Coaster
 	\item Venus C (Generalized Worker)
+	\item other middleware that support hybrid grid/cloud environments (e.g. cloudbus)
 \end{itemize}
 
 
-\section{Cloud-based Infrastructures and Data-Intensive Applications}
+\section{Cloud-based Infrastructures for Data-Intensive Applications}
 
 At a high level, cloud computing is defined by Mell/Grance~\cite{nist_cloud}
 as a model for enabling convenient, on-demand network access to a shared pool
@@ -380,23 +381,15 @@ of configurable computing resources (e.g., networks, servers, storage,
 applications, and services) that can be rapidly provisioned and released with
 minimal management effort or service provider interaction.
 
-\alnote{Do we want to talk about the ``old'' SaaS, PaaS and IaaS stuff?}
 
-Talk about the evolution of PaaS and IaaS towards general services/building 
-blocks
+Typically cloud services can be classified into three categories: Software as
+a Service (SaaS), platform as a service (PaaS), and Infrastructure as a
+Service (IaaS)~\cite{Jha:2010kx}.
 
 Amazon API
 GData API
 OpenStack API
 OCCI
-
-
-% Commercial Clouds vs. Science Clouds
-Frameworks such as OpenStack~\cite{openstack} and Eucalyptus~\cite{euca} aim
-to provide a framework for building a private cloud environment which similar
-capabilities as EC2 and S3. FutureGrid's cloud environment currently supports
-both framework. Currently, different science cloud infrastructures, e.\,g.\ 
-FutureGrid~\cite{futuregrid}.
 
 \begin{itemize}
 	\item Resource Model
@@ -404,35 +397,62 @@ FutureGrid~\cite{futuregrid}.
 	\item Business Model
 \end{itemize}
 
-\subsection{Cloud Storage Services}
+
+
+% Commercial Clouds vs. Science Clouds
+Frameworks such as OpenStack~\cite{openstack} and Eucalyptus~\cite{euca} aim
+to provide a framework for building a private cloud environment which similar
+capabilities as EC2 and S3. FutureGrid's cloud environment currently supports
+both framework. Currently, new science cloud infrastructures, e.\,g.\ 
+FutureGrid~\cite{futuregrid}, are being developed and existing infrastructures are expanded with cloud capabilities, e.\,g.\ EGI~\cite{egi-cloud}.
+
+
+Venus-C
+
+\subsection{Clouds and Data-Intensive Applications}
+
+Different cloud services that aim to support Big Data analytics emerged. The
+foundation for the different Big Data offerings are different kind of storage
+services offered typically on IaaS level. These services typically have
+different characteristics, i.\,e.\ they usually differ in their read and/or
+write performance, supported data volumes, interfaces, reliability and
+scalability.
 
 An important component for data-intensive cloud applications are the cloud
 storage services. Many clouds offers various kinds of storage services with
 different characteristics, e.\,g.\ these services usually differ in their read
 and/or write performance, supported data volumes, interfaces, reliability and
 scalability (see Baron~\cite{baron2010} for an overview of Amazon's storage
-services). While clouds often provide storage services on different 
-abstraction levels (including e.\,g.\ relation databases), in the following we 
-focus on general file-based storage types. In general, cloud storage can be 
-classified as follows:
-\begin{enumerate}
-	\item \textbf{Local Storage:} describes local hard disk directly attached 
-	to the compute resource.
-	\item \textbf{Network-attached Filesystems:} refers to different forms of 
-	distributed (possible parallel) filesystems. The filesystem is commonly 
-	exported via the Posix API and a virtual filesystem layer.
-	\item \textbf{Distributed Storage:} refers to a highly distributed type of 
-	storage systems that spawn across multiple data centers. Access to such 
-	storage systems via a common -- often simplified -- namespace and API. For 
-	example, cloud systems, such as the Azure Blob Storage, Amazon S3 and 
-	Google Storage, provide only a namespace with a 1-level hierarchy. 
-\end{enumerate}
+services). While clouds often provide storage services on different
+abstraction levels (including e.\,g.\ relation databases), in the following we
+focus on general file-based storage types. In general, cloud storage can be
+classified as follows: (i) local storage refers local hard disk directly
+attached to the compute resource (typically a VM); (ii) remote storage refers
+to different forms of distributed (possible parallel) filesystems than can be
+attached to a VM either as block storage device or NAS. Both type (i) and (ii)
+storage is commonly integrated via the Linux virtual filesystem layer and
+thus, is suitable in particular for legacy, file-based applications.
 
-A particular novelty for clouds are distributed storage services, such as
-Amazon S3, Google Storage and the Azure Blob storage. The storage systems are
-optimized for storing large volumes of data and for achieving high
-read throughputs. For example, Amazon S3 automatically replicates data across 
-multiple data centers within a region. 
+A novel type of storage introduced by cloud environments are (iii) object
+stores, which are highly distributed storage systems that can potentially
+spawn across multiple data centers. Object store are particularly optimized
+for ``write once read many'' workloads and can support massive volumes of data
+with their scale-out architectures. For example, Amazon S3 automatically
+replicates data across multiple data centers within a region. However, these
+kind of stores are not suitable for all workloads (e.\,g.\ traditional,
+transactional workloads). However, typical Big Data workloads that (i) require
+the storage of large volumes of data and (ii) are characterized by a large
+amount of reads are particularly suitable for such stores. Access to such
+storage systems via a common -- often simplified -- namespace and API. For
+example, cloud systems, such as the Azure Blob Storage, Amazon S3 and Google
+Storage, provide only a namespace with a 1-level hierarchy. This means that
+applications needs to be adapted to benefit from the advantages of object
+storage. The most widely used object stores are: Amazon S3~\cite{amazons3},
+Azure Storage~\cite{azure-blob-storage} and Google Cloud
+Storage~\cite{google-storage}. A major limiting factor, is the necessity to
+ingest large volumes of data over the WAN. Large volume data transfer are
+associated with high costs and unpredictable and/or unacceptable performance.
+
 
 
 Table~\ref{tab:storage-systems} shows an overview of distributed storage 
@@ -448,16 +468,17 @@ considered.
 	\hline
 	Local	&yes &yes &yes &yes &yes &yes &yes\\
 	\hline
-	Network Filesystem &Azure Drive &EBS &GCE Block Storage &Nova Volumes &? &Lustre, GPFS 
+	Remote &Azure Drive &EBS &GCE Block Storage &Nova Volumes &EUCA Block Storage &Lustre, GPFS 
 	&no\\
 	\hline
-	Distributed Storage &Azure Blob Storage &S3 &Google Storage &Swift & Walrus &GFFS
+	Object Storage &Azure Blob Storage &S3 &Google Storage &Swift & Walrus &GFFS
 	 &SRM\\
 	\hline	
 \end{tabular}
 \caption{File-based storage types for different infrastructures (key/value and 
 SQL-based storage types omitted) \label{tab:storage-systems}}
 \end{table}
+
 
 
 % Limitations
@@ -479,6 +500,28 @@ distributed data.
 
 \subsection{Data-intensive Applications}
 
+While cloud environments have traditionally deployed in commercial settings,
+more and more science applications utilize to some extend cloud resources or
+are natively developed for
+clouds~\cite{Chandrasekar:2012:MAS:2287036.2287040,Evangelinos2008,Sehgal2011
+590}.
+
+
+
+
+
+\subsubsection*{Hadoop in the Cloud}
+
+Hadoop has become an important building block for different data-intensive
+services in clouds. Amazon e.\,g.\ offers with Elastic MapReduce
+(EMR)~\cite{amazonemr} a pay per use MapReduce clusters. EMR is based on
+Amazon EC2 and S3 and supports out-of-the-box both the open source and the
+MapR Hadoop distribution. It not only includes not only the Hadoop core, but
+also Hive, Pig and HBase. Amazon provides an file system adaptor for S3,
+i.\,e.\ data can be streamed from S3 into Hadoop. Microsoft provides a similar 
+service based on the Hortonworks Hadoop platform~\cite{hortonworks} called to 
+Hadoop on Azure~\cite{hadooponazure}.
+
 Scenarios
 \begin{itemize}
 	\item Data is in the cloud or can be brought to the cloud
@@ -486,15 +529,7 @@ Scenarios
 \end{itemize}
 
 
-\subsubsection{Hadoop in the Cloud}
 
-\alnote{How do the different cloud providers chose to re-package Hadoop and 
-provide an integrated service?}
-
-\begin{itemize}
-	\item Elastic MapReduce
-	\item Hadoop on Azure
-\end{itemize}
 
 \subsubsection{Other Applications}
 
@@ -528,6 +563,18 @@ BigJob~\cite{saga_bigjob_condor_cloud} and
 BigData~\cite{Mantha:2012:PEF:2287016.2287020} provide a unified runtime 
 environment for compute and data pilots.
 
+The \pilotjobs concept is also applicable to clouds. For example, PaaS cloud
+systems, such as Venus-C (Azure)~\cite{venusc-generic-worker}, support the
+notion of Generic Workers (worker role) which are conceptually similar to
+pilots in that they pull tasks (application workload) from a {\it central
+repository} when the environment is available. Furthermore, \pilotjobs map
+well to Iaas cloud systems, wherein a \pilot can marshall multiple VMs,
+possibly of different characteristics and performance capabilities; an agent
+which pulls and executes \cus is deployed on each VM. Ultimately, there is a
+decoupling between task specification and resource assignment, with the
+\pilot-Manager or an equivalent cloud-entity carrying out the mapping using
+dynamic/real-time information. The specifics of matching \cus to clouds is
+distinct from the matching \cus to grids.
 
 
 \subsection{Motivation}
@@ -540,6 +587,7 @@ collection of tasks, (iii) to facilitate bulk or high-throughput simulations
 where multiple jobs need to be submitted which would otherwise saturate the
 queuing system, and (iv) as a basis to implement application specific
 scheduling decisions and policy decisions.
+
 
 
 % Why pilot abstractions for clouds?
