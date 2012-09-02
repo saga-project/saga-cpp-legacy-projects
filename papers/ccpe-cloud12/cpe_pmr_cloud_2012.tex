@@ -42,8 +42,10 @@
 \newcommand{\pilotjob}{Pilot-Job\xspace}
 \newcommand{\pilotjobs}{Pilot-Jobs\xspace}
 \newcommand{\pilotcompute}{Pilot-Compute\xspace}
-\newcommand{\pilotmapreduce}{PilotMapReduce\xspace}
 \newcommand{\pilotdata}{Pilot-Data\xspace}
+\newcommand{\pilotdataservice}{Pilot-Data Service\xspace}
+\newcommand{\pilotcomputeservice}{Pilot-Compute Service\xspace}
+\newcommand{\pilotmapreduce}{PilotMapReduce\xspace}
 \newcommand{\pd}{PD\xspace}
 \newcommand{\pj}{PJ\xspace}
 \newcommand{\pjs}{PJs\xspace}
@@ -619,66 +621,110 @@ Does the api evolvement make it difficult to applications to follow: what
 about apps that want to use EUCA, OpenStack
 
 
-\subsection{Data Services and Management}
+\subsection{Cloud Data Management}
 
 In general, the following strategies for managing compute and
-data in distributed environments exist:
-
+data in distributed environments exist~\cite{jha-katz-2013}:
 \begin{itemize}
 \item A: Data is naturally distributed, processing happens locally to the data. 
 \item B: Data is originally localized, but the data needs to be distributed to match the distribution of compute resources.
 \item C: Data is moved so as to be localized (i.e., raw data is moved)
 \end{itemize}
-We want to use hybrid infrastructures in all of these modes 
+We want to use hybrid infrastructures in all of these modes.
+
+In most cases, application data is initially pushed to a cloud storage
+service, such Amazon S3, Google Storage and Azure Storage. These service, such
+as S3, are well suited for storing large amounts and support typical
+data-intensive workloads (e.\,g.\ with a lot of sequential reads). Often,
+cloud providers make different type of data sets (e.\,g.\ the 1000 genome
+dataset) directly accessible from their central object store. By eliminating
+the initial data movement, the entry barrier to running computations on this
+data in the cloud is significantly decreased.
+
+Also, within a single cloud, managing data locality is a great challenge. 
+Figure~\ref{fig:figures_storage-types} illustrates the different kind of 
+storages typically found in cloud environments. 
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.6\textwidth]{figures/storage-types.pdf}
+	\caption{Pilot-Compute and Pilot-Data on Different Types of Storage Resources}
+	\label{fig:figures_storage-types}
+\end{figure}
+
+Another important aspect is that in many cases the data is too large to become
+move and thus, must either pre-processed or completely processed before it be 
+moved. Even within single clouds, the management of data across different 
+regions is challenges, Amazon S3 e.\,g.\ replicates data geographically but 
+only within a single region. To manage distributed data, i.\,e.\ data/compute 
+affinities, data movements, etc., efficiently higher-level of abstractions
+are required.
 
 
 
-In most cases, application data is initially pushed to a cloud storage 
-service, such Amazon S3, Google Storage and Azure Storage. These service, such 
-as S3, are well suited for storing large amounts and support typical 
-data-intensive workloads (e.\,g.\ with a lot of sequential reads)
 
+\subsection{Pilot-Abstractions for Clouds: BigJob and BigData}
 
+BigJob and BigData provide a higher-level, unifying interface to heterogeneous
+and/or distributed data. The framework is accessed via the
+Pilot-API~\cite{pilot_api}, which provides two key abstractions: \pilotjob and
+\pilotdata. Applications can specify their resource requirements using a
+\pilot description. \pilots are started via the \pilotcomputeservice
+respectively the \pilotdataservice.
 
-
-
-Pilot-Abstractions can marshal the difference between the different cloud storage types and provide a seamless, unifying environment to the application.
-
-
-\subsection{BigJob and BigData for Clouds}
-
-Pilot-Data provides a unifying interface to a heterogeneous set of data 
-sources removing the need to interoperate with different data sources, e.\,g.\ 
-repositories, databases etc, providing a virtualized data service layer.
-
-Abstract where and how data is stored...
-
-
+\pilotjobs eliminate the need to interact with different kinds of compute 
+resources, e.\,g.\ batch-style HPC/HTC resources as well as cloud resources, 
+and provide a unified abstraction for allocation such resources. Similarly, 
+\pilotdata removing the need to interoperate with different data sources and 
+stores, e.\,g.\ repositories, databases etc, by providing a virtualized data 
+service layer, which can be used to allocated and access a heterogeneous set 
+of data sources and stores.
 
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.7\textwidth]{figures/cloud_pilot_job.pdf}
-	\caption{Pilot Abstractions and Clouds\alnote{todo: differentiate between 
-	storage and transfer protocol}}
+	\caption{\textbf{Pilot Abstractions and Clouds:} BigJob and BigData 
+	provide a unified abstraction to compute and data resources of both grid 
+	and cloud environments. Resources are either accessed via 
+	SAGA~\cite{ogf-gfd-90,saga-bliss-pd} or via a custom adaptor.}
 	\label{fig:figures_cloud_pilot_job}
 \end{figure}
 
-Figure~\ref{fig:figures_cloud_pilot_job} shows how the Pilot-API and 
-BigJob/BigData can be used to manage a heterogenous set of both cloud and grid 
-resources. BigJob supports various resource types via a flexible plugin 
-architecture. In addition to SAGA, BJ can natively utilize both the EC2 and 
-GCE API to launch BJ agents. Similarly, BigData supports various data access
-protocols and storage types -- currently, SSH, Globus Online, Google Storage
-and Amazon S3.
+Figure~\ref{fig:figures_cloud_pilot_job} shows the different layers of the
+architecture. BigJob supports various resource types via a flexible plugin
+architecture. In addition to SAGA, BJ can natively utilize both the EC2 and
+GCE API to launch BJ agents. The EC2-API is the de facto standard for managing
+VMs in clouds and can also be used for accessing different science clouds,
+e.\,g.\ the Eucalyptus and OpenStack cloud of FutureGrid. 
+
+Similarly, BigData supports various data access protocols and storage types:
+\pilotdata can be placed on different kinds of storage, e.\,g.\ local or
+remote filesystems as well as on object stores as found in cloud environments.
+Different access protocols are supported for putting respectively getting data
+in and out of the storage. Local/Remote storage both on grid and cloud
+resources is usually managed via SSH. On production grid infrastructures, such
+as XSEDE~\cite{xsede}, this kind of storage can also be managed via Globus
+Online~\cite{10.1109/MIC.2011.64}, which underneath relies on
+GridFTP~\cite{ogf-gfd-20} for file movement etc. A particularity of cloud
+environments are the described object stores. Object stores are typically
+accessed via custom API typically based on HTTP/REST. For example, the Amazon
+S3 API~\cite{amazons3api} is based on HTTP and XML and is also supported by
+Eucalyptus Walrus and OpenStack Swift.
 
 
 
-\begin{figure}[t]
-	\centering
-		\includegraphics[width=0.7\textwidth]{figures/storage-types.pdf}
-	\caption{Pilot-Compute and Pilot-Data on Different Types of Storage Resources}
-	\label{fig:figures_storage-types}
-\end{figure}
+
+Abstract where and how data is stored...
+
+Pilot-Abstractions can marshal the difference between the different cloud storage types and provide a seamless, unifying environment to the application.
+
+At the same time pilot abstraction provide the basis for application-level 
+scheduling
+
+simplify the usage of distributed infrastructures
+
+
+
+
 
 The aim of Pilot abstractions is to marshal the differences in the different 
 cloud storage types (see Figure~\ref{fig:figures_storage-types}) and aims to 
@@ -721,6 +767,17 @@ particular the BigJob and BigData implementation. Having spawned a set of
 as well as for managing the input, intermediate and output data.
 
 
+\begin{figure}[t]
+	\centering
+	\includegraphics[width=0.5\textwidth]{figures/mr-arch.pdf}
+	\caption{\textbf{Pilot-based MapReduce:} Each pilot (both compute and data 
+	pilot) can be associated with an affinity label. The BigData and BigJob 
+	Manager will ensure that CUs and DUs are placed with respect to these 
+	requirements.}
+	\label{fig:figures_mapreduce-pilotdata}
+\end{figure}
+
+
 \alnote{Add layered diagram (incl. PMR) of software stack for different 
 infrastructures}
 \pmnote{ is it just adding a Pilot-MapReduce layer to Fig:1 ? }
@@ -736,18 +793,12 @@ Compute:
 	\item FutureGrid India/OpenStack
 \end{itemize}
 
-Data:
-\begin{itemize}
-	\item 
-\end{itemize}
-
 	
 \subsection{Pilot Data on Clouds}
 
 Experiments:
 \begin{itemize}
 	\item  Scale input data: 1GB, 10GB, 100GB, 1000 GB
-	\item  Different amounts of intermediate data: 1GB, 10GB, 100GB, 1000 GB
 	\item  Number of Resources: 1, 2, 4, 8, 16, 32 VMs
 \end{itemize}
 
@@ -767,9 +818,12 @@ Experiments:
 	\item grid only
 	\item cloud only
 	\item grid / cloud concurrently
+	\item  Different amounts of intermediate data: 1GB, 10GB, 100GB, 1000 GB	
 \end{itemize}
 
 \section{Conclusion and Future Work}
+
+Extend to other data-intensive abstractions
 
 \bibliographystyle{wileyj}
 \bibliography{literatur,saga,saga-related,local}
