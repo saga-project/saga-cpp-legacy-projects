@@ -472,16 +472,16 @@ integration of these two different tracks.
 %application-specific UIs (and security contexts) to utilize a range of
 %high-performance and distributed computational (HPDC) infrastructure.
 
-The role of effective middleware is to support maximum reusability 
-in integrating with HPDC infrastructure. For example, it is always challenging
-to integrate new applications, to implement distributed data
-management with newly added infrastructure, whilst supporting existing
-and novel execution patterns; any framework that aims to facilitate
-integration with HPDC infrastructure must also address these
-challenges.  Thus any framework used to build science gateways that
-provides simple and scalable integration with the HPDC infrastructure
-must support broad range of diverse execution patterns (i.e., commonly
-occurring modes of using HPDC infrastructure).
+The role of effective middleware is to support maximum reusability in
+integrating with HPDC infrastructure. For example, it is always
+challenging to integrate new applications, to implement distributed
+data management with newly added infrastructure, whilst supporting
+existing and novel execution patterns; any framework that aims to
+facilitate integration with HPDC infrastructure must also address
+these challenges.  Thus any framework used to build science gateways
+that provides simple and scalable integration with the HPDC
+infrastructure must support broad range of diverse execution patterns
+(i.e., commonly occurring modes of using HPDC infrastructure).
 
 %Specifically, we address the following problem: Although Science
 %Gateways have proven to be very effective access mechanisms to
@@ -600,6 +600,18 @@ TG/XSEDE~\cite{saga-royalsoc,saga_bigjob_condor_cloud}.  Specifically,
 we've shown how a SAGA-based implementation of the pilot-job, supports
 the distributed application design objectives categorized by the term
 IDEAS\cite{ideas}.
+
+It is important to establish the relationship between DARE, BigJob and
+SAGA.  In order to do so, we first examine the relationship between
+pilot-jobs and SAGA: BigJob is a pilot-job framework that uses the
+SAGA API to manage files and job submission to distributed
+resources. DARE uses BigJob -- the SAGA based pilot-job as the primary
+execution environment for tasks assigned to it. Specifically, DARE
+extends and provides BigJob capability (and pilot-jobs in general) for
+pre-determined and customized applications using two possible routes:
+(i) via templatized support for execution patterns (such as
+abstract pipelines specifying dependencies and the order of
+execution), or (ii) via pre-defined interactions between tasks.
 
 As we will discuss in the next section, the DARE framework makes
 extensive use of Pilot-Jobs and is also designed to support
@@ -816,42 +828,6 @@ execution of simple stand-alone applications or more complex
 distributed workflows on HPDC infrastructures. Details of science
 gateway building using DARE are explored in \S3.
 
-\subsection{DARE: An Extensible Middleware Framework}
-
-As a framework, DARE provides abstractions to developers of science
-gateways. These abstractions allow developers and scientists to focus
-on the unique requirements of their scientific applications and
-relevant workflows as opposed to focus on the ``plumbing'' of how to
-submit ensembles of simulations to several supercomputers concurrently
-and archive their results.
-
-DARE is the natural evolution of science gateway middleware. As
-resource platforms, network capabilities and data repositories grow in
-size, number and vary in interface, the emergence of a unifying
-framework (SAGA) was inevitable. SAGA demonstrated the capability
-(and usefulness) of overcoming utilization issues associated with
-distributed compute and data resources, complex multi-level workflows
-and runtime decision making~\ref{saga_url}. Building a science gateway framework on
-top of SAGA was the next logical step. The DARE framework's
-distinguishing features include support for HPDC infrastructure and
-application/application-workflow agnosticism.
-
-The current implementation of DARE represents the first-steps towards
-developing an abstract science gateway framework with integrated HPDC
-capabilities to support distributed applications and application
-workflows. Figure~\ref{fig:dare-arch} shows a typical DARE based
-science gateway using the DARE framework in levels L2 and L3. Level L2
-provides the application and application workflow support along with
-typical, pre-programmed use cases: stand-alone, pipeline of multiple
-tools, dynamic pipeline and general workflow support. Level L3
-provides the the runtime mechanisms that manage the application
-execution. Application and application-workflow execution can be
-dynamic: some decisions can be made at runtime that affect the
-behavior of the simulation, the resource used, data moved and so
-on. These decisions are supported by DARE and the underlying
-components from SAGA.
-
-
 \subsection{SAGA: Standards-based Access to the Resources Layer}
 
 The Simple API for Grid Applications (SAGA)~\cite{saga_url} is an implementation
@@ -949,30 +925,6 @@ scalability, simplicity and extensibility. Similar advantages of scalability, si
 extensibility are now available to Gateway developers as a consequence of
 DARE – a SAGA-based library for developing Science Gateways.
 
-
-\subsection{DARE: Support for Dynamic Execution and Execution Patterns}
-\jhanote{See Fig. 3: DARE is defined as L2 and L3: SAGA + SAGA-based
- Pilot-Job + Patterns (MR) + L2 (Application Capabilities)}
-
-HPDC infrastructure is by definition comprised of a set of resources
-that is fluctuating -- growing, shrinking, changing in load and
-capability. This is in contrast to a static resource utilization model
-traditionally a characteristic of parallel and cluster computing. The
-ability to utilize a dynamic resource pool is thus an important
-attribute of any application that needs to utilize HPDC infrastructure
-efficiently. Applications that support dynamic execution have the
-ability to respond to a fluctuating resource pool, i.\,e., the set of
-resources utilized at time (T), $T=0$ is not the same as $T>0$.
-However, even for traditional high-performance/parallel applications,
-the evolution or internal dynamics of an application may vary, thereby
-changing the resource requirements. For example, different solvers,
-adaptive algorithms and/or implementations, can also require
-applications to utilize different set/amounts of resources. Thus, the
-need to support dynamic execution is widespread for computational
-science applications. In DARE, this is accomplished by building execution
-patterns using the SAGA-based Pilot-Job.
-
-
 \subsubsection{SAGA-based Pilot-Job}
 
 A common approach for decoupling workload management and resource
@@ -1053,6 +1005,68 @@ expose as little or as much of BigJob as needed to the end-user as
 well as expose functionality for users to create workflows. Some
 commonly used workflows have already been built into DARE. These are
 referred to as pattern-based execution models.
+
+
+\subsection{DARE: An Extensible Middleware Framework}
+
+As a framework, DARE provides abstractions to developers of science
+gateways. These abstractions allow developers and scientists to focus
+on the unique requirements of their scientific applications and
+relevant workflows as opposed to focus on the ``plumbing'' of how to
+submit ensembles of simulations to several supercomputers concurrently
+and archive their results.
+
+DARE is the natural evolution of science gateway middleware. As
+resource platforms, network capabilities and data repositories grow in
+size, number and vary in interface, the emergence of a unifying
+framework (SAGA) was inevitable. SAGA demonstrated the capability
+(and usefulness) of overcoming utilization issues associated with
+distributed compute and data resources, complex multi-level workflows
+and runtime decision making~\ref{saga_url}. Building a science gateway framework on
+top of SAGA was the next logical step. The DARE framework's
+distinguishing features include support for HPDC infrastructure and
+application/application-workflow agnosticism.
+
+The current implementation of DARE represents the first-steps towards
+developing an abstract science gateway framework with integrated HPDC
+capabilities to support distributed applications and application
+workflows. Figure~\ref{fig:dare-arch} shows a typical DARE based
+science gateway using the DARE framework in levels L2 and L3. Level L2
+provides the application and application workflow support along with
+typical, pre-programmed use cases: stand-alone, pipeline of multiple
+tools, dynamic pipeline and general workflow support. Level L3
+provides the the runtime mechanisms that manage the application
+execution. Application and application-workflow execution can be
+dynamic: some decisions can be made at runtime that affect the
+behavior of the simulation, the resource used, data moved and so
+on. These decisions are supported by DARE and the underlying
+components from SAGA.
+
+
+\subsubsection{DARE: Support for Dynamic Execution and Execution
+  Patterns}
+\jhanote{See Fig. 3: DARE is defined as L2 and L3: SAGA + SAGA-based
+ Pilot-Job + Patterns (MR) + L2 (Application Capabilities)}
+
+HPDC infrastructure is by definition comprised of a set of resources
+that is fluctuating -- growing, shrinking, changing in load and
+capability. This is in contrast to a static resource utilization model
+traditionally a characteristic of parallel and cluster computing. The
+ability to utilize a dynamic resource pool is thus an important
+attribute of any application that needs to utilize HPDC infrastructure
+efficiently. Applications that support dynamic execution have the
+ability to respond to a fluctuating resource pool, i.\,e., the set of
+resources utilized at time (T), $T=0$ is not the same as $T>0$.
+However, even for traditional high-performance/parallel applications,
+the evolution or internal dynamics of an application may vary, thereby
+changing the resource requirements. For example, different solvers,
+adaptive algorithms and/or implementations, can also require
+applications to utilize different set/amounts of resources. Thus, the
+need to support dynamic execution is widespread for computational
+science applications. In DARE, this is accomplished by building execution
+patterns using the SAGA-based Pilot-Job.
+
+
 
 \subsubsection{Support for Patterns-based Execution}
 
@@ -1155,31 +1169,6 @@ between tasks as managed via the Pilot-API.
 
 
 
-
-There are two interfaces to access DARE functionality: DARE-Wrapper
-and DARE-Gateways.  DARE-Wrapper provides a simple command line tool
-named ``\textbf{dare-run}'' , which takes a configuration file as an
-argument and initiates function calls to DARE passing out the given
-configuration file. DARE-Gateways is a web interface, which provides a
-simple user interaction for the services applications level L2.
-
-DARE uses SAGA to support job-state monitoring and notification; this
-capability is used to update status of submitted jobs....After
-submission these parameters will be stored in a database. Further user
-can look the status of the job that he has submitted and download the
-output files once its done.  A job monitoring thread is an important
-component inside DARE-Gateways.  Its functionality is to continuously
-poll the database for new tasks, and whenever it finds a new job it
-spawns a job after it creates the necessary configuration files.
-Further, connecting the web interface to the server-side DARE services
-is made simple with job monitoring thread.  DARE uses
-Pylons~\cite{pylons_website}, and in the process out-sources
-authentication, database creation/management, and data
-storage/retrieval.  The database inside DARE-Gateways is defined in
-such a way it could hold information about the job submitted by the
-user as well as the user authentication information for login and
-registration.
-
 % Before a task is submitted to the Pilot-API it
 % should check for the status of its dependent task\cite{dare-wiki}. This
 % automated scheduling feature of DARE is very helpful when the user
@@ -1269,6 +1258,30 @@ standalone Type I services.
 
 % A combination of early life sciences focus and gradual development led
 % to this categorization.
+
+There are two interfaces to access DARE functionality: DARE-Wrapper
+and DARE-Gateways.  DARE-Wrapper provides a simple command line tool
+named ``\textbf{dare-run}'' , which takes a configuration file as an
+argument and initiates function calls to DARE passing out the given
+configuration file. DARE-Gateways is a web interface, which provides a
+simple user interaction for the services applications level L2.
+
+DARE uses SAGA to support job-state monitoring and notification; this
+capability is used to update status of submitted jobs....After
+submission these parameters will be stored in a database. Further user
+can look the status of the job that he has submitted and download the
+output files once its done.  A job monitoring thread is an important
+component inside DARE-Gateways.  Its functionality is to continuously
+poll the database for new tasks, and whenever it finds a new job it
+spawns a job after it creates the necessary configuration files.
+Further, connecting the web interface to the server-side DARE services
+is made simple with job monitoring thread.  DARE uses
+Pylons~\cite{pylons_website}, and in the process out-sources
+authentication, database creation/management, and data
+storage/retrieval.  The database inside DARE-Gateways is defined in
+such a way it could hold information about the job submitted by the
+user as well as the user authentication information for login and
+registration.
 
 \begin{table}[!h]
 \centering
