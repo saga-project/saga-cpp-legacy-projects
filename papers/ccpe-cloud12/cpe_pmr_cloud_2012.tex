@@ -35,6 +35,37 @@
 \newcommand{\note}[1]{}
 \fi
 
+\usepackage{color}
+
+\usepackage{listings}  
+\lstdefinestyle{myListing}{
+  frame=single,   
+  %float=t,
+  language=C,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  aboveskip=0em,
+  belowskip=-2em,
+  %numbers=left, 
+  %numberstyle=\tiny
+}      
+
+\lstdefinestyle{myPythonListing}{
+  frame=single,   
+  %float=t,
+  language=Python,       
+  basicstyle=\ttfamily \footnotesize,
+  breakautoindent=true,
+  breaklines=true
+  tabsize=2,
+  captionpos=b,  
+  %numbers=left, 
+  %numberstyle=\tiny
+}
+
 \newcommand{\cloud}{cloud\xspace}
 \newcommand{\clouds}{clouds\xspace}
 \newcommand{\pilot}{Pilot\xspace}
@@ -45,6 +76,7 @@
 \newcommand{\pilotdata}{Pilot-Data\xspace}
 \newcommand{\pilotdataservice}{Pilot-Data Service\xspace}
 \newcommand{\pilotcomputeservice}{Pilot-Compute Service\xspace}
+\newcommand{\computedataservice}{Compute-Data Service\xspace}
 \newcommand{\pilotmapreduce}{PilotMapReduce\xspace}
 \newcommand{\pd}{PD\xspace}
 \newcommand{\pj}{PJ\xspace}
@@ -738,17 +770,18 @@ of data sources and stores.
 Figure~\ref{fig:figures_cloud_pilot_job} shows the different layers of the
 architecture. BigJob supports various resource types via a flexible plugin
 architecture. In addition to SAGA, BJ can natively utilize both the EC2 and
-GCE API to launch BJ agents. The EC2-API is the de facto standard for managing
-VMs in clouds and can also be used for accessing different science clouds,
-e.\,g.\ the Eucalyptus and OpenStack cloud of FutureGrid. 
+GCE API to launch BJ agents. The EC2-API~\cite{amazonec2api} is the de facto 
+standard for managing VMs in clouds and can also be used for accessing 
+different science clouds, e.\,g.\ the Eucalyptus and OpenStack cloud of 
+FutureGrid. Google Compute Engine provides modern HTTP/REST/JSON and OAUTH for 
+authentication. 
 
-Similarly, BigData supports various data access protocols and storage types:
-\pilotdata can be placed on different kinds of storage, e.\,g.\ local or
-remote filesystems as well as on object stores as found in cloud environments.
-Different access protocols are supported for putting respectively getting data
-in and out of the storage. Local/Remote storage both on grid and cloud
-resources is usually managed via SSH. On production grid infrastructures, such
-as XSEDE~\cite{xsede}, this kind of storage can also be managed via Globus
+A \pilotdata can be placed on different types of storage, e.\,g.\ a local or
+remote filesystem or on object stores as often found in cloud environments. .
+Depending on the storage type different access respectively transfer protocols
+are supported. For example, local/remote storage both on grid and cloud
+resources can be managed via SSH. On production grid infrastructures, such as
+XSEDE~\cite{xsede}, this kind of storage can also be accessed via Globus
 Online~\cite{10.1109/MIC.2011.64}, which underneath relies on
 GridFTP~\cite{ogf-gfd-20} for file movement etc. A particularity of cloud
 environments are the described object stores. Object stores are typically
@@ -756,38 +789,73 @@ accessed via custom API typically based on HTTP/REST. For example, the Amazon
 S3 API~\cite{amazons3api} is based on HTTP and XML and is also supported by
 Eucalyptus Walrus and OpenStack Swift.
 
-
-
-
-Abstract where and how data is stored...
-
-Pilot-Abstractions can marshal the difference between the different cloud storage types and provide a seamless, unifying environment to the application.
-
-At the same time pilot abstraction provide the basis for application-level 
-scheduling
-
-simplify the usage of distributed infrastructures
+BigJob and BigData rely on the Boto library~\cite{boto} for accessing storage
+and compute resources that provide an Amazon S3 respectively EC2 compliant
+interface. The Google cloud adaptors directly access the Google services via
+the Google Python API client~\cite{google-api-client}.
 
 
 
 
+\subsection{Pilot-API: Managing Data and Compute Dependencies}
 
-The aim of Pilot abstractions is to marshal the differences in the different 
-cloud storage types (see Figure~\ref{fig:figures_storage-types}) and aims to 
-provide a unified interface to these services. Affinities are an essential 
-tool for modeling the different storage characteristics and to allow an 
-effective reasoning about different storage topologies and data/compute 
-placements.
+Pilot-Abstractions can marshal the difference between the different cloud
+storage types and and provide a seamless, unifying environment to the
+application simplify the usage of distributed infrastructures. Application can 
+acquire resources in form of \pilots. A central \computedataservice is used to 
+submit \computeunits (\cus) and \dataunits (\dus) to these pilots. Application 
+can declaratively specify \cus and \dus and effectively manage the data flow 
+in between. 
 
-
-Figure~\ref{fig:figures_data-flow} shows the interactions and the data flow 
-between \computeunits and \dataunits.
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.7\textwidth]{figures/data-flow.pdf}
 	\caption{DU and CU Interactions and Data Flow}
 	\label{fig:figures_data-flow}
 \end{figure}
+
+Figure~\ref{fig:figures_data-flow} shows the interactions and the data flow
+between \computeunits and \dataunits. A \cu can have input dependencies to a
+set of \dus. BigJob and BigData will ensure that these dependencies are met
+when the \cu is executed, i.\,e.\ either the \dus are move to the \cu or the
+\cu is executed at (or close to) the location of the \dus. The output files
+can be automatically transferred to a set of output \dus.
+Listing~\ref{lst:cu_du_dependencies} shows how these dependencies are
+specified on API-level.
+
+\begin{lstlisting}[caption={{Managing \dataunit/\computeunit Dependencies}}, style=myPythonListing, label={lst:cu_du_dependencies}, float=t]
+compute_unit_description = {
+         "executable": "/bin/cat",
+         "arguments": ["test.txt"],
+         "number_of_processes": 1,
+         "output": "stdout.txt",
+         "error": "stderr.txt",   
+         "input_data": [input_data_unit.get_url()],
+         # Put files stdout.txt and stderr.txt into output data unit
+         "output_data": [
+                         {
+                          output_data_unit.get_url(): 
+                          ["std*"]
+                         }
+                        ]    
+}
+\end{lstlisting}
+
+
+\subsection{Affinities and Scheduling}
+
+\pilot abstraction provide the basis for application-level scheduling. 
+Applications can make placement decisions based on the \pilots it has 
+acquired. Additionally, applications can rely on an application-level 
+scheduling service as provided by BigJob and BigData. This service is exposed 
+via the \computedataservice interface and accepts both \cus and \dus.
+
+The scheduler of the \computedataservice relies on affinity as first entity to
+describe relationships between \dus, \cus and resources. Affinities are an
+essential tool for modeling the different storage characteristics and to allow
+an effective reasoning about different storage topologies and data/compute
+placements.
+
 
 
 
