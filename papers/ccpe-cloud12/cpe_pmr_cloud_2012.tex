@@ -422,7 +422,7 @@ Service (IaaS)~\cite{Jha:2010kx}. The infrastructure-as-a-service (Iaas) layer
 provides low-level, typically virtualized data and compute resources.
 Computational resources are typically represented as virtual machines
 instances. Examples for IaaS services are Amazon EC2~\cite{amazon_ec2} and
-S3~\cite{amazons3} as well as the new Google Compute Engine~\cite{gce}
+S3~\cite{amazons3} as well as the new Google Compute Engine (GCE)~\cite{gce}
 service. PaaS services provide a higher-level capabilities, such as controlled
 runtime environments for web applications, task ensembles or MapReduce.
 Example of PaaS services are: Azure Web and Worker Roles, Google's App Engine,
@@ -558,7 +558,7 @@ are natively developed for clouds. While traditional HPC applications -- often
 based on MPI -- show limitations in cloud
 environments~\cite{Evangelinos2008,Mehrotra:2012:PEA:2287036.2287045}, there
 is a broad class of loosely-coupled applications that is well-suited for
-clouds~\cite{1851544,Sehgal2011 590}.
+clouds~\cite{1851544,Sehgal2011590}.
 
 There is a large class of data-intensive applications that is loosely
 coupled and thus very well-suitable for cloud environments, e.\,g.\
@@ -669,12 +669,12 @@ primary motivations:
   infrastructure}
 
 An oft and commonly cited use-case for clouds, is "cloud bursting".
-Intersting as it may be, we view the use of clouds as ``excess
+Interesting as it may be, we view the use of clouds as ``excess
 capacity'' as a less fundamental usage of distributed
-cyberinfrastructure, and more a transient but fortunate occurence of
+cyberinfrastructure, and more a transient but fortunate occurrence of
 the details of cloud operations and grid loads. Arguably, a more
 fundamental issue at stake is the ability to use clouds in conjunction
-with other distributed resources so as to effeciently manage/handle
+with other distributed resources so as to efficiently manage/handle
 data (c.f. three analysis paradigms).  In other words, clouds can
 provide the elements of the infrastructure to enable an optimal
 distribution given a desired architecture has been determined.
@@ -815,12 +815,12 @@ in between.
 \end{figure}
 
 Figure~\ref{fig:figures_data-flow} shows the interactions and the data flow
-between \computeunits and \dataunits. A \cu can have input dependencies to a
-set of \dus. BigJob and BigData will ensure that these dependencies are met
-when the \cu is executed, i.\,e.\ either the \dus are move to the \cu or the
-\cu is executed at (or close to) the location of the \dus. The output files
-can be automatically transferred to a set of output \dus.
-Listing~\ref{lst:cu_du_dependencies} shows how these dependencies are
+between \computeunits and \dataunits. A \cu can have both input and output
+dependencies to a set of \dus. BigJob and BigData will ensure that these
+dependencies are met when the \cu is executed, i.\,e.\ either the \dus are
+move to the \cu or the \cu is executed at (or close to) the location of the
+\dus. The output files can be automatically transferred to a set of output
+\dus. Listing~\ref{lst:cu_du_dependencies} shows how these dependencies are
 specified on API-level.
 
 \begin{lstlisting}[caption={{Managing \dataunit/\computeunit Dependencies}}, style=myPythonListing, label={lst:cu_du_dependencies}, float=t]
@@ -855,9 +855,6 @@ describe relationships between \dus, \cus and resources. Affinities are an
 essential tool for modeling the different storage characteristics and to allow
 an effective reasoning about different storage topologies and data/compute
 placements.
-
-
-
 
 
 
@@ -902,25 +899,23 @@ infrastructures}
 
 \section{Experiments}
 
-\subsection{Infrastructure}
-
-Compute:
-\begin{itemize}
-	\item FutureGrid/XSEDE: Sierra, Kraken 
-	\item FutureGrid India/Eucalyptus
-	\item FutureGrid India/OpenStack
-\end{itemize}
+In this section we analyze the performance and scalability of BigJob and 
+BigData in different scenarios. For this purpose we run several experiments on 
+FutureGrid (FG) and XSEDE. For the purpose of our analysis, we utilize the 
+Eucalyptus cloud on India/FutureGrid, Amazon EC2 and Google Compute Engine.
 
 	
 \subsection{Pilot Data on Clouds}
 
-Experiments:
-\begin{itemize}
-	\item  Scale input data: 1GB, 10GB, 100GB, 1000 GB
-	\item  Number of Resources: 1, 2, 4, 8, 16, 32 VMs
-\end{itemize}
+An important challenge when running distributed data-intensive tasks is the 
+effective management of data, and its efficient transfer. In the following, we 
+investigate the initial phase of staging files to the cloud as well as the 
+the cloud-internal overhead of file movements.
 
-
+In scenario (i) we investigate the execution of 1 \cu, with an input \du of
+size 1\,GB. Figure~\ref{fig:performance_pd_google_aws} shows the results. The
+data ingest time for Google Compute Engine is about 5 times larger than for
+Amazon \alnote{could be potentially a compression issue... just redoing experiments}.  However, the BigJob startup time, the data download time and the \cu execution time are significantly lower on GCE.
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.75\textwidth]{performance/pd_google_aws.pdf}
@@ -928,6 +923,13 @@ Experiments:
 	\label{fig:performance_pd_google_aws}
 \end{figure}
 
+
+Experiments:
+\begin{itemize}
+	\item Scale input data: 1\,GB, 10GB, 100GB, 1000 GB
+	\item Number of Resources: 1, 2, 4, 8, 16, 32 VMs
+	\item Number of CUs
+\end{itemize}
 
 
 
