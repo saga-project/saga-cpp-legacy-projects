@@ -803,29 +803,29 @@ end-user communities customising base-capabilities with low overhead
 that meet science requirements and can utilize a range of HPDC
 infrastrucutre.
 
-Simple as it sounds, to the best of our knowledge, there does not
-exist a layer that provides the ability to utilize different HPDC
-infrastructure (using a single, simple API) whilst being usable by
-different levels and types of application/web development frameworks.
 Currently science gateway development requires scientists and
 developers to spend non-trivial amounts of time resolving everything
-from job submission script errors to data management problems. To
-address these issues, and to provide a basis for rapid science gateway
-development that is HPDC capable, the Distributed Application Runtime
-Environment framework~\cite{dareurl} has been developed, hereafter
-referred to as the DARE framework.
+from job submission script errors to data management problems. Simple
+as it sounds, to the best of our knowledge, there does not exist
+middleware capabilities that provide the ability to utilize different
+HPDC infrastructure, using a single, simple API, whilst supporting a
+range of application/web development frameworks.  To address these
+issues, and to provide a basis for rapid science gateway development
+that is capable of utilizing HPDC resource, the DARE~\cite{dareurl}
+middleware framework, hereafter referred to as the DARE, has been
+developed.
 
 Many of the critical features of the DARE framework are provided by
 SAGA and the Pilot-Job capability:
 SAGA-BigJob~\cite{saga_bigjob_condor_cloud}.  The SAGA components
 provide the distributed capabilities such as remote job submission and
-data movement across machines (including data archiving).  These
-functional additions to SAGA provide the ability to support dynamic
-execution patterns and workflows. Using SAGA and SAGA-based frameworks
-to build science gateways meets a fundamental design objective of
-IDEAS~\cite{ideas} (Interoperability, Dynamic Execution,
-Extensibility, Adaptive/Autonomic and Scalability).
- 
+data movement across machines (including data archiving).  A
+integrated layer above the resource management layer, provide the
+ability to support dynamic execution patterns and workflows.  Using
+SAGA and SAGA-based frameworks to build science gateways meets a
+fundamental design objective of IDEAS~\cite{ideas} (Interoperability,
+Dynamic Execution, Extensibility, Adaptive/Autonomic and Scalability).
+
 DARE allows gateway developers and scientists to focus on the unique
 requirements of their scientific applications, as opposed to focus on
 the ``plumbing'' of using HPDC infrastructure as well as making it
@@ -886,7 +886,7 @@ successfully.
 
 
 \begin{figure}[t]
-\centering \includegraphics[width=0.66\textwidth]{figures/saga-architecture-1.png}
+  \centering \includegraphics[width=0.66\textwidth]{figures/saga-architecture-1.png}
 \caption{\textbf{SAGA Overview: } SAGA is an OGF technical
  specification that provides a common interface to heterogeneous DCI
  -- hitherto typically Grid systems. The implementation of the
@@ -921,28 +921,34 @@ heterogeneous resources. Specifically, it has been used to support
 multiple computational biology applications that use high-performance
 and high-throughput molecular dynamics (MD) simulations.
 
-\jhanote{Someone please look up the macros as defined in the
- pilot-star paper
- \url{https://svn.cct.lsu.edu/repos/saga-projects/papers/troy/pstar/pstar-hpdc2012-acm.tex}
- define here too and then do a global replace/consistency check
- please.}
-\yyenote{This has NOT been done. At this point people will just wikipedia
-pilot job and get to the page started by the condor folks (and modified by you)}
+% \jhanote{Someone please look up the macros as defined in the
+%   pilot-star paper
+%   \url{https://svn.cct.lsu.edu/repos/saga-projects/papers/troy/pstar/pstar-hpdc2012-acm.tex}
+%   define here too and then do a global replace/consistency check
+%   please.}  \yyenote{This has NOT been done. At this point people will
+%   just wikipedia pilot job and get to the page started by the condor
+%   folks (and modified by you)}
 
+\subsubsection{Support for Dynamic Execution: SAGA-based Pilot-Job}
 
-The SAGA-based pilot-job extends and generalizes the commonly used
-Pilot-Job concept.  As a solid validation of the base standards and
-abstractions that can be built upon SAGA, the SAGA-based pilot job has
-enabled applications to use the same pilot-job API over disparate
-resources. It has also provided advantages including scalability,
-simplicity and extensibility. Similar advantages of scalability,
-simplicity and extensibility are now available to Gateway developers
-as a consequence of DARE – a SAGA-based library for developing Science
-Gateways.
-
-\subsubsection{DARE Support for Dynamic Execution: SAGA-based
-  Pilot-Job}
-
+HPDC infrastructure is by definition comprised of a set of resources
+that is fluctuating -- growing, shrinking, changing in load and
+capability. This is in contrast to a static resource utilization model
+traditionally a characteristic of parallel and cluster computing. The
+ability to utilize a dynamic resource pool is thus an important
+attribute of any application that needs to utilize HPDC infrastructure
+efficiently. Applications that support dynamic execution have the
+ability to respond to a fluctuating resource pool, i.\,e., the set of
+resources utilized at time (T), $T=0$ is not the same as $T>0$.
+However, even for traditional high-performance/parallel applications,
+the evolution or internal dynamics of an application may vary, thereby
+changing the resource requirements. For example, different solvers,
+adaptive algorithms and/or implementations, can also require
+applications to utilize different set/amounts of resources. Thus, the
+need to support dynamic execution is widespread for computational
+science applications. In DARE, this is accomplished by building
+execution patterns using the SAGA-based Pilot-Job.
+ 
 A common approach for decoupling workload management and resource
 scheduling, and thereby the dynamic fluctuations inherent in workloads
 and resources, is the use of \emph{pilot-jobs (PJ)}. The PJ
@@ -969,14 +975,22 @@ application-level scheduling.
     \label{fig:figures_re_bigjob_interactions}
 \end{figure}
 
-A SAGA-based PilotJob, BigJob
+The SAGA-based pilot-job extends and generalizes the commonly used
+Pilot-Job concept.  As a solid validation of the base standards and
+abstractions that can be built upon SAGA, the SAGA-based pilot job has
+enabled applications to use the same pilot-job API over disparate
+resources. It has also provided advantages including scalability,
+simplicity and extensibility. Similar advantages of scalability,
+simplicity and extensibility are now available to Gateway developers
+as a consequence of DARE – a SAGA-based library for developing Science
+Gateways. A SAGA-based PilotJob, BigJob
 (BJ)~\cite{bigjob_web,saga_bigjob_condor_cloud}, is a general-purpose
 pilot-job framework. BigJob has been used to support various execution
 patterns and execution workflows~\cite{async_repex11,saga-royalsoc}.
 For example, SAGA-BigJob was used to execute scientific applications
 categorized as embarrassingly parallel applications and loosely
 coupled applications on scalable distributed
-resources~\cite{ecmls_ccpe10, dare-ecmls11}
+resources~\cite{ecmls_ccpe10, dare-ecmls11}.
 
 Figure~\ref{fig:figures_re_bigjob_interactions} illustrates the
 architecture of BJ. BJ utilizes a Master-Worker coordination model. The
@@ -1015,30 +1029,13 @@ of a BigJob pool is introduced. A BigJob pool consists of multiple BJs
 scheduler is used for dispatching work units to one of the BJs of the pool
 (late binding). By default a FIFO scheduler is provided.
 
-All user side aspects of BJ can be provided to end-users
-in a science gateway through DARE. Science gateway developers can
-expose as little or as much of BigJob as needed to the end-user as
-well as expose functionality for users to create workflows. Some
-commonly used workflows have already been built into DARE. These are
-referred to as pattern-based execution models.
+% All user side aspects of BJ can be provided to end-users
+% in a science gateway through DARE. Science gateway developers can
+% expose as little or as much of BigJob as needed to the end-user as
+% well as expose functionality for users to create workflows. Some
+% commonly used workflows have already been built into DARE. These are
+% referred to as pattern-based execution models.
 
-HPDC infrastructure is by definition comprised of a set of resources
-that is fluctuating -- growing, shrinking, changing in load and
-capability. This is in contrast to a static resource utilization model
-traditionally a characteristic of parallel and cluster computing. The
-ability to utilize a dynamic resource pool is thus an important
-attribute of any application that needs to utilize HPDC infrastructure
-efficiently. Applications that support dynamic execution have the
-ability to respond to a fluctuating resource pool, i.\,e., the set of
-resources utilized at time (T), $T=0$ is not the same as $T>0$.
-However, even for traditional high-performance/parallel applications,
-the evolution or internal dynamics of an application may vary, thereby
-changing the resource requirements. For example, different solvers,
-adaptive algorithms and/or implementations, can also require
-applications to utilize different set/amounts of resources. Thus, the
-need to support dynamic execution is widespread for computational
-science applications. In DARE, this is accomplished by building
-execution patterns using the SAGA-based Pilot-Job.
 
 The use of pilot-jobs as the fundamental execution unit lies at the
 heart of the dynamic execution capabilities that DARE
@@ -1046,85 +1043,91 @@ support. Application and application-workflow execution can be
 dynamic: some decisions can be made at runtime that affect the
 behavior of the simulation, the resource used, data moved and so on.
 
+% As resource platforms, network capabilities and data repositories grow
+% in size, number and vary in interface, the emergence of a unifying
+% framework (SAGA) was inevitable. SAGA demonstrated the capability (and
+% usefulness) of overcoming utilization issues associated with
+% distributed compute and data resources, complex multi-level workflows
+% and runtime decision making~\ref{saga_url}.
+
 \subsection{DARE: An Extensible Middleware Framework}
 
-DARE's distinguishing features include support for HPDC infrastructure
-and support for a range of (common) application execution patterns and
-types and their easy integration with applications.  As resource
-platforms, network capabilities and data repositories grow in size,
-number and vary in interface, the emergence of a unifying framework
-(SAGA) was inevitable. SAGA demonstrated the capability (and
-usefulness) of overcoming utilization issues associated with
-distributed compute and data resources, complex multi-level workflows
-and runtime decision making~\ref{saga_url}.
 
 % \subsubsection{DARE: Support for Dynamic Execution and Execution
 %   Patterns}
 % \jhanote{See Fig. 3: DARE is defined as L2 and L3: SAGA + SAGA-based
 %  Pilot-Job + Patterns (MR) + L2 (Application Capabilities)}
 
-{\it Support for Patterns-based Execution:} There are several common
-workflows required for multiple life-sciences applications. These
-workflows include launching ensembles of simulations or pipelines
-consisting of application execution followed by analysis.  These
-workflows can repeat any number of times and can include
-data-management or analysis stages. We refer to these common workflows
-as workflow patterns: general templates frequently used in life
-sciences applications. DARE supports some of the well known patterns
-such as MapReduce and Scatter-Gather. DARE also supports launching of
-large ensembles of loosely-coupled or uncoupled tasks.  DARE's support
-for these common patterns is generic, and thus easily adaptable to
-many different applications (not necessarily life sciences).  In
-section \S3 we will discuss some of the common patterns available in
-DARE. The support for a patterns-based execution is a useful and novel
-feature of DARE. Although not all of these are fully developed, a
-large number of execution patterns are already supported, e.g,
-uncoupled and loosely-coupled ensembles, Master-Worker, MapReduce etc.
+%{\it Support for Patterns-based Execution:} 
+% Although not all of these are fully developed, a large number of
+% execution patterns are already supported, e.g, uncoupled and
+% loosely-coupled ensembles, Master-Worker, MapReduce etc.
 
-DARE supports extensibility along two dimensions: along the horizontal
+Two features that distinguish DARE, include support for a range of
+(common) application execution patterns and their easy integration
+both with applications (above) and range of HPDC infrastructure
+(below). The second distinguishing feature of DARE is its
+extensibility along two dimensions: along the horizontal
 dimension, new features and support for new execution patterns can be
 added. In the vertical direction, support for new infrastructure can
-be added.  This can be seen from the current implementation of DARE
-represents the first-steps towards developing an abstract science
-gateway framework with integrated HPDC capabilities to support
-distributed applications and application
-workflows. Figure~\ref{fig:dare-arch} shows a typical DARE based
-science gateway using the DARE framework in levels L2 and L3. Level L2
-provides the application and application workflow support along with
-typical, pre-programmed use cases: stand-alone, pipeline of multiple
-tools, dynamic pipeline and general workflow support. Level L3
-provides the the runtime mechanisms that manage the application
-execution.  In the next section, we explore this architecture in
-greater detail.
+be added.  
+
+There are several common execution scenarios required for multiple
+life-sciences applications. These scenarios include launching
+ensembles of simulations or pipelines consisting of application
+execution followed by analysis.  These can repeat any number of times
+and include data-management or analysis stages. We refer to these
+common execution scenarios as {\it execution patterns}. The provide
+general templates frequently used in life sciences applications, e.g.,
+well known patterns such as MapReduce and Scatter-Gather. DARE also
+supports launching of large ensembles of loosely-coupled or uncoupled
+tasks.  DARE's support for these common patterns is generic, and thus
+easily adaptable to many different applications (not necessarily life
+sciences).  In section \S3 we will discuss some of the common patterns
+available in DARE. The support for a patterns-based execution is a
+useful and novel feature of DARE.
+
+Figure~\ref{fig:dare-arch} shows a layered architecture of a DARE
+based science gateway in levels L2 and L3. Level L2 provides the
+application and application workflow support along with templates for
+common pre-configured usage scenarios: stand-alone, pipeline of
+multiple tools, dynamic pipeline and general workflow support. Level
+L3 provides the the runtime mechanisms that manage the execution of
+specific implementations of these patterns. In the next section, we
+explore this architecture in greater detail.
 
 \section{DARE-based Science Gateways: Inside the Layered Architecture}
 
 \begin{figure}
  \centering
- \includegraphics[scale=0.55]{figures/DARE-gateway-arch.pdf}
- \caption{\small Overall architecture of a DARE-based gateway
-   comprising five levels. \jhanote{this has 5 levels, but it does not
-     show DARE-Wrapper or DARE-Gateway?}}
- \label{fig:dare-arch} 
+% \includegraphics[scale=0.55]{figures/DARE-gateway-arch.pdf}
+ \includegraphics[scale=0.55]{figures/dare-middleware-arch.pdf}
+ \caption{\small Overall architecture of a DARE-based gateway. L2 and
+   L3 -- SAGA, SAGA-based pilot-jobs and support for application-level
+   execution patterns, which are shaded in grey constitute the primary
+   layers of DARE.}
+ \label{fig:dare-arch}
 \end{figure}
 
-As illustrated in Fig.~\ref{fig:dare-arch}, a typical gateway needs a
-user interface for everything from authentication and authorization to
-the ability to submit user jobs, and data management.  Ideally these
-capabilities are implemented as integrated middleware on a range of
-heterogeneous compute resources. The user interface simply interfaces
-the middleware, glossing over details of function calls, scripting
-language syntax and so on.
+% , by glossing over details of function calls, 
+% scripting language syntax and so on.
 
-DARE based science gateways are typically organized in levels.  Levels
-L2 and L3, are common to all gateways, and are decoupled from access
-level (L1) and resource layer (L4). Development is therefore modular
-and layered. Adding support for a new resource, for example OpenStack
+A typical gateway needs capabilties for everything from authentication
+and authorization to the ability to submit user jobs, and data
+management.  Ideally these capabilities are implemented without being
+tied to specific resources, i.e., there is a role for a middleware
+framework that integrates the usage of HPDC infrastructure with the
+capabilities required to build user interface for science-gateways.
+As illustrated in Fig.~\ref{fig:dare-arch}, DARE based science
+gateways are typically organized into four levels: Levels L2 and L3,
+are common to all gateways, and are decoupled from access level (L1)
+and resource layer (L4). Development is therefore modular and
+layered. Adding support for a new resource, for example OpenStack
 based clouds in L4, is as simple as adding the required SAGA adaptors
 in L3. No changes need to be made at L1 or L2. Similarly, adding more
 execution patterns and workflows in L2 is decoupled from the runtime
 system in L3 and the resources involved in L4.  We will not focus on
-L1 other than to say that a combination of DARE-interfaces and
+L1, other than to say that a combination of DARE-interfaces and
 Pylons~\cite{pylons_website} are used as the building blocks to build
 user-interfaces that seamlessly integrate with the rest of DARE and
 resulting functionality.
