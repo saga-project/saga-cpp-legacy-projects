@@ -917,7 +917,8 @@ infrastructures}
 In this section we analyze the performance and scalability of BigJob and 
 BigData in different scenarios. For this purpose we run several experiments on 
 FutureGrid (FG) and XSEDE. For the purpose of our analysis, we utilize the 
-Eucalyptus cloud on India/FutureGrid, Amazon EC2 and Google Compute Engine.
+Eucalyptus cloud on India/FutureGrid, Amazon EC2 and Google Compute Engine. 
+Each experiment is repeated at least five times.
 
 	
 \subsection{Pilot Data on Clouds}
@@ -925,23 +926,45 @@ Eucalyptus cloud on India/FutureGrid, Amazon EC2 and Google Compute Engine.
 An important challenge when running distributed data-intensive tasks is the 
 effective management of data, and its efficient transfer. In the following, we 
 investigate the initial phase of staging files to the cloud as well as the 
-the cloud-internal overhead of file movements.
+the cloud-internal overhead of file movements.  In the following, we use the 
+FutureGrid hotel as submission machine, i.\,e.\ the machine where the initial 
+data resides and the \pilots are submitted from.
 
-In scenario (i) we investigate the execution of 1 \cu, with an input
-\du of size 1\,GB. Figure~\ref{fig:performance_pd_google_aws} shows
-the results. The data ingest time for Google Compute Engine is about 5
-times larger than for Amazon \alnote{could be potentially a
-  compression issue... just redoing experiments}.  However, the BigJob
-startup time, the data download time and the \cu execution time are
-significantly lower on GCE. \jhanote{I know you'll do it but just as a
+In scenario (i) we investigate the execution of 1 \cu, with an input \du of
+size 1\,GB. Figure~\ref{fig:performance_pd_google_aws} shows the results.
+Typically, data movement into the cloud are more expensive than intra-cloud
+data movements. In this particular scenario the data ingest time for clouds
+varies between $~$4\,minutes (for Amazon) and $~$18\,minutes. The primary
+determinant of this time is the available Internet bandwidth. However, once
+the data is in the cloud, it can be re-used multiple times. In the
+investigated scenario the data ingest time for Google Compute Engine is about
+5 times larger than for Amazon \alnote{could be potentially a compression
+issue... just redoing experiments}. In this case Amazon gives you more option
+to select a locality for your data -- in this scenario the region us-east was
+used. For Google Storage it is only possible to select between the US and
+Europe.
+
+With respect to the \pilot startup time (which includes the VM startup time), 
+GCE is clearly faster than Amazon EC2. Also, the available intra-cloud 
+bandwidths are much better for GCE: The data download time for GS/GCE is about 
+40\,\% faster than for S3/EC2. Also, the \cu execution time are significantly 
+lower on GCE. In both cases the smallest possible VM was used; however, it 
+must be noted that Amazon's t1.micro instance type doesn't provide any 
+guaranteed CPU time. Also the memory is with 613\,MB considerable smaller than 
+for Google's smallest VM n1-standard-1, which has 3.75\,GB memory.
+
+\jhanote{I know you'll do it but just as a
   note: Don't forget to mention the number of times the experiment is
-  repeated, else difficult to get a sense/infer what error bars imply}
+  repeated, else difficult to get a sense/infer what error bars 
+imply}\alnote{added above. maybe we have to give different numbers for PMR and 
+initial measurements}
 \begin{figure}[htbp]
 	\centering
 		\includegraphics[width=0.75\textwidth]{performance/pd_google_aws.pdf}
 	\caption{\textbf{Performance of BigJob and BigData on Different Resource Types}}
 	\label{fig:performance_pd_google_aws}
 \end{figure}
+
 
 
 Experiments:
