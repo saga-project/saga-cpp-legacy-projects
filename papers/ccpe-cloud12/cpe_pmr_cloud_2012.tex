@@ -461,13 +461,13 @@ service (similar to the Azure Worker Role).
 \alnote{merge 3.1 and 3.2}
 \subsection{Clouds Infrastructure}
 
-Different cloud services that aim to support Big Data analytics have
-emerged.  The foundation for the different Big Data offerings are
-different kind of storage services offered typically on IaaS
-level. These services typically have different characteristics,
-i.\,e.\ they usually differ in their read and/or write performance,
-supported data volumes, interfaces, reliability and scalability.
-\jhanote{consistency, semantics, replication..}
+Different cloud services that aim to support Big Data analytics have emerged.
+The foundation for the different Big Data offerings are different kind of
+storage services offered typically on IaaS level. These services typically
+have different characteristics, i.\,e.\ they usually differ in their read
+and/or write performance, supported data volumes, interfaces \& semantics,
+consistency guarantees, degree of replication, reliability, scalability etc.
+
 
 % An important component for data-intensive cloud applications are the
 % cloud storage services. 
@@ -534,7 +534,6 @@ key-/values stores are not considered.
 SQL-based storage types omitted)\alnote{make sure everything is referenced in table...}  \label{tab:storage-systems}}
 \end{table}
 
-% Limitations
 
 While some cloud services that support a high degree of geographic
 distribution have emerged, e.\,g.\ content delivery services such as
@@ -549,6 +548,36 @@ available as external cloud services. If an application requires such
 capabilities, it needs to implement these manually. In this paper we
 show how \pilot abstractions can help to manage geographically
 distributed data.
+
+\subsection{Data Management}
+
+In general, the following strategies for managing the distribution of compute 
+and data in cloud/grid environments exist~\cite{jha-katz-2013}:
+\begin{itemize}
+\item A: Data is naturally distributed, processing happens locally to
+	the data.
+\item B: Data is originally localized, but the data needs to be distributed to 		
+	match the distribution of compute resources.
+\item C: Data is moved so as to be localized (i.e., raw data is moved)
+\end{itemize}
+% We want to use hybrid infrastructures in all of these modes.
+
+In most cases, application data is initially pushed to a cloud storage
+service, such Amazon S3, Google Storage and Azure Storage. These service, such
+as S3, are well suited for storing large amounts and support typical
+data-intensive workloads (e.\,g.\ with a lot of sequential reads). Often,
+cloud providers make different type of data sets (e.\,g.\ the 1000 genome
+dataset) directly accessible from their central object store. By eliminating
+the initial data movement, the entry barrier to running computations on this
+data in the cloud is significantly decreased. 
+
+In many cases, however, data is too large to move and thus, must either be
+pre-processed or completely processed before it can be moved. Even within
+single clouds, the management of data across different regions is challenging,
+Amazon S3 e.\,g.\ replicates data geographically but only within a single
+region.
+
+
 
 
 \subsection{Data-intensive Applications}
@@ -595,9 +624,11 @@ environments.
 Analogous to \pilotjobs (referred to as \pilotcompute in the P* model), the
 {\it Pilot-Data} (PD) abstraction provides late-binding capabilities for data
 by separating the storage allocation and application-level
-\dataunits~\cite{pstar12}. For this purpose, the API defines the {\it
-\pilotdata (PD)} and {\it \dataunit (DU)} entity: A \pd function as a
-placeholder object that reserves storage spaces for a set of \dus. 
+\dataunits~\cite{pstar12}. \pilotdata capabilities include the creation of a 
+\pilotdata, the insertion/retrieval of Data-Units in/out of the \pilot, and 
+attachment of the \pilot to a storage pool. For this purpose, the API defines 
+the {\it \pilotdata (PD)} and {\it \dataunit (DU)} entity: A \pd function as a
+placeholder object that reserves storage spaces for the \dus. 
 
 The \pilot-API provides a well-defined interface for accessing the
 capabilities of a P* compliment PJ framework. It supports late-binding of
@@ -643,14 +674,15 @@ extension of \pilot abstractions for clouds; we focus on the following
 primary motivations:
 
 \begin{itemize}
-\item Pilots are a proven abstraction for resource effective
+\item \pilots are a proven abstraction for resource effective
   application-level resource management and thus provide a flexible
-  route to Cloud/Grid interoperability. E.g., Pilots as basis for
-  building capabilities in grids/clouds (PMR as example)
-\item Pilot-data provide interesting and advanced support for
-  data-compute utilization e.g., affinity-based scheduling/placement.
+  route to cloud/grid interoperability. For example, \pilots can be used as 
+  basis for building capabilities in grids/clouds; Pilot-MapReduce is a good 
+  example for this.
+\item \pilotdata provides interesting and advanced support for
+  data-compute utilization, e.\,g., affinity-based scheduling/placement.
 \item The use of hybrid infrastructures presents a comprehensive
-  approach to data-distribution to support large-scale data-analytics
+  approach to data-distribution to support large-scale data-analytics.
 \end{itemize}
 
 % \begin{verbatim}
@@ -669,7 +701,7 @@ primary motivations:
   introduction again, as well as the previous section on cloud data
   infrastructure}
 
-An oft and commonly cited use-case for clouds, is "cloud bursting".
+An oft and commonly cited use-case for clouds, is ``cloud bursting''.
 Interesting as it may be, we view the use of clouds as ``excess
 capacity'' as a less fundamental usage of distributed
 cyberinfrastructure, and more a transient but fortunate occurrence of
@@ -697,52 +729,6 @@ distribution given a desired architecture has been determined.
 \end{figure}
 
 
-
-\subsection{Cloud Data Management}
-
-In general, the following strategies for managing compute and
-data in distributed environments exist~\cite{jha-katz-2013}:
-\begin{itemize}
-\item A: Data is naturally distributed, processing happens locally to
-  the data.
-\item B: Data is originally localized, but the data needs to be distributed to match the distribution of compute resources.
-\item C: Data is moved so as to be localized (i.e., raw data is moved)
-\end{itemize}
-We want to use hybrid infrastructures in all of these modes.
-
-In most cases, application data is initially pushed to a cloud storage
-service, such Amazon S3, Google Storage and Azure Storage. These service, such
-as S3, are well suited for storing large amounts and support typical
-data-intensive workloads (e.\,g.\ with a lot of sequential reads). Often,
-cloud providers make different type of data sets (e.\,g.\ the 1000 genome
-dataset) directly accessible from their central object store. By eliminating
-the initial data movement, the entry barrier to running computations on this
-data in the cloud is significantly decreased.
-
-Also, within a single cloud, managing data locality is a great challenge. 
-Figure~\ref{fig:figures_storage-types} illustrates the different kind of 
-storages typically found in cloud environments. 
-
-\begin{figure}[t]
-	\centering
-		\includegraphics[width=0.6\textwidth]{figures/storage-types.pdf}
-                \caption{Pilot-Compute and Pilot-Data on Different
-                  Types of Storage Resources}
-	\label{fig:figures_storage-types}
-      \end{figure}
-
-Another important aspect is that in many cases the data is too large
-to move and thus, must either be pre-processed or completely processed
-before it can be moved. Even within single clouds, the management of
-data across different regions is challenging, Amazon S3
-e.\,g.\ replicates data geographically but only within a single
-region. To manage distributed data efficiently, i.\,e.\ data/compute
-affinities, data movements, etc., higher-level of abstractions are
-required. 
-
-\jhanote{unclear what HLA here implies} \jhanote{In general I think
-  this sub-section can be absorbed. We already have Section 3. Refer
-  to parts of it? Move some parts there?}
 
 \subsection{Pilot-Abstractions for Clouds: BigJob and BigData}
 
@@ -803,6 +789,12 @@ and compute resources that provide an Amazon S3 respectively EC2 compliant
 interface. The Google cloud adaptors directly access the Google services via
 the Google Python API client~\cite{google-api-client}.
 
+ 
+
+\jhanote{unclear what HLA here implies} \jhanote{In general I think
+  this sub-section can be absorbed. We already have Section 3. Refer
+  to parts of it? Move some parts there?}
+
 
 
 
@@ -850,6 +842,8 @@ compute_unit_description = {
 }
 \end{lstlisting}
 
+T
+
 \alnote{
 Distinguish data movement into cloud and intra cloud is important
 No shared file system, but S3 as object store (cache)
@@ -858,19 +852,71 @@ No shared file system, but S3 as object store (cache)
 
 \subsection{Affinities and Scheduling}
 
-\pilot abstraction provide the basis for application-level scheduling. 
-Applications can make placement decisions based on the \pilots it has 
-acquired. Additionally, applications can rely on an application-level 
-scheduling service as provided by BigJob and BigData. This service is exposed 
-via the \computedataservice interface and accepts both \cus and \dus.
+\pilot abstraction provide the basis for application-level scheduling.
+Applications can make placement decisions based on the \pilots it has
+acquired. Additionally, applications can rely on an application-level
+scheduling service as provided by BigJob and BigData. This service is exposed
+via the \computedataservice interface and accepts both \cus and \dus. The
+service decides how and when to place data and schedule its movement.
 
-The scheduler of the \computedataservice relies on affinity as first entity to
-describe relationships between \dus, \cus and resources. Affinities are an
-essential tool for modeling the different storage characteristics and to allow
-an effective reasoning about different storage topologies and data/compute
-placements.
+The framework relies on affinity descriptions for resources and \pilots to 
+efficiently manage the different kinds of storage as well as distribution of 
+data/compute across WAN. As explained before, even within a single cloud, 
+managing data locality is a great challenge due the various storage options. 
+Figure~\ref{fig:figures_storage-types} summarized the different kinds of 
+storage options an application has to manage. 
 
-\alnote{How to map affinities across grids and clouds?}
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.6\textwidth]{figures/storage-types.pdf}
+                \caption{Pilot-Compute and Pilot-Data on Different
+                  Types of Storage Resources}
+	\label{fig:figures_storage-types}
+\end{figure}
+
+
+
+\pilot-abstractions not only provide a uniform interface to these different
+kinds of storage, the also support application-level scheduling. The core of
+the \pilot-manager is an affinity-aware scheduler. BigJob and BigData support
+different forms of data/compute affinities via the \computedataservice. The
+internal scheduler of the \computedataservice relies on affinity as first
+entity to describe relationships between \dus, \cus and resources. Affinities
+are an essential tool for modeling the different storage characteristics and
+to allow an effective reasoning about different storage topologies and
+data/compute placements.
+
+For this purpose, every resource is assigned an affinity label.
+Figure~\ref{fig:figures_affinities} shows how a distributed system consisting
+of different types of cloud and grid resources can be modeled. The shorter the 
+distance between two nodes, the higher the affinity. Commercial clouds, such 
+as Amazon and Google, are typically organized into geographic regions. Within 
+each region multiple availability zones exist. Commonly, data movements 
+between the lower-level availability zones are cheap and fast, while movements 
+between regions costs some significant amount on money and time. Even worse 
+are movements between infrastructure, e.\,g.\ between Amazon, Google and 
+FutureGrid.
+
+
+\begin{figure}[t]
+	\centering
+		\includegraphics[width=0.6\textwidth]{figures/affinities.pdf}
+	\caption{\textbf{Managing Affinities between Cloud and Grid Resources:} \pilotdata assigns each resource an affinity based on a simple hierarchical model.}
+	\label{fig:figures_affinities}
+\end{figure}
+
+Each of the storage types in figure~\ref{fig:figures_storage-types} can be 
+assigned an affinity. The model is able to deal with subtle differences 
+between clouds and grids/clouds. For example, at Amazon S3 is service that is 
+confined by a single region, while Google Storage spawns multiple regions.
+
+The \computedataservicescheduler matches the affinity requirements of a 
+\cu/\du with the available set of resources before assigning it to a \pilot. 
+\cus are placed closed to a \du. Before a \cu is actually run, the \du is 
+exported to the working directory of the \cu. In the cloud cases e.\,g.\ this 
+means that the data is copied from an object store to the local filesystem 
+where the \cu runs.
+
 
 \section{Pilot-MapReduce for Clouds}
 
@@ -935,14 +981,16 @@ size 1\,GB. Figure~\ref{fig:performance_pd_google_aws} shows the results.
 Typically, data movement into the cloud are more expensive than intra-cloud
 data movements. In this particular scenario the data ingest time for clouds
 varies between $~$4\,minutes (for Amazon) and $~$18\,minutes. The primary
-determinant of this time is the available Internet bandwidth. However, once
-the data is in the cloud, it can be re-used multiple times. In the
-investigated scenario the data ingest time for Google Compute Engine is about
-5 times larger than for Amazon \alnote{could be potentially a compression
-issue... just redoing experiments}. In this case Amazon gives you more option
-to select a locality for your data -- in this scenario the region us-east was
-used. For Google Storage it is only possible to select between the US and
-Europe.
+determinant of this time is the available Internet bandwidth. Once the data is
+in the cloud, it can be re-used multiple times. While the ingest performance
+is determined by external factors (currently utilization of the Internet
+connection), in the investigated scenario the data transfer time is
+consistently higher Google Compute Engine than for Amazon. The external
+dependency on Internet bandwidth is the high standard deviation (that is
+mainly caused by the data ingest phase). Also, it must be noted that Amazon
+gives you more option to select a location for your data -- in this scenario
+the region us-east, which is close to the hotel resource, was used. For Google 
+Storage it is only possible to select between the US and Europe.
 
 With respect to the \pilot startup time (which includes the VM startup time), 
 GCE is clearly faster than Amazon EC2. Also, the available intra-cloud 
