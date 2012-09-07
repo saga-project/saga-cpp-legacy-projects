@@ -466,8 +466,8 @@ services: FutureGrid e.\,g.\ offers Hadoop appliances~\cite{2016793} and
 Venus-C~\cite{venusc-generic-worker} provides a generalized worker role
 service (similar to the Azure Worker Role).
 
-\alnote{merge 3.1 and 3.2}
-\subsection{Clouds Infrastructure}
+% \alnote{merge 3.1 and 3.2}
+\subsubsection*{Clouds Infrastructure}
 
 Different cloud services that aim to support Big Data analytics have emerged.
 The foundation for the different Big Data offerings are different kind of
@@ -495,33 +495,55 @@ type (i) and (ii) storage is commonly integrated via the Linux virtual
 filesystem layer and thus, is suitable in particular for legacy,
 file-based applications.
 
-A novel type of storage introduced by cloud environments are (iii)
-object stores, which are highly distributed storage systems that can
-potentially spawn across multiple data centers. Object store are
-optimized primarily for ``write once, read many'' workloads and can
-support massive volumes of data with their scale-out
-architectures. For example, Amazon S3 automatically replicates data
-across multiple data centers within a region. However, these kind of
-stores are not suitable for all workloads (e.\,g.\ traditional,
-transactional workloads). However, typical Big Data workloads that (i)
-require the storage of large volumes of data and (ii) are
-characterized by a large amount of reads are particularly suitable for
-such stores. Access to such storage systems via a common -- often
-simplified -- namespace and API. For example, cloud systems, such as
-the Azure Blob Storage, Amazon S3 and Google Storage, provide only a
-namespace with a 1-level hierarchy. This means that applications needs
-to be adapted to benefit from the advantages of object storage. The
-most widely used object stores are: Amazon S3~\cite{amazons3}, Azure
-Storage~\cite{azure-blob-storage} and Google Cloud
-Storage~\cite{google-storage}. A major limiting factor, is the
-necessity to ingest large volumes of data over the WAN. Large volume
-data transfer are associated with high costs and unpredictable and/or
-unacceptable performance.
+A novel type of storage introduced by cloud environments are (iii) object
+stores, which are highly distributed storage systems that can potentially
+spawn across multiple data centers. Object store are optimized primarily for
+``write once, read many'' workloads and can support massive volumes of data
+with their scale-out architectures. For example, Amazon S3 automatically
+replicates data across multiple data centers within a region. However, these
+kind of stores are not suitable for all workloads (e.\,g.\ traditional,
+transactional workloads). However, typical Big Data workloads that (i) require
+the storage of large volumes of data and (ii) are characterized by a large
+amount of reads are particularly suitable for such stores. Access to such
+storage systems via a common -- often simplified -- namespace and API. For
+example, cloud systems, such as the Azure Blob Storage, Amazon S3 and Google
+Storage, provide only a namespace with a 1-level hierarchy. This means that
+applications needs to be adapted to benefit from the advantages of object
+storage. The most widely used object stores are: Amazon S3~\cite{amazons3},
+Azure Storage~\cite{azure-blob-storage} and Google Cloud
+Storage~\cite{google-storage}. In addition, both Eucalyptus and OpenStack
+provide an object store: Eucalyptus Walrus~\cite{walrus} and OpenStack
+Swift~\cite{openstack-swift}. A major limiting factor, is the necessity to
+ingest large volumes of data over the WAN. Large volume data transfer are
+associated with high costs and unpredictable and/or unacceptable performance.
 
-Table~\ref{tab:storage-systems} shows an overview of distributed
-storage systems. The focus of this analysis are file-based storage
-systems. Structured storage types (e.g. relational databases) and
-key-/values stores are not considered.
+Table~\ref{tab:storage-systems} shows an overview of distributed storage
+systems. In addition to the described object stores and local storage that is
+directly attached to the VM, each cloud infrastructure provides several
+further storage options. The focus of this analysis are file-based storage
+systems. Structured storage types (e.g. relational databases) and key-/values
+stores are not considered. Azure Drive~\cite{azure-drive}, Amazon
+EBS~\cite{baron2010} and Google Compute Engine Disks~\cite{gce_disks} are
+comparable block-based storage service that provide storage that can directly
+be attached as device to a VM. Some services support special features, e.\,g.\
+Azure Drive can be backed by both page and block blobs optimizing for random
+respectively sequential access; Amazon EBS supports guaranteed I/O on EBS
+volumes. Similar, services exist for both Eucalyptus and OpenStack: Eucalyptus
+Block Storage~\cite{euca-block} and Nova Volume~\cite{nova-volume}.
+
+On traditional HPC and HTC infrastructure the notion of dynamically
+provisioned storage does not exist. However, in particular HPC
+infrastructures, such as XSEDE, typically provides access to a parallel
+filesystem, such as Lustre~\cite{lustre} or
+GPFS~\cite{Schmuck:2002:GSF:1083323.1083349}. On the Open Science Grid (OSG)
+only local storage is available. In addition, both infrastructures provide or
+are going to deploy distributed storage services: The Global Federated File
+System (GFFS)~\cite{gffs} is currently evaluated in the context of XSEDE. GFFS
+provides a global namespace on top of various XSEDE storage resources. The
+system handles file movement, replication etc. transparently. OSG deploys 
+several SRM-based storage services~\cite{srm-ogf}.
+
+
 
 \begin{table}[t]
 \centering
@@ -531,33 +553,21 @@ key-/values stores are not considered.
 	\hline
 	Local	&yes &yes &yes &yes &yes &yes &yes\\
 	\hline
-	Remote &Azure Drive &EBS &GCE Block Storage &Nova Volumes &EUCA Block Storage &Lustre, GPFS 
+	Remote &Azure Drive &EBS &GCE Disks &Nova Volumes &EUCA Block Storage &Lustre, GPFS 
 	&no\\
 	\hline
-	Object Storage &Azure Blob Storage &S3 &Google Storage &Swift & Walrus &GFFS
+	Distributed Storage &Azure Blob Storage &S3 &Google Storage &Swift & Walrus &GFFS
 	 &SRM\\
 	\hline	
 \end{tabular}
-\caption{File-based storage types for different infrastructures (key/value and 
-SQL-based storage types omitted)\alnote{make sure everything is referenced in table...}  \label{tab:storage-systems}}
+\caption{\textbf{Storage Types Supported by the Different Infrastructures:} 
+Each infrastructure supports various storage options. Most commonly, storage 
+is mounted as a local or remote filesystem. Distributed object storage 
+provides some interesting characteristics for data-intensive applications. 
+\label{tab:storage-systems}}
 \end{table}
 
-
-While some cloud services that support a high degree of geographic
-distribution have emerged, e.\,g.\ content delivery services such as
-Akamai and Amazon CloudFront, dealing with geographically distributed
-data remains a challenge. However, both Google and Facebook internally
-deploy systems that supports the management of large data volumes
-across multiple, geographically dispersed locations. Both Google
-Spanner~\cite{dean09} and Facebook Prism~\cite{Metz12} aim to provide
-one logical namespace and handle the automatic replication and
-movement of data. However, these capabilities are currently not
-available as external cloud services. If an application requires such
-capabilities, it needs to implement these manually. In this paper we
-show how \pilot abstractions can help to manage geographically
-distributed data.
-
-\subsection{Data Management}
+\subsubsection*{Data Management:}
 
 In general, the following strategies for managing the distribution of compute 
 and data in cloud/grid environments exist~\cite{jha-katz-2013}:
@@ -579,16 +589,29 @@ dataset) directly accessible from their central object store. By eliminating
 the initial data movement, the entry barrier to running computations on this
 data in the cloud is significantly decreased. 
 
-In many cases, however, data is too large to move and thus, must either be
+Often, data is too large to move and thus, must either be
 pre-processed or completely processed before it can be moved. Even within
-single clouds, the management of data across different regions is challenging,
-Amazon S3 e.\,g.\ replicates data geographically but only within a single
+single clouds, the management of data across different regions is challenging, 
+e.\,g.\ Amazon S3  replicates data geographically but only within a single
 region.
 
+While some cloud services that support a high degree of geographic
+distribution have emerged, e.\,g.\ content delivery services such as
+Akamai and Amazon CloudFront, dealing with geographically distributed
+data remains a challenge. However, both Google and Facebook internally
+deploy systems that supports the management of large data volumes
+across multiple, geographically dispersed locations. Both Google
+Spanner~\cite{dean09} and Facebook Prism~\cite{Metz12} aim to provide
+one logical namespace and handle the automatic replication and
+movement of data. However, these capabilities are currently not
+available as external cloud services. If an application requires such
+capabilities, it needs to implement these manually. In this paper we
+show how \pilot abstractions can help to manage geographically
+distributed data.
 
 
 
-\subsection{Data-intensive Applications}
+\subsubsection*{Cloud Applications:}
 
 While cloud environments have traditionally deployed in commercial settings,
 more and more science applications utilize to some extend cloud resources or
@@ -596,26 +619,24 @@ are natively developed for clouds. While traditional HPC applications -- often
 based on MPI -- show limitations in cloud
 environments~\cite{Evangelinos2008,Mehrotra:2012:PEA:2287036.2287045}, there
 is a broad class of loosely-coupled applications that is well-suited for
-clouds~\cite{1851544,Sehgal2011590}.
+clouds~\cite{1851544,Sehgal2011590}. There is a large class of data-intensive
+applications that is loosely coupled and thus very well-suitable for cloud
+environments, e.\,g.\ genome sequencing applications or applications based on
+the replica-exchange algorithm~\cite{bigjob_cloudcom10}.
 
-There is a large class of data-intensive applications that is loosely
-coupled and thus very well-suitable for cloud environments, e.\,g.\
-genome sequencing applications. In particular, Hadoop~\cite{hadoop}
-has become an important building block for different data-intensive
-services in clouds. Amazon e.\,g.\ offers with Elastic MapReduce
-(EMR)~\cite{amazonemr} a pay per use MapReduce clusters. EMR is based
-on Amazon EC2 and S3 and supports out-of-the-box both the open source
-and the MapR Hadoop distribution. It includes, not only the
-Hadoop core, but also Hive, Pig and HBase. Amazon provides an file
-system adaptor for S3, i.\,e.\ data can be streamed from S3 into
-Hadoop.  Microsoft provides a similar service based on the Hortonworks
-Hadoop platform~\cite{hortonworks} called to Hadoop on
-Azure~\cite{hadooponazure}.  Also, various markets for data in the
-cloud have emerged. Cloud providers, such as Amazon and Microsoft
-published various scientific data set in these markets. Amazon e.\,g.\
-provides access to 200\,TB of data of the 1000 genome
-project~\cite{amazon-1000genomes} and the CloudBurst Hadoop
-application~\cite{schatz2009}.
+Also, Hadoop~\cite{hadoop} has become an important building block for
+many data-intensive applications in clouds. Amazon e.\,g.\ offers with
+Elastic MapReduce (EMR)~\cite{amazonemr} a pay per use MapReduce clusters. EMR
+is based on Amazon EC2 and S3 and supports out-of-the-box both the open source
+and the MapR Hadoop distribution. It includes, not only the Hadoop core, but
+also Hive, Pig and HBase. Amazon provides an file system adaptor for S3,
+i.\,e.\ data can be streamed from S3 into Hadoop. Microsoft provides a similar
+service based on the Hortonworks Hadoop platform~\cite{hortonworks} called to
+Hadoop on Azure~\cite{hadooponazure}. Also, various markets for data in the
+cloud have emerged. Cloud providers, such as Amazon and Microsoft published
+various scientific data set in these markets. Amazon e.\,g.\ provides access
+to 200\,TB of data of the 1000 genome project~\cite{amazon-1000genomes} and
+the CloudBurst Hadoop application~\cite{schatz2009}.
 
 
 
@@ -722,7 +743,7 @@ distribution given a desired architecture has been determined.
 %and details of how to manage the distribution of data.
 
 \jhanote{Important Point: How do we handle affinity across different
-  infrastructures: grid-cloud}
+  infrastructures: grid-cloud} \alnote{see Figure 5 in section 4.4}
 
 
 % Timeframe of infrastructure change is much larger than for application
@@ -941,8 +962,12 @@ framework.
 
 PMR allocates both storage and compute resources using \pilot abstractions, in
 particular the BigJob and BigData implementation. Having spawned a set of
-\pilots, PMR can flexibly utilized for them for executing map and reduce tasks
-as well as for managing the input, intermediate and output data. The Pilot-API, interface to BigJob and BigData, provides flexibility to specify distributed management of input/output data via Data Units to/from Compute Units. The Pilot-API also provides late-binding of compute and data, thus providing affinity between compute and data.
+\pilots, PMR can flexibly utilize them for executing map and reduce tasks as
+well as for managing the input, intermediate and output data. The Pilot-API,
+provides the flexibility to specify distributed management of input/output
+data via the \dataunit and \computeunit abstraction. The Pilot-API also
+provides late-binding of compute and data, thus providing affinity between
+compute and data. \alnote{because the api provides late binding, we have provide affinity... needs refinement}
 
 PMR relies on BigJob to launch MapReduce workers through a set of \pilots. 
 The MR Workers are responsible for running chunk, map and/or reduce tasks. 
@@ -971,7 +996,9 @@ The architecture and workflow of PMR on grids and clouds is similar and thus ens
 
 \alnote{Add layered diagram (incl. PMR) of software stack for different 
 infrastructures}
-%\pmnote{ is it just adding a Pilot-MapReduce layer to Fig:1 ? }
+
+\alnote{TODO: Can we add a paragraph on distributed mapreduce. Maybe extending figure 6 to a more distributed or heterogeneous scenario}
+
 
 \section{Experiments}
 
