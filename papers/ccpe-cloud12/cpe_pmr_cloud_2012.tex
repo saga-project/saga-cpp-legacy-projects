@@ -1009,7 +1009,7 @@ in between.
 \begin{wrapfigure}{r}{0.5\textwidth}
 	\centering
 		\includegraphics[width=0.5\textwidth]{figures/data-flow.pdf}
-	\caption{DU and CU Interactions and Data Flow}
+	\caption{\textbf{DU and CU Interactions and Data Flow:} Each \cu can specify a set of input \du (residing in potential different \pd). The framework will ensure that the \du is staged to the working directory of the \cu. Having terminated the job, the specified output is moved to the output \du.}
 	\label{fig:figures_data-flow}
 \end{wrapfigure}
 
@@ -1055,36 +1055,62 @@ Applications can make placement decisions based on the \pilots it has
 acquired. Additionally, applications can rely on an application-level
 scheduling service as provided by BigJob and BigData. This service is exposed
 via the \computedataservice interface and accepts both \cus and \dus. The
-service decides how and when to place data and schedule its movement.
+service decides how and when to place data and schedule its movement. 
 
 \jhanote{first sentence is unclear, also maybe provide a brief
-  definition of affinity first?} The framework relies on affinity
-descriptions for resources and \pilots to efficiently manage the
-different kinds of storage as well as distribution of data/compute
-across WAN. As explained before, even within a single cloud, managing
-data locality is a great challenge due the various storage options.
-Figure~\ref{fig:figures_storage-types} summarized the different kinds
-of storage options an application has to manage.
+  definition of affinity first?} 
+
+We use {\it affinities} to describe resource relationship between \cus, \dus,
+and resources (i.\,e.\ \pilots). A simple model for describing such
+relationships is used: data centers and machines are represented as a tree
+(see Figure~\ref{fig:figures_affinities}). The further the distance between
+two resources, the smaller the affinity. The framework relies on this affinity
+description to efficiently manage the different kinds of storage as well as
+distribution of data/compute across WAN.
+
+% Each \pilot can specified the required affinity in it's description (see listing~\ref{lst:pilot_compute_affinity}).
+% 
+% \begin{code}[
+% caption={Creation of a \textit{PilotCompute} on the specified  compute
+% resource endpoint.},
+% label={lst:pilot_compute_affinity}]
+% pilot_compute_description = 
+% {
+%     "service_url":"s3://aws.amazon.com",
+%     "number_of_processes": 1,                             
+%     "working_directory": "/tmp/pilot-compute/",
+%     "affinity_datacenter_label": "us-east-1a"              
+% }
+% \end{code}
+
 
 \begin{wrapfigure}{r}{0.5\textwidth}
 	\centering
 		\includegraphics[width=0.48\textwidth]{figures/storage-types.pdf}
-                \caption{Pilot-Compute and Pilot-Data on Different
-                  Types of Storage Resources}
+                \caption{\textbf{Pilot-Compute and Pilot-Data on Different
+                                Types of Storage Resources:} BigJob/BigData 
+				supports various types of resources. Affinities allow the user 
+				to describe the 
+				relationship between different types of resources enabling the 
+				scheduler to efficiently make placement decisions. }
 	\label{fig:figures_storage-types}
 \end{wrapfigure}
 
+As explained before, even within a single cloud, managing data locality is a
+great challenge due the various storage options.
+Figure~\ref{fig:figures_storage-types} summarized the different kinds of
+storage options an application has to manage. \pilot-abstractions not only
+provide a uniform interface to these different kinds of storage, the also
+support application-level scheduling. The core of the \pilot-manager is an
+affinity-aware scheduler. BigJob and BigData support different forms of
+data/compute affinities via the \computedataservice. The internal scheduler of
+the \computedataservice relies on affinity as first entity to describe
+relationships between \dus, \cus and resources. Affinities are an essential
+tool for modeling the different storage characteristics and to allow an
+effective reasoning about different storage topologies and data/compute
+placements. BJ relies on affinity label for describing resource topology.
 
 
-\pilot-abstractions not only provide a uniform interface to these different
-kinds of storage, the also support application-level scheduling. The core of
-the \pilot-manager is an affinity-aware scheduler. BigJob and BigData support
-different forms of data/compute affinities via the \computedataservice. The
-internal scheduler of the \computedataservice relies on affinity as first
-entity to describe relationships between \dus, \cus and resources. Affinities
-are an essential tool for modeling the different storage characteristics and
-to allow an effective reasoning about different storage topologies and
-data/compute placements.
 
 
 Every \pilot is assigned an affinity label in the resource description.
@@ -1102,12 +1128,10 @@ runtime system then ensures that the data and compute affinity requirements of
 the \cu/\du are met.
 
 
-
-
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.6\textwidth]{figures/affinities.pdf}
-	\caption{\textbf{Managing Affinities between Cloud and Grid Resources:} \pilotdata assigns each resource an affinity based on a simple hierarchical model.}
+	\caption{\textbf{Managing Affinities between Cloud and Grid Resources:} \pilotdata assigns each resource an affinity based on a simple hierarchical model. The smaller the distance between two resources, the larger the affinity.}
 	\label{fig:figures_affinities}
 \end{figure}
 
