@@ -911,8 +911,8 @@ distribution given a desired architecture has been determined.
 abstractions... - sequence chart?!}
 \alnote{Should we always refer to BigJob and BigData or just BigJob?}
 
-Consistent with the P* model, BigJob~\cite{saga_bigjob_condor_cloud} and
-BigData~\cite{Mantha:2012:PEF:2287016.2287020} provide a unified runtime
+Consistent with the P* model, BigJob (BJ)~\cite{saga_bigjob_condor_cloud} and
+BigData (BD)~\cite{Mantha:2012:PEF:2287016.2287020} provide a unified runtime
 environment for \pilotcomputes and \pilotdata on heterogeneous infrastructures
 (see Figure~\ref{fig:figures_cloud_pilot_job}). For this purpose, BigJob
 provides a higher-level, unifying interface to heterogeneous and/or
@@ -924,7 +924,7 @@ respectively the \pilotdataservice.
 
 \pilotjobs eliminate the need to interact with different kinds of compute 
 resources, e.\,g.\ batch-style HPC/HTC resources as well as cloud resources, 
-and provide a unified abstraction for allocation such resources. Similarly, 
+and provide a unified abstraction for allocating resources. Similarly, 
 \pilotdata removing the need to interoperate with different data sources and 
 stores, e.\,g.\ repositories, databases etc, by providing a virtualized data 
 service layer, which can be used to allocated and access a heterogeneous set 
@@ -941,47 +941,47 @@ of data sources and stores.
 	\label{fig:figures_bigjob-bigdata-architecture}
 \end{wrapfigure}
 
-Figure~\ref{fig:figures_bigjob-bigdata-architecture} shows the architecture
-of BigJob/BigData. The \pilot-Manager is the central entity, which manages the
-actual Pilot, the \pilot-Agent. Each agent is responsible for gathering local
-information, for pulling \computeunits from the manager. The framework relies
-on a central coordination service based on Redis~\cite{redis} for
+Figure~\ref{fig:figures_bigjob-bigdata-architecture} shows the architecture of
+BigJob/BigData. The \pilot-Manager is the central entity, which manages the
+actual \pilots via the \pilot-Agent. Each agent is responsible for gathering
+local information, for pulling \computeunits from the manager. The framework
+relies on a central coordination service based on Redis~\cite{redis} for
 communication between manager and agent.
 
 As shown in Figure~\ref{fig:figures_cloud_pilot_job} BigJob/BigData supports
 various storage and compute resource types via a flexible plugin architecture.
-In addition to SAGA, BJ can natively utilize both the EC2 and GCE API to
-launch \pilot-Agents. The EC2-API~\cite{amazonec2api} is the de facto standard
-for managing VMs in clouds and can also be used for accessing different
-science clouds, e.\,g.\ the Eucalyptus and OpenStack cloud of FutureGrid.
-Google Compute Engine provides modern HTTP/REST/JSON and OAUTH for
-authentication.
+For \pilotcomputes BJ supports various types of HPC/HTC resources via
+SAGA/Bliss (e.\,g.\ Globus, Torque or Condor resources). Further, various
+cloud plugins have been developed for supporting EC2-style backends as well as
+Google Compute Engines. The plugin utilizes the native EC2 and GCE API for
+launching the VM: for EC2 the Boto library~\cite{boto} and for GCE 
+the Google Python API client~\cite{google-api-client} is used.
+The EC2-API~\cite{amazonec2api} is the de facto standard for
+managing VMs in clouds and can also be used for accessing different science
+clouds, e.\,g.\ the Eucalyptus and OpenStack cloud of FutureGrid. Google
+Compute Engine provides modern HTTP/REST/JSON and OAUTH for authentication.
+Having started the VM, the \pilot-Agent is launched using SAGA and the SSH
+adaptor of SAGA.
 
-A \pilotdata can be placed on different types of storage, e.\,g.\ a local or
-remote filesystem or on object stores as often found in cloud environments.
-Depending on the storage type different access respectively transfer protocols
-are supported. For example, local/remote storage both on grid and cloud
-resources can be managed via SSH. On production grid infrastructures, such as
-XSEDE~\cite{xsede}, this kind of storage can also be accessed via Globus
-Online~\cite{10.1109/MIC.2011.64}, which underneath relies on
-GridFTP~\cite{ogf-gfd-20} for file movement etc. A particularity of cloud
+Similarly, a \pilotdata can be placed on different types of storage, e.\,g.\ a
+local or remote filesystem or on object stores as often found in cloud
+environments. Depending on the storage type different access respectively
+transfer protocols are supported. For example, local/remote storage both on
+grid and cloud resources can be managed via SSH. On production grid
+infrastructures, such as XSEDE~\cite{xsede}, this kind of storage can also be
+accessed via Globus Online~\cite{10.1109/MIC.2011.64}, which underneath relies
+on GridFTP~\cite{ogf-gfd-20} for file movement etc. A particularity of cloud
 environments are the described object stores. Object stores are typically
 accessed via custom API typically based on HTTP/REST. For example, the Amazon
 S3 API~\cite{amazons3api} is based on HTTP and XML and is also supported by
-Eucalyptus Walrus and OpenStack Swift.
-
-BigJob and BigData rely on the Boto library~\cite{boto} for accessing storage
-and compute resources that provide an Amazon S3 respectively EC2 compliant
-interface. The Google cloud adaptors directly access the Google services via
-the Google Python API client~\cite{google-api-client}.
+Eucalyptus Walrus and OpenStack Swift. Google Storage provides two APIs: an S3 
+compatible and a JSON-based REST API. Again, Boto is used for S3-based storage 
+resources and the Google Python API client for Google Storage. 
 
  
-
 % \jhanote{unclear what HLA here implies} \jhanote{In general I think
 %   this sub-section can be absorbed. We already have Section 3. Refer
 %   to parts of it? Move some parts there?}
-
-
 
 
 \subsection{Pilot-API: Managing Data and Compute Dependencies}
@@ -1074,16 +1074,22 @@ are an essential tool for modeling the different storage characteristics and
 to allow an effective reasoning about different storage topologies and
 data/compute placements.
 
-For this purpose, every resource is assigned an affinity label.
-Figure~\ref{fig:figures_affinities} shows how a distributed system consisting
-of different types of cloud and grid resources can be modeled. The shorter the 
-distance between two nodes, the higher the affinity. Commercial clouds, such 
-as Amazon and Google, are typically organized into geographic regions. Within 
-each region multiple availability zones exist. Commonly, data movements 
-between the lower-level availability zones are cheap and fast, while movements 
-between regions costs some significant amount on money and time. Even worse 
-are movements between infrastructure, e.\,g.\ between Amazon, Google and 
-FutureGrid.
+
+Every \pilot is assigned an affinity label in the resource description.
+Affinities are organized in an hierarchical way.
+Figure~\ref{fig:figures_affinities} shows e.\,g.\ how a distributed system
+consisting of different types of cloud and grid resources can be modeled. The
+shorter the distance between two nodes, the higher the affinity. Commercial
+clouds, such as Amazon and Google, are typically organized into geographic
+regions. Within each region multiple availability zones exist. Commonly, data
+movements between the lower-level availability zones are cheap and fast, while
+movements between regions costs some significant amount on money and time.
+Even worse are movements between infrastructure, e.\,g.\ between Amazon,
+Google and FutureGrid. Both \cus and \dus can request a certain affinity. The 
+runtime system then ensures that the data and compute affinity requirements of 
+the \cu/\du are met.
+
+
 
 
 \begin{figure}[t]
@@ -1330,6 +1336,8 @@ e.\,g.\ PMR provides a \pilot-based implementation of the MapReduce
 programming model.
 
 Extend to other data-intensive abstractions: all-pairs, stream processing
+
+OCCI
 
 \section*{Acknowledgements}
 This work is funded by NSF CHE-1125332 (Cyber-enabled Discovery and
