@@ -83,6 +83,7 @@
 \newcommand{\computedataservice}{Compute-Data Service\xspace}
 \newcommand{\pilotmapreduce}{PilotMapReduce\xspace}
 \newcommand{\mrmg}{MR-Manager\xspace}
+\newcommand{\pstar}{P*\xspace}
 \newcommand{\pd}{PD\xspace}
 \newcommand{\pj}{PJ\xspace}
 \newcommand{\pjs}{PJs\xspace}
@@ -487,36 +488,103 @@ application/application-level patterns.
 	\item other middleware that support hybrid grid/cloud environments (e.g. cloudbus)
 \end{itemize}
 
-\subsubsection*{Prior Work:}
-\alnote{needs to be aligned with 5; add paragraph on P*, }
-\begin{itemize}
+\subsection*{Prior Work:}
+% %\alnote{needs to be aligned with 5; add paragraph on P*, }
+% \begin{itemize}
 
-\item {\it Pilot-Jobs}: 
-The seamless uptake of distributed infrastructures by scientific applications has been limited by the lack of pervasive and simple-to-use abstractions at multiple levels – at the development, deployment and execution stages. Pilot-Jobs support effective distributed resource utilization, and are arguably one of the most widely-used distributed computing abstractions – as measured by the number and types of applications that use them, as well as the number of production distributed cyberinfrastructures that support them. 
+Whereas we will discuss in greater Sections \S4 and 5 some of the
+concepts upon which this paper is built, for completeness we briefly
+outline them here.
 
-\item {\it P* Model}: 
-In spite of broad uptake, there does not exist a well-defined, unifying conceptual model of Pilot-Jobs which can be used to define, compare and contrast different implementations. Often Pilot-Job implementations are strongly coupled to the distributed cyberinfrastructure they were originally designed for. These factors present a barrier to extensibility and interoperability.
-The P* Model provides a conceptual basis to compare and contrast different PJ frameworks. Natural and logical extension to the base P* Model lead to an abstraction analogous to Pilot-Job: the Pilot-Data (PD) abstraction. The potentially consistent treatment of data and compute suggests symmetrical compute and data elements in the model; thus we refer to this model as the P* Model of Pilot Abstractions.
+\noindent {\it Towards a Theoretical Model of Pilot-Jobs and
+  Interoperable Implementations: } The seamless uptake of distributed
+infrastructures by scientific applications has been limited by the
+lack of pervasive and simple-to-use abstractions at multiple levels –
+at the development, deployment and execution stages. Of all the
+abstractions proposed to support effective distributed resource
+utilization, a survey of actual usage suggested that \pilotjobs were
+arguably one of the most widely-used distributed computing
+abstractions – as measured by the number and types of applications
+that use them, as well as the number of production distributed
+cyberinfrastructures that support them.  Our initial
+investigation~\cite{Luckow:2008la} into \pilot-abstractions
+was motivated by the desire to provide a single \pilotjob framework
+that would work over heterogeneous and myriad grid middleware.
 
-\item {\it Pilot-MapReduce}:  P* Model of Pilot abstractions provides a flexible and effective management of compute and data on distributed CyberInfrastructures. The P* abstractions support management of DCI by various data and compute intensive programming models. MapReduce programming model is a popular solution for distributed data processing and involves map and reduce (compute) phases, and a shuffle (data movement) phase. Traditional MapReduce implementations like Hadoop are
-typically designed for single clusters and when scaled across widely
-distributed clusters lead to performance problems. Deployment of Hadoop
-cluster on shared dynamic resource pool also involves manual management of
-compute and data resources and managing workflows involving MapReduce
-execution patterns becomes tedious. Policies of cyberInfrastructures doesn't
-allow to execute Hadoop on more than one cluster. These limitations of
-traditional implementations and capabilities of  P* Model motivated to develop a Pilot abstractions based MapReduce programming model - Pilot-MapReduce for distributed data analysis.
+This led to BigJob~\cite{saga_bigjob_condor_cloud} -- a SAGA-based
+\pilotjob, which was used to support a range of applications, ranging
+from uncoupled ensembles of molecular dynamics (MD)
+simulations~\cite{saga_bigjob_condor_cloud}, to ensemble-Kalman filter
+based applications~\cite{gmac09} with global synchronization to
+loosely-coupled MD simulations with pair-wise
+synchronization~\cite{async_repex11}.  Although BigJob provided the
+syntactical uniformity, i.e., a common API and framework for different
+grids, our experience led us to understand that different \pilotjobs
+had different semantics and capabilties, and made vast if not
+inconsistent assumptions of applications/users. This motivated our
+efforts in search of a common minimally complete model of \pilotjobs,
+and resulted in the \pstar model~\cite{pstar12}.
 
-Pilot-MapReduce decouples the logic/pattern of MapReduce from the actual
-management of the distributed compute, data and network resources. By
-decoupling job scheduling and monitoring from the resource management, PMR can
-efficiently reuse the resource management and late-binding capabilities of
-BigJob and BigData, which are SAGA based Pilot-Job and Pilot-Data
-implementations.
+Once a common and uniform conceptual model was available, the notion
+of \pilotdata was conceived using the power of symmetry, i.e., the
+notion of \pilotdata was as fundamental to dynamic data placement and
+scheduilng as \pilotjobs was to computational tasks. As a measure of
+validity, the \pstar model was amenable and easily extensible to
+\pilotdata.  The consistent and symmetrical treatment of data and
+compute in the model led to the generalization of the model as the
+{\it P* Model of Pilot Abstractions}.
 
-\end{itemize}
+% We In spite of broad uptake, there does not exist a well-defined,
+% unifying conceptual model of Pilot-Jobs which can be used to define,
+% compare and contrast different implementations. Often Pilot-Job
+% implementations are strongly coupled to the distributed
+% cyberinfrastructure they were originally designed for. These factors
+% present a barrier to extensibility and interoperability.  The P* Model
+% provides a conceptual basis to compare and contrast different PJ
+% frameworks. Natural and logical extension to the base P* Model lead to
+% an abstraction analogous to Pilot-Job: the Pilot-Data (PD)
+% abstraction.
 
-%\jhanote{related work should come before prior work}
+{\it Pilot-MapReduce}: Following on the foundation laid by the P*
+Model of Pilot abstractions, a natural logical next step was to
+investigate if the capabilities of \pilot-abstractions could be used
+to support agile and dynamic execution modes for application and
+application-patterns?  This was in-turn motivated by the observation
+that the MapReduce programming model is a popular solution for
+distributed data processing and involves map and reduce (compute)
+phases, and a shuffle (data movement) phase. However, traditional
+MapReduce implementations like Hadoop are typically designed for
+single clusters and when scaled across widely distributed clusters
+lead to performance problems.  Furthermore, when working in a
+distributed data context, a static resource assignment for MapReduce
+is very constraining.  Could the use of dynamic runtime environment
+such as that provided by \pilot-abstractions overcome some of the
+traditional limitations of MapReduce, as well as the policies of the
+typical clusters they execute on?  This led to the development of a
+Pilot abstractions based
+MapReduce~\cite{Mantha:2012:PEF:2287016.2287020} programming model ---
+\pilotmapreduce, and an investigation into its suitability for
+distributed data analysis.  \pilotmapreduce decouples the
+logic/pattern of MapReduce from the actual management of the
+distributed compute, data and network resources. By decoupling job
+scheduling and monitoring from the resource management,
+\pilotmapreduce efficiently reuses the resource management and
+late-binding capabilities of BigJob and BigData, which are SAGA based
+Pilot-Job and Pilot-Data implementations.
+
+% we provides a flexible and effective management of compute and data
+% on distributed CyberInfrastructures.  The P* abstractions support
+% management of DCI by various data and compute intensive programming
+% models.  Deployment of Hadoop cluster on shared dynamic resource
+% pool also involves manual management of compute and data resources
+% and managing workflows involving MapReduce execution patterns
+% becomes tedious. Policies of cyberInfrastructures doesn't allow to
+% execute Hadoop on more than one cluster.  Attempts to overcome such
+% limitations of traditional implementations and capabilities of P*
+% Model motivated to
+
+
+
 
 \section{Cloud-based Infrastructures for Data-Intensive Applications}
 
@@ -1433,6 +1501,6 @@ academic.
   support.}
 
 \bibliographystyle{wileyj}
-\bibliography{literatur,saga,saga-related,local}
+\bibliography{literatur,local,saga-related,saga}
 
 \end{document}
