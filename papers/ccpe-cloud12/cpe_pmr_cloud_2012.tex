@@ -359,22 +359,24 @@ After discussing relevant and prior work in the next section, we
 present a brief discussion of the landscape of elements comprising
 cloud cyberinfrastructure. Any effective runtime abstraction must be
 able to support applications against the rich and dynamic landscape.
-Section 4 provides an overview of \pilotdata and affinity, and how
-these concepts apply to cloud infrastructure. In addition to providing
-validation of conceptual extension of the \pilot-Abstraction to clouds,
-we propose that it provides a runtime abstraction which supports
-interoperability across a diverse and dynamic cyberinfrastructre
-landscape.  Section 5 discusses how the \pilot-Abstraction has been
-used to support flexible and extensible implementations of MapReduce
--- a well-known pattern/programing model for data-intensive
-applications.  The integration of MapReduce and \pilot-Abstraction,
-referred to as \pilotmapreduce, paves the way for uniform execution
-environment for grids and clouds, and thereby sets the stage for
-common scheduling, localization and optimization techniques.  In
-Section 6, we design and discuss a set of experiments with the aim of
-establishing \pilot-Abstractions as a runtime abstraction as measured
-by a set of objectives, viz., validity, interoperability and ability
-to support application/application-level patterns.
+Section 4 provides a conceptual extension of the \pilot-Abstraction to
+clouds, we propose that it provides a runtime abstraction which
+supports interoperability across a diverse and dynamic
+cyberinfrastructre landscape.  Section 4 also provides an overview of
+\pilotdata and affinity, and how these concepts apply to cloud
+infrastructure. % In addition to providing
+% validation of
+Section 5 discusses how the \pilot-Abstraction has been used to
+support flexible and extensible implementations of MapReduce -- a
+well-known pattern/programing model for data-intensive applications.
+The integration of MapReduce and \pilot-Abstraction, referred to as
+\pilotmapreduce, paves the way for uniform execution environment for
+grids and clouds, and thereby sets the stage for common scheduling,
+localization and optimization techniques.  In Section 6, we design and
+discuss a set of experiments with the aim of establishing
+\pilot-Abstractions as a runtime abstraction as measured by a set of
+objectives, viz., validity, interoperability and ability to support
+application/application-level patterns.
 
 % although relevant to all three paradigms, in this paper we will focus
 % on techniques and abstractions primarily for the second and third
@@ -765,92 +767,85 @@ algorithm~\cite{bigjob_cloudcom10}.
 
 
 
-
 \section{Pilot-Abstractions for Clouds}
 
-\alnote{the introduction to this section is a bit long. Maybe it makes sense to extract some parts like the P* model into a separate subsection}
+% \alnote{the introduction to this section is a bit long. Maybe it makes
+%   sense to extract some parts like the P* model into a separate
+%   subsection}\jhanote{admitted its long. trying to fix}
 
-
-\pilot-Abstraction have been extensively used on both HPC and HTC
-infrastructures for a range of application scenarios as a resource
-management abstraction to, (i) improve the utilization of resources,
-(ii) to reduce wait times of a collection of tasks, (iii) to
-facilitate bulk or high-throughput simulations where multiple jobs
+\pilot-Abstractions provide a suitable means to marshall heterogeneous
+sets of both compute and data resources and support the efficient
+utilization of different kinds of commercial as well science cloud
+resources.  \pilot-Abstraction have been extensively used on both HPC
+and HTC infrastructures for a range of application scenarios as a
+resource management abstraction to, (i) improve the utilization of
+resources, (ii) to reduce wait times of a collection of tasks, (iii)
+to facilitate bulk or high-throughput simulations where multiple jobs
 need to be submitted which would otherwise saturate the queuing
 system, and (iv) as a basis to implement application specific
-execution, scheduling and policy decisions (see 
-Figure~\ref{fig:figures_pilot-abstractions}).  In general, \pilot-Abstractions 
-provide a suitable means to marshall heterogeneous sets
-of both compute and data resources and support the efficient
-utilization of different kinds of commercial as well science cloud
-resources.  
-
-
-
-The \pilotjobs concept is also applicable to clouds. For example, PaaS
-cloud systems, such as Venus-C (Azure)~\cite{venusc-generic-worker},
-support the notion of Generic Workers (worker role) which are
-conceptually similar to \pilots in that they pull tasks (application
-workload) from a {\it central repository} when the environment is
-available. Furthermore, \pilotjobs map well to IaaS cloud systems,
-wherein a \pilot can marshall multiple VMs, possibly of different
-characteristics and performance capabilities; an agent which pulls and
-executes tasks is deployed on each VM. Ultimately, there is a
-decoupling between task specification and resource assignment, with
-the \pilot-Manager or an equivalent cloud-entity carrying out the
-mapping using dynamic/real-time information. 
+execution, scheduling and policy decisions (see
+Figure~\ref{fig:figures_pilot-abstractions}).
  
-The P* model~\cite{pstar12} is an attempt to provide the first minimal but
-complete model for describing and analyzing \pilotjobs. We particularly 
-extended this model to \pilotdata (PD): PD provides late-binding capabilities 
-for data by separating the allocation of physical storage and 
-application-level \dataunits.  Similar to a \pilotcompute, a \pilotdata 
-provides the ability to create \pilots and to insert respectively retrieve 
-\dataunits. The Pilot-API~\cite{pilot_api} provides an abstract interface
-to both \pilotcompute and \pilotdata implementations that adhere to the P* 
-model.
+%  \subsection*{Scalable and Flexible Resource Managment Capabilities for
+%    Clouds}
+
+As alluded to in the introduction, there are many reasons motivating
+the exploration and extension of \pilot-Abstractions for clouds.
+% Independent of application motivations, here we focus on how \pilots
+% provide a runtime environment that supports ``native capabiliites'' of
+% clouds such as ``cloud bursting'', and also as a way of achieving
+% interoperability. The same capability also makes \pilots suitable
+% abstraction for building higher-level application capabilities, such
+% as \pilotmapreduce.
+\pilotjobs map well to IaaS cloud systems, wherein a \pilot can
+marshall multiple VMs, possibly of different characteristics and
+performance capabilities; an agent which pulls and executes tasks is
+deployed on each VM. Ultimately, there is a decoupling between task
+specification and resource assignment, with the \pilot-Manager or an
+equivalent cloud-entity carrying out the mapping using
+dynamic/real-time information.  Given the above, not surprisingly, the
+\pilotjobs concept has already been applied to clouds; for example,
+PaaS cloud systems, such as Venus-C
+(Azure)~\cite{venusc-generic-worker}, support the notion of Generic
+Workers (worker role) which are conceptually similar to \pilots in
+that they pull tasks (application workload) from a {\it central
+  repository} when the environment is available.
 
 
-% Further, it provides an abstraction for expressing and managing relationships between data units and/or compute units.
-% For this purpose, the API defines 
-% the {\it \pilotdata (PD)} and {\it \dataunit (DU)} entity: A \pd function as a
-% placeholder object that reserves storage spaces for the \dus.
-% The P* model defines
-% common elements of both compute and data \pilot implementations. In this 
-% section we show how the P* model and the \pilot-API that exposes the P* 
-% elements can support data-intensive applications in clouds as well as hybrid 
-% grid/cloud environments.
+% Using the compute/data abstraction of \pilots, provides a flexible
+% route to cloud/grid interoperability. The case for cloud
+% interoperability and cloud-grid interoperability has been
+% made. Motivated by the need for such interoperability an important
+% question that arises is how can this be provided in a extensible and
+% flexible fashion. The answer is partly dependent upon the level and
+% nature of interoperability desired, but 
+
+Much has been said and assumed about the ``elastic'' properties of
+clouds. Clouds do not provide infinite and immediate access to
+resources, at least not with at the same level of
+quality/performance. The putative illusion of infinite elasticity is a
+consequence of system-level multiplexing. We posit that such
+``elastic'' characteristics can also be provided by runtimes which
+support qualitatively similar dynamic execution modes.  Also, one
+route to interoperability definitely arises from a unified model of
+runtime execution that \pilots present.  In this section, we show how
+such an unification can be provided.
+
 
 \begin{figure}[t]
 	\centering
 		\includegraphics[width=0.7\textwidth]{figures/cloud_pilot_job.pdf}
-	\caption{\textbf{BigJob Pilot Abstractions and Supported Resource Types:} 
-	BigJob and BigData provide a unified abstraction to compute and data 
-	resources of both grid and cloud environments. Resources are either 
-	accessed via 
-	SAGA~\cite{ogf-gfd-90,saga-bliss-pd} or via a custom adaptor.}
+                \caption{\textbf{BigJob Pilot Abstractions and
+                    Supported Resource Types:} BigJob and BigData
+                  provide a unified abstraction to compute and data
+                  resources of both grid and cloud
+                  environments. Resources are either accessed via
+                  SAGA~\cite{ogf-gfd-90,saga-bliss-pd} or via a custom
+                  adaptor.}
 	\label{fig:figures_cloud_pilot_job}
 \end{figure}
 
-%  \jhanote{we
-%   should reference the related work section here, for example the
-%   copilot work coming out of Geneva}
 
-%\subsection{Motivation}
-
-\pilotjobs and \pilotdata decouple resource allocation from resource binding
-and allow the efficient utilization of resources. There are many reasons
-motivating the exploration and extension of \pilot-Abstractions for clouds; we
-focus on the following primary motivations: (i) \pilots provide a well-proven abstraction to resources for building higher-level capabilities, (ii) \pilots as way of achieving interoperability, and (iii) the ability to build flexible hybrid infrastructures to support use cases such as ``cloud bursting.''
-
-% (i)
-\pilots are a proven abstraction for resource effective application-level
-resource management. Using this high-level abstraction to computing and
-storage resources, higher-level frameworks can as depicted in
-Figure~\ref{fig:figures_pilot-abstractions} request resources (\pilots), on
-which they then can run tasks (\computeunits). Thus, \pilots can be used as
-basis for building capabilities on grids/clouds; Pilot-MapReduce is a good
-example for this (see section~\ref{sec:pmr}).
 \begin{wrapfigure}{r}{0.4\textwidth}
 	\upp\upp
 	\centering
@@ -863,76 +858,37 @@ example for this (see section~\ref{sec:pmr}).
 	\label{fig:figures_pilot-abstractions}
 \end{wrapfigure}
 
-%(ii)
-Using the compute/data abstraction of \pilots, provides a flexible
-route to cloud/grid interoperability. The case for cloud interoperability and
-cloud-grid interoperability has been made. Motivated by the need for such
-interoperability an important question that arises is how can this be provided
-in a extensible and flexible fashion. The answer is partly dependent upon the
-level and nature of interoperability desired. But one route to
-interoperability definitely arises from a unified model of runtime execution.
-Viewed from another perspective, much has been said and incorrectly assumed
-about the ``elastic'' properties of clouds. Clouds do not provide infinite and
-immediate access to resources, at least not with at the same level of
-quality/performance. The putative illusion of infinite elasticity is a
-consequence of system-level multiplexing. We posit that such ``elastic''
-characteristics can also be provided by runtimes which support qualitatively
-similar dynamic execution modes. Are there abstractions that can provide such
-unification?
+% The use of hybrid infrastructures presents a comprehensive approach to
+% data-distribution to support large-scale data-analytics.
 
 
-%(iii)
-The use of hybrid infrastructures presents a comprehensive approach to
-data-distribution to support large-scale data-analytics. An often and commonly
-cited use-case for hybrid grid/clouds usage, is ``cloud bursting''.
-Interesting as it may be, we view the use of clouds as ``excess capacity'' as
-a less fundamental usage of distributed cyberinfrastructure, and more a
-transient but fortunate occurrence of the details of cloud operations and grid
-loads. Arguably, a more fundamental issue at stake is the ability to use
-clouds in conjunction with other distributed resources so as to efficiently
-manage/handle data (c.f. three analysis paradigms). In other words, clouds can
-provide the elements of the infrastructure to enable an optimal distribution
-given a desired architecture has been determined.
-
-% (iii) \pilotdata provides interesting and
-% advanced support for data-compute utilization, e.\,g., affinity-based
-% scheduling/placement.
-
-% \begin{verbatim}
-% (i) Describe job and data perspective for each of these points.
-% Submit to clouds through grids (e.g. OSG/EGI) 
-% (ii) Data perspective to hybrid infrastructure: data-distribution 
-% problem requires different kinds of operations 
-% \end{verbatim}
-
-\alnote{not sure what to do with that... It's not really different:
-The specifics of matching \cus to clouds is distinct from the matching
-\cus to grids.}\jhanote{need to merge...}
-
-% {\it The case for grid-cloud interoperability:} 
-\jhanote{Highlight
-  different scenarios in which grid-cloud interoperability would be
-  useful} \jhanote{By providing a uniform runtime environment, ie.
-  how do we handle grid-cloud affinity and thus reason about how to
-  move/distribute data... we attempt to provide a uniform distributed
-  cyberinfrastructure..} \jhanote{Need to go back and reference
-  introduction again, as well as the previous section on cloud data
-  infrastructure}
+% \alnote{not sure what to do with that... It's not really different:
+%   The specifics of matching \cus to clouds is distinct from the
+%   matching \cus to grids.}\jhanote{previous comment put out of place?}
 
 
-%and details of how to manage the distribution of data.
+% \jhanote{Highlight
+%   different scenarios in which grid-cloud interoperability would be
+%   useful} \jhanote{By providing a uniform runtime environment, ie.
+%   how do we handle grid-cloud affinity and thus reason about how to
+%   move/distribute data... we attempt to provide a uniform distributed
+%   cyberinfrastructure..} \jhanote{Need to go back and reference
+%   introduction again, as well as the previous section on cloud data
+%   infrastructure}
 
-%\jhanote{Important Point: How do we handle affinity across different
-%  infrastructures: grid-cloud} \alnote{see Figure 5 in section 4.4}
+\subsection{Implementing the P* Model: BigJob and BigData}
 
+The P* model~\cite{pstar12} is an attempt to provide the first minimal
+but complete model for describing and analyzing \pilotjobs. We
+particularly extended this model to \pilotdata (PD): PD provides
+late-binding capabilities for data by separating the allocation of
+physical storage and application-level \dataunits.  Similar to a
+\pilotcompute, a \pilotdata provides the ability to create \pilots and
+to insert respectively retrieve \dataunits. The
+Pilot-API~\cite{pilot_api} provides an abstract interface to both
+\pilotcompute and \pilotdata implementations that adhere to the P*
+model.
 
-% Timeframe of infrastructure change is much larger than for application
-% change Does the api evolvement make it difficult to applications to
-% follow: what about apps that want to use EUCA, OpenStack
-
-
-
-\subsection{BigJob and  BigData}
 
 \alnote{Better P* introduction...}
 \alnote{Bring CU, DU, VMs, pilot... How are VMs started through Pilot 
@@ -1173,6 +1129,15 @@ run, the \du is exported to the working directory of the \cu. In the
 cloud cases e.\,g.\ this means that the data is copied from an object
 store to the local filesystem where the \cu runs.
 
+Having discussed how \pilots are a good abstraction for resource
+effective application-level resource management. Using this high-level
+abstraction to computing and storage resources, higher-level
+frameworks can as depicted in
+Figure~\ref{fig:figures_pilot-abstractions} request resources
+(\pilots), on which they then can run tasks (\computeunits). Thus,
+\pilots can be used as basis for building capabilities on
+grids/clouds; Pilot-MapReduce is a good example for this (see
+section~\ref{sec:pmr}).
 
 \section{Pilot-MapReduce for Clouds}
 \label{sec:pmr}
@@ -1428,26 +1393,39 @@ pilot-abstractions will provide a useful vehicle by which many of
 these issues can be researched, and thus their use is not simply
 academic.
 
+\jhanote{Move? An often and commonly cited use-case for hybrid
+  grid/clouds usage, is ``cloud bursting''.  Interesting as it may be,
+  we view the use of clouds as ``excess capacity'' as a less
+  fundamental usage of distributed cyberinfrastructure, and more a
+  transient but fortunate occurrence of the details of cloud
+  operations and grid loads. Arguably, a more fundamental issue at
+  stake is the ability to use clouds in conjunction with other
+  distributed resources so as to efficiently manage/handle data
+  (c.f. three analysis paradigms). In other words, clouds can provide
+  the elements of the infrastructure to enable an optimal distribution
+  given a desired architecture has been determined.}
+
 
 
 \section*{Acknowledgements}
-This work is funded by NSF CHE-1125332 (Cyber-enabled Discovery and
-Innovation), HPCOPS NSF-OCI 0710874 award, NSF-ExTENCI (OCI-1007115).
-Important funding for SAGA has been provided by the UK EPSRC grant
-number GR/D0766171/1 (via OMII-UK) and the Cybertools project (PI Jha)
-NSF/LEQSF (2007-10)-CyberRII-01, NSF EPSCoR Cooperative Agreement
-No. EPS-1003897 with additional support from the Louisiana Board of
-Regents.  SJ acknowledges the e-Science Institute, Edinburgh for
-supporting the research theme. ``Distributed Programming
-Abstractions'' \& 3DPAS. MS is sponsored by the program of BiG Grid,
-the Dutch e-Science Grid, which is financially supported by the
-Netherlands Organisation for Scientific Research, NWO. This work has
-also been made possible thanks to computer resources provided by
-TeraGrid TRAC award TG-MCB090174 (Jha) and BiG Grid.  This document
-was developed with support from the US NSF under Grant No. 0910812 to
-Indiana University for ``FutureGrid: An Experimental, High-Performance
-Grid Test-bed''. We thank FutureGrid support, in particular Fugang
-Wang for exceptional support.
+\footnotesize{This work is funded by NSF CHE-1125332 (Cyber-enabled
+  Discovery and Innovation), HPCOPS NSF-OCI 0710874 award, NSF-ExTENCI
+  (OCI-1007115).  Important funding for SAGA has been provided by the
+  UK EPSRC grant number GR/D0766171/1 (via OMII-UK) and the Cybertools
+  project (PI Jha) NSF/LEQSF (2007-10)-CyberRII-01, NSF EPSCoR
+  Cooperative Agreement No. EPS-1003897 with additional support from
+  the Louisiana Board of Regents.  SJ acknowledges the e-Science
+  Institute, Edinburgh for supporting the research
+  theme. ``Distributed Programming Abstractions'' \& 3DPAS. MS is
+  sponsored by the program of BiG Grid, the Dutch e-Science Grid,
+  which is financially supported by the Netherlands Organisation for
+  Scientific Research, NWO. This work has also been made possible
+  thanks to computer resources provided by TeraGrid TRAC award
+  TG-MCB090174 (Jha). This document was developed with support from
+  the US NSF under Grant No. 0910812 to Indiana University for
+  ``FutureGrid: An Experimental, High-Performance Grid Test-bed''. We
+  thank FutureGrid support, in particular Fugang Wang for exceptional
+  support.}
 
 \bibliographystyle{wileyj}
 \bibliography{literatur,saga,saga-related,local}
