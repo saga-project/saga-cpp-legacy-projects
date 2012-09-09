@@ -117,7 +117,7 @@ T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-\runningheads{A. Luckow et al.}{Pilot-Abstractions for MapReduce-based  Cloud Applications}
+\runningheads{A. Luckow et al.}{Pilot-Abstractions for Data-Intensive Cloud Applications}
 
 \title{Pilot-Abstractions for Data-Intensive Cloud Applications}
 
@@ -1402,11 +1402,16 @@ investigate different scenarios: In scenario (a) we investigate the influence
 of the input data size on the overall runtime; in scenario (b) we analyze
 different infrastructures configurations.
 
-\begin{figure}[th]
+\begin{figure}[t]
     % \begin{subfigure}[b]{0.5\textwidth}
 	\centering
 		\includegraphics[width=0.9\textwidth]{performance/pd_fg_input_size.pdf}
-	\caption{\textbf{Dependence on Input Data Size (Future Grid):}}
+	\caption{\textbf{Dependence on Input Data Size 
+	(FutureGrid/Eucalyptus/Walrus on India):} With the increasing amount of 
+	data both the time to upload the files to the cloud and the the time to 
+	download to the VM increases. Note that the VM startup time (observable in 
+	the \pilot queue time) depends on external factors, in this case the 
+	current utilization of the Eucalyptus cluster.}
 	\label{fig:performance_size}
    % \end{subfigure}
    %    \begin{subfigure}[b]{0.5\textwidth}
@@ -1422,46 +1427,74 @@ scenario, we utilize the Eucalyptus VM and Walrus service on India. The
 initial dataset resides on India. As expected, the runtime increases with the 
 increasing amount of data. Both the data upload time to cloud and download 
 time within the Eucalyptus cloud increase linearly. As all transfers are done 
-in a local network this is an expected result. However, we observed a high 
-fluctuations in the VM startup times on Eucalyptus, which is probably related 
-to the different utilizations of the Eucalyptus cluster (the data was 
-collected over a period of week).
+in a local network this is an expected result. Also, we observed a high 
+fluctuations in the VM startup times, which can be observed in the \pilot 
+queue times. This is caused by externally controlled factors, most likely
+the current utilizations of the Eucalyptus cluster (the data was 
+collected over a period of week). In general, the \pilot queue time varies on 
+India between 1 and 10\,min.
 
 \begin{figure}[ht]
     % \begin{subfigure}[b]{0.5\textwidth}
 	\centering
 \centering
 \includegraphics[width=0.9\textwidth]{performance/pd_google_aws.pdf}
-\caption{\textbf{BigJob/BigData Support for Different Resource Types:}}
+\caption{\textbf{BigJob/BigData on Different Infrastructures:} BigJob/BigData
+supports different commercial and science cloud infrastructures each with its
+own types of storage and compute services. In scenario (b1), (b2), (b4), (b6)
+we execute 1\,\cu; in scenario (b3), (b5) and (b7) we run 5\,\cus per VM core
+to test the available connectivity between VM and cloud storage. A
+critical factor in particular for the commercial clouds of Amazon and Google
+is the available bandwidth for the data ingest. }
 \label{fig:performance_pd_google_aws}
 \end{figure}
 
 
-In scenario (b) we investigate the execution of different workloads and
-infrastructures with an input \du of size 1\,GB.
-Figure~\ref{fig:performance_pd_google_aws} shows the results. Typically, data
-movement into the cloud are more expensive than intra-cloud data movements. In
-this particular scenario the data ingest time for clouds varies between
-$~$4\,minutes (for Amazon) and $~$18\,minutes. The primary determinant of this
-time is the available Internet bandwidth. Once the data is in the cloud, it
-can be re-used multiple times. While the ingest performance is determined by
-external factors (currently utilization of the Internet connection), in the
-investigated scenario the data transfer time is consistently higher Google
-Compute Engine than for Amazon. The external dependency on Internet bandwidth
-is the high standard deviation (that is mainly caused by the data ingest
-phase). Also, it must be noted that Amazon gives you more option to select a
-location for your data -- in this scenario the region us-east, which is close
-to the hotel resource, was used. For Google Storage it is only possible to
-select between the US and Europe.
+In scenario (b) we investigate the execution of different
+workload/infrastructure configurations with a constant input \du of size
+1\,GB. Figure~\ref{fig:performance_pd_google_aws} shows the results. Scenario
+(b1) - (b3) show different configurations on FG/India: in (b1) and (b2) we
+compare different \pilotdata backends (Eucalyptus Walrus and SSH) on the same
+resources. In both cases we upload the 1\,GB input file to the Walrus resp.
+SSH-based storage. We then execute 1\,\cu that downloads the data prior its
+execution. While the initial upload to the Walrus respectively SSH \pilotdata
+is comparable, the download to the VM time with SSH is considerable slower
+than for Walrus. In general SSH is associated with additional overheads caused
+e.\,g.\ by the encryption, in particular when compared to the HTTP-based
+Walrus protocol. Again, the \pilot queue was highly unpredictable and dominate
+the overall runtime in these scenarios. In (b3) we execute in total execute 
+20\,\cus (up to 4 concurrently) each of them downloads the input data from the 
+Walrus \pd. While the initial data is only uploaded once, it obviously leads 
+to a significant increase in the download time indicating that the available bandwidths to the cloud storage might have been saturated.
 
-With respect to the \pilot startup time (which includes the VM startup time), 
-GCE is clearly faster than Amazon EC2. Also, the available intra-cloud 
-bandwidths are much better for GCE: The data download time for GS/GCE is about 
-40\,\% faster than for S3/EC2. Also, the \cu execution time are significantly 
-lower on GCE. In both cases the smallest possible VM was used; however, it 
-must be noted that Amazon's t1.micro instance type doesn't provide any 
-guaranteed CPU time. Also the memory is with 613\,MB considerable smaller than 
-for Google's smallest VM n1-standard-1, which has 3.75\,GB memory.
+The cloud scenarios (b4) - (b7) are dominated by the data ingest phase
+(i.\,e.\ the upload time). Typically, data movement into the cloud are slower
+and more expensive than intra-cloud data movements. In this particular
+scenario the data ingest time for clouds varies between $\sim$4\,minutes for
+Amazon and $\sim$18\,minutes for Google. The primary determinant of this time
+is the available Internet bandwidth. While the upload performance is
+determined by external factors (currently utilization of the Internet
+connection), in the investigated scenario the data transfer time is
+consistently higher for Google Compute Engine than for Amazon. The external
+dependency on Internet bandwidth is the high standard deviation (that is
+mainly caused by the data ingest phase). Also, it must be noted that Amazon
+gives you more option to select a location for your data -- in this scenario
+the region us-east, which is close to the hotel resource, was used. For Google
+Storage it is only possible to select between the US and Europe. Once the data
+is uploaded to the cloud, it can be re-used multiple times. Usually, the cloud 
+providers ensure that a suitable link between VM and cloud storage exists.
+
+The \pilot queue time (which includes the VM startup time), GCE is faster than
+Amazon EC2. Also, the available intra-cloud bandwidths are better for GCE: The
+data download time for GS/GCE is about 40\,\% faster than for S3/EC2 in the
+single \cu case. However, the bandwidth available at GCE saturates fast with
+8\,\cus concurrently downloading the input data: the download time in the
+multi \cu scenario is 12 times slower on GCE compared to a slowdown of only 5
+times on Amazon. Also, the \cu execution time are significantly lower on GCE.
+In both cases the smallest possible VM was used; however, it must be noted
+that Amazon's t1.micro instance type doesn't provide any guaranteed CPU time.
+Also the memory is with 613\,MB considerable smaller than for Google's
+smallest VM n1-standard-1, which has 3.75\,GB memory.
 
 
 
