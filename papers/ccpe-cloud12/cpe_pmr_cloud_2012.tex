@@ -1525,7 +1525,11 @@ MapReduce application with PMR (GS/PMR).
 \begin{figure}[ht]
 \centering
 \includegraphics[width=0.7\textwidth]{performance/pmr_cloud.pdf}
-\caption{\textbf{PMR extensibility to clouds}   }
+\caption{\textbf{PMR on Clouds:} The figures show the results of different PMR 
+runs on EC2. The input data has been initially moved to S3. As expected, the 
+runtime increases with the input size, which is consistent with earlier 
+results~\cite{Mantha:2012:PEF:2287016.2287020}. The observed fluctuations are generally very low (compared to the overall runtime).
+}
 \label{fig:performance_pmr_aws}
 \end{figure}
 
@@ -1539,17 +1543,23 @@ duplicate read removal in reduce phase using Picard’s rmdup
 ~\cite{picard}. The GS/PMR reducer removes duplicate reads based on
 the key fields-chromosome, position and strand of the mapper output.
 
-For experiments demonstrating the utilization of \pilot-abstractions
-for \pilotmapreduce, we utilize a large Amazon VM (type: m2.4xlarge)
-as well as different sets (1GB, 2GB, 4GB) of input data, which are
-stored on Amazon S3. We run a total of 8 MapReduce workers and
-utilized a chunk size of 475740 short reads. Results are plotted in
-Fig.~\ref{fig:performance_pmr_aws}.
+For experiments demonstrating the utilization of \pilot-abstractions for
+\pilotmapreduce, we utilize a large Amazon VM (type: m2.4xlarge) as well as
+different sets (1\,GB, 2\,GB, 4\,GB) of input data, which has been initially
+transferred to Amazon S3. PMR also uses a S3-\pd to store in the necessary 
+chunk, reducer and mapper scripts. The application re-connect at the beginning 
+to this data using the \pd URL. Consistent we earlier experiments, the upload 
+to the S3 \pd requires between $\sim$2.5\,minutes for the 1 GB and $\sim$10\,minutes for the 4\,GB scenario. 
 
+We run a total of 8 MapReduce workers and utilized a chunk size of
+475740 short reads. Results are plotted in Fig.~\ref{fig:performance_pmr_aws}. 
 The experiment is repeated three times, with experiment-to-experiment
-fluctuations in time relatively small (compared to actual values).
-Consistent with Ref.~\cite{Mantha:2012:PEF:2287016.2287020}, the the
-reduce phase increases essentially linearly with input data size.
+fluctuations in time relatively small (compared to actual values). The time 
+for launching the \pilot, which includes the VM startup time, is about 
+$\sim$3\,minutes. Consistent with Ref.~\cite{Mantha:2012:PEF:2287016.2287020}, 
+the reduce phase increases essentially linearly with input data size. The 
+intermediate data that needs to be moved to the reduce task is about 1.8 as 
+large as the input data.
 
 % \begin{itemize}
 % 	\item grid only
@@ -1594,10 +1604,8 @@ research.
   Cooperative Agreement No. EPS-1003897 with additional support from
   the Louisiana Board of Regents.  SJ acknowledges the e-Science
   Institute, Edinburgh for supporting the research
-  theme. ``Distributed Programming Abstractions'' \& 3DPAS. MS is
-  sponsored by the program of BiG Grid, the Dutch e-Science Grid,
-  which is financially supported by the Netherlands Organisation for
-  Scientific Research, NWO. This work has also been made possible
+  theme. ``Distributed Programming Abstractions'' \& 3DPAS. 
+  This work has also been made possible
   thanks to computer resources provided by TeraGrid TRAC award
   TG-MCB090174 (Jha). This document was developed with support from
   the US NSF under Grant No. 0910812 to Indiana University for
