@@ -9,13 +9,22 @@ all: show
 again: 
 	 $(MAKE) -W $(BASE).tex $(filter-out again, $(MAKECMDGOALS))
 
-show: $(BASE).dvi
-	test -e .xdvi_lock || ( touch .xdvi_lock; $(XDVI) $(BASE).dvi; rm -f .xdvi_lock ) &
-	-@gvim --servername XDVI-$(BASE) --remote-send "<ESC>:call XDVI_jump()<CR>i"
-
 $(BASE).dvi : $(BASE).tex
 	latex    $(BASE)
 	bibtex   $(BASE)
+
+$(BASE).pdf : $(BASE).tex
+	pdflatex $(BASE)
+	bibtex   $(BASE)
+
+show: xdvi
+	
+xdvi: $(BASE).dvi
+	test -e .xdvi_lock || ( touch .xdvi_lock; $(XDVI) $(BASE).dvi; rm -f .xdvi_lock ) &
+	-@gvim --servername XDVI-$(BASE) --remote-send "<ESC>:call XDVI_jump()<CR>i"
+
+xpdf: $(BASE).pdf
+	xpdf -z page $(BASE).pdf &
 
 clean:
 	rm -f *.aux
@@ -31,9 +40,6 @@ distclean: clean
 	rm -f $(BASE).dvi
 	rm -f $(BASE).ps
 	rm -f .xdvi_lock
-
-xpdf: all
-	xpdf -z page $(BASE).pdf &
 
 edit:
 	$(EDITOR) *.tex *.bib Makefile &
