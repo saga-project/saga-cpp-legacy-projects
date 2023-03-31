@@ -24,7 +24,7 @@ setup(name='BigData',
       platforms = ('Unix', 'Linux', 'Mac OS'),
       packages=['bigdata', 'examples'],
       data_files=['bigdata/VERSION'],
-      install_requires=['uuid', 'threadpool', 'virtualenv', 'redis==4.5.3', 'paramiko'],
+      install_requires=['uuid', 'threadpool', 'virtualenv', 'redis==4.5.4', 'paramiko'],
       entry_points = {
         'console_scripts': []
       }
