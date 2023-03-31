@@ -38,7 +38,7 @@ setup(name='BigJob',
 #        '': ['README', 'README'],
 #        '': ['VERSION', 'VERSION']
 #      },
-      install_requires=['paramiko-on-pypi', 'multiprocessing', 'uuid', 'threadpool', 'virtualenv', 'redis==4.5.3', 'bliss'],
+      install_requires=['paramiko-on-pypi', 'multiprocessing', 'uuid', 'threadpool', 'virtualenv', 'redis==4.5.4', 'bliss'],
       entry_points = {
         'console_scripts': [
             'test-bigjob = examples.example_local_single:main',
